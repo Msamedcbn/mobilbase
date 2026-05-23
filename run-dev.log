@@ -1,0 +1,118 @@
+
+> telefoncupro@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.5
+  - Local:        http://localhost:3000
+  - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 1909ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 2.2s (515 modules)
+ GET /_next/static/css/app/layout.css 404 in 2395ms
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving '../../../typescript/lib/typescript' in c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build for build dependencies doesn't lead to expected result 'C:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\typescript\lib\typescript.js', but to 'c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\typescript\lib\typescript.js' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ../../../typescript/lib/typescript (expected C:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\typescript\lib\typescript.js)
+<w>  at file dependencies c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build\load-jsconfig.js
+<w>  at file c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build\load-jsconfig.js
+<w>  at file dependencies c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build\webpack-config.js
+<w>  at file c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build\webpack-config.js
+<w>  at file dependencies c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at file c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at resolve commonjs c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving '../../../typescript/lib/typescript' in c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build for build dependencies doesn't lead to expected result 'C:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\typescript\lib\typescript.js', but to 'c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\typescript\lib\typescript.js' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ../../../typescript/lib/typescript (expected C:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\typescript\lib\typescript.js)
+<w>  at file dependencies c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build\load-jsconfig.js
+<w>  at file c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build\load-jsconfig.js
+<w>  at file dependencies c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build\webpack-config.js
+<w>  at file c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build\webpack-config.js
+<w>  at file dependencies c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at file c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at resolve commonjs c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+ ✓ Compiled /middleware in 173ms (73 modules)
+ ○ Compiling /login ...
+ ✓ Compiled /login in 753ms (521 modules)
+ GET /login 200 in 830ms
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving '../../../typescript/lib/typescript' in c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build for build dependencies doesn't lead to expected result 'C:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\typescript\lib\typescript.js', but to 'c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\typescript\lib\typescript.js' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ../../../typescript/lib/typescript (expected C:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\typescript\lib\typescript.js)
+<w>  at file dependencies c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build\load-jsconfig.js
+<w>  at file c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build\load-jsconfig.js
+<w>  at file dependencies c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build\webpack-config.js
+<w>  at file c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build\webpack-config.js
+<w>  at file dependencies c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build\handle-externals.js
+<w>  at file c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build\handle-externals.js
+<w>  at file dependencies c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at file c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at resolve commonjs c:\Users\coban\OneDrive\Masaüstü\SaaSTel\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+ GET /login 200 in 59ms
+ GET /login 200 in 68ms
+ ✓ Compiled /api/auth/me in 237ms (292 modules)
+ GET /api/auth/me 401 in 321ms
+ GET /api/auth/me 401 in 8ms
+ ✓ Compiled /api/auth/login in 245ms (310 modules)
+ POST /api/auth/login 200 in 306ms
+ ✓ Compiled / in 138ms (564 modules)
+ ✓ Compiled /tamir-takip in 127ms (566 modules)
+prisma:error 
+Invalid `prisma.repairRecord.findMany()` invocation:
+
+
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+ ○ Compiling /buyback ...
+ ✓ Compiled /buyback in 554ms (617 modules)
+ ✓ Compiled /api/buybacks in 104ms (345 modules)
+ ✓ Compiled (354 modules)
+ GET /api/buyback/pricing-audit 200 in 279ms
+ GET /api/admin/system/pdf-settings 200 in 300ms
+ GET /api/buybacks 200 in 306ms
+ GET /api/offer-pricing-rules 200 in 307ms
+ GET /api/buyback/pricing-audit 200 in 17ms
+ GET /api/admin/system/pdf-settings 200 in 22ms
+ GET /api/offer-pricing-rules 200 in 21ms
+ GET /api/buybacks 200 in 24ms
+ ✓ Compiled /pos in 304ms (640 modules)
+ ✓ Compiled /api/customers in 128ms (360 modules)
+ ✓ Compiled (362 modules)
+ GET /api/auth/me 200 in 282ms
+ GET /api/products 200 in 291ms
+ GET /api/customers 200 in 296ms
+ GET /api/auth/me 200 in 19ms
+ GET /api/products 200 in 22ms
+ GET /api/customers 200 in 19ms
+ ✓ Compiled /stok in 171ms (646 modules)
+prisma:error 
+Invalid `prisma.stockItem.findMany()` invocation:
+
+
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+ ✓ Compiled /musteriler-veresiye in 217ms (648 modules)
+prisma:error 
+Invalid `prisma.customer.findMany()` invocation:
+
+
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+prisma:error 
+Invalid `prisma.accountEntry.findMany()` invocation:
+
+
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+ GET / 200 in 189ms
+ GET /api/auth/me 200 in 27ms
+ GET /api/auth/me 200 in 15ms
+ ✓ Compiled in 1309ms (565 modules)
+ ✓ Compiled in 190ms (295 modules)
+ ✓ Compiled in 276ms (295 modules)
+ ✓ Compiled in 608ms (565 modules)
+ ✓ Compiled in 157ms (295 modules)
+ ✓ Compiled in 177ms (295 modules)
+ ✓ Compiled in 189ms (295 modules)
+ ✓ Compiled in 177ms (295 modules)
+[?25h

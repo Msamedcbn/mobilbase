@@ -1,0 +1,424 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum RepairStatus {
+  RECEIVED
+  IN_PROGRESS
+  WAITING_PART
+  READY
+  DELIVERED
+  CANCELED
+}
+
+enum BuybackStatus {
+  DRAFT
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum ReconciliationStatus {
+  NONE
+  SENT
+  VIEWED
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum MailLogStatus {
+  QUEUED
+  SENT
+  FAILED
+}
+
+enum SaleStatus {
+  DRAFT
+  PAID
+  CANCELED
+  REFUNDED
+}
+
+enum LedgerType {
+  DEBIT
+  CREDIT
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum PaymentMethod {
+  CASH
+  CREDIT_CARD
+  ON_ACCOUNT
+}
+
+enum UserRole {
+  ADMIN
+  CASHIER
+  TECHNICIAN
+  MANAGER
+  ACCOUNTANT
+}
+
+model Customer {
+  id              String          @id @default(cuid())
+  nationalId      String?         @unique
+  fullName        String
+  phone           String          @unique
+  email           String?
+  notes           String?
+  creditLimit     Decimal         @default(0) @db.Decimal(10, 2)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  devices         Device[]
+  invoices        Invoice[]
+  buybacks        BuybackDeal[]
+  buybackWizardData BuybackWizardData[]
+  posSales        PosSale[]
+  accountEntries  AccountEntry[]
+  transactions    Transaction[]
+  auditLogs       AuditLog[]
+}
+
+model Device {
+  id              String          @id @default(cuid())
+  customerId      String
+  brand           String
+  model           String
+  imei            String?         @unique
+  serialNumber    String?
+  storage         String?
+  color           String?
+  conditionNote   String?
+  isSecondHandStock Boolean       @default(false)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  customer        Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  repairRecords   RepairRecord[]
+  buybackDeals    BuybackDeal[]
+  wizardRecords   BuybackWizardData[]
+}
+
+model BuybackWizardData {
+  id                  String   @id @default(cuid())
+  customerId          String
+  deviceId            String
+  productId           String?
+  nationalId          String
+  fullName            String
+  phone               String
+  brand               String
+  model               String
+  storage             String
+  imei                String
+  screenCondition     String
+  bodyCondition       String
+  batteryHealth       String
+  hasBrokenComponent  Boolean
+  offeredPrice        Decimal  @db.Decimal(10, 2)
+  contractApprovedAt  DateTime @default(now())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  customer            Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  device              Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  product             Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+}
+
+model RepairRecord {
+  id              String          @id @default(cuid())
+  deviceId         String
+  issueDescription String
+  diagnosisNote    String?
+  laborCost        Decimal         @default(0) @db.Decimal(10, 2)
+  partCost         Decimal         @default(0) @db.Decimal(10, 2)
+  totalCost        Decimal         @default(0) @db.Decimal(10, 2)
+  status           RepairStatus    @default(RECEIVED)
+  receivedAt       DateTime        @default(now())
+  completedAt      DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  device           Device          @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  invoice          Invoice?
+  branchId         String?
+  branch           Branch?         @relation(fields: [branchId], references: [id])
+}
+
+model Invoice {
+  id              String          @id @default(cuid())
+  customerId      String
+  repairRecordId  String?         @unique
+  invoiceNo       String          @unique
+  totalAmount     Decimal         @db.Decimal(10, 2)
+  paidAmount      Decimal         @default(0) @db.Decimal(10, 2)
+  dueAmount       Decimal         @default(0) @db.Decimal(10, 2)
+  issuedAt        DateTime        @default(now())
+  dueDate         DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  customer        Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  repairRecord    RepairRecord?   @relation(fields: [repairRecordId], references: [id], onDelete: SetNull)
+}
+
+model BuybackDeal {
+  id              String          @id @default(cuid())
+  customerId      String
+  deviceId        String
+  offeredPrice    Decimal         @db.Decimal(10, 2)
+  agreedPrice     Decimal?        @db.Decimal(10, 2)
+  status          BuybackStatus   @default(DRAFT)
+  reconciliationStatus ReconciliationStatus @default(NONE)
+  evaluationNote  String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  customer        Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  device          Device          @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  reconciliations BuybackReconciliation[]
+  notifications   BuybackNotification[]
+  bankAccountId   String?
+  bankAccount     BankAccount?    @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
+}
+
+model PosSale {
+  id              String          @id @default(cuid())
+  customerId      String?
+  saleNo          String          @unique
+  totalAmount     Decimal         @db.Decimal(10, 2)
+  discountAmount  Decimal         @default(0) @db.Decimal(10, 2)
+  finalAmount     Decimal         @db.Decimal(10, 2)
+  status          SaleStatus      @default(PAID)
+  soldAt          DateTime        @default(now())
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  customer        Customer?       @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  branchId        String?
+  branch          Branch?         @relation(fields: [branchId], references: [id])
+}
+
+model StockItem {
+  id              String          @id @default(cuid())
+  sku             String          @unique
+  name            String
+  category        String
+  quantity        Int             @default(0)
+  purchasePrice   Decimal         @default(0) @db.Decimal(10, 2)
+  salePrice       Decimal         @default(0) @db.Decimal(10, 2)
+  minThreshold    Int             @default(0)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model AccountEntry {
+  id              String          @id @default(cuid())
+  customerId      String
+  type            LedgerType
+  amount          Decimal         @db.Decimal(10, 2)
+  description     String?
+  dueDate         DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  customer        Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  bankAccountId   String?
+  bankAccount     BankAccount?    @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
+}
+
+model Product {
+  id              String            @id @default(cuid())
+  name            String
+  barcode         String            @unique
+  category        String?
+  stock           Int               @default(0)
+  purchasePrice   Decimal           @default(0) @db.Decimal(10, 2)
+  salePrice       Decimal           @default(0) @db.Decimal(10, 2)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  transactionItems TransactionItem[]
+  wizardRecords   BuybackWizardData[]
+  branchStocks    ProductBranchStock[]
+}
+
+model Transaction {
+  id              String            @id @default(cuid())
+  transactionNo   String            @unique
+  type            TransactionType
+  paymentMethod   PaymentMethod
+  customerId      String?
+  totalAmount     Decimal           @db.Decimal(10, 2)
+  note            String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  customer        Customer?         @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  items           TransactionItem[]
+  branchId        String?
+  branch          Branch?           @relation(fields: [branchId], references: [id])
+  bankAccountId   String?
+  bankAccount     BankAccount?      @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
+}
+
+model TransactionItem {
+  id              String            @id @default(cuid())
+  transactionId   String
+  productId       String
+  quantity        Int
+  unitPrice       Decimal           @db.Decimal(10, 2)
+  lineTotal       Decimal           @db.Decimal(10, 2)
+  transaction     Transaction       @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  product         Product           @relation(fields: [productId], references: [id], onDelete: Restrict)
+}
+
+model OfferPricingRule {
+  id                 String   @id @default(cuid())
+  brand              String
+  modelPattern       String?
+  basePrice          Decimal  @db.Decimal(10, 2)
+  minPrice           Decimal? @db.Decimal(10, 2)
+  maxPrice           Decimal? @db.Decimal(10, 2)
+  excellentBonusPct  Decimal  @default(0.20) @db.Decimal(5, 2)
+  goodBonusPct       Decimal  @default(0.00) @db.Decimal(5, 2)
+  badPenaltyPct      Decimal  @default(0.20) @db.Decimal(5, 2)
+  batteryHighPct     Decimal  @default(0.08) @db.Decimal(5, 2)
+  batteryLowPenalty  Decimal  @default(0.18) @db.Decimal(5, 2)
+  brokenPenaltyPct   Decimal  @default(0.30) @db.Decimal(5, 2)
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model AppUser {
+  id           String   @id @default(cuid())
+  fullName     String
+  email        String   @unique
+  role         UserRole @default(CASHIER)
+  passwordHash String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  auditLogs    AuditLog[]
+  reconciliationsCreated BuybackReconciliation[]
+  erpSyncLogs   ErpSyncLog[]
+  branchId     String?
+  branch       Branch?  @relation(fields: [branchId], references: [id])
+}
+
+model AuditLog {
+  id          String    @id @default(cuid())
+  action      String
+  entityType  String
+  entityId    String?
+  detail      String?
+  actorUserId String?
+  customerId  String?
+  createdAt   DateTime  @default(now())
+  actorUser   AppUser?  @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+  customer    Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+}
+
+model BuybackReconciliation {
+  id                String               @id @default(cuid())
+  buybackDealId     String
+  customerPrice     Decimal              @db.Decimal(10, 2)
+  companyPrice      Decimal              @db.Decimal(10, 2)
+  differenceAmount  Decimal              @db.Decimal(10, 2)
+  customerAnswers   String?
+  companyAnswers    String?
+  diffItems         String?
+  tokenHash         String               @unique
+  tokenExpiresAt    DateTime
+  status            ReconciliationStatus @default(SENT)
+  customerNote      String?
+  sentAt            DateTime             @default(now())
+  viewedAt          DateTime?
+  decidedAt         DateTime?
+  createdByUserId   String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  buybackDeal       BuybackDeal          @relation(fields: [buybackDealId], references: [id], onDelete: Cascade)
+  createdByUser     AppUser?             @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+}
+
+model BuybackNotification {
+  id             String        @id @default(cuid())
+  buybackDealId  String
+  eventType      String
+  recipient      String
+  subject        String
+  bodyHtml       String
+  status         MailLogStatus @default(QUEUED)
+  errorMessage   String?
+  contextJson    String?
+  createdAt      DateTime      @default(now())
+  sentAt         DateTime?
+  buybackDeal    BuybackDeal   @relation(fields: [buybackDealId], references: [id], onDelete: Cascade)
+}
+
+model ErpSyncLog {
+  id            String   @id @default(cuid())
+  syncType      String
+  insertedCount Int      @default(0)
+  updatedCount  Int      @default(0)
+  errorCount    Int      @default(0)
+  payloadJson   String?
+  resultJson    String?
+  createdByUserId String?
+  createdAt     DateTime @default(now())
+  createdByUser AppUser? @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+}
+
+model Branch {
+  id            String          @id @default(cuid())
+  name          String          @unique
+  address       String?
+  phone         String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  users         AppUser[]
+  stocks        ProductBranchStock[]
+  transactions  Transaction[]
+  repairs       RepairRecord[]
+  posSales      PosSale[]
+}
+
+model ProductBranchStock {
+  id        String   @id @default(cuid())
+  productId String
+  branchId  String
+  stock     Int      @default(0)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  branch    Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, branchId])
+}
+
+model BankAccount {
+  id             String         @id @default(cuid())
+  name           String         @unique
+  iban           String?
+  balance        Decimal        @default(0) @db.Decimal(10, 2)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  transactions   Transaction[]
+  accountEntries AccountEntry[]
+  buybacks       BuybackDeal[]
+}
+
+model SystemSettings {
+  id                  String   @id @default("default")
+  whatsappEnabled     Boolean  @default(false)
+  whatsappNumber      String?
+  repairTemplate      String?
+  veresiyeTemplate    String?
+  installmentTemplate String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
