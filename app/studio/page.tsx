@@ -1065,6 +1065,29 @@ function StudioPageContent() {
     quickUpdateTenant(item.id, meta, { fullName: item.tenant.fullName });
   };
 
+  const handleDeleteTenant = async (id: string, name: string) => {
+    const confirmed = window.confirm(
+      `"${name}" firması ve firmaya ait tüm veriler (şubeler, kasalar, ürünler, satışlar, kullanıcılar) kalıcı olarak silinecektir.\n\nBu işlem geri alınamaz! Devam etmek istediğinize emin misiniz?`
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`/api/studio/customers/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        toast.success("Firma ve tüm ilişkili veriler başarıyla silindi.");
+        setSelectedTenantId(null);
+        fetchTenants();
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        toast.error(errJson.error || "Firma silinemedi.");
+      }
+    } catch {
+      toast.error("Bağlantı hatası.");
+    }
+  };
+
   const handleSaveTenantDetails = async () => {
     if (!selectedTenantId) return;
 
@@ -2015,6 +2038,14 @@ function StudioPageContent() {
                               <span>+1 Yil</span>
                             </button>
                             
+                            <button
+                              onClick={() => handleDeleteTenant(item.id, item.tenant.fullName)}
+                              title="Firmayı ve Tüm Verilerini Sil"
+                              className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl font-bold text-xs border border-rose-200 transition-all active:scale-95 flex items-center gap-1"
+                            >
+                              <span>Sil</span>
+                            </button>
+
                             <button
                               onClick={() => setSelectedTenantId(item.id)}
                               className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs transition-all active:scale-95 flex items-center gap-1.5"
@@ -4586,6 +4617,12 @@ function StudioPageContent() {
 
                 {/* Footer Save & Close buttons */}
                 <div className="p-6 bg-slate-50 border-t border-slate-200 flex justify-end gap-2 mt-auto">
+                  <button
+                    onClick={() => handleDeleteTenant(selectedTenantId, detailData?.customer.fullName || "")}
+                    className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold shadow-sm transition-all active:scale-95 mr-auto"
+                  >
+                    Firmayı Sil (Kalıcı)
+                  </button>
                   <button
                     onClick={() => setSelectedTenantId(null)}
                     className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold border border-slate-200 transition-all"

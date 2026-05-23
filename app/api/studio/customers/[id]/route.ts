@@ -256,3 +256,97 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     return NextResponse.json({ error: error.message || "Güncelleme sırasında hata oluştu" }, { status: 500 });
   }
 }
+
+export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+  const auth = requireRole(["ADMIN", "PLATFORM_OWNER"]);
+  if (auth.error) return auth.error;
+
+  const customerId = params.id;
+
+  try {
+    if (isDbDisabledMode()) {
+      const store = await readLocalStore();
+      
+      // 1. Remove users belonging to this tenant
+      store.users = (store.users || []).filter((u) => u.tenantId !== customerId);
+      
+      // 2. Remove branches
+      store.branches = (store.branches || []).filter((b) => b.tenantId !== customerId);
+      
+      // 3. Remove bank accounts
+      store.bankAccounts = (store.bankAccounts || []).filter((b) => b.tenantId !== customerId);
+      
+      // 4. Remove stock items
+      store.stockItems = (store.stockItems || []).filter((s) => s.tenantId !== customerId);
+      
+      // 5. Remove transactions
+      store.transactions = (store.transactions || []).filter((t) => t.tenantId !== customerId);
+      
+      // 6. Remove customer devices, repairs, and buybacks
+      const tenantCustIds = store.customers.filter((c) => c.tenantId === customerId).map((c) => c.id);
+      
+      store.devices = store.devices.filter((d) => !tenantCustIds.includes(d.customerId));
+      const activeDeviceIds = store.devices.map((d) => d.id);
+      store.repairs = store.repairs.filter((r) => activeDeviceIds.includes(r.deviceId));
+      store.buybacks = store.buybacks.filter((b) => !tenantCustIds.includes(b.customerId));
+      
+      // 7. Remove retail customers
+      store.customers = store.customers.filter((c) => c.tenantId !== customerId);
+      
+      // 8. Remove the company (customer) itself
+      const initialLength = store.customers.length;
+      store.customers = store.customers.filter((c) => c.id !== customerId);
+
+      if (store.customers.length === initialLength) {
+        return NextResponse.json({ error: "Firma bulunamadı" }, { status: 404 });
+      }
+
+      await writeLocalStore(store);
+      return NextResponse.json({ success: true, message: "Firma ve tüm verileri silindi." });
+    }
+
+    // DB Mode: run cascade deletes in transaction
+    const customer = await prisma.customer.findUnique({
+      where: { id: customerId },
+    });
+    if (!customer) {
+      return NextResponse.json({ error: "Firma bulunamadı" }, { status: 404 });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Delete AppUsers
+      await tx.appUser.deleteMany({ where: { tenantId: customerId } });
+      
+      // 2. Delete Invoices
+      await tx.invoice.deleteMany({ where: { tenantId: customerId } });
+      
+      // 3. Delete Transactions (this cascades to TransactionItem)
+      await tx.transaction.deleteMany({ where: { tenantId: customerId } });
+      
+      // 4. Delete PosSales
+      await tx.posSale.deleteMany({ where: { tenantId: customerId } });
+      
+      // 5. Delete StockItems
+      await tx.stockItem.deleteMany({ where: { tenantId: customerId } });
+      
+      // 6. Delete Products (this cascades to ProductBranchStock)
+      await tx.product.deleteMany({ where: { tenantId: customerId } });
+      
+      // 7. Delete BankAccounts
+      await tx.bankAccount.deleteMany({ where: { tenantId: customerId } });
+      
+      // 8. Delete Branches
+      await tx.branch.deleteMany({ where: { tenantId: customerId } });
+      
+      // 9. Delete retail Customers (this cascades to Device, RepairRecord, BuybackDeal, AccountEntry, BuybackWizardData, etc.)
+      await tx.customer.deleteMany({ where: { tenantId: customerId } });
+      
+      // 10. Delete the tenant Customer record itself
+      await tx.customer.delete({ where: { id: customerId } });
+    });
+
+    return NextResponse.json({ success: true, message: "Firma ve tüm verileri başarıyla silindi." });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || "Firma silinirken hata oluştu" }, { status: 500 });
+  }
+}
