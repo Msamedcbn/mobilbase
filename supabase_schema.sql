@@ -260,6 +260,7 @@ CREATE TABLE "AppUser" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "branchId" TEXT,
+    "tenantId" TEXT,
 
     CONSTRAINT "AppUser_pkey" PRIMARY KEY ("id")
 );
@@ -413,6 +414,7 @@ CREATE UNIQUE INDEX "Transaction_transactionNo_key" ON "Transaction"("transactio
 
 -- CreateIndex
 CREATE UNIQUE INDEX "AppUser_email_key" ON "AppUser"("email");
+CREATE INDEX "AppUser_tenantId_idx" ON "AppUser"("tenantId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "BuybackReconciliation_tokenHash_key" ON "BuybackReconciliation"("tokenHash");
@@ -488,6 +490,7 @@ ALTER TABLE "TransactionItem" ADD CONSTRAINT "TransactionItem_productId_fkey" FO
 
 -- AddForeignKey
 ALTER TABLE "AppUser" ADD CONSTRAINT "AppUser_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "AppUser" ADD CONSTRAINT "AppUser_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "AuditLog" ADD CONSTRAINT "AuditLog_actorUserId_fkey" FOREIGN KEY ("actorUserId") REFERENCES "AppUser"("id") ON DELETE SET NULL ON UPDATE CASCADE;

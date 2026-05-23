@@ -8,6 +8,15 @@ import { writeAuditLog } from "@/lib/audit";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore, writeLocalStore } from "@/lib/local-store";
 
+async function resolveCurrentTenantId() {
+  const tenantName = process.env.TENANT_NAME ?? "TelefoncuPro";
+  const tenant = await prisma.customer.findFirst({
+    where: { fullName: tenantName },
+    select: { id: true },
+  });
+  return tenant?.id ?? null;
+}
+
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const auth = requireRole(["ADMIN"]);
   if (auth.error) return auth.error;
@@ -36,6 +45,14 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       const { passwordHash, ...safeUser } = u;
       return ok(safeUser, 200, "Kullanici guncellendi");
     }
+
+    const tenantId = await resolveCurrentTenantId();
+    if (!tenantId) return fail("Tenant baglami bulunamadi", "NOT_FOUND", 404);
+    const scoped = await prisma.appUser.findFirst({
+      where: { id: params.id, tenantId } as any,
+      select: { id: true },
+    });
+    if (!scoped) return fail("Kullanici bulunamadi", "NOT_FOUND", 404);
 
     const updateData: Record<string, unknown> = {};
     if (parsed.data.fullName !== undefined) updateData.fullName = parsed.data.fullName;
@@ -88,6 +105,14 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       await writeLocalStore(store);
       return ok({ success: true }, 200, "Kullanıcı başarıyla silindi");
     }
+
+    const tenantId = await resolveCurrentTenantId();
+    if (!tenantId) return fail("Tenant baglami bulunamadi", "NOT_FOUND", 404);
+    const scoped = await prisma.appUser.findFirst({
+      where: { id: params.id, tenantId } as any,
+      select: { id: true },
+    });
+    if (!scoped) return fail("Kullanici bulunamadi", "NOT_FOUND", 404);
 
     const user = await prisma.appUser.delete({
       where: { id: params.id },

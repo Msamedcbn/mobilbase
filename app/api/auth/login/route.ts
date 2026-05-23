@@ -205,6 +205,32 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "E-posta veya sifre hatali" }, { status: 401 });
     }
 
+    // Tenant isolation: non-platform users can only log into their own tenant context.
+    const tenantName = process.env.TENANT_NAME ?? "TelefoncuPro";
+    const tenant = await prisma.customer.findFirst({
+      where: { fullName: tenantName },
+      select: { id: true, email: true },
+    });
+    if (!tenant) {
+      return NextResponse.json({ error: "Tenant baglami bulunamadi" }, { status: 503 });
+    }
+    if (authenticatedUser.role !== "PLATFORM_OWNER") {
+      const userTenantId = (authenticatedUser as any).tenantId as string | null | undefined;
+      if (!userTenantId) {
+        // One-time safe backfill path: owner mail matches tenant mail.
+        if (tenant.email && authenticatedUser.email.toLowerCase() === tenant.email.toLowerCase()) {
+          authenticatedUser = await prisma.appUser.update({
+            where: { id: authenticatedUser.id },
+            data: { tenantId: tenant.id } as any,
+          });
+        } else {
+          return NextResponse.json({ error: "Bu kullanici tenant ile eslesmiyor" }, { status: 403 });
+        }
+      } else if (userTenantId !== tenant.id) {
+        return NextResponse.json({ error: "Bu kullanici bu tenant'a erisemez" }, { status: 403 });
+      }
+    }
+
     const tenantConf = await getTenantConfig();
     const expiresAt = Date.now() + 1000 * 60 * 60 * 8;
     const payload = {

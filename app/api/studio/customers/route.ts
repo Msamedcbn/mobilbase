@@ -146,14 +146,16 @@ export async function POST(req: Request) {
         passwordHash,
         role: initialUserRole as any,
         isActive: true,
-      },
+        tenantId: created.id,
+      } as any,
       create: {
         fullName: authorizedPerson || fullName,
         email: email.toLowerCase(),
         passwordHash,
         role: initialUserRole as any,
         isActive: true,
-      },
+        tenantId: created.id,
+      } as any,
     });
   }
 

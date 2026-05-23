@@ -8,6 +8,15 @@ import { writeAuditLog } from "@/lib/audit";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { localId, readLocalStore, writeLocalStore } from "@/lib/local-store";
 
+async function resolveCurrentTenantId() {
+  const tenantName = process.env.TENANT_NAME ?? "TelefoncuPro";
+  const tenant = await prisma.customer.findFirst({
+    where: { fullName: tenantName },
+    select: { id: true },
+  });
+  return tenant?.id ?? null;
+}
+
 export async function GET() {
   const auth = requireRole(["ADMIN"]);
   if (auth.error) return auth.error;
@@ -28,7 +37,11 @@ export async function GET() {
   }
 
   try {
+    const tenantId = await resolveCurrentTenantId();
+    if (!tenantId) return fail("Tenant baglami bulunamadi", "NOT_FOUND", 404);
+
     const users = await prisma.appUser.findMany({
+      where: { tenantId } as any,
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -57,6 +70,8 @@ export async function POST(req: Request) {
     if (!parsed.success) return fail("Kullanici verisi gecersiz", "VALIDATION", 400);
 
     const payloadEmail = parsed.data.email.toLowerCase().trim();
+    const tenantId = await resolveCurrentTenantId();
+    if (!tenantId) return fail("Tenant baglami bulunamadi", "NOT_FOUND", 404);
 
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
@@ -93,7 +108,8 @@ export async function POST(req: Request) {
         passwordHash: hashSync(parsed.data.password, 10),
         isActive: parsed.data.isActive ?? true,
         branchId: (body as any).branchId || null,
-      },
+        tenantId,
+      } as any,
       select: {
         id: true,
         fullName: true,

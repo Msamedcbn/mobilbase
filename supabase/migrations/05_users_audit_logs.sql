@@ -9,6 +9,7 @@ CREATE TABLE "AppUser" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "branchId" TEXT,
+    "tenantId" TEXT,
     CONSTRAINT "AppUser_pkey" PRIMARY KEY ("id")
 );
 
@@ -38,8 +39,10 @@ CREATE TABLE "ErpSyncLog" (
 );
 
 CREATE UNIQUE INDEX "AppUser_email_key" ON "AppUser"("email");
+CREATE INDEX "AppUser_tenantId_idx" ON "AppUser"("tenantId");
 
 ALTER TABLE "AppUser" ADD CONSTRAINT "AppUser_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "AppUser" ADD CONSTRAINT "AppUser_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 ALTER TABLE "AuditLog" ADD CONSTRAINT "AuditLog_actorUserId_fkey" FOREIGN KEY ("actorUserId") REFERENCES "AppUser"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 ALTER TABLE "AuditLog" ADD CONSTRAINT "AuditLog_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 ALTER TABLE "ErpSyncLog" ADD CONSTRAINT "ErpSyncLog_createdByUserId_fkey" FOREIGN KEY ("createdByUserId") REFERENCES "AppUser"("id") ON DELETE SET NULL ON UPDATE CASCADE;

@@ -89,6 +89,7 @@ model Customer {
   accountEntries  AccountEntry[]
   transactions    Transaction[]
   auditLogs       AuditLog[]
+  appUsers        AppUser[]
 }
 
 model Device {
@@ -308,6 +309,8 @@ model AppUser {
   erpSyncLogs   ErpSyncLog[]
   branchId     String?
   branch       Branch?  @relation(fields: [branchId], references: [id])
+  tenantId     String?
+  tenant       Customer? @relation(fields: [tenantId], references: [id])
 }
 
 model AuditLog {
