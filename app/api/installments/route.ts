@@ -8,10 +8,11 @@ import { readLocalStore, writeLocalStore, localId } from "@/lib/local-store";
 export async function GET() {
   const auth = requireRole(["ADMIN", "CASHIER"]);
   if (auth.error) return auth.error;
+  const tenantId = auth.user.tenantId || null;
 
   try {
     const store = await readLocalStore();
-    const installmentSales = store.installmentSales || [];
+    const installmentSales = (store.installmentSales || []).filter((s) => s.tenantId === tenantId);
 
     let resolvedSales = [];
     if (isDbDisabledMode()) {
@@ -50,6 +51,7 @@ export async function GET() {
 export async function POST(req: Request) {
   const auth = requireRole(["ADMIN", "CASHIER"]);
   if (auth.error) return auth.error;
+  const tenantId = auth.user.tenantId || null;
 
   try {
     const body = await req.json();
@@ -82,7 +84,7 @@ export async function POST(req: Request) {
 
     if (customerId) {
       if (isDbDisabledMode()) {
-        const customer = store.customers.find((c) => c.id === customerId);
+        const customer = store.customers.find((c) => c.id === customerId && c.tenantId === tenantId);
         if (!customer) return fail("Müşteri bulunamadı.", "NOT_FOUND", 404);
         limit = customer.creditLimit ?? 0;
 
@@ -91,8 +93,8 @@ export async function POST(req: Request) {
           return sum + (entry.type === "DEBIT" ? entry.amount : -entry.amount);
         }, 0);
       } else {
-        const customer = await prisma.customer.findUnique({
-          where: { id: customerId },
+        const customer = await prisma.customer.findFirst({
+          where: { id: customerId, tenantId },
           include: { accountEntries: true },
         });
         if (!customer) return fail("Müşteri bulunamadı.", "NOT_FOUND", 404);
@@ -104,7 +106,7 @@ export async function POST(req: Request) {
       }
 
       activeInstallmentDebts = (store.installmentSales || [])
-        .filter((s) => s.customerId === customerId)
+        .filter((s) => s.customerId === customerId && s.tenantId === tenantId)
         .reduce((sum, s) => sum + s.remainingAmount, 0);
 
       if (netBalance + activeInstallmentDebts + totalAmount > limit) {
@@ -165,6 +167,7 @@ export async function POST(req: Request) {
       store.transactions.unshift({
         id: localId("tr"),
         transactionNo,
+        tenantId,
         type: "INCOME",
         paymentMethod: "INSTALLMENT",
         customerId: customerId || null,
@@ -177,6 +180,7 @@ export async function POST(req: Request) {
         await tx.transaction.create({
           data: {
             transactionNo,
+            tenantId,
             type: "INCOME",
             paymentMethod: customerId ? "ON_ACCOUNT" : "CREDIT_CARD",
             customerId: customerId || null,
@@ -202,6 +206,7 @@ export async function POST(req: Request) {
     const newSale = {
       id: localId("inst-sale"),
       transactionNo,
+      tenantId,
       customerId: customerId || null,
       totalAmount,
       installmentCount: countVal,

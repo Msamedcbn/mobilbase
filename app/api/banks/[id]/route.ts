@@ -8,6 +8,7 @@ import { readLocalStore, writeLocalStore } from "@/lib/local-store";
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   const auth = requireRole(["ADMIN"]);
   if (auth.error) return auth.error;
+  const tenantId = auth.user.tenantId;
 
   try {
     const body = await req.json();
@@ -17,14 +18,14 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       const store = await readLocalStore();
       if (!store.bankAccounts) store.bankAccounts = [];
 
-      const bankIndex = store.bankAccounts.findIndex((b) => b.id === params.id);
+      const bankIndex = store.bankAccounts.findIndex((b) => b.id === params.id && b.tenantId === tenantId);
       if (bankIndex === -1) {
         return fail("Banka/Kasa hesabı bulunamadı", "NOT_FOUND", 404);
       }
 
       if (name) {
         const nameConflict = store.bankAccounts.some(
-          (b) => b.id !== params.id && b.name.toLowerCase() === name.toLowerCase()
+          (b) => b.id !== params.id && b.name.toLowerCase() === name.toLowerCase() && b.tenantId === tenantId
         );
         if (nameConflict) {
           return fail("Bu banka/kasa adı zaten kayıtlı", "CONFLICT", 409);
@@ -44,6 +45,11 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       return ok(store.bankAccounts[bankIndex], 200, "Banka/Kasa hesabı başarıyla güncellendi");
     }
 
+    const existing = await prisma.bankAccount.findFirst({
+      where: { id: params.id, tenantId }
+    });
+    if (!existing) return fail("Banka/Kasa hesabı bulunamadı", "NOT_FOUND", 404);
+
     const data: any = {};
     if (name) data.name = name;
     if (iban !== undefined) data.iban = iban || null;
@@ -62,13 +68,14 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   const auth = requireRole(["ADMIN"]);
   if (auth.error) return auth.error;
+  const tenantId = auth.user.tenantId;
 
   try {
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
       if (!store.bankAccounts) store.bankAccounts = [];
 
-      const bankIndex = store.bankAccounts.findIndex((b) => b.id === params.id);
+      const bankIndex = store.bankAccounts.findIndex((b) => b.id === params.id && b.tenantId === tenantId);
       if (bankIndex === -1) {
         return fail("Banka/Kasa hesabı bulunamadı", "NOT_FOUND", 404);
       }
@@ -77,6 +84,11 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       await writeLocalStore(store);
       return ok({ success: true }, 200, "Banka/Kasa hesabı başarıyla silindi");
     }
+
+    const existing = await prisma.bankAccount.findFirst({
+      where: { id: params.id, tenantId }
+    });
+    if (!existing) return fail("Banka/Kasa hesabı bulunamadı", "NOT_FOUND", 404);
 
     await prisma.bankAccount.delete({
       where: { id: params.id },

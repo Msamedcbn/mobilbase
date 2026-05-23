@@ -1,13 +1,16 @@
 import { prisma } from "@/lib/prisma";
 import { customerSchema } from "@/lib/validations";
 import { getErrorCode, getErrorMessage, getErrorStatus } from "@/lib/errors";
-import { requireRole } from "@/lib/auth";
+import { requireRole, getSessionUser } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import { fail, ok } from "@/lib/api-response";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { localId, readLocalStore, writeLocalStore } from "@/lib/local-store";
 
 export async function GET() {
+  const user = getSessionUser();
+  const tenantId = user?.tenantId || null;
+
   if (isDbDisabledMode()) {
     const store = await readLocalStore();
     const hasMockSeed = store.customers.some((c) => c.id === "mock-tenant-1");
@@ -266,7 +269,16 @@ export async function GET() {
   }
 
   try {
-    const items = await prisma.customer.findMany({ orderBy: { createdAt: "desc" } });
+    const items = await prisma.customer.findMany({
+      where: {
+        tenantId,
+        OR: [
+          { notes: null },
+          { NOT: { notes: { contains: "\"isSaaS\":true" } } }
+        ]
+      },
+      orderBy: { createdAt: "desc" }
+    });
     return ok(items);
   } catch (error) {
     return fail(getErrorMessage(error), getErrorCode(error), getErrorStatus(error));
@@ -285,14 +297,16 @@ export async function POST(req: Request) {
       return fail("Gecersiz musteri verisi", "VALIDATION", 400);
     }
 
+    const tenantId = auth.user?.tenantId || null;
     const payload = {
       ...parsed.data,
       nationalId: parsed.data.nationalId || null,
       email: parsed.data.email || null,
+      tenantId,
     };
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
-      const existing = payload.nationalId ? store.customers.find((c) => c.nationalId === payload.nationalId) : null;
+      const existing = payload.nationalId ? store.customers.find((c) => c.nationalId === payload.nationalId && c.tenantId === tenantId) : null;
       if (existing) {
         existing.fullName = payload.fullName;
         existing.phone = payload.phone;
@@ -308,6 +322,7 @@ export async function POST(req: Request) {
         phone: payload.phone,
         email: payload.email,
         notes: payload.notes ?? null,
+        tenantId,
       };
       store.customers.unshift(created);
       await writeLocalStore(store);
@@ -316,7 +331,12 @@ export async function POST(req: Request) {
 
     const item = payload.nationalId
       ? await prisma.customer.upsert({
-          where: { nationalId: payload.nationalId },
+          where: {
+            nationalId_tenantId: {
+              nationalId: payload.nationalId,
+              tenantId: tenantId || "",
+            },
+          },
           update: {
             fullName: payload.fullName,
             phone: payload.phone,

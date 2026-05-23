@@ -62,7 +62,8 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     const store = await readLocalStore();
     const item = store.buybacks.find((b) => b.id === params.id);
     if (!item) return fail("Kayit bulunamadi", "NOT_FOUND", 404);
-    const customer = store.customers.find((c) => c.id === item.customerId) ?? null;
+    const customer = store.customers.find((c) => c.id === item.customerId && c.tenantId === auth.user.tenantId) ?? null;
+    if (!customer) return fail("Kayit bulunamadi", "NOT_FOUND", 404);
     const device = store.devices.find((d) => d.id === item.deviceId) ?? null;
     const payload = {
       ...item,
@@ -79,7 +80,15 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     return ok(payload);
   }
 
-  const item = await prisma.buybackDeal.findUnique({ where: { id: params.id }, include: { customer: true, device: true } });
+  const item = await prisma.buybackDeal.findFirst({
+    where: {
+      id: params.id,
+      customer: {
+        tenantId: auth.user.tenantId,
+      },
+    },
+    include: { customer: true, device: true },
+  });
   if (!item) return fail("Kayit bulunamadi", "NOT_FOUND", 404);
   const payload = {
     ...item,
@@ -110,6 +119,9 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       const store = await readLocalStore();
       const current = store.buybacks.find((b) => b.id === params.id);
       if (!current) return fail("Kayit bulunamadi", "NOT_FOUND", 404);
+      const customer = store.customers.find((c) => c.id === current.customerId && c.tenantId === auth.user.tenantId);
+      if (!customer) return fail("Kayit bulunamadi", "NOT_FOUND", 404);
+
       const nextStatus = parsed.data.status ?? current.status;
       if (!isValidBuybackStatusTransition(current.status, nextStatus)) {
         return fail(`Durum gecisi gecersiz: ${current.status} -> ${nextStatus}`, "VALIDATION", 400);
@@ -133,7 +145,14 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       return ok(current, 200, "Buyback kaydi guncellendi");
     }
 
-    const current = await prisma.buybackDeal.findUnique({ where: { id: params.id } });
+    const current = await prisma.buybackDeal.findFirst({
+      where: {
+        id: params.id,
+        customer: {
+          tenantId: auth.user.tenantId,
+        },
+      },
+    });
     if (!current) return fail("Kayit bulunamadi", "NOT_FOUND", 404);
 
     const nextStatus = parsed.data.status ?? current.status;
@@ -188,13 +207,22 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
     const store = await readLocalStore();
     const idx = store.buybacks.findIndex((b) => b.id === params.id);
     if (idx === -1) return fail("Kayit bulunamadi", "NOT_FOUND", 404);
+    const customer = store.customers.find((c) => c.id === store.buybacks[idx].customerId && c.tenantId === auth.user.tenantId);
+    if (!customer) return fail("Kayit bulunamadi", "NOT_FOUND", 404);
     store.buybacks.splice(idx, 1);
     await writeLocalStore(store);
     return ok({ success: true }, 200, "Buyback kaydi silindi");
   }
 
   try {
-    const current = await prisma.buybackDeal.findUnique({ where: { id: params.id } });
+    const current = await prisma.buybackDeal.findFirst({
+      where: {
+        id: params.id,
+        customer: {
+          tenantId: auth.user.tenantId,
+        },
+      },
+    });
     if (!current) return fail("Kayit bulunamadi", "NOT_FOUND", 404);
 
     await prisma.buybackDeal.delete({ where: { id: params.id } });

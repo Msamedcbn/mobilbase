@@ -2,17 +2,24 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore, writeLocalStore, localId } from "@/lib/local-store";
-import { requireRole } from "@/lib/auth";
+import { requireRole, getSessionUser } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 
 export async function GET() {
+  const user = getSessionUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const tenantId = user.tenantId;
+
   if (isDbDisabledMode()) {
     const store = await readLocalStore();
-    return NextResponse.json(store.stockItems || []);
+    return NextResponse.json((store.stockItems || []).filter((x) => x.tenantId === tenantId));
   }
 
   try {
-    const items = await prisma.stockItem.findMany({ orderBy: { updatedAt: "desc" } });
+    const items = await prisma.stockItem.findMany({
+      where: { tenantId },
+      orderBy: { updatedAt: "desc" },
+    });
     return NextResponse.json(items);
   } catch (error) {
     return NextResponse.json({ error: "Veriler yuklenemedi" }, { status: 500 });
@@ -22,6 +29,7 @@ export async function GET() {
 export async function POST(req: Request) {
   const auth = requireRole(["ADMIN", "CASHIER"]);
   if (auth.error) return auth.error;
+  const tenantId = auth.user.tenantId;
 
   try {
     const body = await req.json();
@@ -36,7 +44,7 @@ export async function POST(req: Request) {
       if (!store.stockItems) store.stockItems = [];
       if (!store.stockLogs) store.stockLogs = [];
 
-      const exists = store.stockItems.some((x) => x.sku.toLowerCase() === sku.toLowerCase());
+      const exists = store.stockItems.some((x) => x.sku.toLowerCase() === sku.toLowerCase() && x.tenantId === tenantId);
       if (exists) {
         return NextResponse.json({ error: "Bu SKU zaten kayitli." }, { status: 409 });
       }
@@ -52,6 +60,7 @@ export async function POST(req: Request) {
         minThreshold: Number(minThreshold || 0),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        tenantId,
       };
 
       store.stockItems.push(newItem);
@@ -78,6 +87,7 @@ export async function POST(req: Request) {
         purchasePrice: Number(purchasePrice || 0),
         salePrice: Number(salePrice || 0),
         minThreshold: Number(minThreshold || 0),
+        tenantId,
       }
     });
     

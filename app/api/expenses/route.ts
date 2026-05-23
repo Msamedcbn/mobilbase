@@ -2,18 +2,23 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { localId, readLocalStore, writeLocalStore } from "@/lib/local-store";
+import { getSessionUser } from "@/lib/auth";
 
 export async function GET() {
+  const user = getSessionUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const tenantId = user.tenantId;
+
   if (isDbDisabledMode()) {
     const store = await readLocalStore();
     const expenses = (store.transactions || [])
-      .filter((t) => t.type === "EXPENSE")
+      .filter((t) => t.type === "EXPENSE" && t.tenantId === tenantId)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return NextResponse.json(expenses);
   }
 
   const items = await prisma.transaction.findMany({
-    where: { type: "EXPENSE" },
+    where: { type: "EXPENSE", tenantId },
     orderBy: { createdAt: "desc" },
     include: { branch: true },
   });
@@ -21,6 +26,10 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const user = getSessionUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const tenantId = user.tenantId;
+
   try {
     const body = await req.json();
     const { totalAmount, paymentMethod, note, branchId } = body;
@@ -38,6 +47,7 @@ export async function POST(req: Request) {
       const newItem = {
         id: localId("tr"),
         transactionNo,
+        tenantId,
         type: "EXPENSE" as const,
         paymentMethod: paymentMethod || "CASH",
         customerId: null,
@@ -56,6 +66,7 @@ export async function POST(req: Request) {
     const item = await prisma.transaction.create({
       data: {
         transactionNo,
+        tenantId,
         type: "EXPENSE",
         paymentMethod: paymentMethod || "CASH",
         customerId: null,

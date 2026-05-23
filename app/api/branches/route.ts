@@ -1,18 +1,25 @@
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/auth";
+import { requireRole, getSessionUser } from "@/lib/auth";
 import { getErrorCode, getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { fail, ok } from "@/lib/api-response";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore, writeLocalStore, localId } from "@/lib/local-store";
 
 export async function GET() {
+  const user = getSessionUser();
+  if (!user) return fail("Oturum bulunamadi", "UNAUTHORIZED", 401);
+  const tenantId = user.tenantId;
+
   if (isDbDisabledMode()) {
     const store = await readLocalStore();
-    return ok(store.branches || []);
+    return ok((store.branches || []).filter((b) => b.tenantId === tenantId));
   }
 
   try {
-    const branches = await prisma.branch.findMany({ orderBy: { createdAt: "desc" } });
+    const branches = await prisma.branch.findMany({
+      where: { tenantId },
+      orderBy: { createdAt: "desc" },
+    });
     return ok(branches);
   } catch (error) {
     return fail(getErrorMessage(error), getErrorCode(error), getErrorStatus(error));
@@ -22,6 +29,7 @@ export async function GET() {
 export async function POST(req: Request) {
   const auth = requireRole(["ADMIN"]);
   if (auth.error) return auth.error;
+  const tenantId = auth.user.tenantId;
 
   try {
     const body = await req.json();
@@ -34,7 +42,7 @@ export async function POST(req: Request) {
       const store = await readLocalStore();
       if (!store.branches) store.branches = [];
       
-      const exists = store.branches.some((b) => b.name.toLowerCase() === name.toLowerCase());
+      const exists = store.branches.some((b) => b.name.toLowerCase() === name.toLowerCase() && b.tenantId === tenantId);
       if (exists) {
         return fail("Bu şube adı zaten kayıtlı", "CONFLICT", 409);
       }
@@ -46,6 +54,7 @@ export async function POST(req: Request) {
         phone: phone || null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        tenantId,
       };
 
       store.branches.push(newBranch);
@@ -54,7 +63,7 @@ export async function POST(req: Request) {
     }
 
     const branch = await prisma.branch.create({
-      data: { name, address, phone },
+      data: { name, address, phone, tenantId },
     });
     return ok(branch, 201, "Şube başarıyla oluşturuldu");
   } catch (error) {

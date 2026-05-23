@@ -17,20 +17,23 @@ export async function GET(req: Request) {
   }
 
   try {
+    const tenantId = auth.user.tenantId || null;
+
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
       
       const device = store.devices.find(
         (d) => 
-          (d.imei && d.imei.toLowerCase() === query.toLowerCase()) || 
-          (d.serialNumber && d.serialNumber.toLowerCase() === query.toLowerCase())
+          ((d.imei && d.imei.toLowerCase() === query.toLowerCase()) || 
+           (d.serialNumber && d.serialNumber.toLowerCase() === query.toLowerCase())) &&
+          store.customers.some((c) => c.id === d.customerId && c.tenantId === tenantId)
       );
 
       if (!device) {
         return fail("Cihaz bulunamadı", "NOT_FOUND", 404);
       }
 
-      const customer = store.customers.find((c) => c.id === device.customerId) ?? null;
+      const customer = store.customers.find((c) => c.id === device.customerId && c.tenantId === tenantId) ?? null;
       
       const repairs = (store.repairs || [])
         .filter((r) => r.deviceId === device.id)
@@ -65,6 +68,9 @@ export async function GET(req: Request) {
           { imei: { equals: query, mode: "insensitive" } },
           { serialNumber: { equals: query, mode: "insensitive" } },
         ],
+        customer: {
+          tenantId,
+        },
       },
       include: {
         customer: true,

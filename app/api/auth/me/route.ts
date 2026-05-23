@@ -25,27 +25,35 @@ export async function GET() {
   const user = getSessionUser();
   if (!user) return NextResponse.json({ user: null }, { status: 401 });
   
-  const tenantName = process.env.TENANT_NAME ?? "TelefoncuPro";
+  let tenantName = "TelefoncuPro";
   let rolePermissions = DEFAULT_ROLE_PERMISSIONS;
   let activeModules = DEFAULT_ACTIVE_MODULES;
 
   try {
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
-      const customer = store.customers.find((c) => c.fullName === tenantName);
-      if (customer && customer.notes) {
-        const parsed = JSON.parse(customer.notes);
-        if (parsed.rolePermissions) rolePermissions = parsed.rolePermissions;
-        if (parsed.modules) activeModules = parsed.modules;
+      const customer = user.tenantId
+        ? store.customers.find((c) => c.id === user.tenantId)
+        : store.customers.find((c) => c.fullName === (process.env.TENANT_NAME ?? "TelefoncuPro"));
+      if (customer) {
+        tenantName = customer.fullName;
+        if (customer.notes) {
+          const parsed = JSON.parse(customer.notes);
+          if (parsed.rolePermissions) rolePermissions = parsed.rolePermissions;
+          if (parsed.modules) activeModules = parsed.modules;
+        }
       }
     } else {
-      const customer = await prisma.customer.findFirst({
-        where: { fullName: tenantName }
-      });
-      if (customer && customer.notes) {
-        const parsed = JSON.parse(customer.notes);
-        if (parsed.rolePermissions) rolePermissions = parsed.rolePermissions;
-        if (parsed.modules) activeModules = parsed.modules;
+      const customer = user.tenantId
+        ? await prisma.customer.findUnique({ where: { id: user.tenantId } })
+        : await prisma.customer.findFirst({ where: { fullName: process.env.TENANT_NAME ?? "TelefoncuPro" } });
+      if (customer) {
+        tenantName = customer.fullName;
+        if (customer.notes) {
+          const parsed = JSON.parse(customer.notes);
+          if (parsed.rolePermissions) rolePermissions = parsed.rolePermissions;
+          if (parsed.modules) activeModules = parsed.modules;
+        }
       }
     }
   } catch (err) {

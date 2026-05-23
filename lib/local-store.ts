@@ -15,7 +15,7 @@ export type CardInstallmentConfig = {
 };
 
 export type LocalStore = {
-  users?: Array<{
+  users: Array<{
     id: string;
     fullName: string;
     email: string;
@@ -23,10 +23,11 @@ export type LocalStore = {
     passwordHash: string;
     isActive: boolean;
     branchId: string | null;
+    tenantId?: string | null;
     createdAt?: string;
     updatedAt?: string;
   }>;
-  customers: Array<{ id: string; nationalId: string | null; fullName: string; phone: string; email: string | null; notes: string | null; creditLimit?: number }>;
+  customers: Array<{ id: string; tenantId?: string | null; nationalId: string | null; fullName: string; phone: string; email: string | null; notes: string | null; creditLimit?: number }>;
   devices: Array<{ id: string; customerId: string; brand: string; model: string; storage: string; imei: string | null; serialNumber?: string | null; color: string | null; conditionNote: string | null; isSecondHandStock: boolean }>;
   buybacks: Array<{ id: string; customerId: string; deviceId: string; offeredPrice: number; agreedPrice: number | null; status: "DRAFT" | "APPROVED" | "REJECTED" | "COMPLETED"; reconciliationStatus: "NONE" | "SENT" | "VIEWED" | "APPROVED" | "REJECTED" | "EXPIRED"; evaluationNote: string | null; bankAccountId?: string | null; createdAt?: string; updatedAt?: string }>;
   pricingRules: Array<{ id: string; brand: string; modelPattern: string | null; basePrice: number; minPrice?: number | null; maxPrice?: number | null; excellentBonusPct: number; goodBonusPct: number; badPenaltyPct: number; batteryHighPct: number; batteryLowPenalty: number; brokenPenaltyPct: number; isActive: boolean }>;
@@ -34,14 +35,15 @@ export type LocalStore = {
   reconciliations: Array<{ id: string; token: string; buybackDealId: string; customerPrice: number; companyPrice: number; differenceAmount: number; status: "SENT" | "VIEWED" | "APPROVED" | "REJECTED" | "EXPIRED"; tokenExpiresAt: string; customerNote: string | null }>;
   notifications?: Array<{ id: string; buybackDealId: string; eventType: string; recipient: string; subject: string; bodyHtml: string; status: "QUEUED" | "SENT" | "FAILED"; errorMessage: string | null; contextJson: string | null; createdAt: string; sentAt: string | null }>;
   accountEntries?: Array<{ id: string; customerId: string; type: "DEBIT" | "CREDIT"; amount: number; description: string | null; createdAt: string; bankAccountId?: string | null }>;
-  branches?: Array<{ id: string; name: string; address: string | null; phone: string | null }>;
+  branches: Array<{ id: string; tenantId?: string | null; name: string; address: string | null; phone: string | null }>;
   productBranchStocks?: Array<{ id: string; productId: string; branchId: string; stock: number }>;
-  transactions?: Array<{ id: string; transactionNo: string; type: "INCOME" | "EXPENSE"; paymentMethod: "CASH" | "CREDIT_CARD" | "ON_ACCOUNT" | "INSTALLMENT"; customerId: string | null; totalAmount: number; note: string | null; createdAt: string; branchId?: string | null; bankAccountId?: string | null }>;
-  repairs?: Array<{ id: string; deviceId: string; issueDescription: string; diagnosisNote: string | null; laborCost: number; partCost: number; totalCost: number; status: "RECEIVED" | "IN_PROGRESS" | "WAITING_PART" | "READY" | "DELIVERED" | "CANCELED"; receivedAt: string; completedAt: string | null; branchId?: string | null; createdAt?: string }>;
-  bankAccounts?: Array<{ id: string; name: string; iban: string | null; balance: number; createdAt: string }>;
+  transactions: Array<{ id: string; tenantId?: string | null; transactionNo: string; type: "INCOME" | "EXPENSE"; paymentMethod: "CASH" | "CREDIT_CARD" | "ON_ACCOUNT" | "INSTALLMENT"; customerId: string | null; totalAmount: number; note: string | null; createdAt: string; branchId?: string | null; bankAccountId?: string | null }>;
+  repairs: Array<{ id: string; deviceId: string; issueDescription: string; diagnosisNote: string | null; laborCost: number; partCost: number; totalCost: number; status: "RECEIVED" | "IN_PROGRESS" | "WAITING_PART" | "READY" | "DELIVERED" | "CANCELED"; receivedAt: string; completedAt: string | null; branchId?: string | null; createdAt?: string }>;
+  bankAccounts: Array<{ id: string; tenantId?: string | null; name: string; iban: string | null; balance: number; createdAt: string }>;
   installmentSales?: Array<{
     id: string;
     transactionNo: string;
+    tenantId?: string | null;
     customerId?: string | null;
     totalAmount: number;
     installmentCount: number;
@@ -68,8 +70,9 @@ export type LocalStore = {
     veresiyeTemplate: string | null;
     installmentTemplate: string | null;
   };
-  stockItems?: Array<{
+  stockItems: Array<{
     id: string;
+    tenantId?: string | null;
     sku: string;
     name: string;
     category: string;

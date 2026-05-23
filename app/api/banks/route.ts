@@ -8,14 +8,18 @@ import { readLocalStore, writeLocalStore, localId } from "@/lib/local-store";
 export async function GET() {
   const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN"]);
   if (auth.error) return auth.error;
+  const tenantId = auth.user.tenantId;
 
   if (isDbDisabledMode()) {
     const store = await readLocalStore();
-    return ok(store.bankAccounts || []);
+    return ok((store.bankAccounts || []).filter((b) => b.tenantId === tenantId));
   }
 
   try {
-    const banks = await prisma.bankAccount.findMany({ orderBy: { name: "asc" } });
+    const banks = await prisma.bankAccount.findMany({
+      where: { tenantId },
+      orderBy: { name: "asc" },
+    });
     return ok(banks);
   } catch (error) {
     return fail(getErrorMessage(error), getErrorCode(error), getErrorStatus(error));
@@ -25,6 +29,7 @@ export async function GET() {
 export async function POST(req: Request) {
   const auth = requireRole(["ADMIN"]);
   if (auth.error) return auth.error;
+  const tenantId = auth.user.tenantId;
 
   try {
     const body = await req.json();
@@ -39,7 +44,7 @@ export async function POST(req: Request) {
       const store = await readLocalStore();
       if (!store.bankAccounts) store.bankAccounts = [];
 
-      const exists = store.bankAccounts.some((b) => b.name.toLowerCase() === name.toLowerCase());
+      const exists = store.bankAccounts.some((b) => b.name.toLowerCase() === name.toLowerCase() && b.tenantId === tenantId);
       if (exists) {
         return fail("Bu banka/kasa adı zaten kayıtlı", "CONFLICT", 409);
       }
@@ -51,6 +56,7 @@ export async function POST(req: Request) {
         balance: initBalance,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        tenantId,
       };
 
       store.bankAccounts.push(newBank);
@@ -59,7 +65,7 @@ export async function POST(req: Request) {
     }
 
     const bank = await prisma.bankAccount.create({
-      data: { name, iban, balance: initBalance },
+      data: { name, iban, balance: initBalance, tenantId },
     });
     return ok(bank, 201, "Banka/Kasa hesabı başarıyla oluşturuldu");
   } catch (error) {

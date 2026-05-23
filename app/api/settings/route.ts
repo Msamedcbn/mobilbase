@@ -8,13 +8,14 @@ import { writeAuditLog } from "@/lib/audit";
 export async function GET() {
   const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN"]);
   if (auth.error) return auth.error;
+  const tenantId = auth.user.tenantId || "default";
 
   try {
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
       if (!store.settings) {
         store.settings = {
-          id: "default",
+          id: tenantId,
           whatsappEnabled: false,
           whatsappNumber: null,
           repairTemplate: null,
@@ -27,13 +28,13 @@ export async function GET() {
     }
 
     let settings = await prisma.systemSettings.findUnique({
-      where: { id: "default" },
+      where: { id: tenantId },
     });
 
     if (!settings) {
       settings = await prisma.systemSettings.create({
         data: {
-          id: "default",
+          id: tenantId,
           whatsappEnabled: false,
           whatsappNumber: null,
           repairTemplate: null,
@@ -56,6 +57,7 @@ export async function GET() {
 export async function PUT(req: Request) {
   const auth = requireRole(["ADMIN"]);
   if (auth.error) return auth.error;
+  const tenantId = auth.user.tenantId || "default";
 
   try {
     const body = await req.json();
@@ -71,7 +73,7 @@ export async function PUT(req: Request) {
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
       store.settings = {
-        id: "default",
+        id: tenantId,
         ...data,
       };
       await writeLocalStore(store);
@@ -79,10 +81,10 @@ export async function PUT(req: Request) {
     }
 
     const updated = await prisma.systemSettings.upsert({
-      where: { id: "default" },
+      where: { id: tenantId },
       update: data,
       create: {
-        id: "default",
+        id: tenantId,
         ...data,
       },
     });
@@ -90,7 +92,7 @@ export async function PUT(req: Request) {
     await writeAuditLog({
       action: "SETTINGS_UPDATE",
       entityType: "SystemSettings",
-      entityId: "default",
+      entityId: tenantId,
       actorUserId: auth.user?.userId,
       detail: "Sistem ve WhatsApp bildirim ayarları güncellendi.",
     });

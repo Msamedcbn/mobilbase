@@ -11,6 +11,7 @@ export async function POST(
 ) {
   const auth = requireRole(["ADMIN", "CASHIER"]);
   if (auth.error) return auth.error;
+  const tenantId = auth.user.tenantId || null;
 
   const saleId = params.id;
 
@@ -23,7 +24,7 @@ export async function POST(
     }
 
     const store = await readLocalStore();
-    const saleIndex = store.installmentSales?.findIndex((s) => s.id === saleId) ?? -1;
+    const saleIndex = store.installmentSales?.findIndex((s) => s.id === saleId && s.tenantId === tenantId) ?? -1;
 
     if (saleIndex === -1 || !store.installmentSales) {
       return fail("Taksit planı bulunamadı.", "NOT_FOUND", 404);
@@ -43,7 +44,7 @@ export async function POST(
     const amountToPay = installment.amount;
 
     if (isDbDisabledMode()) {
-      const bank = store.bankAccounts?.find((b) => b.id === bankAccountId);
+      const bank = store.bankAccounts?.find((b) => b.id === bankAccountId && b.tenantId === tenantId);
       if (!bank) {
         return fail("Seçilen banka/kasa hesabı bulunamadı.", "NOT_FOUND", 404);
       }
@@ -80,6 +81,7 @@ export async function POST(
       store.transactions.unshift({
         id: transId,
         transactionNo,
+        tenantId,
         type: "INCOME" as const,
         paymentMethod: bankAccountId === "bank-nakit" ? "CASH" : "CREDIT_CARD",
         customerId: sale.customerId || null,
@@ -93,8 +95,8 @@ export async function POST(
       return ok({ success: true, remainingAmount: sale.remainingAmount });
     } else {
       // DB Enabled Mode
-      const bank = await prisma.bankAccount.findUnique({
-        where: { id: bankAccountId },
+      const bank = await prisma.bankAccount.findFirst({
+        where: { id: bankAccountId, tenantId },
       });
       if (!bank) {
         return fail("Seçilen banka/kasa hesabı bulunamadı.", "NOT_FOUND", 404);
@@ -133,6 +135,7 @@ export async function POST(
         await tx.transaction.create({
           data: {
             transactionNo,
+            tenantId,
             type: "INCOME",
             paymentMethod: bankAccountId === "bank-nakit" ? "CASH" : "CREDIT_CARD",
             customerId: sale.customerId || null,

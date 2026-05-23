@@ -6,6 +6,10 @@ import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore } from "@/lib/local-store";
 
 export async function GET() {
+  const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN", "MANAGER", "ACCOUNTANT"]);
+  if (auth.error) return auth.error;
+  const tenantId = auth.user.tenantId;
+
   if (isDbDisabledMode()) {
     const store = await readLocalStore();
     return ok([
@@ -44,6 +48,7 @@ export async function GET() {
 
   try {
     const products = await prisma.product.findMany({
+      where: { tenantId },
       orderBy: { updatedAt: "desc" },
       include: { branchStocks: { include: { branch: true } } },
     });
@@ -56,9 +61,15 @@ export async function GET() {
 export async function POST(req: Request) {
   const auth = requireRole(["ADMIN", "CASHIER"]);
   if (auth.error) return auth.error;
+  const tenantId = auth.user.tenantId;
   try {
     const body = await req.json();
-    const product = await prisma.product.create({ data: body });
+    const product = await prisma.product.create({
+      data: {
+        ...body,
+        tenantId,
+      },
+    });
     return ok(product, 201, "Urun kaydi basarili");
   } catch (error) {
     return fail(getErrorMessage(error), getErrorCode(error), getErrorStatus(error));

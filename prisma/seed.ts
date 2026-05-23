@@ -19,35 +19,53 @@ async function main() {
       role: "ADMIN",
       isActive: true,
       passwordHash: hashSync(defaultAdminPassword, 10),
+      tenantId: "cust-tenant-seed",
     },
   });
 
 
   await prisma.customer.upsert({
-    where: { phone: "5550000000" },
+    where: {
+      phone_tenantId: {
+        phone: "5550000000",
+        tenantId: "cust-tenant-seed"
+      }
+    },
     update: {},
     create: {
       fullName: "Demo Musteri",
       phone: "5550000000",
       nationalId: "11111111111",
+      tenantId: "cust-tenant-seed",
     },
   });
 
   await prisma.product.upsert({
-    where: { barcode: "869000000001" },
+    where: {
+      barcode_tenantId: {
+        barcode: "869000000001",
+        tenantId: "cust-tenant-seed"
+      }
+    },
     update: { stock: 15, salePrice: 1299 },
     create: {
-      name: "Type-C H�zl� �arj Adapt�r�",
+      name: "Type-C Hızlı Şarj Adaptörü",
       barcode: "869000000001",
       category: "Aksesuar",
       stock: 15,
       purchasePrice: 800,
       salePrice: 1299,
+      tenantId: "cust-tenant-seed",
     },
   });
 
   await prisma.product.upsert({
-    where: { barcode: "869000000002" },
+    where: {
+      barcode_tenantId: {
+        barcode: "869000000002",
+        tenantId: "cust-tenant-seed"
+      }
+    },
     update: { stock: 20, salePrice: 499 },
     create: {
       name: "Temperli Cam",
@@ -56,6 +74,7 @@ async function main() {
       stock: 20,
       purchasePrice: 150,
       salePrice: 499,
+      tenantId: "cust-tenant-seed",
     },
   });
 }

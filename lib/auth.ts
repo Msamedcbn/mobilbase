@@ -6,6 +6,7 @@ export type SessionUser = {
   email: string;
   role: "PLATFORM_OWNER" | "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT";
   fullName: string;
+  tenantId?: string | null;
   expiresAt: number;
   rolePermissions?: Record<string, string[]>;
   activeModules?: Record<string, boolean>;

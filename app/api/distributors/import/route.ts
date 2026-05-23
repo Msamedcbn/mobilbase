@@ -60,10 +60,17 @@ export async function POST(req: Request) {
       );
     }
 
+    const tenantId = auth.user.tenantId || null;
+
     // DB Mode: run upserts in transaction or sequential loop
     for (const row of parsedRows) {
       const existing = await prisma.product.findUnique({
-        where: { barcode: row.barcode },
+        where: {
+          barcode_tenantId: {
+            barcode: row.barcode,
+            tenantId: tenantId || "",
+          },
+        },
       });
 
       if (existing) {
@@ -87,6 +94,7 @@ export async function POST(req: Request) {
             purchasePrice: row.purchasePrice,
             salePrice: row.salePrice,
             stock: row.stock,
+            tenantId: tenantId,
           },
         });
         insertedCount++;

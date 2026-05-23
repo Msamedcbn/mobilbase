@@ -181,12 +181,14 @@ export async function POST(req: Request) {
       }, 201, "Satis tamamlandi");
     }
 
+    const tenantId = auth.user.tenantId;
+
     if (paymentMethod === "ON_ACCOUNT" || (paymentMethod === "INSTALLMENT" && customerId)) {
       if (paymentMethod === "ON_ACCOUNT" && !customerId) {
         return fail("Cari hesap satisinda musteri secimi zorunlu", "VALIDATION", 400);
       }
-      const customer = await prisma.customer.findUnique({
-        where: { id: customerId },
+      const customer = await prisma.customer.findFirst({
+        where: { id: customerId, tenantId },
         include: { accountEntries: true },
       });
       if (!customer) {
@@ -215,7 +217,7 @@ export async function POST(req: Request) {
           },
         });
         const stockMap = new Map(stocks.map((s) => [s.productId, s]));
-        const products = await tx.product.findMany({ where: { id: { in: items.map((i) => i.productId) } } });
+        const products = await tx.product.findMany({ where: { id: { in: items.map((i) => i.productId) }, tenantId } });
         const productMap = new Map(products.map((p) => [p.id, p]));
 
         for (const item of items) {
@@ -240,7 +242,7 @@ export async function POST(req: Request) {
           });
         }
       } else {
-        const products = await tx.product.findMany({ where: { id: { in: items.map((i) => i.productId) } } });
+        const products = await tx.product.findMany({ where: { id: { in: items.map((i) => i.productId) }, tenantId } });
         const map = new Map(products.map((p) => [p.id, p]));
 
         for (const item of items) {
@@ -264,6 +266,7 @@ export async function POST(req: Request) {
           branchId: activeBranchId ?? null,
           totalAmount,
           bankAccountId: bankAccountId ?? null,
+          tenantId,
           note: `Hizli satis checkout${relatedBuybackId ? ` / relatedBuybackId:${relatedBuybackId}` : ""}${tradeInRef ? ` / tradeInRef:${tradeInRef}` : ""}${paymentMethod === "INSTALLMENT" ? ` / Taksitli Satış: ${installmentCount} Taksit / Oran: %${interestRate}` : ""}`,
           items: {
             create: items.map((item) => {
@@ -291,6 +294,11 @@ export async function POST(req: Request) {
           },
         });
       } else if (bankAccountId) {
+        const bank = await tx.bankAccount.findFirst({
+          where: { id: bankAccountId, tenantId }
+        });
+        if (!bank) return { error: fail("Banka hesabi bulunamadi", "NOT_FOUND", 404) };
+
         await tx.bankAccount.update({
           where: { id: bankAccountId },
           data: { balance: { increment: totalAmount } },

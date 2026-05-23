@@ -286,6 +286,7 @@ export async function POST(req: Request) {
       email: authenticatedUser.email,
       fullName: authenticatedUser.fullName,
       role: authenticatedUser.role,
+      tenantId: finalTenantId,
       expiresAt,
       rolePermissions: tenantConf.rolePermissions,
       activeModules: tenantConf.activeModules,

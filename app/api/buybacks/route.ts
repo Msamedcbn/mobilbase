@@ -23,8 +23,9 @@ export async function GET(req: Request) {
   };
   if (isDbDisabledMode()) {
     const store = await readLocalStore();
-    // Placeholder branch/firm mapping from local-store deal shape (optional custom fields).
-    const items = store.buybacks.map((b: any) => {
+    const tenantCustomers = store.customers.filter((c) => c.tenantId === auth.user.tenantId).map((c) => c.id);
+    const filteredBuybacks = store.buybacks.filter((b) => tenantCustomers.includes(b.customerId));
+    const items = filteredBuybacks.map((b: any) => {
       const customer = store.customers.find((c) => c.id === b.customerId);
       const device = store.devices.find((d) => d.id === b.deviceId);
       return {
@@ -44,6 +45,11 @@ export async function GET(req: Request) {
 
   try {
     const items = await prisma.buybackDeal.findMany({
+      where: {
+        customer: {
+          tenantId: auth.user.tenantId,
+        },
+      },
       orderBy: { createdAt: "desc" },
       include: { customer: true, device: true },
     });
@@ -72,6 +78,10 @@ export async function POST(req: Request) {
     if (!parsed.success) return fail("Gecersiz buyback verisi", "VALIDATION", 400);
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
+      const customer = store.customers.find((c) => c.id === parsed.data.customerId && c.tenantId === auth.user.tenantId);
+      if (!customer) {
+        return fail("Müşteri bulunamadı veya yetkisiz", "NOT_FOUND", 404);
+      }
       const item = {
         id: localId("buy"),
         customerId: parsed.data.customerId,
@@ -85,6 +95,13 @@ export async function POST(req: Request) {
       store.buybacks.unshift(item);
       await writeLocalStore(store);
       return ok(item, 201, "Buyback kaydi olusturuldu");
+    }
+
+    const customer = await prisma.customer.findFirst({
+      where: { id: parsed.data.customerId, tenantId: auth.user.tenantId },
+    });
+    if (!customer) {
+      return fail("Müşteri bulunamadı veya yetkisiz", "NOT_FOUND", 404);
     }
 
     const item = await prisma.buybackDeal.create({ data: parsed.data });
