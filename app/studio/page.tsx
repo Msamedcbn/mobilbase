@@ -244,6 +244,8 @@ function StudioPageContent() {
   const [newTenantName, setNewTenantName] = useState("");
   const [newTenantPhone, setNewTenantPhone] = useState("");
   const [newTenantEmail, setNewTenantEmail] = useState("");
+  const [newTenantInitialPassword, setNewTenantInitialPassword] = useState("");
+  const [newTenantInitialRole, setNewTenantInitialRole] = useState<"ADMIN" | "MANAGER" | "CASHIER" | "TECHNICIAN" | "ACCOUNTANT">("MANAGER");
   const [newTenantPlan, setNewTenantPlan] = useState<"Lite" | "Pro" | "Enterprise">("Pro");
 
   // Reseller Bookkeeping & Pricing States
@@ -1107,6 +1109,10 @@ function StudioPageContent() {
       toast.error("Lutfen firma adi ve telefon bilgilerini doldurun.");
       return;
     }
+    if (!newTenantEmail || !newTenantInitialPassword || newTenantInitialPassword.length < 6) {
+      toast.error("Lutfen e-posta ve en az 6 karakterli ilk giris sifresini girin.");
+      return;
+    }
 
     const start = new Date().toISOString().split("T")[0];
     const endDateObj = new Date();
@@ -1166,6 +1172,9 @@ function StudioPageContent() {
           fullName: newTenantName,
           phone: newTenantPhone,
           email: newTenantEmail || "",
+          authorizedPerson: newAuthorizedPerson || "",
+          initialPassword: newTenantInitialPassword,
+          initialUserRole: newTenantInitialRole,
           creditLimit: 0,
           notes: JSON.stringify(saasMetadata),
         }),
@@ -1177,6 +1186,8 @@ function StudioPageContent() {
         setNewTenantName("");
         setNewTenantPhone("");
         setNewTenantEmail("");
+        setNewTenantInitialPassword("");
+        setNewTenantInitialRole("MANAGER");
         setNewTaxOffice("");
         setNewTaxNumber("");
         setNewAuthorizedPerson("");
@@ -4666,6 +4677,35 @@ function StudioPageContent() {
                       value={newTenantEmail}
                       onChange={(e) => setNewTenantEmail(e.target.value)}
                     />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">Ilk Giris Sifresi</label>
+                    <input
+                      type="password"
+                      minLength={6}
+                      required
+                      className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white"
+                      placeholder="En az 6 karakter"
+                      value={newTenantInitialPassword}
+                      onChange={(e) => setNewTenantInitialPassword(e.target.value)}
+                    />
+                    <p className="text-[10px] text-slate-400 mt-1">Bayi bu sifre ile ilk giris yapar, sonra panelden sifresini degistirebilir.</p>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">Ilk Kullanici Rolu</label>
+                    <select
+                      className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white"
+                      value={newTenantInitialRole}
+                      onChange={(e) => setNewTenantInitialRole(e.target.value as any)}
+                    >
+                      <option value="MANAGER">MANAGER - Yonetici</option>
+                      <option value="ADMIN">ADMIN - Sistem Yoneticisi</option>
+                      <option value="CASHIER">CASHIER - Kasiyer</option>
+                      <option value="TECHNICIAN">TECHNICIAN - Teknik Servis</option>
+                      <option value="ACCOUNTANT">ACCOUNTANT - Muhasebe</option>
+                    </select>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">

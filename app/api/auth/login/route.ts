@@ -11,6 +11,14 @@ const schema = z.object({
   password: z.string().min(6),
 });
 
+const ALLOWED_USER_ROLES = ["ADMIN", "MANAGER", "CASHIER", "TECHNICIAN", "ACCOUNTANT"] as const;
+type AllowedUserRole = (typeof ALLOWED_USER_ROLES)[number];
+
+function normalizeUserRole(input: unknown, fallback: AllowedUserRole = "CASHIER"): AllowedUserRole {
+  const value = String(input ?? "").toUpperCase();
+  return (ALLOWED_USER_ROLES as readonly string[]).includes(value) ? (value as AllowedUserRole) : fallback;
+}
+
 export async function POST(req: Request) {
   const isHttpsBaseUrl = (process.env.APP_BASE_URL ?? "").toLowerCase().startsWith("https://");
   const secureCookie = process.env.NODE_ENV === "production" ? isHttpsBaseUrl : false;
@@ -104,6 +112,29 @@ export async function POST(req: Request) {
       });
     }
 
+    const signInWithSupabaseAuth = async (email: string, password: string) => {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      if (!supabaseUrl || !supabaseAnonKey) return null;
+
+      try {
+        const res = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: supabaseAnonKey,
+          },
+          body: JSON.stringify({ email, password }),
+        });
+
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data?.user ?? null;
+      } catch {
+        return null;
+      }
+    };
+
     let user: Awaited<ReturnType<typeof prisma.appUser.findUnique>> = null;
     try {
       user = await prisma.appUser.findUnique({
@@ -127,22 +158,59 @@ export async function POST(req: Request) {
       throw new Error("Veritabani baglantisi olmadan yalniz demo giris kullanilabilir");
     }
 
-    if (!user || !user.isActive) {
-      return NextResponse.json({ error: "E-posta veya sifre hatali" }, { status: 401 });
+    const normalizedEmail = parsed.data.email.toLowerCase();
+    let authenticatedUser = user;
+
+    // Legacy local users: passwordHash ile dogrula
+    if (user && user.passwordHash) {
+      if (!user.isActive) {
+        return NextResponse.json({ error: "E-posta veya sifre hatali" }, { status: 401 });
+      }
+      const ok = compareSync(parsed.data.password, user.passwordHash);
+      if (!ok) {
+        return NextResponse.json({ error: "E-posta veya sifre hatali" }, { status: 401 });
+      }
+    } else {
+      // Supabase Auth users: password dogrulamayi Supabase uzerinden yap
+      const authUser = await signInWithSupabaseAuth(normalizedEmail, parsed.data.password);
+      if (!authUser) {
+        return NextResponse.json({ error: "E-posta veya sifre hatali" }, { status: 401 });
+      }
+
+      const existingById = await prisma.appUser.findUnique({ where: { id: String(authUser.id) } });
+      const existingByEmail = await prisma.appUser.findUnique({ where: { email: normalizedEmail } });
+      authenticatedUser = existingById ?? existingByEmail;
+
+      if (!authenticatedUser) {
+        authenticatedUser = await prisma.appUser.create({
+          data: {
+            id: String(authUser.id),
+            email: normalizedEmail,
+            fullName:
+              (authUser.user_metadata?.fullName as string | undefined) ||
+              (authUser.user_metadata?.full_name as string | undefined) ||
+              "Yeni Kullanici",
+            role: normalizeUserRole(authUser.user_metadata?.role, "CASHIER"),
+            passwordHash: "",
+            isActive: true,
+          },
+        });
+      } else if (!authenticatedUser.isActive) {
+        return NextResponse.json({ error: "E-posta veya sifre hatali" }, { status: 401 });
+      }
     }
 
-    const ok = compareSync(parsed.data.password, user.passwordHash);
-    if (!ok) {
+    if (!authenticatedUser) {
       return NextResponse.json({ error: "E-posta veya sifre hatali" }, { status: 401 });
     }
 
     const tenantConf = await getTenantConfig();
     const expiresAt = Date.now() + 1000 * 60 * 60 * 8;
     const payload = {
-      userId: user.id,
-      email: user.email,
-      fullName: user.fullName,
-      role: user.role,
+      userId: authenticatedUser.id,
+      email: authenticatedUser.email,
+      fullName: authenticatedUser.fullName,
+      role: authenticatedUser.role,
       expiresAt,
       rolePermissions: tenantConf.rolePermissions,
       activeModules: tenantConf.activeModules,

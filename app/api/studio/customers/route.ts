@@ -3,6 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { localId, readLocalStore, writeLocalStore } from "@/lib/local-store";
+import { hashSync } from "bcryptjs";
+
+const ALLOWED_USER_ROLES = ["ADMIN", "MANAGER", "CASHIER", "TECHNICIAN", "ACCOUNTANT"] as const;
+type AllowedUserRole = (typeof ALLOWED_USER_ROLES)[number];
 
 const DEFAULT_ROLE_PERMISSIONS = {
   ADMIN: ["pos", "repairs", "stock", "invoicing", "buyback"],
@@ -43,6 +47,12 @@ export async function POST(req: Request) {
   const fullName = String(body.fullName ?? "").trim();
   const phone = String(body.phone ?? "").trim();
   const email = body.email ? String(body.email).trim() : null;
+  const initialPassword = body.initialPassword ? String(body.initialPassword).trim() : "";
+  const authorizedPerson = body.authorizedPerson ? String(body.authorizedPerson).trim() : "";
+  const initialUserRoleRaw = String(body.initialUserRole ?? "MANAGER").toUpperCase();
+  const initialUserRole: AllowedUserRole = (ALLOWED_USER_ROLES as readonly string[]).includes(initialUserRoleRaw)
+    ? (initialUserRoleRaw as AllowedUserRole)
+    : "MANAGER";
 
   if (!fullName || !phone) {
     return NextResponse.json({ error: "Firma adi ve telefon zorunludur." }, { status: 400 });
@@ -76,6 +86,36 @@ export async function POST(req: Request) {
       creditLimit: 0,
     };
     store.customers.unshift(created);
+
+    if (email && initialPassword) {
+      const passwordHash = hashSync(initialPassword, 10);
+      const users = store.users ?? [];
+      const existingUserIndex = users.findIndex((u) => u.email.toLowerCase() === email.toLowerCase());
+      const localRole =
+        initialUserRole === "ADMIN" || initialUserRole === "CASHIER" || initialUserRole === "TECHNICIAN"
+          ? initialUserRole
+          : "CASHIER";
+      if (existingUserIndex >= 0) {
+        users[existingUserIndex].passwordHash = passwordHash;
+        users[existingUserIndex].isActive = true;
+        users[existingUserIndex].fullName = authorizedPerson || users[existingUserIndex].fullName;
+        users[existingUserIndex].role = localRole;
+      } else {
+        users.push({
+          id: localId("user"),
+          fullName: authorizedPerson || fullName,
+          email: email.toLowerCase(),
+          role: localRole,
+          passwordHash,
+          isActive: true,
+          branchId: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+      }
+      store.users = users;
+    }
+
     await writeLocalStore(store);
     return NextResponse.json({ data: created }, { status: 201 });
   }
@@ -90,6 +130,26 @@ export async function POST(req: Request) {
       nationalId: null,
     },
   });
+
+  if (email && initialPassword) {
+    const passwordHash = hashSync(initialPassword, 10);
+    await prisma.appUser.upsert({
+      where: { email: email.toLowerCase() },
+      update: {
+        fullName: authorizedPerson || fullName,
+        passwordHash,
+        role: initialUserRole,
+        isActive: true,
+      },
+      create: {
+        fullName: authorizedPerson || fullName,
+        email: email.toLowerCase(),
+        passwordHash,
+        role: initialUserRole,
+        isActive: true,
+      },
+    });
+  }
 
   return NextResponse.json({ data: created }, { status: 201 });
 }
