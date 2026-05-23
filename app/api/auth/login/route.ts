@@ -50,9 +50,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Gecersiz giris verisi" }, { status: 400 });
     }
 
-    // Helper to fetch current tenant config
-    const getTenantConfig = async () => {
-      const tenantName = process.env.TENANT_NAME ?? "TelefoncuPro";
+    // Helper to fetch tenant config - customerId ile belirli tenant'ın konfigürasyonunu yükler
+    const getTenantConfig = async (customerId?: string | null) => {
       let rolePermissions: Record<string, string[]> = {
         PLATFORM_OWNER: ["pos", "repairs", "stock", "invoicing", "buyback"],
         ADMIN: ["pos", "repairs", "stock", "invoicing", "buyback"],
@@ -71,17 +70,18 @@ export async function POST(req: Request) {
 
       try {
         if (isDbDisabledMode()) {
+          const tenantName = process.env.TENANT_NAME ?? "TelefoncuPro";
           const store = await readLocalStore();
-          const customer = store.customers.find((c) => c.fullName === tenantName);
+          const customer = store.customers.find((c) => customerId ? c.id === customerId : c.fullName === tenantName);
           if (customer && customer.notes) {
             const parsedNotes = JSON.parse(customer.notes);
             if (parsedNotes.rolePermissions) rolePermissions = parsedNotes.rolePermissions;
             if (parsedNotes.modules) activeModules = parsedNotes.modules;
           }
         } else {
-          const customer = await prisma.customer.findFirst({
-            where: { fullName: tenantName }
-          });
+          const customer = customerId
+            ? await prisma.customer.findUnique({ where: { id: customerId } })
+            : await prisma.customer.findFirst({ where: { fullName: process.env.TENANT_NAME ?? "TelefoncuPro" } });
           if (customer && customer.notes) {
             const parsedNotes = JSON.parse(customer.notes);
             if (parsedNotes.rolePermissions) rolePermissions = parsedNotes.rolePermissions;
@@ -205,33 +205,81 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "E-posta veya sifre hatali" }, { status: 401 });
     }
 
-    // Tenant isolation: non-platform users can only log into their own tenant context.
-    const tenantName = process.env.TENANT_NAME ?? "TelefoncuPro";
-    const tenant = await prisma.customer.findFirst({
-      where: { fullName: tenantName },
-      select: { id: true, email: true },
-    });
-    if (!tenant) {
-      return NextResponse.json({ error: "Tenant baglami bulunamadi" }, { status: 503 });
-    }
+    // Multi-tenant giriş kontrolü
+    // Her tenant kendi Customer kaydına bağlı kullanıcılarıyla giriş yapabilir.
+    // PLATFORM_OWNER için tenant kontrolü yoktur.
+    let resolvedTenantId: string | null = null;
+
     if (authenticatedUser.role !== "PLATFORM_OWNER") {
       const userTenantId = (authenticatedUser as any).tenantId as string | null | undefined;
-      if (!userTenantId) {
-        // One-time safe backfill path: owner mail matches tenant mail.
-        if (tenant.email && authenticatedUser.email.toLowerCase() === tenant.email.toLowerCase()) {
+
+      if (userTenantId) {
+        // Kullanıcının mevcut tenantId'si var - geçerli bir Customer'a işaret ediyor mu?
+        const userTenant = await prisma.customer.findUnique({
+          where: { id: userTenantId },
+          select: { id: true },
+        });
+        if (!userTenant) {
+          return NextResponse.json({ error: "Kullanicinin tenant kaydı geçersiz veya silinmiş." }, { status: 403 });
+        }
+        resolvedTenantId = userTenant.id;
+      } else {
+        // tenantId yok - TENANT_NAME üzerinden default tenant'a bağla
+        const tenantName = process.env.TENANT_NAME ?? "TelefoncuPro";
+        let defaultTenant = await prisma.customer.findFirst({
+          where: { fullName: tenantName },
+          select: { id: true, email: true },
+        });
+
+        // Default tenant da yoksa oluştur
+        if (!defaultTenant) {
+          try {
+            const created = await prisma.customer.create({
+              data: {
+                fullName: tenantName,
+                phone: "5550000001",
+                email: authenticatedUser.email,
+                notes: JSON.stringify({
+                  isSaaS: true, plan: "Pro", branchLimit: 5, databaseSizeGb: 1.0,
+                  smsQuota: 5000, smsUsed: 0, leadStatus: "WON",
+                  modules: { pos: true, repairs: true, stock: true, buyback: false, invoicing: true },
+                  rolePermissions: {
+                    PLATFORM_OWNER: ["pos", "repairs", "stock", "invoicing", "buyback"],
+                    ADMIN: ["pos", "repairs", "stock", "invoicing", "buyback"],
+                    MANAGER: ["pos", "repairs", "stock", "invoicing"],
+                    CASHIER: ["pos"], TECHNICIAN: ["repairs"], ACCOUNTANT: ["invoicing"],
+                  },
+                  tickets: [], billingLedger: [],
+                }),
+                creditLimit: 0,
+              },
+              select: { id: true, email: true },
+            });
+            defaultTenant = created;
+            console.info(`[auth/login] Default tenant otomatik oluşturuldu: ${tenantName}`);
+          } catch (err) {
+            console.error("[auth/login] Default tenant oluşturulamadı:", err);
+            return NextResponse.json({ error: "Sistem yapılandırması tamamlanamadı." }, { status: 503 });
+          }
+        }
+
+        // Kullanıcıyı default tenant'a bağla (email eşleşmesi veya ADMIN)
+        const emailMatch = defaultTenant.email && authenticatedUser.email.toLowerCase() === defaultTenant.email.toLowerCase();
+        if (emailMatch || authenticatedUser.role === "ADMIN") {
           authenticatedUser = await prisma.appUser.update({
             where: { id: authenticatedUser.id },
-            data: { tenantId: tenant.id } as any,
+            data: { tenantId: defaultTenant.id } as any,
           });
+          resolvedTenantId = defaultTenant.id;
         } else {
-          return NextResponse.json({ error: "Bu kullanici tenant ile eslesmiyor" }, { status: 403 });
+          return NextResponse.json({ error: "Bu kullanici herhangi bir tenant ile eslesmemis. Yönetici ile irtibata gecin." }, { status: 403 });
         }
-      } else if (userTenantId !== tenant.id) {
-        return NextResponse.json({ error: "Bu kullanici bu tenant'a erisemez" }, { status: 403 });
       }
     }
 
-    const tenantConf = await getTenantConfig();
+    // Kullanıcının kendi tenant config'ini yükle
+    const finalTenantId = resolvedTenantId ?? (authenticatedUser as any).tenantId ?? null;
+    const tenantConf = await getTenantConfig(finalTenantId);
     const expiresAt = Date.now() + 1000 * 60 * 60 * 8;
     const payload = {
       userId: authenticatedUser.id,
