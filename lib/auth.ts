@@ -4,7 +4,7 @@ import { fail } from "@/lib/api-response";
 export type SessionUser = {
   userId: string;
   email: string;
-  role: "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT";
+  role: "PLATFORM_OWNER" | "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT";
   fullName: string;
   expiresAt: number;
   rolePermissions?: Record<string, string[]>;
@@ -29,7 +29,9 @@ export function requireRole(allowed: SessionUser["role"][]) {
     return { error: fail("Oturum bulunamadi", "UNAUTHORIZED", 401), user: null };
   }
 
-  if (!allowed.includes(user.role)) {
+  const hasDirectRole = allowed.includes(user.role);
+  const hasPlatformOverride = user.role === "PLATFORM_OWNER" && allowed.includes("ADMIN");
+  if (!hasDirectRole && !hasPlatformOverride) {
     return { error: fail("Bu islem icin yetkiniz yok", "FORBIDDEN", 403), user: null };
   }
 

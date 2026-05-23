@@ -109,7 +109,7 @@ export function middleware(req: NextRequest) {
     try {
       const decodedSession = decodeURIComponent(session);
       const user = JSON.parse(decodedSession);
-      if (user.role !== "ADMIN" || user.email !== "admin@telefoncupro.local") {
+      if (user.role !== "ADMIN" && user.role !== "PLATFORM_OWNER") {
         if (path.startsWith("/api/")) {
           return NextResponse.json(
             { error: "Bu islem icin yetkiniz yok" },
@@ -133,7 +133,7 @@ export function middleware(req: NextRequest) {
     const decodedSession = decodeURIComponent(session);
     const user = JSON.parse(decodedSession);
 
-    if (user && user.role !== "ADMIN") {
+    if (user && user.role !== "ADMIN" && user.role !== "PLATFORM_OWNER") {
       // Check branch management or admin-only routes
       const isBranchAdminPath = path.startsWith("/subeler") || path.startsWith("/api/branches") || path.startsWith("/api/admin");
       if (isBranchAdminPath) {

@@ -58,6 +58,7 @@ interface SaasMetadata {
   tickets: Ticket[];
   billingLedger: BillingLedgerEntry[];
   rolePermissions?: {
+    PLATFORM_OWNER?: string[];
     ADMIN?: string[];
     MANAGER?: string[];
     CASHIER?: string[];
@@ -145,12 +146,14 @@ function StudioPageContent() {
   const [editTickets, setEditTickets] = useState<Ticket[]>([]);
   const [editBillingLedger, setEditBillingLedger] = useState<BillingLedgerEntry[]>([]);
   const [editRolePermissions, setEditRolePermissions] = useState<{
+    PLATFORM_OWNER: string[];
     ADMIN: string[];
     MANAGER: string[];
     CASHIER: string[];
     TECHNICIAN: string[];
     ACCOUNTANT: string[];
   }>({
+    PLATFORM_OWNER: ["pos", "repairs", "stock", "invoicing", "buyback"],
     ADMIN: ["pos", "repairs", "stock", "invoicing", "buyback"],
     MANAGER: ["pos", "repairs", "stock", "invoicing"],
     CASHIER: ["pos"],
@@ -245,7 +248,7 @@ function StudioPageContent() {
   const [newTenantPhone, setNewTenantPhone] = useState("");
   const [newTenantEmail, setNewTenantEmail] = useState("");
   const [newTenantInitialPassword, setNewTenantInitialPassword] = useState("");
-  const [newTenantInitialRole, setNewTenantInitialRole] = useState<"ADMIN" | "MANAGER" | "CASHIER" | "TECHNICIAN" | "ACCOUNTANT">("MANAGER");
+  const [newTenantInitialRole, setNewTenantInitialRole] = useState<"PLATFORM_OWNER" | "ADMIN" | "MANAGER" | "CASHIER" | "TECHNICIAN" | "ACCOUNTANT">("MANAGER");
   const [newTenantPlan, setNewTenantPlan] = useState<"Lite" | "Pro" | "Enterprise">("Pro");
 
   // Reseller Bookkeeping & Pricing States
@@ -648,6 +651,7 @@ function StudioPageContent() {
         setEditBillingLedger(data.saasMetadata.billingLedger || []);
         const rolePermissions = data.saasMetadata.rolePermissions;
         setEditRolePermissions({
+          PLATFORM_OWNER: rolePermissions?.PLATFORM_OWNER ?? ["pos", "repairs", "stock", "invoicing", "buyback"],
           ADMIN: rolePermissions?.ADMIN ?? ["pos", "repairs", "stock", "invoicing", "buyback"],
           MANAGER: rolePermissions?.MANAGER ?? ["pos", "repairs", "stock", "invoicing"],
           CASHIER: rolePermissions?.CASHIER ?? ["pos"],
@@ -701,6 +705,7 @@ function StudioPageContent() {
         invoicing: false,
       },
       rolePermissions: {
+        PLATFORM_OWNER: ["pos", "repairs", "stock", "invoicing", "buyback"],
         ADMIN: ["pos", "repairs", "stock", "invoicing", "buyback"],
         MANAGER: ["pos", "repairs", "stock", "invoicing"],
         CASHIER: ["pos"],
@@ -4701,6 +4706,7 @@ function StudioPageContent() {
                       value={newTenantInitialRole}
                       onChange={(e) => setNewTenantInitialRole(e.target.value as any)}
                     >
+                      <option value="PLATFORM_OWNER">PLATFORM_OWNER - Platform Owner</option>
                       <option value="MANAGER">MANAGER - Yonetici</option>
                       <option value="ADMIN">ADMIN - Sistem Yoneticisi</option>
                       <option value="CASHIER">CASHIER - Kasiyer</option>

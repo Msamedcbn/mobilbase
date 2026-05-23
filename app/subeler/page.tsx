@@ -14,7 +14,7 @@ type AppUser = {
   id: string;
   fullName: string;
   email: string;
-  role: "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT";
+  role: "PLATFORM_OWNER" | "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT";
   isActive: boolean;
   branchId: string | null;
   createdAt: string;
@@ -69,7 +69,7 @@ export default function BranchesPage() {
   const [userFullName, setUserFullName] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [userPassword, setUserPassword] = useState("");
-  const [userRole, setUserRole] = useState<"ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT">("CASHIER");
+  const [userRole, setUserRole] = useState<"PLATFORM_OWNER" | "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT">("CASHIER");
   const [userBranchId, setUserBranchId] = useState("");
   const [userIsActive, setUserIsActive] = useState(true);
 
@@ -874,6 +874,7 @@ export default function BranchesPage() {
                     <option value="TECHNICIAN">Teknisyen</option>
                     <option value="MANAGER">Müdür</option>
                     <option value="ACCOUNTANT">Muhasebeci</option>
+                    <option value="PLATFORM_OWNER">Platform Owner</option>
                     <option value="ADMIN">Yönetici</option>
                   </select>
                 </div>

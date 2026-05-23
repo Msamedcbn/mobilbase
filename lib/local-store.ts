@@ -19,7 +19,7 @@ export type LocalStore = {
     id: string;
     fullName: string;
     email: string;
-    role: "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT";
+    role: "PLATFORM_OWNER" | "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT";
     passwordHash: string;
     isActive: boolean;
     branchId: string | null;

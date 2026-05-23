@@ -5,10 +5,11 @@ import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { localId, readLocalStore, writeLocalStore } from "@/lib/local-store";
 import { hashSync } from "bcryptjs";
 
-const ALLOWED_USER_ROLES = ["ADMIN", "MANAGER", "CASHIER", "TECHNICIAN", "ACCOUNTANT"] as const;
+const ALLOWED_USER_ROLES = ["PLATFORM_OWNER", "ADMIN", "MANAGER", "CASHIER", "TECHNICIAN", "ACCOUNTANT"] as const;
 type AllowedUserRole = (typeof ALLOWED_USER_ROLES)[number];
 
 const DEFAULT_ROLE_PERMISSIONS = {
+  PLATFORM_OWNER: ["pos", "repairs", "stock", "invoicing", "buyback"],
   ADMIN: ["pos", "repairs", "stock", "invoicing", "buyback"],
   MANAGER: ["pos", "repairs", "stock", "invoicing"],
   CASHIER: ["pos"],
@@ -27,7 +28,7 @@ function isSaasTenant(notes: string | null | undefined) {
 }
 
 export async function GET() {
-  const auth = requireRole(["ADMIN"]);
+  const auth = requireRole(["ADMIN", "PLATFORM_OWNER"]);
   if (auth.error) return auth.error;
 
   if (isDbDisabledMode()) {
@@ -40,7 +41,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const auth = requireRole(["ADMIN"]);
+  const auth = requireRole(["ADMIN", "PLATFORM_OWNER"]);
   if (auth.error) return auth.error;
 
   const body = await req.json();
@@ -92,7 +93,12 @@ export async function POST(req: Request) {
       const users = store.users ?? [];
       const existingUserIndex = users.findIndex((u) => u.email.toLowerCase() === email.toLowerCase());
       const localRole =
-        initialUserRole === "ADMIN" || initialUserRole === "CASHIER" || initialUserRole === "TECHNICIAN"
+        initialUserRole === "PLATFORM_OWNER" ||
+        initialUserRole === "ADMIN" ||
+        initialUserRole === "MANAGER" ||
+        initialUserRole === "CASHIER" ||
+        initialUserRole === "TECHNICIAN" ||
+        initialUserRole === "ACCOUNTANT"
           ? initialUserRole
           : "CASHIER";
       if (existingUserIndex >= 0) {
@@ -138,14 +144,14 @@ export async function POST(req: Request) {
       update: {
         fullName: authorizedPerson || fullName,
         passwordHash,
-        role: initialUserRole,
+        role: initialUserRole as any,
         isActive: true,
       },
       create: {
         fullName: authorizedPerson || fullName,
         email: email.toLowerCase(),
         passwordHash,
-        role: initialUserRole,
+        role: initialUserRole as any,
         isActive: true,
       },
     });

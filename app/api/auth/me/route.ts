@@ -5,6 +5,7 @@ import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore } from "@/lib/local-store";
 
 const DEFAULT_ROLE_PERMISSIONS = {
+  PLATFORM_OWNER: ["pos", "repairs", "stock", "invoicing", "buyback"],
   ADMIN: ["pos", "repairs", "stock", "invoicing", "buyback"],
   MANAGER: ["pos", "repairs", "stock", "invoicing"],
   CASHIER: ["pos"],

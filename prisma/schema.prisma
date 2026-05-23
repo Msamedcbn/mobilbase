@@ -63,6 +63,7 @@ enum PaymentMethod {
 }
 
 enum UserRole {
+  PLATFORM_OWNER
   ADMIN
   CASHIER
   TECHNICIAN

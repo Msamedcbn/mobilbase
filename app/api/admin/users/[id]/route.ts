@@ -39,7 +39,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
     const updateData: Record<string, unknown> = {};
     if (parsed.data.fullName !== undefined) updateData.fullName = parsed.data.fullName;
-    if (parsed.data.role !== undefined) updateData.role = parsed.data.role;
+    if (parsed.data.role !== undefined) updateData.role = parsed.data.role as any;
     if (parsed.data.isActive !== undefined) updateData.isActive = parsed.data.isActive;
     if (parsed.data.password) updateData.passwordHash = hashSync(parsed.data.password, 10);
     if (targetBranchId !== undefined) updateData.branchId = targetBranchId;

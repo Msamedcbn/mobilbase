@@ -89,7 +89,7 @@ export async function POST(req: Request) {
       data: {
         fullName: parsed.data.fullName,
         email: payloadEmail,
-        role: parsed.data.role,
+        role: parsed.data.role as any,
         passwordHash: hashSync(parsed.data.password, 10),
         isActive: parsed.data.isActive ?? true,
         branchId: (body as any).branchId || null,

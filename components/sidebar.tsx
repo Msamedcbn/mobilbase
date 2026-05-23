@@ -23,7 +23,7 @@ const items = [
 
 type SessionUser = { 
   fullName: string; 
-  role: "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT";
+  role: "PLATFORM_OWNER" | "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT";
 };
 
 export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => void; className?: string }) {
@@ -59,15 +59,16 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
   }
 
   const getRoleLabel = (role: string) => {
-    switch (role) {
-      case "ADMIN": return "Yönetici";
-      case "MANAGER": return "Müdür";
-      case "ACCOUNTANT": return "Muhasebeci";
-      case "CASHIER": return "Kasiyer";
-      case "TECHNICIAN": return "Teknisyen";
-      default: return role;
-    }
-  };
+  switch (role) {
+    case "PLATFORM_OWNER": return "Platform Owner";
+    case "ADMIN": return "Yonetici";
+    case "MANAGER": return "Mudur";
+    case "ACCOUNTANT": return "Muhasebeci";
+    case "CASHIER": return "Kasiyer";
+    case "TECHNICIAN": return "Teknisyen";
+    default: return role;
+  }
+};
 
   if (pathname === "/login") return null;
 
@@ -98,7 +99,7 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
         {items
           .filter((item) => {
             if (!user) return false;
-            if (user.role === "ADMIN") return true;
+            if (user.role === "ADMIN" || user.role === "PLATFORM_OWNER") return true;
             if (item.adminOnly) return false;
             if (item.module) {
               const isModuleActive = activeModules[item.module] !== false;

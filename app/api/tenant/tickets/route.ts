@@ -25,6 +25,7 @@ const DEFAULT_TENANT_METADATA = {
     invoicing: false,
   },
   rolePermissions: {
+    PLATFORM_OWNER: ["pos", "repairs", "stock", "invoicing", "buyback"],
     MANAGER: ["pos", "repairs", "stock", "invoicing"],
     CASHIER: ["pos"],
     TECHNICIAN: ["repairs"],

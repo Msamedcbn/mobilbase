@@ -11,7 +11,7 @@ const schema = z.object({
   password: z.string().min(6),
 });
 
-const ALLOWED_USER_ROLES = ["ADMIN", "MANAGER", "CASHIER", "TECHNICIAN", "ACCOUNTANT"] as const;
+const ALLOWED_USER_ROLES = ["PLATFORM_OWNER", "ADMIN", "MANAGER", "CASHIER", "TECHNICIAN", "ACCOUNTANT"] as const;
 type AllowedUserRole = (typeof ALLOWED_USER_ROLES)[number];
 
 function normalizeUserRole(input: unknown, fallback: AllowedUserRole = "CASHIER"): AllowedUserRole {
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
     userId: string; 
     email: string; 
     fullName: string; 
-    role: "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT"; 
+    role: "PLATFORM_OWNER" | "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT"; 
     expiresAt: number;
     rolePermissions?: Record<string, string[]>;
     activeModules?: Record<string, boolean>;
@@ -54,6 +54,7 @@ export async function POST(req: Request) {
     const getTenantConfig = async () => {
       const tenantName = process.env.TENANT_NAME ?? "TelefoncuPro";
       let rolePermissions: Record<string, string[]> = {
+        PLATFORM_OWNER: ["pos", "repairs", "stock", "invoicing", "buyback"],
         ADMIN: ["pos", "repairs", "stock", "invoicing", "buyback"],
         MANAGER: ["pos", "repairs", "stock", "invoicing"],
         CASHIER: ["pos"],
@@ -190,7 +191,7 @@ export async function POST(req: Request) {
               (authUser.user_metadata?.fullName as string | undefined) ||
               (authUser.user_metadata?.full_name as string | undefined) ||
               "Yeni Kullanici",
-            role: normalizeUserRole(authUser.user_metadata?.role, "CASHIER"),
+            role: normalizeUserRole(authUser.user_metadata?.role, "CASHIER") as any,
             passwordHash: "",
             isActive: true,
           },

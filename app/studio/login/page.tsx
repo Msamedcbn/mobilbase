@@ -10,13 +10,14 @@ export default function StudioLoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(true);
+  const canAccessStudio = (role?: string) => role === "ADMIN" || role === "PLATFORM_OWNER";
 
   // Check if already logged in as SuperAdmin on page load
   useEffect(() => {
     fetch("/api/auth/me")
       .then((res) => res.json())
       .then((json) => {
-        if (json.user && json.user.role === "ADMIN" && json.user.email === "admin@telefoncupro.local") {
+        if (json.user && canAccessStudio(json.user.role)) {
           toast.success("Mevcut oturum algılandı, yönlendiriliyorsunuz...");
           router.push("/studio");
         } else {
@@ -40,8 +41,8 @@ export default function StudioLoginPage() {
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Giriş başarısız");
 
-      // Verify that the logged-in user is actually the reseller admin
-      if (json.user && (json.user.role !== "ADMIN" || json.user.email !== "admin@telefoncupro.local")) {
+      // Verify that the logged-in user has studio-level permission
+      if (json.user && !canAccessStudio(json.user.role)) {
         // Logout immediately if user is not authorized
         await fetch("/api/auth/logout", { method: "POST" });
         throw new Error("Bu panele erişim yetkiniz bulunmamaktadır.");
@@ -116,7 +117,7 @@ export default function StudioLoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@telefoncupro.local"
+                placeholder="platform.owner@firma.com"
                 required
               />
               <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-500">

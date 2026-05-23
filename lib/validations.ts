@@ -106,14 +106,14 @@ export const erpSyncSchema = z.object({
 export const appUserCreateSchema = z.object({
   fullName: z.string().trim().min(3),
   email: z.string().email(),
-  role: z.enum(["ADMIN", "CASHIER", "TECHNICIAN", "MANAGER", "ACCOUNTANT"]),
+  role: z.enum(["PLATFORM_OWNER", "ADMIN", "CASHIER", "TECHNICIAN", "MANAGER", "ACCOUNTANT"]),
   password: z.string().min(8),
   isActive: z.boolean().optional(),
 });
 
 export const appUserUpdateSchema = z.object({
   fullName: z.string().trim().min(3).optional(),
-  role: z.enum(["ADMIN", "CASHIER", "TECHNICIAN", "MANAGER", "ACCOUNTANT"]).optional(),
+  role: z.enum(["PLATFORM_OWNER", "ADMIN", "CASHIER", "TECHNICIAN", "MANAGER", "ACCOUNTANT"]).optional(),
   password: z.string().min(8).optional(),
   isActive: z.boolean().optional(),
 });
