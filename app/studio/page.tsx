@@ -646,12 +646,13 @@ function StudioPageContent() {
         setEditModules(data.saasMetadata.modules);
         setEditTickets(data.saasMetadata.tickets || []);
         setEditBillingLedger(data.saasMetadata.billingLedger || []);
-        setEditRolePermissions(data.saasMetadata.rolePermissions || {
-          ADMIN: ["pos", "repairs", "stock", "invoicing", "buyback"],
-          MANAGER: ["pos", "repairs", "stock", "invoicing"],
-          CASHIER: ["pos"],
-          TECHNICIAN: ["repairs"],
-          ACCOUNTANT: ["invoicing"],
+        const rolePermissions = data.saasMetadata.rolePermissions;
+        setEditRolePermissions({
+          ADMIN: rolePermissions?.ADMIN ?? ["pos", "repairs", "stock", "invoicing", "buyback"],
+          MANAGER: rolePermissions?.MANAGER ?? ["pos", "repairs", "stock", "invoicing"],
+          CASHIER: rolePermissions?.CASHIER ?? ["pos"],
+          TECHNICIAN: rolePermissions?.TECHNICIAN ?? ["repairs"],
+          ACCOUNTANT: rolePermissions?.ACCOUNTANT ?? ["invoicing"],
         });
         setEditSmsQuota(data.saasMetadata.smsQuota ?? 5000);
         setEditSmsUsed(data.saasMetadata.smsUsed ?? 0);

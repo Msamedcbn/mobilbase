@@ -14,7 +14,7 @@ type AppUser = {
   id: string;
   fullName: string;
   email: string;
-  role: "ADMIN" | "CASHIER" | "TECHNICIAN";
+  role: "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT";
   isActive: boolean;
   branchId: string | null;
   createdAt: string;
