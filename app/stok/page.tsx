@@ -79,6 +79,7 @@ export default function StockPage() {
   const [flowPartNote, setFlowPartNote] = useState("");
   const [flowLaborCost, setFlowLaborCost] = useState("");
   const [flowLaborNote, setFlowLaborNote] = useState("");
+  const [flowBuybackPrice, setFlowBuybackPrice] = useState(""); // Added Geri Satın Alım Fiyatı state
   const [flowSalePrice, setFlowSalePrice] = useState("");
   const [flowStatusLoading, setFlowStatusLoading] = useState(false);
 
@@ -218,8 +219,20 @@ export default function StockPage() {
     }
   }
 
-  async function handleFlowBuybackFromService() {
+  async function handleFlowBuybackFromService(targetPrice?: number) {
     if (!selectedFlowItemId) return;
+    const selectedItem = items.find((x) => x.id === selectedFlowItemId);
+    if (!selectedItem) return;
+
+    const currentCost = Number(selectedItem.purchasePrice);
+    let amount = 0;
+    let note = "Cihaz onarımı tamamlanarak vitrin/mağaza stoğuna geri alındı.";
+
+    if (targetPrice && targetPrice > currentCost) {
+      amount = targetPrice - currentCost;
+      note = `Teknik servisten geri satın alındı. Servis onarım bedeli maliyete yansıtıldı. (Geri Alım: ${targetPrice.toLocaleString("tr-TR")} TL)`;
+    }
+
     setFlowStatusLoading(true);
     try {
       const res = await fetch(`/api/stock-items/${selectedFlowItemId}/cost-events`, {
@@ -227,13 +240,14 @@ export default function StockPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "INTERNAL_BUYBACK_FROM_SERVICE",
-          amount: 0,
-          note: "Cihaz onarımı tamamlanarak vitrin/mağaza stoğuna geri alındı.",
+          amount,
+          note,
         }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "İşlem başarısız");
       toast.success("Cihaz başarıyla mağaza satış stoğuna geri alındı.");
+      setFlowBuybackPrice("");
       await fetchItems();
       await fetchCostEvents(selectedFlowItemId);
     } catch (err) {
@@ -581,40 +595,36 @@ export default function StockPage() {
   }, [items, selectedFlowItemId]);
 
   const flowStepsStatus = useMemo(() => {
-    if (!selectedFlowItem) return { step1: "pending", step2: "pending", step3: "pending", step4: "pending", step5: "pending" };
+    if (!selectedFlowItem) return { step1: "pending", step2: "pending", step3: "pending" };
     
     const hasSentToService = costEvents.some(ev => ev.type === "INTERNAL_SELL_TO_SERVICE");
     const hasBuyback = costEvents.some(ev => ev.type === "INTERNAL_BUYBACK_FROM_SERVICE");
     
     return {
-      step1: "completed",
-      step2: hasSentToService ? "completed" : "active",
-      step3: hasBuyback ? "completed" : (hasSentToService ? "active" : "pending"),
-      step4: hasBuyback ? "completed" : (hasSentToService ? "active" : "pending"),
-      step5: hasBuyback ? "active" : "pending",
+      step1: hasSentToService ? "completed" : "active",
+      step2: hasBuyback ? "completed" : (hasSentToService ? "active" : "pending"),
+      step3: hasBuyback ? "active" : "pending",
     };
   }, [selectedFlowItem, costEvents]);
 
   const flowTotals = useMemo(() => {
-    if (!selectedFlowItem) return { initial: 0, parts: 0, labor: 0, total: 0, sale: 0, profit: 0, margin: 0 };
+    if (!selectedFlowItem) return { initial: 0, addedCost: 0, total: 0, sale: 0, profit: 0, margin: 0 };
     
-    const parts = costEvents
-      .filter((e) => e.type === "SERVICE_COST_PART")
-      .reduce((sum, e) => sum + Number(e.amount), 0);
-    const labor = costEvents
-      .filter((e) => e.type === "SERVICE_COST_LABOR")
-      .reduce((sum, e) => sum + Number(e.amount), 0);
-      
+    const buybackEvent = costEvents.find((e) => e.type === "INTERNAL_BUYBACK_FROM_SERVICE");
     const total = Number(selectedFlowItem.purchasePrice);
-    const initial = Math.max(0, total - (parts + labor));
+    
+    const addedCost = buybackEvent ? Number(buybackEvent.amount) : costEvents
+      .filter((e) => e.type === "SERVICE_COST_PART" || e.type === "SERVICE_COST_LABOR")
+      .reduce((sum, e) => sum + Number(e.amount), 0);
+
+    const initial = Math.max(0, total - addedCost);
     const sale = Number(selectedFlowItem.salePrice);
     const profit = sale - total;
     const margin = total > 0 ? (profit / total) * 100 : 0;
     
     return {
       initial,
-      parts,
-      labor,
+      addedCost,
       total,
       sale,
       profit,
@@ -625,10 +635,10 @@ export default function StockPage() {
   const getEventTypeName = (type: string) => {
     switch (type) {
       case "PURCHASE_EXTERNAL": return "Dış Satın Alım";
-      case "INTERNAL_SELL_TO_SERVICE": return "Servise Sevk";
+      case "INTERNAL_SELL_TO_SERVICE": return "İç Servise Sevk (Satış)";
       case "SERVICE_COST_LABOR": return "İşçilik Maliyeti";
       case "SERVICE_COST_PART": return "Parça Maliyeti";
-      case "INTERNAL_BUYBACK_FROM_SERVICE": return "Vitrine Geri Alım";
+      case "INTERNAL_BUYBACK_FROM_SERVICE": return "Servisten Geri Satın Alım";
       case "MANUAL_ADJUSTMENT": return "Manuel Maliyet Düzeltmesi";
       default: return type;
     }
@@ -640,7 +650,7 @@ export default function StockPage() {
       case "INTERNAL_SELL_TO_SERVICE": return "bg-blue-50 border border-blue-100 text-blue-700";
       case "SERVICE_COST_LABOR": return "bg-amber-50 border border-amber-100 text-amber-700";
       case "SERVICE_COST_PART": return "bg-orange-50 border border-orange-100 text-orange-700";
-      case "INTERNAL_BUYBACK_FROM_SERVICE": return "bg-teal-50 border border-teal-100 text-teal-700";
+      case "INTERNAL_BUYBACK_FROM_SERVICE": return "bg-teal-50 border border-teal-100 text-teal-700 font-bold";
       case "MANUAL_ADJUSTMENT": return "bg-slate-50 border border-slate-100 text-slate-700";
       default: return "bg-slate-50 border border-slate-100 text-slate-700";
     }
@@ -974,7 +984,7 @@ export default function StockPage() {
                 <svg className="w-4 h-4 text-teal-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
                 İşlem Yapılacak Cihaz / Ürün Seçimi
               </h3>
-              <p className="m-0 text-slate-500 text-xs">Maliyet döngüsünü (Servise sevk etme, parça/işçilik ekleme, vitrin stoğuna geri alma ve satış fiyatı düzenleme) başlatmak için cihaz seçin.</p>
+              <p className="m-0 text-slate-500 text-xs">İç servis sevkiyat ve geri satın alım döngüsünü başlatmak için cihaz seçin.</p>
               
               <select
                 className="field w-full cursor-pointer text-sm font-medium mt-1.5"
@@ -984,7 +994,7 @@ export default function StockPage() {
                 <option value="">-- Cihaz / Ürün Seçin --</option>
                 {items.map((item) => (
                   <option key={item.id} value={item.id}>
-                    {item.name} ({item.sku}) {item.imei ? `- IMEI: ${item.imei}` : ""} - Güncel Maliyet: {Number(item.purchasePrice).toLocaleString("tr-TR")} TL
+                    {item.name} ({item.sku}) {item.imei ? `- IMEI: ${item.imei}` : ""} - Maliyet: {Number(item.purchasePrice).toLocaleString("tr-TR")} TL
                   </option>
                 ))}
               </select>
@@ -997,11 +1007,9 @@ export default function StockPage() {
                   <div className="absolute inset-0 bg-radial-gradient(circle_at_top_right,rgba(15,118,110,0.05),transparent) pointer-events-none" />
                   
                   {[
-                    { label: "Dış Alım", desc: "Dış Tedarik", status: flowStepsStatus.step1 },
-                    { label: "Servise Sevk", desc: "İç Servise Çıkış", status: flowStepsStatus.step2 },
-                    { label: "Onarım & Maliyet", desc: "Parça & İşçilik", status: flowStepsStatus.step3 },
-                    { label: "Vitrine Alım", desc: "Geri Alım Kaydı", status: flowStepsStatus.step4 },
-                    { label: "Satış & POS", desc: "Listeleme Fiyatı", status: flowStepsStatus.step5 }
+                    { label: "İç Servise Sevk", desc: "Servise Gönderme/Satış", status: flowStepsStatus.step1 },
+                    { label: "Servisten Geri Satın Al", desc: "Maliyet Güncelleme", status: flowStepsStatus.step2 },
+                    { label: "Vitrin Listeleme", desc: "Satış Fiyatı Belirle", status: flowStepsStatus.step3 }
                   ].map((step, idx) => {
                     const isCompleted = step.status === "completed";
                     const isActive = step.status === "active";
@@ -1026,7 +1034,7 @@ export default function StockPage() {
                           <p className={`m-0 text-xs font-bold ${isActive ? "text-teal-700" : isCompleted ? "text-slate-800" : "text-slate-400"}`}>{step.label}</p>
                           <p className="m-0 text-[10px] text-slate-400 font-medium mt-0.5">{step.desc}</p>
                         </div>
-                        {idx < 4 && (
+                        {idx < 2 && (
                           <div className="hidden md:block absolute top-5 left-[calc(50%+20px)] right-[calc(-50%+20px)] h-[2px] bg-slate-200 -z-10">
                             <div className={`h-full transition-all duration-500 ${
                               isCompleted ? "bg-teal-500 w-full" : "bg-transparent w-0"
@@ -1040,34 +1048,65 @@ export default function StockPage() {
 
                 {/* Step Action Cards Stack */}
                 <div className="flex flex-col gap-4">
-                  {/* Step 1: Dış Alım (Initial Purchase) */}
-                  <div className="panel p-5 bg-white border border-slate-200 flex justify-between items-start flex-wrap gap-4 relative overflow-hidden">
-                    <div className="absolute right-0 top-0 w-16 h-16 bg-teal-500/5 rotate-45 translate-x-8 -translate-y-8 rounded" />
-                    <div className="flex gap-3">
-                      <div className="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 font-bold text-sm shrink-0">1</div>
-                      <div>
-                        <h4 className="m-0 text-sm font-bold text-slate-800">1. Adım: Cihaz Dış Alım Detayları (Tamamlandı)</h4>
-                        <p className="m-0 text-slate-400 text-xs mt-0.5">Dışarıdan hasarlı/arızalı olarak alınan cihazın sisteme ilk giriş kartıdır.</p>
-                        <div className="flex gap-4 mt-3 flex-wrap">
-                          <div className="text-xs">
-                            <span className="text-slate-400">Ürün Tanımı:</span> <strong className="text-slate-700">{selectedFlowItem.name}</strong>
-                          </div>
-                          <div className="text-xs">
-                            <span className="text-slate-400">İlk Maliyet:</span> <strong className="text-slate-700">{flowTotals.initial.toLocaleString("tr-TR")} TL</strong>
-                          </div>
-                          <div className="text-xs">
-                            <span className="text-slate-400">Evrak Tipi/No:</span> <strong className="text-slate-700">{selectedFlowItem.purchaseDocType ? `${selectedFlowItem.purchaseDocType} / ${selectedFlowItem.purchaseDocNo || "-"}` : "Kaydı Yok"}</strong>
+                  {/* Step 1: İç Servise Sevk */}
+                  <div className={`panel p-5 bg-white border transition-all duration-300 relative ${
+                    flowStepsStatus.step1 === "completed" 
+                      ? "border-slate-200 bg-slate-50/20" 
+                      : "border-teal-700/40 shadow-sm shadow-teal-500/5 bg-white"
+                  }`}>
+                    <div className="flex gap-3 items-start">
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
+                        flowStepsStatus.step1 === "completed" 
+                          ? "bg-teal-50 text-teal-700 border border-teal-100" 
+                          : "bg-teal-700 text-white animate-pulse"
+                      }`}>1</div>
+                      
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start flex-wrap gap-2">
+                          <h4 className="m-0 text-sm font-bold text-slate-800">
+                            1. Adım: Cihazı İç Servise Sevk Et (Sat)
+                          </h4>
+                          {flowStepsStatus.step1 === "completed" ? (
+                            <span className="text-teal-700 bg-teal-50 border border-teal-200 text-2xs font-semibold px-2.5 py-0.5 rounded-full">
+                              ✓ Sevk Edildi
+                            </span>
+                          ) : (
+                            <span className="text-teal-700 bg-teal-50 border border-teal-200 text-2xs font-semibold px-2.5 py-0.5 rounded-full animate-pulse">
+                              ● Gönderim Bekliyor
+                            </span>
+                          )}
+                        </div>
+                        <p className="m-0 text-slate-400 text-xs mt-0.5">Cihazın onarım için kendi teknik servisinize çıkış işlemini onaylayın.</p>
+                        
+                        <div className="flex gap-4 mt-3 text-xs">
+                          <div>
+                            <span className="text-slate-400">Başlangıç Maliyeti:</span> <strong className="text-slate-700">{flowTotals.initial.toLocaleString("tr-TR")} TL</strong>
                           </div>
                         </div>
+
+                        {flowStepsStatus.step1 === "active" && (
+                          <div className="mt-4">
+                            <button
+                              type="button"
+                              onClick={handleFlowSendToService}
+                              disabled={flowStatusLoading}
+                              className="primary-btn px-4 py-2 text-xs font-semibold cursor-pointer shadow-md shadow-teal-700/10"
+                            >
+                              {flowStatusLoading ? "Sevk Ediliyor..." : "Cihazı İç Servise Sat (Sevk Et)"}
+                            </button>
+                          </div>
+                        )}
+                        {flowStepsStatus.step1 === "completed" && (
+                          <div className="text-[11px] text-slate-500 mt-2 bg-slate-100/50 p-2 rounded-lg border border-slate-200/50 w-fit">
+                            ℹ️ Cihaz teknik servise sevk edildi.
+                          </div>
+                        )}
                       </div>
                     </div>
-                    <span className="text-emerald-600 bg-emerald-50 border border-emerald-200 text-2xs font-semibold px-2 py-0.5 rounded-full inline-flex items-center gap-1">
-                      ✓ Kayıtlı
-                    </span>
                   </div>
 
-                  {/* Step 2: Teknik Servise Sevk */}
-                  <div className={`panel p-5 bg-white border transition-all duration-305 relative ${
+                  {/* Step 2: Servisten Geri Satın Al */}
+                  <div className={`panel p-5 bg-white border transition-all duration-300 relative ${
                     flowStepsStatus.step2 === "completed" 
                       ? "border-slate-200 bg-slate-50/20" 
                       : flowStepsStatus.step2 === "active" 
@@ -1082,19 +1121,19 @@ export default function StockPage() {
                           ? "bg-teal-700 text-white animate-pulse" 
                           : "bg-slate-100 text-slate-400"
                       }`}>2</div>
-                      
+
                       <div className="flex-1">
                         <div className="flex justify-between items-start flex-wrap gap-2">
                           <h4 className="m-0 text-sm font-bold text-slate-800">
-                            2. Adım: Cihazı Teknik Servise Sevk Et
+                            2. Adım: Cihazı Teknik Servisten Geri Satın Al
                           </h4>
                           {flowStepsStatus.step2 === "completed" ? (
                             <span className="text-teal-700 bg-teal-50 border border-teal-200 text-2xs font-semibold px-2.5 py-0.5 rounded-full">
-                              ✓ Sevk Edildi
+                              ✓ Geri Alındı
                             </span>
                           ) : flowStepsStatus.step2 === "active" ? (
                             <span className="text-teal-700 bg-teal-50 border border-teal-200 text-2xs font-semibold px-2.5 py-0.5 rounded-full animate-pulse">
-                              ● İşlem Bekleniyor
+                              ● Geri Alım Bekliyor
                             </span>
                           ) : (
                             <span className="text-slate-400 bg-slate-100 border border-slate-200 text-2xs font-semibold px-2.5 py-0.5 rounded-full">
@@ -1102,31 +1141,49 @@ export default function StockPage() {
                             </span>
                           )}
                         </div>
-                        <p className="m-0 text-slate-400 text-xs mt-0.5">Cihazın onarım ve parça değişimi yapılmak üzere teknik servise sevk işlemini onaylayın.</p>
-                        
-                        {flowStepsStatus.step2 === "active" && (
-                          <div className="mt-4">
-                            <button
-                              type="button"
-                              onClick={handleFlowSendToService}
-                              disabled={flowStatusLoading}
-                              className="primary-btn px-4 py-2 text-xs font-semibold cursor-pointer shadow-md shadow-teal-700/10"
-                            >
-                              {flowStatusLoading ? "Sevk Ediliyor..." : "Cihazı Teknik Servise Sevk Et"}
-                            </button>
-                          </div>
-                        )}
-                        {flowStepsStatus.step2 === "completed" && (
-                          <div className="text-[11px] text-slate-500 mt-2 bg-slate-100/50 p-2 rounded-lg border border-slate-200/50 w-fit">
-                            ℹ️ Cihaz teknik servise aktarıldı. Onarım ve parça maliyetleri eklenebilir durumda.
+                        <p className="m-0 text-slate-400 text-xs mt-0.5">Teknik servisin onararak size geri sattığı fiyatı girin. Aradaki fark otomatik olarak cihaz maliyetine eklenecektir.</p>
+
+                        {(flowStepsStatus.step2 === "active" || flowStepsStatus.step2 === "completed") && (
+                          <div className="mt-4 flex flex-col gap-3">
+                            {flowStepsStatus.step2 === "active" && (
+                              <div className="flex gap-3 items-end max-w-md">
+                                <div className="flex-1 flex flex-col gap-1">
+                                  <span className="text-slate-700 text-xs font-bold">Geri Satın Alma Fiyatı (TL)</span>
+                                  <input
+                                    type="number"
+                                    min={Number(selectedFlowItem.purchasePrice)}
+                                    className="field text-xs w-full py-2"
+                                    placeholder="Örn: 32000"
+                                    value={flowBuybackPrice}
+                                    onChange={(e) => setFlowBuybackPrice(e.target.value)}
+                                    disabled={flowStatusLoading}
+                                  />
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => handleFlowBuybackFromService(Number(flowBuybackPrice))}
+                                  disabled={flowStatusLoading || !flowBuybackPrice}
+                                  className="primary-btn py-2 px-4 text-xs font-bold cursor-pointer"
+                                >
+                                  {flowStatusLoading ? "İşlem yapılıyor..." : "Geri Satın Al"}
+                                </button>
+                              </div>
+                            )}
+
+                            {flowStepsStatus.step2 === "completed" && (
+                              <div className="text-xs text-slate-600 bg-slate-100/50 p-2.5 rounded-lg border border-slate-200/50 w-fit flex flex-col gap-1">
+                                <div>Geri Satın Alma Bedeli: <strong>{flowTotals.total.toLocaleString("tr-TR")} TL</strong></div>
+                                <div>Yansıyan Servis Maliyeti: <strong className="text-amber-700">+{flowTotals.addedCost.toLocaleString("tr-TR")} TL</strong></div>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
                     </div>
                   </div>
 
-                  {/* Step 3: Servis Maliyeti Ekleme */}
-                  <div className={`panel p-5 bg-white border transition-all duration-305 relative ${
+                  {/* Step 3: Vitrin Listeleme Fiyatı */}
+                  <div className={`panel p-5 bg-white border transition-all duration-300 relative ${
                     flowStepsStatus.step3 === "completed" 
                       ? "border-slate-200 bg-slate-50/20" 
                       : flowStepsStatus.step3 === "active" 
@@ -1138,212 +1195,22 @@ export default function StockPage() {
                         flowStepsStatus.step3 === "completed" 
                           ? "bg-teal-50 text-teal-700 border border-teal-100" 
                           : flowStepsStatus.step3 === "active" 
-                          ? "bg-teal-700 text-white" 
+                          ? "bg-teal-700 text-white animate-pulse" 
                           : "bg-slate-100 text-slate-400"
                       }`}>3</div>
 
                       <div className="flex-1">
                         <div className="flex justify-between items-start flex-wrap gap-2">
                           <h4 className="m-0 text-sm font-bold text-slate-800">
-                            3. Adım: Servis Onarım & Maliyet Girişi
+                            3. Adım: Vitrin Satış Fiyatı Belirle & Listele
                           </h4>
-                          {flowStepsStatus.step3 === "completed" ? (
-                            <span className="text-teal-700 bg-teal-50 border border-teal-200 text-2xs font-semibold px-2.5 py-0.5 rounded-full">
-                              ✓ Tamamlandı
-                            </span>
-                          ) : flowStepsStatus.step3 === "active" ? (
-                            <span className="text-amber-700 bg-amber-50 border border-amber-200 text-2xs font-semibold px-2.5 py-0.5 rounded-full animate-pulse">
-                              ✎ Maliyet Girişi Açık
-                            </span>
-                          ) : (
-                            <span className="text-slate-400 bg-slate-100 border border-slate-200 text-2xs font-semibold px-2.5 py-0.5 rounded-full">
-                              🔒 Kilitli
-                            </span>
-                          )}
-                        </div>
-                        <p className="m-0 text-slate-400 text-xs mt-0.5">Teknik serviste yapılan ekran değişimi, batarya yenileme gibi parça ve işçilik maliyetlerini ekleyin.</p>
-
-                        {(flowStepsStatus.step3 === "active" || flowStepsStatus.step3 === "completed") && (
-                          <div className="mt-4 flex flex-col gap-4">
-                            {/* Costs Add Forms */}
-                            {flowStepsStatus.step3 === "active" && (
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-slate-250 p-4 rounded-xl bg-slate-50/50">
-                                {/* Part Cost Form */}
-                                <form onSubmit={handleFlowAddPartCost} className="flex flex-col gap-2">
-                                  <span className="text-slate-700 text-xs font-bold">🛠️ Yedek Parça Maliyeti</span>
-                                  <input
-                                    type="number"
-                                    min={1}
-                                    className="field text-xs w-full py-1.5"
-                                    placeholder="Parça Tutar (TL)"
-                                    value={flowPartCost}
-                                    onChange={(e) => setFlowPartCost(e.target.value)}
-                                    disabled={flowStatusLoading}
-                                  />
-                                  <input
-                                    type="text"
-                                    className="field text-xs w-full py-1.5"
-                                    placeholder="Parça Notu (örn: Orijinal Ekran)"
-                                    value={flowPartNote}
-                                    onChange={(e) => setFlowPartNote(e.target.value)}
-                                    disabled={flowStatusLoading}
-                                  />
-                                  <button
-                                    type="submit"
-                                    className="primary-btn py-1.5 text-2xs font-bold w-full cursor-pointer"
-                                    disabled={flowStatusLoading}
-                                  >
-                                    Parça Maliyeti Ekle
-                                  </button>
-                                </form>
-
-                                {/* Labor Cost Form */}
-                                <form onSubmit={handleFlowAddLaborCost} className="flex flex-col gap-2 border-t md:border-t-0 md:border-l border-slate-200 pt-3 md:pt-0 md:pl-4">
-                                  <span className="text-slate-700 text-xs font-bold">👨‍🔧 Servis İşçilik Maliyeti</span>
-                                  <input
-                                    type="number"
-                                    min={1}
-                                    className="field text-xs w-full py-1.5"
-                                    placeholder="İşçilik Tutar (TL)"
-                                    value={flowLaborCost}
-                                    onChange={(e) => setFlowLaborCost(e.target.value)}
-                                    disabled={flowStatusLoading}
-                                  />
-                                  <input
-                                    type="text"
-                                    className="field text-xs w-full py-1.5"
-                                    placeholder="İşçilik Notu (örn: Ekran Değişim İşçilik)"
-                                    value={flowLaborNote}
-                                    onChange={(e) => setFlowLaborNote(e.target.value)}
-                                    disabled={flowStatusLoading}
-                                  />
-                                  <button
-                                    type="submit"
-                                    className="primary-btn py-1.5 text-2xs font-bold w-full cursor-pointer"
-                                    disabled={flowStatusLoading}
-                                  >
-                                    İşçilik Maliyeti Ekle
-                                  </button>
-                                </form>
-                              </div>
-                            )}
-
-                            {/* Added Costs Summary list */}
-                            <div className="flex flex-col gap-1.5">
-                              <span className="text-slate-600 text-xs font-bold">Kayıtlı Servis Maliyetleri:</span>
-                              {costEvents.filter(e => e.type === "SERVICE_COST_PART" || e.type === "SERVICE_COST_LABOR").length === 0 ? (
-                                <div className="text-xs text-slate-400 italic p-3 border border-dashed border-slate-200 rounded-lg bg-slate-50 text-center">
-                                  Henüz parça veya işçilik maliyeti kaydedilmedi.
-                                </div>
-                              ) : (
-                                <div className="flex flex-col gap-1.5 max-h-40 overflow-y-auto">
-                                  {costEvents.filter(e => e.type === "SERVICE_COST_PART" || e.type === "SERVICE_COST_LABOR").map(ev => (
-                                    <div key={ev.id} className="flex justify-between items-center py-1.5 px-3 rounded-lg border border-slate-200/60 bg-white text-xs">
-                                      <div className="flex items-center gap-2">
-                                        <span className={`w-2 h-2 rounded-full ${ev.type === "SERVICE_COST_PART" ? "bg-orange-500" : "bg-amber-500"}`} />
-                                        <span className="font-semibold text-slate-700">{ev.type === "SERVICE_COST_PART" ? "Yedek Parça" : "İşçilik"}:</span>
-                                        <span className="text-slate-500">{ev.note || "-"}</span>
-                                      </div>
-                                      <span className="font-bold text-slate-900">+{Number(ev.amount).toLocaleString("tr-TR")} TL</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Step 4: Vitrine Geri Alım */}
-                  <div className={`panel p-5 bg-white border transition-all duration-305 relative ${
-                    flowStepsStatus.step4 === "completed" 
-                      ? "border-slate-200 bg-slate-50/20" 
-                      : flowStepsStatus.step4 === "active" 
-                      ? "border-teal-700/40 shadow-sm shadow-teal-500/5 bg-white" 
-                      : "opacity-60 bg-slate-50/50"
-                  }`}>
-                    <div className="flex gap-3 items-start">
-                      <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
-                        flowStepsStatus.step4 === "completed" 
-                          ? "bg-teal-50 text-teal-700 border border-teal-100" 
-                          : flowStepsStatus.step4 === "active" 
-                          ? "bg-teal-700 text-white animate-pulse" 
-                          : "bg-slate-100 text-slate-400"
-                      }`}>4</div>
-
-                      <div className="flex-1">
-                        <div className="flex justify-between items-start flex-wrap gap-2">
-                          <h4 className="m-0 text-sm font-bold text-slate-800">
-                            4. Adım: Cihazı Vitrine / Mağaza Stoğuna Geri Al
-                          </h4>
-                          {flowStepsStatus.step4 === "completed" ? (
-                            <span className="text-teal-700 bg-teal-50 border border-teal-200 text-2xs font-semibold px-2.5 py-0.5 rounded-full">
-                              ✓ Vitrinde / Hazır
-                            </span>
-                          ) : flowStepsStatus.step4 === "active" ? (
-                            <span className="text-teal-700 bg-teal-50 border border-teal-200 text-2xs font-semibold px-2.5 py-0.5 rounded-full animate-pulse">
-                              ● İşlem Bekleniyor
-                            </span>
-                          ) : (
-                            <span className="text-slate-400 bg-slate-100 border border-slate-200 text-2xs font-semibold px-2.5 py-0.5 rounded-full">
-                              🔒 Kilitli
-                            </span>
-                          )}
-                        </div>
-                        <p className="m-0 text-slate-400 text-xs mt-0.5">Onarımı ve testleri tamamlanan cihazı, teknik servisten mağaza satış vitrini / envanter stoğuna geri alın.</p>
-
-                        {flowStepsStatus.step4 === "active" && (
-                          <div className="mt-4">
-                            <button
-                              type="button"
-                              onClick={handleFlowBuybackFromService}
-                              disabled={flowStatusLoading}
-                              className="primary-btn px-4 py-2 text-xs font-semibold cursor-pointer shadow-md shadow-teal-700/10"
-                            >
-                              {flowStatusLoading ? "İşlem Yapılıyor..." : "Onarımı Tamamla ve Vitrine Geri Al"}
-                            </button>
-                          </div>
-                        )}
-                        {flowStepsStatus.step4 === "completed" && (
-                          <div className="text-[11px] text-slate-500 mt-2 bg-slate-100/50 p-2 rounded-lg border border-slate-200/50 w-fit">
-                            ℹ️ Cihaz başarıyla mağaza stoğuna geri alındı ve vitrinde listelenmeye hazır.
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Step 5: Satış Fiyatı ve Listeleme */}
-                  <div className={`panel p-5 bg-white border transition-all duration-305 relative ${
-                    flowStepsStatus.step5 === "completed" 
-                      ? "border-slate-200 bg-slate-50/20" 
-                      : flowStepsStatus.step5 === "active" 
-                      ? "border-teal-700/40 shadow-sm shadow-teal-500/5 bg-white" 
-                      : "opacity-60 bg-slate-50/50"
-                  }`}>
-                    <div className="flex gap-3 items-start">
-                      <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
-                        flowStepsStatus.step5 === "completed" 
-                          ? "bg-teal-50 text-teal-700 border border-teal-100" 
-                          : flowStepsStatus.step5 === "active" 
-                          ? "bg-teal-700 text-white animate-pulse" 
-                          : "bg-slate-100 text-slate-400"
-                      }`}>5</div>
-
-                      <div className="flex-1">
-                        <div className="flex justify-between items-start flex-wrap gap-2">
-                          <h4 className="m-0 text-sm font-bold text-slate-800">
-                            5. Adım: Satış Fiyatı Belirle & Vitrine Listele
-                          </h4>
-                          {flowStepsStatus.step5 === "active" ? (
+                          {flowStepsStatus.step3 === "active" ? (
                             <span className="text-amber-700 bg-amber-50 border border-amber-200 text-2xs font-semibold px-2.5 py-0.5 rounded-full animate-pulse">
                               ✎ Fiyat Belirleme Aktif
                             </span>
-                          ) : flowStepsStatus.step5 === "completed" ? (
+                          ) : flowStepsStatus.step3 === "completed" ? (
                             <span className="text-teal-700 bg-teal-50 border border-teal-200 text-2xs font-semibold px-2.5 py-0.5 rounded-full">
-                              ✓ Satışta
+                              ✓ Satışta / Vitrinde
                             </span>
                           ) : (
                             <span className="text-slate-400 bg-slate-100 border border-slate-200 text-2xs font-semibold px-2.5 py-0.5 rounded-full">
@@ -1351,13 +1218,13 @@ export default function StockPage() {
                             </span>
                           )}
                         </div>
-                        <p className="m-0 text-slate-400 text-xs mt-0.5">Onarılmış cihazın vitrinde yer alacağı nihai satış etiket fiyatını belirleyin.</p>
+                        <p className="m-0 text-slate-400 text-xs mt-0.5">Onarılmış cihazın vitrinde yer alacağı nihai perakende liste satış fiyatını belirleyin.</p>
 
-                        {(flowStepsStatus.step5 === "active" || flowStepsStatus.step5 === "completed") && (
+                        {(flowStepsStatus.step3 === "active" || flowStepsStatus.step3 === "completed") && (
                           <div className="mt-4 flex flex-col gap-4">
                             <form onSubmit={handleFlowUpdateSalePrice} className="flex gap-3 items-end max-w-md">
                               <div className="flex-1 flex flex-col gap-1.5">
-                                <span className="text-slate-700 text-xs font-bold">Nihai Satış Fiyatı (TL)</span>
+                                <span className="text-slate-700 text-xs font-bold">Vitrin Satış Fiyatı (TL)</span>
                                 <input
                                   type="number"
                                   min={1}
@@ -1380,7 +1247,7 @@ export default function StockPage() {
                             {/* Margin and Profit analysis */}
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 border border-slate-200 p-3 rounded-lg bg-slate-50/50 text-xs">
                               <div>
-                                <span className="text-slate-400">Kümülatif Maliyet:</span>
+                                <span className="text-slate-400">Nihai Maliyet:</span>
                                 <p className="m-0 text-slate-700 font-bold mt-0.5">{flowTotals.total.toLocaleString("tr-TR")} TL</p>
                               </div>
                               <div>
@@ -1432,12 +1299,8 @@ export default function StockPage() {
                         <span className="font-bold text-white">{flowTotals.initial.toLocaleString("tr-TR")} TL</span>
                       </div>
                       <div className="flex justify-between text-xs text-slate-350">
-                        <span>Servis Parça Maliyeti:</span>
-                        <span className="font-bold text-orange-400">+ {flowTotals.parts.toLocaleString("tr-TR")} TL</span>
-                      </div>
-                      <div className="flex justify-between text-xs text-slate-350">
-                        <span>Servis İşçilik Maliyeti:</span>
-                        <span className="font-bold text-amber-400">+ {flowTotals.labor.toLocaleString("tr-TR")} TL</span>
+                        <span>İç Servis Ek Maliyeti:</span>
+                        <span className="font-bold text-amber-400">+ {flowTotals.addedCost.toLocaleString("tr-TR")} TL</span>
                       </div>
                       <div className="border-t border-white/10 my-1.5" />
                       <div className="flex justify-between text-xs text-slate-200">
