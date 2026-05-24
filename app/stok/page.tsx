@@ -73,6 +73,32 @@ export default function StockPage() {
   // Sub navigation active Tab
   const [activeTab, setActiveTab] = useState<"inventory" | "service-flow" | "report">("inventory");
 
+  // Read tab parameter from URL on load and changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab");
+      if (tabParam === "service-flow" || tabParam === "inventory" || tabParam === "report") {
+        setActiveTab(tabParam);
+      } else {
+        setActiveTab("inventory");
+      }
+    }
+  }, [typeof window !== "undefined" ? window.location.search : ""]);
+
+  const handleTabChange = (tab: "inventory" | "service-flow" | "report") => {
+    setActiveTab(tab);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      if (tab === "inventory") {
+        url.searchParams.delete("tab");
+      } else {
+        url.searchParams.set("tab", tab);
+      }
+      window.history.pushState({}, "", url.pathname + url.search);
+    }
+  };
+
   // Cost Flow Wizard States
   const [selectedFlowItemId, setSelectedFlowItemId] = useState("");
   const [flowPartCost, setFlowPartCost] = useState("");
@@ -669,7 +695,7 @@ export default function StockPage() {
       <div className="flex border-b border-slate-200 gap-2 mb-2 overflow-x-auto scrollbar-none">
         <button
           type="button"
-          onClick={() => setActiveTab("inventory")}
+          onClick={() => handleTabChange("inventory")}
           className={`px-4 py-3 text-sm font-semibold border-b-2 transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-2 ${
             activeTab === "inventory"
               ? "border-teal-700 text-teal-700 font-bold"
@@ -681,7 +707,7 @@ export default function StockPage() {
         </button>
         <button
           type="button"
-          onClick={() => setActiveTab("service-flow")}
+          onClick={() => handleTabChange("service-flow")}
           className={`px-4 py-3 text-sm font-semibold border-b-2 transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-2 ${
             activeTab === "service-flow"
               ? "border-teal-700 text-teal-700 font-bold"
@@ -693,7 +719,7 @@ export default function StockPage() {
         </button>
         <button
           type="button"
-          onClick={() => setActiveTab("report")}
+          onClick={() => handleTabChange("report")}
           className={`px-4 py-3 text-sm font-semibold border-b-2 transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-2 ${
             activeTab === "report"
               ? "border-teal-700 text-teal-700 font-bold"

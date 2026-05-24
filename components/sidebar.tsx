@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 type NavItem = {
@@ -33,6 +33,7 @@ const navSections: Array<{ title: string; items: NavItem[] }> = [
     title: "Stok ve Lojistik",
     items: [
       { href: "/stok", label: "Stok Yonetimi", module: "stock" },
+      { href: "/stok?tab=service-flow", label: "İç Servis Döngüsü", module: "stock" },
       { href: "/toptan-alim-satis", label: "Toptan Alis / Satis", module: "stock" },
       { href: "/distributor-ithalat", label: "Distributor Ithalat", module: "stock" },
       { href: "/seri-no-takip", label: "Seri No Takip", module: "stock" },
@@ -105,6 +106,12 @@ const getIcon = (href: string) => {
           <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
         </svg>
       );
+    case "/stok?tab=service-flow":
+      return (
+        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89M9 11l3 3L22 4" />
+        </svg>
+      );
     case "/toptan-alim-satis":
       return (
         <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -174,7 +181,23 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
   const [rolePermissions, setRolePermissions] = useState<Record<string, string[]>>({});
   const [activeModules, setActiveModules] = useState<Record<string, boolean>>({});
 
-  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  const searchParams = useSearchParams();
+  const isActive = (href: string) => {
+    const [basePath, queryStr] = href.split("?");
+    const pathMatches = pathname === basePath || pathname.startsWith(`${basePath}/`);
+    if (!pathMatches) return false;
+    if (queryStr) {
+      const params = new URLSearchParams(queryStr);
+      for (const [key, value] of params.entries()) {
+        if (searchParams.get(key) !== value) return false;
+      }
+      return true;
+    }
+    if (pathname === "/stok" && searchParams.get("tab") === "service-flow") {
+      return false;
+    }
+    return true;
+  };
 
   useEffect(() => {
     fetch("/api/auth/me")
