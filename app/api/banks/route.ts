@@ -6,7 +6,7 @@ import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore, writeLocalStore, localId } from "@/lib/local-store";
 
 export async function GET() {
-  const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN"]);
+  const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN", "MANAGER"]);
   if (auth.error) return auth.error;
   const tenantId = auth.user.tenantId;
 

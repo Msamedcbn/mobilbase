@@ -8,7 +8,7 @@ import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore, writeLocalStore, localId } from "@/lib/local-store";
 
 export async function POST(req: Request) {
-  const auth = requireRole(["ADMIN", "CASHIER"]);
+  const auth = requireRole(["ADMIN", "CASHIER", "MANAGER"]);
   if (auth.error) return auth.error;
 
   try {

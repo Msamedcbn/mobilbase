@@ -17,7 +17,7 @@ type Product = {
   }>;
 };
 type Customer = { id: string; fullName: string; phone: string };
-type SessionUser = { role: "ADMIN" | "CASHIER" | "TECHNICIAN" };
+type SessionUser = { role: "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT" | "PLATFORM_OWNER" };
 type CartItem = {
   productId: string;
   name: string;
@@ -231,7 +231,8 @@ export default function PosPage() {
         if (loadedBranches.length > 0) {
           setSelectedBranchId(loadedBranches[0].id);
         }
-        const loadedBanks = bankData.data || bankData || [];
+        const loadedBanksRaw = bankData?.data ?? bankData;
+        const loadedBanks = Array.isArray(loadedBanksRaw) ? loadedBanksRaw : [];
         setBanks(loadedBanks);
         if (loadedBanks.length > 0) {
           setBankAccountId(loadedBanks[0].id);
@@ -406,7 +407,8 @@ export default function PosPage() {
       // Reload bank accounts to update balances
       const bankRes = await fetch("/api/banks");
       const bankJson = await bankRes.json();
-      setBanks(bankJson.data || bankJson || []);
+      const nextBanksRaw = bankJson?.data ?? bankJson;
+      setBanks(Array.isArray(nextBanksRaw) ? nextBanksRaw : []);
     } catch (error) {
       const msg = error instanceof Error ? error.message : "POS işlemi sırasında beklenmeyen bir hata oluştu";
       toast.error(msg);

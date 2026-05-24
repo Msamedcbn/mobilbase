@@ -4,7 +4,7 @@ import { fail, ok } from "@/lib/api-response";
 import { readLocalStore, writeLocalStore } from "@/lib/local-store";
 
 export async function GET() {
-  const auth = requireRole(["ADMIN", "CASHIER"]);
+  const auth = requireRole(["ADMIN", "CASHIER", "MANAGER"]);
   if (auth.error) return auth.error;
 
   try {
