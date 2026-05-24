@@ -6,12 +6,28 @@ import { requireRole } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
-  const auth = requireRole(["ADMIN", "CASHIER"]);
+  const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN", "MANAGER"]);
   if (auth.error) return auth.error;
 
   try {
     const body = await req.json();
-    const { sku, name, category, quantity, purchasePrice, salePrice, minThreshold } = body;
+    const {
+      sku,
+      name,
+      category,
+      brand,
+      model,
+      variantColor,
+      variantStorage,
+      serialNumber,
+      imei,
+      quantity,
+      purchasePrice,
+      salePrice,
+      purchaseDocType,
+      purchaseDocNo,
+      minThreshold,
+    } = body;
 
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
@@ -29,9 +45,17 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         sku: sku !== undefined ? sku.trim() : existing.sku,
         name: name !== undefined ? name.trim() : existing.name,
         category: category !== undefined ? category.trim() : existing.category,
+        brand: brand !== undefined ? (brand?.trim() || null) : (existing as any).brand ?? null,
+        model: model !== undefined ? (model?.trim() || null) : (existing as any).model ?? null,
+        variantColor: variantColor !== undefined ? (variantColor?.trim() || null) : (existing as any).variantColor ?? null,
+        variantStorage: variantStorage !== undefined ? (variantStorage?.trim() || null) : (existing as any).variantStorage ?? null,
+        serialNumber: serialNumber !== undefined ? (serialNumber?.trim() || null) : (existing as any).serialNumber ?? null,
+        imei: imei !== undefined ? (imei?.trim() || null) : (existing as any).imei ?? null,
         quantity: quantity !== undefined ? Number(quantity) : existing.quantity,
         purchasePrice: purchasePrice !== undefined ? Number(purchasePrice) : existing.purchasePrice,
         salePrice: salePrice !== undefined ? Number(salePrice) : existing.salePrice,
+        purchaseDocType: purchaseDocType !== undefined ? (purchaseDocType?.trim() || null) : (existing as any).purchaseDocType ?? null,
+        purchaseDocNo: purchaseDocNo !== undefined ? (purchaseDocNo?.trim() || null) : (existing as any).purchaseDocNo ?? null,
         minThreshold: minThreshold !== undefined ? Number(minThreshold) : existing.minThreshold,
         updatedAt: new Date().toISOString(),
       };
@@ -53,7 +77,17 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
     const updated = await prisma.stockItem.update({
       where: { id: params.id },
-      data: body,
+      data: {
+        ...body,
+        brand: brand !== undefined ? (brand?.trim() || null) : undefined,
+        model: model !== undefined ? (model?.trim() || null) : undefined,
+        variantColor: variantColor !== undefined ? (variantColor?.trim() || null) : undefined,
+        variantStorage: variantStorage !== undefined ? (variantStorage?.trim() || null) : undefined,
+        serialNumber: serialNumber !== undefined ? (serialNumber?.trim() || null) : undefined,
+        imei: imei !== undefined ? (imei?.trim() || null) : undefined,
+        purchaseDocType: purchaseDocType !== undefined ? (purchaseDocType?.trim() || null) : undefined,
+        purchaseDocNo: purchaseDocNo !== undefined ? (purchaseDocNo?.trim() || null) : undefined,
+      },
     });
 
     await writeAuditLog({
@@ -71,7 +105,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 }
 
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-  const auth = requireRole(["ADMIN", "CASHIER"]);
+  const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN", "MANAGER"]);
   if (auth.error) return auth.error;
 
   try {
@@ -121,4 +155,3 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     return NextResponse.json({ error: "Silme islemi basarisiz." }, { status: 500 });
   }
 }
-

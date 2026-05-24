@@ -91,24 +91,26 @@ function PhoneVisualExpertise({ value, onChange }: PhoneVisualExpertiseProps) {
     const state = value[key] || "NA";
     if (state === "OK") {
       return {
-        fill: "rgba(16, 185, 129, 0.22)",
+        fill: "rgba(16, 185, 129, 0.18)",
         stroke: "#10b981",
         strokeWidth: 2,
+        filter: "drop-shadow(0 0 4px rgba(16, 185, 129, 0.4))",
       };
     }
     if (state === "BAD") {
       return {
-        fill: "rgba(239, 68, 68, 0.3)",
+        fill: "rgba(239, 68, 68, 0.25)",
         stroke: "#ef4444",
         strokeWidth: 2.5,
+        filter: "drop-shadow(0 0 6px rgba(239, 68, 68, 0.6))",
         className: "part-interactive pulse-bad",
       };
     }
     return {
-      fill: "rgba(148, 163, 184, 0.05)",
-      stroke: "rgba(148, 163, 184, 0.4)",
+      fill: "rgba(30, 41, 59, 0.45)",
+      stroke: "rgba(148, 163, 184, 0.2)",
       strokeWidth: 1.5,
-      strokeDasharray: "3 3",
+      strokeDasharray: "4 4",
     };
   };
 
@@ -116,32 +118,38 @@ function PhoneVisualExpertise({ value, onChange }: PhoneVisualExpertiseProps) {
     onClick: () => cycleState(key),
     onMouseEnter: () => setHoveredPart(key),
     onMouseLeave: () => setHoveredPart(null),
-    style: { cursor: "pointer", transition: "all 0.2s ease" },
+    style: { cursor: "pointer", transition: "all 0.25s ease" },
   });
 
   return (
-    <div style={{ padding: "12px", border: "1px solid var(--border)", borderRadius: "var(--radius)", background: "var(--surface)", marginBottom: "1.25rem" }}>
+    <div className="bg-slate-950/95 border border-slate-800 rounded-2xl p-6 shadow-2xl mb-6 relative overflow-hidden">
+      {/* Visual background scanning lines */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(15,23,42,0.3)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.3)_1px,transparent_1px)] bg-[size:14px_14px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-40 pointer-events-none" />
       <style>{`
         .pulse-bad {
           animation: visualPulse 1.8s infinite ease-in-out;
         }
         @keyframes visualPulse {
-          0% { fill: rgba(239, 68, 68, 0.15); stroke: #ef4444; }
-          50% { fill: rgba(239, 68, 68, 0.45); stroke: #f87171; }
-          100% { fill: rgba(239, 68, 68, 0.15); stroke: #ef4444; }
+          0% { fill: rgba(239, 68, 68, 0.1); stroke: #ef4444; filter: drop-shadow(0 0 2px rgba(239,68,68,0.3)); }
+          50% { fill: rgba(239, 68, 68, 0.35); stroke: #f87171; filter: drop-shadow(0 0 8px rgba(239,68,68,0.7)); }
+          100% { fill: rgba(239, 68, 68, 0.1); stroke: #ef4444; filter: drop-shadow(0 0 2px rgba(239,68,68,0.3)); }
         }
         .part-interactive:hover {
-          filter: brightness(0.9) saturate(1.2);
+          filter: brightness(1.2) saturate(1.2);
+          stroke-width: 2.5px;
         }
       `}</style>
 
-      <div style={{ display: "flex", gap: "2.5rem", justifyContent: "center", flexWrap: "wrap", margin: "10px 0" }}>
+      <div className="flex gap-10 justify-center flex-wrap my-2.5 relative z-10">
         {/* Front View */}
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>ÖN YÜZ (FRONT)</div>
-          <svg width="160" height="280" viewBox="0 0 160 280" style={{ overflow: "visible" }}>
+        <div className="text-center">
+          <div className="text-2xs font-bold text-slate-400 mb-4 tracking-widest uppercase flex items-center justify-center gap-1.5 font-mono bg-slate-900/60 py-1.5 px-3 rounded-lg border border-slate-800/40">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+            ÖN YÜZ (FRONT SIDE)
+          </div>
+          <svg width="160" height="280" viewBox="0 0 160 280" className="overflow-visible select-none">
             {/* Outer phone container rect (non-interactive) */}
-            <rect x="10" y="10" width="140" height="260" rx="24" fill="var(--surface-soft)" stroke="var(--border)" strokeWidth="3" />
+            <rect x="10" y="10" width="140" height="260" rx="24" fill="#090d16" stroke="rgba(148, 163, 184, 0.15)" strokeWidth="2.5" />
             
             {/* Screen Area (screen) */}
             <rect x="16" y="26" width="128" height="228" rx="14" className="part-interactive" {...getStylesForPart("screen")} {...partEvents("screen")} />
@@ -168,29 +176,32 @@ function PhoneVisualExpertise({ value, onChange }: PhoneVisualExpertiseProps) {
         </div>
 
         {/* Back View */}
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>ARKA YÜZ (BACK)</div>
-          <svg width="160" height="280" viewBox="0 0 160 280" style={{ overflow: "visible" }}>
+        <div className="text-center">
+          <div className="text-2xs font-bold text-slate-400 mb-4 tracking-widest uppercase flex items-center justify-center gap-1.5 font-mono bg-slate-900/60 py-1.5 px-3 rounded-lg border border-slate-800/40">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
+            ARKA YÜZ (BACK SIDE)
+          </div>
+          <svg width="160" height="280" viewBox="0 0 160 280" className="overflow-visible select-none">
             {/* Outer phone container rect (non-interactive) */}
-            <rect x="10" y="10" width="140" height="260" rx="24" fill="var(--surface-soft)" stroke="var(--border)" strokeWidth="3" />
+            <rect x="10" y="10" width="140" height="260" rx="24" fill="#090d16" stroke="rgba(148, 163, 184, 0.15)" strokeWidth="2.5" />
             
             {/* Back Camera Module (non-interactive outline) */}
-            <rect x="20" y="22" width="40" height="40" rx="10" fill="rgba(148, 163, 184, 0.05)" stroke="var(--border)" strokeWidth="1.5" />
+            <rect x="20" y="22" width="40" height="40" rx="10" fill="rgba(30, 41, 59, 0.2)" stroke="rgba(148, 163, 184, 0.12)" strokeWidth="1.5" />
             
             {/* Back Camera Lens (backCam) */}
             <circle cx="40" cy="42" r="10" className="part-interactive" {...getStylesForPart("backCam")} {...partEvents("backCam")} />
-            <circle cx="40" cy="42" r="4" fill="var(--muted)" opacity="0.6" pointerEvents="none" />
+            <circle cx="40" cy="42" r="4" fill="#475569" opacity="0.6" pointerEvents="none" />
             
             {/* WiFi / Bluetooth Region (wifi) */}
             <rect x="90" y="22" width="42" height="40" rx="10" className="part-interactive" {...getStylesForPart("wifi")} {...partEvents("wifi")} />
             {/* Custom Wireless Icon */}
-            <path d="M103 48 A 10 10 0 0 1 119 48 M106 44 A 6 6 0 0 1 116 44 M111 40 A 1 1 0 0 1 111 40" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.85" pointerEvents="none" style={{ color: value.wifi === "NA" ? "var(--muted)" : (value.wifi === "OK" ? "#10b981" : "#ef4444") }} />
+            <path d="M103 48 A 10 10 0 0 1 119 48 M106 44 A 6 6 0 0 1 116 44 M111 40 A 1 1 0 0 1 111 40" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.85" pointerEvents="none" style={{ color: value.wifi === "NA" ? "#475569" : (value.wifi === "OK" ? "#10b981" : "#ef4444") }} />
             
             {/* Battery Outline & Cap (battery) */}
             <rect x="70" y="84" width="20" height="6" rx="2" className="part-interactive" {...getStylesForPart("battery")} {...partEvents("battery")} />
             <rect x="35" y="90" width="90" height="110" rx="8" className="part-interactive" {...getStylesForPart("battery")} {...partEvents("battery")} />
             {/* Lightning bolt inside battery */}
-            <path d="M 82 132 L 74 148 L 80 148 L 78 162 L 88 144 L 82 144 Z" fill="currentColor" opacity="0.85" pointerEvents="none" style={{ color: value.battery === "NA" ? "var(--muted)" : (value.battery === "OK" ? "#10b981" : "#ef4444") }} />
+            <path d="M 82 132 L 74 148 L 80 148 L 78 162 L 88 144 L 82 144 Z" fill="currentColor" opacity="0.85" pointerEvents="none" style={{ color: value.battery === "NA" ? "#475569" : (value.battery === "OK" ? "#10b981" : "#ef4444") }} />
             
             {/* Network Antenna Bands (network) */}
             <rect x="10" y="72" width="140" height="6" className="part-interactive" {...getStylesForPart("network")} {...partEvents("network")} />
@@ -210,48 +221,38 @@ function PhoneVisualExpertise({ value, onChange }: PhoneVisualExpertiseProps) {
       </div>
 
       {/* Interactive Info Panel */}
-      <div style={{
-        marginTop: 12,
-        padding: "8px 12px",
-        borderRadius: 10,
-        background: "var(--surface-soft)",
-        border: "1px solid var(--border)",
-        textAlign: "center",
-        minHeight: 38,
-        fontSize: "0.85rem",
-        fontWeight: 600,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        color: hoveredPart ? "var(--accent)" : "var(--muted)",
-        transition: "all 0.15s ease",
-      }}>
+      <div className="mt-4 px-4 py-3 rounded-xl bg-slate-905 bg-slate-900/80 border border-slate-800/80 text-center min-h-[44px] flex items-center justify-center text-xs md:text-sm font-semibold tracking-wide shadow-inner relative z-10">
         {hoveredPart ? (
-          <span>
-            🔍 <strong>{CHECKLIST_KEYS.find(k => k.key === hoveredPart)?.label}</strong>:{" "}
-            <span style={{
-              color: value[hoveredPart] === "OK" ? "#10b981" : value[hoveredPart] === "BAD" ? "#ef4444" : "inherit"
-            }}>
-              {value[hoveredPart] === "OK" ? "ÇALIŞIYOR" : value[hoveredPart] === "BAD" ? "SORUNLU / HASARLI" : "SEÇİLMEDİ (Değiştirmek İçin Tıklayın)"}
+          <div className="font-mono text-slate-300 flex items-center justify-center gap-2 flex-wrap">
+            <span className="text-cyan-400">⚡ DIAGNOSTIC:</span>
+            <strong>{CHECKLIST_KEYS.find(k => k.key === hoveredPart)?.label}</strong>
+            <span>➜</span>
+            <span className={
+              value[hoveredPart] === "OK" ? "text-emerald-400 font-bold" : value[hoveredPart] === "BAD" ? "text-rose-400 font-bold animate-pulse" : "text-slate-500"
+            }>
+              {value[hoveredPart] === "OK" ? "ÇALIŞIYOR (STATUS: OK)" : value[hoveredPart] === "BAD" ? "SORUNLU / HASARLI (STATUS: ALERT)" : "SEÇİLMEDİ (STATUS: NULL)"}
             </span>
-          </span>
+          </div>
         ) : (
-          <span>📱 Durumu değiştirmek için görseldeki parçalara tıklayın (NA ➜ OK ➜ BAD)</span>
+          <div className="font-mono text-2xs md:text-xs text-slate-500 flex items-center justify-center gap-2">
+            <span className="inline-block w-2 h-2 rounded-full bg-cyan-400/80 animate-ping"></span>
+            <span>Durumu değiştirmek için görseldeki parçalara tıklayın (NA ➜ OK ➜ BAD)</span>
+          </div>
         )}
       </div>
 
       {/* Color legend */}
-      <div style={{ display: "flex", gap: "1.25rem", justifyContent: "center", marginTop: 10, fontSize: "0.75rem", color: "var(--muted)", fontWeight: 500 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(16, 185, 129, 0.25)", border: "1.5px solid #10b981" }}></span>
+      <div className="flex gap-5 justify-center mt-4 text-2xs md:text-xs text-slate-400 font-mono tracking-wider relative z-10">
+        <div className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/20 border border-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></span>
           Çalışıyor
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(239, 68, 68, 0.3)", border: "1.5px solid #ef4444" }}></span>
-          Sorunlu / Hasarlı
+        <div className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-rose-500/25 border border-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"></span>
+          Sorunlu
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(148, 163, 184, 0.05)", border: "1.5px dashed rgba(148, 163, 184, 0.6)" }}></span>
+        <div className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-slate-800 border border-dashed border-slate-600"></span>
           Seçilmedi
         </div>
       </div>
@@ -882,12 +883,15 @@ export default function RepairPage() {
   }
 
   return (
-    <section style={{ position: "relative" }}>
+    <section className="relative animate-fade-in">
       {/* Page Header Cards */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-        <h2 className="page-title" style={{ margin: 0 }}>Teknik Servis Yönetimi</h2>
-        <button onClick={() => { resetWizard(); setIsNewModalOpen(true); }} className="primary-btn" style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <svg style={{ width: 18, height: 18 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+          <h2 className="page-title m-0">Teknik Servis Yönetimi</h2>
+          <p className="text-slate-500 text-xs md:text-sm m-0 mt-1">Cihaz kayıtları, diagnostik ekspertizler ve onarım süreci takibi.</p>
+        </div>
+        <button onClick={() => { resetWizard(); setIsNewModalOpen(true); }} className="primary-btn shrink-0 flex items-center gap-2 px-5 py-2.5 font-semibold text-sm hover:shadow-lg transition-all duration-300">
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
           Yeni Servis Kaydı
@@ -895,58 +899,75 @@ export default function RepairPage() {
       </div>
 
       {/* Premium Stats Grid */}
-      <div className="stats-grid" style={{ marginBottom: "1.5rem" }}>
-        <div className="panel" style={{ padding: "1.25rem", background: "linear-gradient(135deg, #0f766e 0%, #115e59 100%)", color: "white" }}>
-          <p style={{ margin: 0, fontSize: "0.85rem", opacity: 0.85, fontWeight: 600, textTransform: "uppercase" }}>Aktif Cihazlar</p>
-          <h3 style={{ margin: "8px 0 0", fontSize: "2.2rem", fontWeight: 800 }}>{stats.active}</h3>
-          <p style={{ margin: "4px 0 0", fontSize: "0.75rem", opacity: 0.75 }}>Tamir ve parça bekleyenler</p>
+      <div className="stats-grid mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="panel overflow-hidden relative group p-5 bg-gradient-to-br from-teal-700 to-teal-800 text-white border-0 shadow-lg">
+          <div className="absolute right-3 bottom-3 opacity-10 group-hover:scale-110 transition-transform duration-300">
+            <svg className="w-16 h-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+            </svg>
+          </div>
+          <p className="m-0 text-xs font-bold opacity-80 uppercase tracking-wider">Aktif Cihazlar</p>
+          <h3 className="m-0 mt-2 text-3xl font-extrabold">{stats.active}</h3>
+          <p className="m-0 mt-1 text-2xs opacity-75">Tamir ve parça bekleyenler</p>
         </div>
 
-        <div className="panel" style={{ padding: "1.25rem", background: "white" }}>
-          <p style={{ margin: 0, fontSize: "0.85rem", color: "#64748b", fontWeight: 600, textTransform: "uppercase" }}>Hazır / Teslim Edilecek</p>
-          <h3 style={{ margin: "8px 0 0", fontSize: "2.2rem", fontWeight: 800, color: "#10b981" }}>{stats.ready}</h3>
-          <p style={{ margin: "4px 0 0", fontSize: "0.75rem", color: "#94a3b8" }}>Onarımı biten cihazlar</p>
+        <div className="panel overflow-hidden relative group p-5 bg-white">
+          <div className="absolute right-3 bottom-3 opacity-10 text-emerald-800 group-hover:scale-110 transition-transform duration-300">
+            <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p className="m-0 text-xs font-bold text-slate-500 uppercase tracking-wider">Hazır / Teslim Edilecek</p>
+          <h3 className="m-0 mt-2 text-3xl font-extrabold text-emerald-600">{stats.ready}</h3>
+          <p className="m-0 mt-1 text-2xs text-slate-400">Onarımı biten cihazlar</p>
         </div>
 
-        <div className="panel" style={{ padding: "1.25rem", background: "white" }}>
-          <p style={{ margin: 0, fontSize: "0.85rem", color: "#64748b", fontWeight: 600, textTransform: "uppercase" }}>Bugün Teslim Edilen</p>
-          <h3 style={{ margin: "8px 0 0", fontSize: "2.2rem", fontWeight: 800, color: "#6366f1" }}>{stats.deliveredToday}</h3>
-          <p style={{ margin: "4px 0 0", fontSize: "0.75rem", color: "#94a3b8" }}>Dükkandan çıkan cihazlar</p>
+        <div className="panel overflow-hidden relative group p-5 bg-white">
+          <div className="absolute right-3 bottom-3 opacity-10 text-indigo-800 group-hover:scale-110 transition-transform duration-300">
+            <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.375c1.08 0 1.958-.87 1.958-1.958a1.958 1.958 0 00-1.958-1.958H9V15zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p className="m-0 text-xs font-bold text-slate-500 uppercase tracking-wider">Bugün Teslim Edilen</p>
+          <h3 className="m-0 mt-2 text-3xl font-extrabold text-indigo-600">{stats.deliveredToday}</h3>
+          <p className="m-0 mt-1 text-2xs text-slate-400">Dükkandan çıkan cihazlar</p>
         </div>
 
-        <div className="panel" style={{ padding: "1.25rem", background: "white" }}>
-          <p style={{ margin: 0, fontSize: "0.85rem", color: "#64748b", fontWeight: 600, textTransform: "uppercase" }}>Kayıtlı Cihaz Sayısı</p>
-          <h3 style={{ margin: "8px 0 0", fontSize: "2.2rem", fontWeight: 800, color: "#0f172a" }}>{repairs.length}</h3>
-          <p style={{ margin: "4px 0 0", fontSize: "0.75rem", color: "#94a3b8" }}>Toplam arıza girdisi</p>
+        <div className="panel overflow-hidden relative group p-5 bg-white">
+          <div className="absolute right-3 bottom-3 opacity-10 text-slate-800 group-hover:scale-110 transition-transform duration-300">
+            <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+            </svg>
+          </div>
+          <p className="m-0 text-xs font-bold text-slate-500 uppercase tracking-wider">Kayıtlı Cihaz Sayısı</p>
+          <h3 className="m-0 mt-2 text-3xl font-extrabold text-slate-900">{repairs.length}</h3>
+          <p className="m-0 mt-1 text-2xs text-slate-400">Toplam arıza girdisi</p>
         </div>
       </div>
 
       {/* Control panel: Search & Filters */}
-      <div className="panel" style={{ padding: "1rem", marginBottom: "1.5rem", display: "flex", flexWrap: "wrap", gap: "1rem", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-          {["ALL", "RECEIVED", "IN_PROGRESS", "WAITING_PART", "READY", "DELIVERED", "CANCELED"].map((st) => (
-            <button
-              key={st}
-              onClick={() => setStatusFilter(st)}
-              style={{
-                border: "1px solid var(--border)",
-                borderRadius: 10,
-                padding: "0.5rem 0.85rem",
-                fontSize: "0.85rem",
-                cursor: "pointer",
-                fontWeight: 600,
-                backgroundColor: statusFilter === st ? "var(--accent)" : "white",
-                color: statusFilter === st ? "white" : "var(--text)",
-                transition: "all 0.15s ease",
-              }}
-            >
-              {st === "ALL" ? "Tümü" : STATUS_LABELS[st]}
-            </button>
-          ))}
+      <div className="panel p-4 mb-6 flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+        <div className="flex gap-2 flex-wrap items-center">
+          {["ALL", "RECEIVED", "IN_PROGRESS", "WAITING_PART", "READY", "DELIVERED", "CANCELED"].map((st) => {
+            const active = statusFilter === st;
+            return (
+              <button
+                key={st}
+                onClick={() => setStatusFilter(st)}
+                className={`px-4 py-2 text-xs md:text-sm font-semibold rounded-xl border transition-all duration-200 shadow-sm ${
+                  active 
+                    ? "bg-teal-700 border-teal-700 text-white shadow-teal-700/10" 
+                    : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800"
+                }`}
+              >
+                {st === "ALL" ? "Tümü" : STATUS_LABELS[st]}
+              </button>
+            );
+          })}
         </div>
-        <div style={{ width: "min(350px, 100%)" }}>
+        <div className="w-full md:w-80 shrink-0">
           <input
-            className="field"
+            className="field w-full"
             placeholder="Müşteri, Model, IMEI veya Arıza Ara..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -1034,71 +1055,94 @@ export default function RepairPage() {
 
       {/* 1. NEW SERVICE RECORD MODAL (WIZARD) */}
       {isNewModalOpen && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.45)", display: "grid", placeItems: "center", zIndex: 65, padding: 16 }}>
-          <div className="panel" style={{ width: "min(680px,95vw)", maxHeight: "90vh", display: "flex", flexDirection: "column", padding: 0 }}>
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm grid place-items-center z-50 p-4 animate-fade-in">
+          <div className="panel w-full max-w-2xl max-h-[90vh] flex flex-col p-0 border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md overflow-hidden rounded-2xl">
             {/* Header */}
-            <div style={{ padding: "1.25rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700 }}>Yeni Servis Kaydı</h3>
+            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
+              <div>
+                <h3 className="m-0 text-lg font-bold text-slate-900">Yeni Servis Kaydı</h3>
+                <p className="m-0 text-slate-400 text-xs mt-0.5">Adım adım müşteri, cihaz ve arıza kaydı oluşturun.</p>
+              </div>
               <button
                 onClick={() => setIsNewModalOpen(false)}
-                style={{ border: 0, background: "transparent", fontSize: "1.2rem", cursor: "pointer", color: "var(--muted)" }}
+                className="text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors w-8 h-8 rounded-full flex items-center justify-center text-xl font-bold cursor-pointer"
               >
                 &times;
               </button>
             </div>
 
             {/* Step Indicators */}
-            <div style={{ display: "flex", background: "var(--surface-soft)", borderBottom: "1px solid var(--border)" }}>
-              {["Müşteri", "Cihaz", "Kontrol & Kayıt"].map((stepLabel, idx) => {
+            <div className="flex bg-slate-50/30 border-b border-slate-200">
+              {[
+                { label: "Müşteri Bilgileri", icon: "👤" },
+                { label: "Cihaz Detayları", icon: "📱" },
+                { label: "Ön Kontrol & Arıza", icon: "🛠️" }
+              ].map((step, idx) => {
                 const stepNum = idx + 1;
                 const active = wizardStep === stepNum;
                 const done = wizardStep > stepNum;
                 return (
                   <div
-                    key={stepLabel}
-                    style={{
-                      flex: 1,
-                      textAlign: "center",
-                      padding: "0.75rem 0.5rem",
-                      fontSize: "0.85rem",
-                      fontWeight: active || done ? 700 : 500,
-                      color: active ? "var(--accent)" : done ? "#10b981" : "var(--muted)",
-                      borderBottom: active ? "3px solid var(--accent)" : done ? "3px solid #10b981" : "3px solid transparent",
-                    }}
+                    key={step.label}
+                    className={`flex-1 text-center py-3.5 px-2 text-xs md:text-sm font-semibold transition-all duration-300 relative ${
+                      active ? "text-teal-700 bg-white" : done ? "text-emerald-600 bg-emerald-50/30" : "text-slate-400"
+                    }`}
                   >
-                    {done ? "✓ " : ""}{stepNum}. {stepLabel}
+                    <div className="flex items-center justify-center gap-1.5 flex-col sm:flex-row">
+                      <span className={`w-5.5 h-5.5 rounded-full flex items-center justify-center text-[10px] md:text-xs font-bold transition-all duration-300 border ${
+                        active 
+                          ? "bg-teal-700 border-teal-700 text-white shadow-sm" 
+                          : done 
+                          ? "bg-emerald-600 border-emerald-600 text-white" 
+                          : "bg-slate-100 border-slate-200 text-slate-400"
+                      }`}>
+                        {done ? "✓" : stepNum}
+                      </span>
+                      <span className="hidden sm:inline">{step.label}</span>
+                      <span className="sm:hidden">{step.icon}</span>
+                    </div>
+                    {active && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-700" />}
+                    {done && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600" />}
                   </div>
                 );
               })}
             </div>
 
             {/* Content Scroll Area */}
-            <div style={{ padding: "1.25rem", overflowY: "auto", flex: 1 }}>
+            <div className="p-6 overflow-y-auto flex-1 bg-white">
               {/* STEP 1: CUSTOMER */}
               {wizardStep === 1 && (
-                <div style={{ display: "grid", gap: "1rem" }}>
-                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                <div className="grid gap-5">
+                  <div className="flex gap-3 bg-slate-100/80 p-1 rounded-xl border border-slate-200/50">
                     <button
-                      className="primary-btn"
+                      type="button"
                       onClick={() => setCustomerMode("SELECT")}
-                      style={{ flex: 1, backgroundColor: customerMode === "SELECT" ? "var(--accent)" : "#cbd5e1", color: customerMode === "SELECT" ? "white" : "var(--text)" }}
+                      className={`flex-1 py-2.5 px-3 text-xs md:text-sm font-semibold rounded-lg transition-all duration-200 cursor-pointer ${
+                        customerMode === "SELECT" 
+                          ? "bg-white text-slate-900 shadow-sm border border-slate-200/30" 
+                          : "text-slate-500 hover:text-slate-800"
+                      }`}
                     >
                       Mevcut Müşteri Seç
                     </button>
                     <button
-                      className="primary-btn"
+                      type="button"
                       onClick={() => setCustomerMode("CREATE")}
-                      style={{ flex: 1, backgroundColor: customerMode === "CREATE" ? "var(--accent)" : "#cbd5e1", color: customerMode === "CREATE" ? "white" : "var(--text)" }}
+                      className={`flex-1 py-2.5 px-3 text-xs md:text-sm font-semibold rounded-lg transition-all duration-200 cursor-pointer ${
+                        customerMode === "CREATE" 
+                          ? "bg-white text-slate-900 shadow-sm border border-slate-200/30" 
+                          : "text-slate-500 hover:text-slate-800"
+                      }`}
                     >
                       Yeni Müşteri Ekle
                     </button>
                   </div>
 
                   {customerMode === "SELECT" ? (
-                    <div>
-                      <label style={{ fontSize: "0.85rem", fontWeight: 600, color: "#64748b", display: "block", marginBottom: 6 }}>Kayıtlı Müşteri</label>
+                    <div className="animate-fade-in">
+                      <label className="text-xs font-bold text-slate-500 block mb-2 uppercase tracking-wide">Kayıtlı Müşteri</label>
                       <select
-                        className="field"
+                        className="field w-full"
                         value={selectedCustomerId}
                         onChange={(e) => setSelectedCustomerId(e.target.value)}
                       >
@@ -1109,22 +1153,24 @@ export default function RepairPage() {
                       </select>
                     </div>
                   ) : (
-                    <div style={{ display: "grid", gap: "0.75rem" }}>
-                      <div>
-                        <label style={{ fontSize: "0.85rem", fontWeight: 600, color: "#64748b", display: "block", marginBottom: 4 }}>Ad Soyad *</label>
-                        <input className="field" placeholder="Müşteri ad soyad" value={newCustName} onChange={(e) => setNewCustName(e.target.value)} />
+                    <div className="grid gap-4 animate-fade-in">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">Ad Soyad *</label>
+                          <input className="field w-full" placeholder="Müşteri ad soyad" value={newCustName} onChange={(e) => setNewCustName(e.target.value)} />
+                        </div>
+                        <div>
+                          <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">Telefon *</label>
+                          <input className="field w-full" placeholder="Örn: 5554443322" value={newCustPhone} onChange={(e) => setNewCustPhone(e.target.value)} />
+                        </div>
                       </div>
                       <div>
-                        <label style={{ fontSize: "0.85rem", fontWeight: 600, color: "#64748b", display: "block", marginBottom: 4 }}>Telefon *</label>
-                        <input className="field" placeholder="Örn: 5554443322" value={newCustPhone} onChange={(e) => setNewCustPhone(e.target.value)} />
+                        <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">E-posta</label>
+                        <input className="field w-full" placeholder="E-posta adresi (opsiyonel)" value={newCustEmail} onChange={(e) => setNewCustEmail(e.target.value)} />
                       </div>
                       <div>
-                        <label style={{ fontSize: "0.85rem", fontWeight: 600, color: "#64748b", display: "block", marginBottom: 4 }}>E-posta</label>
-                        <input className="field" placeholder="E-posta adresi (opsiyonel)" value={newCustEmail} onChange={(e) => setNewCustEmail(e.target.value)} />
-                      </div>
-                      <div>
-                        <label style={{ fontSize: "0.85rem", fontWeight: 600, color: "#64748b", display: "block", marginBottom: 4 }}>Müşteri Notu</label>
-                        <textarea className="field" style={{ minHeight: 60 }} placeholder="Müşteri hakkında özel notlar..." value={newCustNotes} onChange={(e) => setNewCustNotes(e.target.value)} />
+                        <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">Müşteri Notu</label>
+                        <textarea className="field w-full min-h-[75px]" placeholder="Müşteri hakkında özel notlar..." value={newCustNotes} onChange={(e) => setNewCustNotes(e.target.value)} />
                       </div>
                     </div>
                   )}
@@ -1133,36 +1179,43 @@ export default function RepairPage() {
 
               {/* STEP 2: DEVICE */}
               {wizardStep === 2 && (
-                <div style={{ display: "grid", gap: "1rem" }}>
-                  {/* Select or Create Device selector */}
-                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                <div className="grid gap-5">
+                  <div className="flex gap-3 bg-slate-100/80 p-1 rounded-xl border border-slate-200/50">
                     <button
-                      className="primary-btn"
+                      type="button"
                       onClick={() => setDeviceMode("SELECT")}
-                      style={{ flex: 1, backgroundColor: deviceMode === "SELECT" ? "var(--accent)" : "#cbd5e1", color: deviceMode === "SELECT" ? "white" : "var(--text)" }}
-                      disabled={customerMode === "CREATE"} // New customers don't have devices in database yet
+                      className={`flex-1 py-2.5 px-3 text-xs md:text-sm font-semibold rounded-lg transition-all duration-200 cursor-pointer ${
+                        deviceMode === "SELECT" 
+                          ? "bg-white text-slate-900 shadow-sm border border-slate-200/30" 
+                          : "text-slate-500 hover:text-slate-800"
+                      }`}
+                      disabled={customerMode === "CREATE"}
                     >
                       Kayıtlı Cihaz Seç ({selectedCustomerDevices.length} adet)
                     </button>
                     <button
-                      className="primary-btn"
+                      type="button"
                       onClick={() => setDeviceMode("CREATE")}
-                      style={{ flex: 1, backgroundColor: deviceMode === "CREATE" ? "var(--accent)" : "#cbd5e1", color: deviceMode === "CREATE" ? "white" : "var(--text)" }}
+                      className={`flex-1 py-2.5 px-3 text-xs md:text-sm font-semibold rounded-lg transition-all duration-200 cursor-pointer ${
+                        deviceMode === "CREATE" 
+                          ? "bg-white text-slate-900 shadow-sm border border-slate-200/30" 
+                          : "text-slate-500 hover:text-slate-800"
+                      }`}
                     >
                       Yeni Cihaz Tanımla
                     </button>
                   </div>
 
                   {deviceMode === "SELECT" && customerMode === "SELECT" ? (
-                    <div>
-                      <label style={{ fontSize: "0.85rem", fontWeight: 600, color: "#64748b", display: "block", marginBottom: 6 }}>Cihaz Seçimi</label>
+                    <div className="animate-fade-in">
+                      <label className="text-xs font-bold text-slate-500 block mb-2 uppercase tracking-wide">Cihaz Seçimi</label>
                       {selectedCustomerDevices.length === 0 ? (
-                        <div className="empty-box" style={{ margin: 0, padding: "1rem" }}>
-                          Bu müşteriye ait kayıtlı cihaz bulunamadı. Lütfen &quot;Yeni Cihaz Tanımla&quot; butonuna basarak cihaz ekleyin.
+                        <div className="empty-box m-0 p-6">
+                          Müşteriye ait cihaz bulunamadı. Lütfen &quot;Yeni Cihaz Tanımla&quot; sekmesine geçin.
                         </div>
                       ) : (
                         <select
-                          className="field"
+                          className="field w-full"
                           value={selectedDeviceId}
                           onChange={(e) => setSelectedDeviceId(e.target.value)}
                         >
@@ -1174,16 +1227,12 @@ export default function RepairPage() {
                       )}
                     </div>
                   ) : (
-                    <div style={{ display: "grid", gap: "0.75rem", gridTemplateColumns: "1fr 1fr" }}>
-                      <div style={{ gridColumn: "span 2" }}>
-                        <p style={{ margin: "0 0 8px", fontSize: "0.85rem", color: "#64748b" }}>Yeni cihazın temel bilgilerini doldurun.</p>
-                      </div>
-                      {/* Quick Model Selector from Pricing List */}
+                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 animate-fade-in">
                       {availableModels.length > 0 && (
-                        <div style={{ gridColumn: "span 2" }}>
-                          <label style={{ fontSize: "0.85rem", fontWeight: 600, display: "block", marginBottom: 4 }}>Kayıtlı Cihaz Modellerinden Hızlı Seç</label>
+                        <div className="sm:col-span-2">
+                          <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">Hızlı Model Seçimi (Kayıtlı Listeden)</label>
                           <select
-                            className="field"
+                            className="field w-full"
                             value=""
                             onChange={(e) => {
                               const val = e.target.value;
@@ -1205,16 +1254,16 @@ export default function RepairPage() {
                       )}
 
                       <div>
-                        <label style={{ fontSize: "0.85rem", fontWeight: 600, display: "block", marginBottom: 4 }}>Marka *</label>
-                        <input className="field" placeholder="Örn: Apple" value={newDevBrand} onChange={(e) => setNewDevBrand(e.target.value)} />
+                        <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">Marka *</label>
+                        <input className="field w-full" placeholder="Örn: Apple" value={newDevBrand} onChange={(e) => setNewDevBrand(e.target.value)} />
                       </div>
                       <div>
-                        <label style={{ fontSize: "0.85rem", fontWeight: 600, display: "block", marginBottom: 4 }}>Model *</label>
-                        <input className="field" placeholder="Örn: iPhone 14 Pro" value={newDevModel} onChange={(e) => setNewDevModel(e.target.value)} />
+                        <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">Model *</label>
+                        <input className="field w-full" placeholder="Örn: iPhone 14 Pro" value={newDevModel} onChange={(e) => setNewDevModel(e.target.value)} />
                       </div>
                       <div>
-                        <label style={{ fontSize: "0.85rem", fontWeight: 600, display: "block", marginBottom: 4 }}>Kapasite *</label>
-                        <select className="field" value={newDevStorage} onChange={(e) => setNewDevStorage(e.target.value)}>
+                        <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">Kapasite *</label>
+                        <select className="field w-full" value={newDevStorage} onChange={(e) => setNewDevStorage(e.target.value)}>
                           <option value="64GB">64GB</option>
                           <option value="128GB">128GB</option>
                           <option value="256GB">256GB</option>
@@ -1223,21 +1272,18 @@ export default function RepairPage() {
                         </select>
                       </div>
                       <div>
-                        <label style={{ fontSize: "0.85rem", fontWeight: 600, display: "block", marginBottom: 4 }}>IMEI (Opsiyonel)</label>
-                        <input className="field" placeholder="15 haneli numara" maxLength={16} value={newDevImei} onChange={(e) => setNewDevImei(e.target.value)} />
+                        <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">IMEI (Opsiyonel)</label>
+                        <input className="field w-full" placeholder="15 haneli numara" maxLength={16} value={newDevImei} onChange={(e) => setNewDevImei(e.target.value)} />
                       </div>
 
-                      {/* Color selections */}
                       <div>
-                        <label style={{ fontSize: "0.85rem", fontWeight: 600, display: "block", marginBottom: 4 }}>Renk (Hızlı Seçim)</label>
+                        <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">Renk (Hızlı Seçim)</label>
                         <select
-                          className="field"
+                          className="field w-full"
                           value=""
                           onChange={(e) => {
                             const val = e.target.value;
-                            if (val) {
-                              setNewDevColor(val);
-                            }
+                            if (val) setNewDevColor(val);
                           }}
                         >
                           <option value="">-- Renk Seçin --</option>
@@ -1252,21 +1298,18 @@ export default function RepairPage() {
                         </select>
                       </div>
                       <div>
-                        <label style={{ fontSize: "0.85rem", fontWeight: 600, display: "block", marginBottom: 4 }}>Renk Detayı</label>
-                        <input className="field" placeholder="Örn: Grafit" value={newDevColor} onChange={(e) => setNewDevColor(e.target.value)} />
+                        <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">Renk Detayı</label>
+                        <input className="field w-full" placeholder="Örn: Grafit" value={newDevColor} onChange={(e) => setNewDevColor(e.target.value)} />
                       </div>
 
-                      {/* Cosmetic conditions */}
                       <div>
-                        <label style={{ fontSize: "0.85rem", fontWeight: 600, display: "block", marginBottom: 4 }}>Kozmetik Durumu (Hızlı Seçim)</label>
+                        <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">Kozmetik Durumu (Hızlı Seçim)</label>
                         <select
-                          className="field"
+                          className="field w-full"
                           value=""
                           onChange={(e) => {
                             const val = e.target.value;
-                            if (val) {
-                              setNewDevCondNote(val);
-                            }
+                            if (val) setNewDevCondNote(val);
                           }}
                         >
                           <option value="">-- Durum Seçin --</option>
@@ -1281,8 +1324,8 @@ export default function RepairPage() {
                         </select>
                       </div>
                       <div>
-                        <label style={{ fontSize: "0.85rem", fontWeight: 600, display: "block", marginBottom: 4 }}>Kozmetik Detayı / Notu</label>
-                        <input className="field" placeholder="Örn: Temiz, Ekran Çizik" value={newDevCondNote} onChange={(e) => setNewDevCondNote(e.target.value)} />
+                        <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">Kozmetik Detayı / Notu</label>
+                        <input className="field w-full" placeholder="Örn: Temiz, Ekran Çizik" value={newDevCondNote} onChange={(e) => setNewDevCondNote(e.target.value)} />
                       </div>
                     </div>
                   )}
@@ -1291,32 +1334,27 @@ export default function RepairPage() {
 
               {/* STEP 3: PRE-CHECK CHECKLIST & SERVICE DETAILS */}
               {wizardStep === 3 && (
-                <div style={{ display: "grid", gap: "1.25rem" }}>
+                <div className="grid gap-6 animate-fade-in">
                   <div>
-                    <h4 style={{ margin: "0 0 10px", fontSize: "0.95rem", fontWeight: 700, textTransform: "uppercase", color: "var(--accent)", borderBottom: "1px dashed var(--border)", paddingBottom: 4 }}>Cihaz Ön Kontrol Listesi</h4>
-                    <p style={{ margin: "0 0 12px", fontSize: "0.8rem", color: "#64748b" }}>Cihaz dükkana teslim edilirken parçaların durumunu işaretleyin. Bu çıktı fişe yansıyacaktır.</p>
+                    <h4 className="m-0 mb-2 text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-1">
+                      <span>📋</span> Cihaz Ön Kontrol Listesi
+                    </h4>
+                    <p className="m-0 mb-4 text-slate-400 text-2xs md:text-xs">Cihaz dükkana teslim edilirken parçaların durumunu işaretleyin. Bu çıktı fişe yansıyacaktır.</p>
                     <PhoneVisualExpertise value={checklist} onChange={setChecklist} />
-                    <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+                    
+                    <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 mt-4 bg-slate-50 p-4 rounded-xl border border-slate-200/60">
                       {CHECKLIST_KEYS.map((ck) => {
                         const currentVal = checklist[ck.key];
                         return (
-                          <div key={ck.key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 10px", border: "1px solid var(--border)", borderRadius: 10 }}>
-                            <span style={{ fontSize: "0.85rem", fontWeight: 600 }}>{ck.label}</span>
-                            <div style={{ display: "flex", gap: 4 }}>
+                          <div key={ck.key} className="flex justify-between items-center py-1.5 px-3 border border-slate-200/50 bg-white rounded-lg shadow-2xs">
+                            <span className="text-xs font-semibold text-slate-700">{ck.label}</span>
+                            <div className="flex gap-1">
                               <button
                                 type="button"
                                 onClick={() => setChecklist(prev => ({ ...prev, [ck.key]: "OK" }))}
-                                style={{
-                                  border: 0,
-                                  borderRadius: 6,
-                                  width: 28,
-                                  height: 24,
-                                  cursor: "pointer",
-                                  fontSize: "0.75rem",
-                                  fontWeight: "bold",
-                                  backgroundColor: currentVal === "OK" ? "#10b981" : "#f1f5f9",
-                                  color: currentVal === "OK" ? "white" : "#64748b",
-                                }}
+                                className={`border-0 rounded-md w-7 h-6 cursor-pointer text-xs font-bold transition-colors ${
+                                  currentVal === "OK" ? "bg-emerald-600 text-white shadow-sm" : "bg-slate-100 hover:bg-slate-200 text-slate-600"
+                                }`}
                                 title="Çalışıyor"
                               >
                                 ✓
@@ -1324,17 +1362,9 @@ export default function RepairPage() {
                               <button
                                 type="button"
                                 onClick={() => setChecklist(prev => ({ ...prev, [ck.key]: "BAD" }))}
-                                style={{
-                                  border: 0,
-                                  borderRadius: 6,
-                                  width: 28,
-                                  height: 24,
-                                  cursor: "pointer",
-                                  fontSize: "0.75rem",
-                                  fontWeight: "bold",
-                                  backgroundColor: currentVal === "BAD" ? "#ef4444" : "#f1f5f9",
-                                  color: currentVal === "BAD" ? "white" : "#64748b",
-                                }}
+                                className={`border-0 rounded-md w-7 h-6 cursor-pointer text-xs font-bold transition-colors ${
+                                  currentVal === "BAD" ? "bg-rose-500 text-white shadow-sm" : "bg-slate-100 hover:bg-slate-200 text-slate-600"
+                                }`}
                                 title="Sorunlu"
                               >
                                 &times;
@@ -1342,17 +1372,9 @@ export default function RepairPage() {
                               <button
                                 type="button"
                                 onClick={() => setChecklist(prev => ({ ...prev, [ck.key]: "NA" }))}
-                                style={{
-                                  border: 0,
-                                  borderRadius: 6,
-                                  width: 28,
-                                  height: 24,
-                                  cursor: "pointer",
-                                  fontSize: "0.75rem",
-                                  fontWeight: "bold",
-                                  backgroundColor: currentVal === "NA" ? "#64748b" : "#f1f5f9",
-                                  color: currentVal === "NA" ? "white" : "#64748b",
-                                }}
+                                className={`border-0 rounded-md w-7 h-6 cursor-pointer text-xs font-bold transition-colors ${
+                                  currentVal === "NA" ? "bg-slate-500 text-white shadow-sm" : "bg-slate-100 hover:bg-slate-200 text-slate-600"
+                                }`}
                                 title="Seçilmedi"
                               >
                                 ?
@@ -1364,62 +1386,64 @@ export default function RepairPage() {
                     </div>
                   </div>
 
-                  <div>
-                    <h4 style={{ margin: "10px 0 10px", fontSize: "0.95rem", fontWeight: 700, textTransform: "uppercase", color: "var(--accent)", borderBottom: "1px dashed var(--border)", paddingBottom: 4 }}>Arıza & Fiyat Detayları</h4>
-                    <div style={{ display: "grid", gap: "0.75rem" }}>
+                  <div className="border-t border-slate-200 pt-5">
+                    <h4 className="m-0 mb-3 text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-1">
+                      <span>💰</span> Arıza & Fiyat Detayları
+                    </h4>
+                    <div className="grid gap-4">
                       <div>
-                        <label style={{ fontSize: "0.85rem", fontWeight: 600, display: "block", marginBottom: 4 }}>Arıza Açıklaması / Talep Edilen İşlem *</label>
-                        <div style={{ display: "flex", gap: "0.5rem" }}>
-                          <input className="field" placeholder="Örn: Ekran kırık, batarya şişmiş, değişecek" value={issueDescription} onChange={(e) => setIssueDescription(e.target.value)} />
+                        <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">Arıza Açıklaması / Talep Edilen İşlem *</label>
+                        <div className="flex gap-2">
+                          <input className="field w-full" placeholder="Örn: Ekran kırık, batarya şişmiş, değişecek" value={issueDescription} onChange={(e) => setIssueDescription(e.target.value)} />
                           <button
                             type="button"
                             onClick={handleAiRecommendation}
                             disabled={aiLoading || !issueDescription}
-                            className="primary-btn"
-                            style={{ whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "4px" }}
+                            className="primary-btn shrink-0 flex items-center gap-1.5 bg-gradient-to-r from-teal-600 to-indigo-600 text-white font-medium hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none px-4 py-2 text-xs md:text-sm cursor-pointer"
                           >
-                            {aiLoading ? "Analiz..." : "✨ Yapay Zeka Önerisi"}
+                            {aiLoading ? "Analiz..." : "✨ AI Asistanı"}
                           </button>
                         </div>
                       </div>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
-                        <div>
-                          <label style={{ fontSize: "0.85rem", fontWeight: 600, display: "block", marginBottom: 4 }}>Tahmini İşçilik Bedeli (TL)</label>
-                          <input type="number" min={0} className="field" value={laborCost} onChange={(e) => setLaborCost(e.target.value)} />
-                        </div>
-                        <div>
-                          <label style={{ fontSize: "0.85rem", fontWeight: 600, display: "block", marginBottom: 4 }}>Tahmini Parça Bedeli (TL)</label>
-                          <input type="number" min={0} className="field" value={partCost} onChange={(e) => setPartCost(e.target.value)} />
-                        </div>
-                      </div>
+
                       {aiResult && (
-                        <div style={{
-                          padding: "0.75rem",
-                          borderRadius: "10px",
-                          border: "1px solid #ccfbf1",
-                          backgroundColor: "#f0fdfa",
-                          fontSize: "0.85rem",
-                          color: "#115e59",
-                          display: "grid",
-                          gap: "4px"
-                        }}>
-                          <div style={{ fontWeight: "bold", display: "flex", justifyContent: "space-between" }}>
-                            <span>✨ Yapay Zeka Teşhisi ve Fiyatlandırma</span>
-                            <span>Süre: {aiResult.predictedTime}</span>
+                        <div className="p-4 rounded-xl border border-teal-200 bg-teal-50/50 text-teal-900 shadow-sm relative overflow-hidden animate-fade-in">
+                          {/* Background decoration */}
+                          <div className="absolute top-0 right-0 w-24 h-24 bg-teal-400/10 rounded-full blur-xl pointer-events-none" />
+                          <div className="flex items-center justify-between font-bold text-xs md:text-sm text-teal-800 mb-2 border-b border-teal-100 pb-1.5">
+                            <span className="flex items-center gap-1.5">
+                              <span className="animate-pulse">✨</span> Yapay Zeka Teşhisi ve Fiyatlandırma
+                            </span>
+                            <span className="bg-teal-100 text-teal-800 text-xs px-2 py-0.5 rounded-full">
+                              ⏱️ {aiResult.predictedTime}
+                            </span>
                           </div>
-                          <p style={{ margin: "2px 0 6px" }}>{aiResult.reasoning}</p>
-                          <div style={{ fontSize: "0.8rem", color: "#0f766e" }}>
-                            <strong>Önerilen Parçalar:</strong> {aiResult.possibleParts.join(", ")}
+                          <p className="text-xs md:text-sm text-teal-700 leading-relaxed m-0 mb-3">{aiResult.reasoning}</p>
+                          <div className="text-xs text-teal-800 font-semibold bg-white/80 border border-teal-100/50 rounded-lg p-2.5">
+                            <strong className="text-teal-900">Önerilen Parçalar:</strong>{" "}
+                            <span className="text-teal-700 font-normal">{aiResult.possibleParts.join(", ") || "Yok"}</span>
                           </div>
                         </div>
                       )}
-                      <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "0.75rem", alignItems: "center", borderTop: "1px solid var(--border)", paddingTop: 10 }}>
-                        <div style={{ fontSize: "1.1rem", fontWeight: 800 }}>
-                          Öngörülen Toplam: <span style={{ color: "var(--accent)" }}>{(Number(laborCost) + Number(partCost)).toLocaleString("tr-TR")} TL</span>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">Tahmini İşçilik Bedeli (TL)</label>
+                          <input type="number" min={0} className="field w-full" value={laborCost} onChange={(e) => setLaborCost(e.target.value)} />
                         </div>
                         <div>
-                          <label style={{ fontSize: "0.85rem", fontWeight: 600, display: "block", marginBottom: 4 }}>Giriş Durumu</label>
-                          <select className="field" value={initialStatus} onChange={(e) => setInitialStatus(e.target.value as any)}>
+                          <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">Tahmini Parça Bedeli (TL)</label>
+                          <input type="number" min={0} className="field w-full" value={partCost} onChange={(e) => setPartCost(e.target.value)} />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center border-t border-slate-200 pt-4 mt-2">
+                        <div className="text-base md:text-lg font-extrabold text-slate-900">
+                          Öngörülen Toplam: <span className="text-teal-700">{(Number(laborCost) + Number(partCost)).toLocaleString("tr-TR")} TL</span>
+                        </div>
+                        <div>
+                          <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">Cihaz Giriş Durumu</label>
+                          <select className="field w-full" value={initialStatus} onChange={(e) => setInitialStatus(e.target.value as any)}>
                             <option value="RECEIVED">Teslim Alındı</option>
                             <option value="IN_PROGRESS">Onarımda</option>
                             <option value="WAITING_PART">Parça Bekliyor</option>
@@ -1434,20 +1458,21 @@ export default function RepairPage() {
             </div>
 
             {/* Footer Buttons */}
-            <div style={{ padding: "1.25rem", borderTop: "1px solid var(--border)", display: "flex", justifyContent: "space-between" }}>
+            <div className="px-6 py-4 border-t border-slate-200 flex justify-between bg-slate-50/50 gap-3">
               {wizardStep > 1 ? (
-                <button className="primary-btn" style={{ backgroundColor: "#64748b" }} onClick={() => setWizardStep(prev => prev - 1)}>
-                  Geri
+                <button type="button" className="primary-btn px-4 py-2 bg-slate-600 text-white cursor-pointer" onClick={() => setWizardStep(prev => prev - 1)}>
+                  Geri Dön
                 </button>
               ) : (
-                <button className="primary-btn" style={{ backgroundColor: "#64748b" }} onClick={() => setIsNewModalOpen(false)}>
-                  İptal
+                <button type="button" className="primary-btn px-4 py-2 bg-slate-600 text-white cursor-pointer" onClick={() => setIsNewModalOpen(false)}>
+                  İptal Et
                 </button>
               )}
 
               {wizardStep < 3 ? (
                 <button
-                  className="primary-btn"
+                  type="button"
+                  className="primary-btn px-5 py-2 cursor-pointer ml-auto"
                   onClick={() => {
                     // Quick validation before step transition
                     if (wizardStep === 1 && customerMode === "SELECT" && !selectedCustomerId) {
@@ -1462,8 +1487,8 @@ export default function RepairPage() {
                       toast.warning("Lütfen cihaz seçimi yapın.");
                       return;
                     }
-                    if (wizardStep === 2 && deviceMode === "CREATE" && (!newDevBrand || !newDevModel || !newDevImei)) {
-                      toast.warning("Lütfen cihaz marka, model ve IMEI doldurun.");
+                    if (wizardStep === 2 && deviceMode === "CREATE" && (!newDevBrand || !newDevModel)) {
+                      toast.warning("Lütfen cihaz marka ve model doldurun.");
                       return;
                     }
 
@@ -1474,7 +1499,7 @@ export default function RepairPage() {
                   Sonraki Adım
                 </button>
               ) : (
-                <button className="primary-btn" onClick={handleCreateRepair} disabled={loading}>
+                <button type="button" className="primary-btn px-6 py-2 cursor-pointer ml-auto" onClick={handleCreateRepair} disabled={loading}>
                   {loading ? "Kaydediliyor..." : "Arıza Kaydını Aç"}
                 </button>
               )}
@@ -1485,99 +1510,77 @@ export default function RepairPage() {
 
       {/* 2. REPAIR DETAIL & STATUS ACTION MODAL */}
       {isDetailModalOpen && selectedRepair && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.45)", display: "grid", placeItems: "center", zIndex: 65, padding: 16 }}>
-          <div className="panel" style={{ width: "min(720px,95vw)", maxHeight: "90vh", display: "flex", flexDirection: "column", padding: 0 }}>
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm grid place-items-center z-50 p-4 animate-fade-in">
+          <div className="panel w-full max-w-3xl max-h-[90vh] flex flex-col p-0 border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md overflow-hidden rounded-2xl">
             {/* Header */}
-            <div style={{ padding: "1.25rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
               <div>
-                <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 700 }}>Servis Kaydı Detayı</h3>
-                <p style={{ margin: "2px 0 0", fontSize: "0.85rem", color: "#64748b" }}>Kayıt No: #{selectedRepair.id.toUpperCase()}</p>
+                <h3 className="m-0 text-lg font-bold text-slate-900">Servis Kaydı Detayları</h3>
+                <p className="m-0 text-slate-400 text-xs mt-0.5 font-mono">Kayıt No: #{selectedRepair.id.slice(0, 8).toUpperCase()}</p>
               </div>
               <button
                 onClick={() => setIsDetailModalOpen(false)}
-                style={{ border: 0, background: "transparent", fontSize: "1.2rem", cursor: "pointer", color: "var(--muted)" }}
+                className="text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors w-8 h-8 rounded-full flex items-center justify-center text-xl font-bold cursor-pointer"
               >
                 &times;
               </button>
             </div>
 
             {/* Scrollable Content */}
-            <div style={{ padding: "1.25rem", overflowY: "auto", flex: 1, display: "grid", gap: "1.25rem" }}>
+            <div className="p-6 overflow-y-auto flex-1 bg-white flex flex-col gap-6">
               {/* Row 1: Customer & Device Cards */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                <div className="panel" style={{ padding: "10px 12px", background: "var(--surface-soft)" }}>
-                  <h4 style={{ margin: "0 0 6px", fontSize: "0.85rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700 }}>Müşteri Bilgileri</h4>
-                  <div style={{ fontWeight: 700, fontSize: "0.95rem" }}>{selectedRepair.device.customer.fullName}</div>
-                  <div style={{ fontSize: "0.85rem", color: "#475569", marginTop: 2 }}>Tel: {selectedRepair.device.customer.phone}</div>
-                  {selectedRepair.device.customer.email && <div style={{ fontSize: "0.85rem", color: "#64748b" }}>{selectedRepair.device.customer.email}</div>}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="panel p-4 bg-slate-50/80 border-slate-200/60 shadow-xs hover:border-slate-200">
+                  <h4 className="m-0 mb-2 text-xs font-bold text-slate-500 uppercase tracking-widest">Müşteri Bilgileri</h4>
+                  <div className="font-bold text-sm text-slate-900">{selectedRepair.device.customer.fullName}</div>
+                  <div className="text-xs text-slate-600 mt-1">📞 {selectedRepair.device.customer.phone}</div>
+                  {selectedRepair.device.customer.email && <div className="text-xs text-slate-500 mt-0.5">📧 {selectedRepair.device.customer.email}</div>}
                 </div>
 
-                <div className="panel" style={{ padding: "10px 12px", background: "var(--surface-soft)" }}>
-                  <h4 style={{ margin: "0 0 6px", fontSize: "0.85rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700 }}>Cihaz Bilgileri</h4>
-                  <div style={{ fontWeight: 700, fontSize: "0.95rem" }}>{selectedRepair.device.brand} {selectedRepair.device.model} {selectedRepair.device.storage || ""}</div>
-                  <div style={{ fontSize: "0.85rem", color: "#475569", marginTop: 2 }}>IMEI: {selectedRepair.device.imei || "-"}</div>
-                  {selectedRepair.device.color && <div style={{ fontSize: "0.85rem", color: "#64748b" }}>Renk: {selectedRepair.device.color}</div>}
+                <div className="panel p-4 bg-slate-50/80 border-slate-200/60 shadow-xs hover:border-slate-200">
+                  <h4 className="m-0 mb-2 text-xs font-bold text-slate-500 uppercase tracking-widest">Cihaz Bilgileri</h4>
+                  <div className="font-bold text-sm text-slate-900">{selectedRepair.device.brand} {selectedRepair.device.model} {selectedRepair.device.storage || ""}</div>
+                  <div className="text-xs text-slate-600 mt-1">🏷️ IMEI: {selectedRepair.device.imei || "-"}</div>
+                  {selectedRepair.device.color && <div className="text-xs text-slate-500 mt-0.5">🎨 Renk: {selectedRepair.device.color}</div>}
                 </div>
               </div>
 
               {/* Row 2: Condition Pre-Check Results */}
               <div>
-                <h4 style={{ margin: "0 0 8px", fontSize: "0.9rem", fontWeight: 700, textTransform: "uppercase", color: "var(--accent)" }}>Ön Kontrol Durumu</h4>
+                <h4 className="m-0 mb-3 text-xs font-bold text-slate-900 uppercase tracking-widest">Ön Kontrol Durumu</h4>
                 <PhoneVisualExpertise value={editChecklist} onChange={setEditChecklist} />
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 8 }}>
+                
+                <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 bg-slate-50 p-4 rounded-xl border border-slate-200/60">
                   {CHECKLIST_KEYS.map((ck) => {
                     const state = editChecklist[ck.key] || "NA";
-                    const color = state === "OK" ? "#10b981" : state === "BAD" ? "#ef4444" : "#64748b";
-                    const label = state === "OK" ? "Çalışıyor" : state === "BAD" ? "Sorunlu" : "Kontrol Edilmedi";
                     return (
-                      <div key={ck.key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 8px", border: "1px solid var(--border)", borderRadius: 8 }}>
-                        <span style={{ fontSize: "0.8rem", fontWeight: 600 }}>{ck.label}</span>
-                        <div style={{ display: "flex", gap: 4 }}>
+                      <div key={ck.key} className="flex justify-between items-center py-1.5 px-3 border border-slate-200/50 bg-white rounded-lg shadow-2xs">
+                        <span className="text-xs font-semibold text-slate-700">{ck.label}</span>
+                        <div className="flex gap-1">
                           <button
                             type="button"
                             onClick={() => setEditChecklist(prev => ({ ...prev, [ck.key]: "OK" }))}
-                            style={{
-                              border: 0,
-                              borderRadius: 4,
-                              width: 22,
-                              height: 18,
-                              fontSize: "0.7rem",
-                              cursor: "pointer",
-                              backgroundColor: state === "OK" ? "#10b981" : "#f1f5f9",
-                              color: state === "OK" ? "white" : "#64748b",
-                            }}
+                            className={`border-0 rounded-md w-7 h-6 cursor-pointer text-xs font-bold transition-colors ${
+                              state === "OK" ? "bg-emerald-600 text-white shadow-sm" : "bg-slate-100 hover:bg-slate-200 text-slate-600"
+                            }`}
                           >
                             ✓
                           </button>
                           <button
                             type="button"
                             onClick={() => setEditChecklist(prev => ({ ...prev, [ck.key]: "BAD" }))}
-                            style={{
-                              border: 0,
-                              borderRadius: 4,
-                              width: 22,
-                              height: 18,
-                              fontSize: "0.7rem",
-                              cursor: "pointer",
-                              backgroundColor: state === "BAD" ? "#ef4444" : "#f1f5f9",
-                              color: state === "BAD" ? "white" : "#64748b",
-                            }}
+                            className={`border-0 rounded-md w-7 h-6 cursor-pointer text-xs font-bold transition-colors ${
+                              state === "BAD" ? "bg-rose-500 text-white shadow-sm" : "bg-slate-100 hover:bg-slate-200 text-slate-600"
+                            }`}
                           >
                             &times;
                           </button>
                           <button
                             type="button"
                             onClick={() => setEditChecklist(prev => ({ ...prev, [ck.key]: "NA" }))}
-                            style={{
-                              border: 0,
-                              borderRadius: 4,
-                              width: 22,
-                              height: 18,
-                              fontSize: "0.7rem",
-                              cursor: "pointer",
-                              backgroundColor: state === "NA" ? "#64748b" : "#f1f5f9",
-                              color: state === "NA" ? "white" : "#64748b",
-                            }}
+                            className={`border-0 rounded-md w-7 h-6 cursor-pointer text-xs font-bold transition-colors ${
+                              state === "NA" ? "bg-slate-500 text-white shadow-sm" : "bg-slate-100 hover:bg-slate-200 text-slate-600"
+                            }`}
                           >
                             ?
                           </button>
@@ -1590,28 +1593,28 @@ export default function RepairPage() {
 
               {/* Row 3: Repair Edit Form fields */}
               <div>
-                <h4 style={{ margin: "0 0 8px", fontSize: "0.9rem", fontWeight: 700, textTransform: "uppercase", color: "var(--accent)" }}>Servis Güncelleme</h4>
-                <div style={{ display: "grid", gap: "0.75rem" }}>
+                <h4 className="m-0 mb-3 text-xs font-bold text-slate-900 uppercase tracking-widest">Servis Kaydı Güncelle</h4>
+                <div className="grid gap-4">
                   <div>
-                    <label style={{ fontSize: "0.85rem", fontWeight: 600, display: "block", marginBottom: 4 }}>Talep / Arıza Tanımı</label>
-                    <input className="field" value={editIssue} onChange={(e) => setEditIssue(e.target.value)} />
+                    <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">Müşteri Şikayeti / Arıza Tanımı</label>
+                    <input className="field w-full" value={editIssue} onChange={(e) => setEditIssue(e.target.value)} />
                   </div>
                   <div>
-                    <label style={{ fontSize: "0.85rem", fontWeight: 600, display: "block", marginBottom: 4 }}>Teknisyen Teşhis ve Kozmetik Notları</label>
-                    <textarea className="field" style={{ minHeight: 60 }} value={editCustomNote} onChange={(e) => setEditCustomNote(e.target.value)} />
+                    <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">Teknisyen Teşhis ve Kozmetik Notları</label>
+                    <textarea className="field w-full min-h-[70px]" value={editCustomNote} onChange={(e) => setEditCustomNote(e.target.value)} />
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.75rem" }}>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
-                      <label style={{ fontSize: "0.85rem", fontWeight: 600, display: "block", marginBottom: 4 }}>İşçilik Bedeli (TL)</label>
-                      <input type="number" min={0} className="field" value={editLabor} onChange={(e) => setEditLabor(e.target.value)} />
+                      <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">İşçilik Bedeli (TL)</label>
+                      <input type="number" min={0} className="field w-full" value={editLabor} onChange={(e) => setEditLabor(e.target.value)} />
                     </div>
                     <div>
-                      <label style={{ fontSize: "0.85rem", fontWeight: 600, display: "block", marginBottom: 4 }}>Yedek Parça Bedeli (TL)</label>
-                      <input type="number" min={0} className="field" value={editPart} onChange={(e) => setEditPart(e.target.value)} />
+                      <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">Yedek Parça Bedeli (TL)</label>
+                      <input type="number" min={0} className="field w-full" value={editPart} onChange={(e) => setEditPart(e.target.value)} />
                     </div>
                     <div>
-                      <label style={{ fontSize: "0.85rem", fontWeight: 600, display: "block", marginBottom: 4 }}>Güncel Durum</label>
-                      <select className="field" value={editStatus} onChange={(e) => setEditStatus(e.target.value as any)}>
+                      <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">Güncel Durum</label>
+                      <select className="field w-full" value={editStatus} onChange={(e) => setEditStatus(e.target.value as any)}>
                         <option value="RECEIVED">Teslim Alındı</option>
                         <option value="IN_PROGRESS">Onarımda</option>
                         <option value="WAITING_PART">Parça Bekliyor</option>
@@ -1621,22 +1624,21 @@ export default function RepairPage() {
                       </select>
                     </div>
                   </div>
-                  <div style={{ fontSize: "1.2rem", fontWeight: 800, marginTop: 4, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span>Toplam Hizmet Bedeli: <span style={{ color: "var(--accent)" }}>{(Number(editLabor) + Number(editPart)).toLocaleString("tr-TR")} TL</span></span>
+                  <div className="text-sm md:text-base font-extrabold mt-2 flex justify-between items-center border-t border-slate-200 pt-4">
+                    <span>Toplam Hizmet Bedeli: <span className="text-teal-700">{(Number(editLabor) + Number(editPart)).toLocaleString("tr-TR")} TL</span></span>
                   </div>
                 </div>
               </div>
 
               {/* Row 4: Action Tools (Print & Notification Hooks) */}
-              <div style={{ borderTop: "1px dashed var(--border)", paddingTop: 10 }}>
-                <h4 style={{ margin: "0 0 10px", fontSize: "0.85rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700 }}>Hızlı İşlemler</h4>
-                <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+              <div className="border-t border-dashed border-slate-200 pt-4">
+                <h4 className="m-0 mb-3 text-xs font-bold text-slate-500 uppercase tracking-widest">Hızlı İşlemler</h4>
+                <div className="flex gap-2 flex-wrap">
                   <button
                     onClick={() => printKabulFisi(selectedRepair)}
-                    className="primary-btn"
-                    style={{ flex: 1, backgroundColor: "#64748b", fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                    className="primary-btn bg-slate-600 hover:bg-slate-700 text-white text-xs md:text-sm font-semibold flex items-center justify-center gap-1.5 py-2.5 px-4 flex-1 min-w-[150px] cursor-pointer"
                   >
-                    <svg style={{ width: 16, height: 16 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.617 0-1.11-.5-1.12-1.129L6.34 18m11.32 0a3 3 0 000-6a3 3 0 00-11.32 0M16.5 6V4.5A1.5 1.5 0 0015 3H9a1.5 1.5 0 00-1.5 1.5V6m9 0H6" />
                     </svg>
                     Kabul Fişi Yazdır (80mm)
@@ -1644,11 +1646,10 @@ export default function RepairPage() {
 
                   <button
                     onClick={() => printTeslimFisi(selectedRepair)}
-                    className="primary-btn"
-                    style={{ flex: 1, backgroundColor: "#475569", fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                    className="primary-btn bg-slate-700 hover:bg-slate-800 text-white text-xs md:text-sm font-semibold flex items-center justify-center gap-1.5 py-2.5 px-4 flex-1 min-w-[150px] cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
                     disabled={editStatus !== "DELIVERED" && selectedRepair.status !== "DELIVERED"}
                   >
-                    <svg style={{ width: 16, height: 16 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                     Teslim Fişi Yazdır (80mm)
@@ -1656,10 +1657,9 @@ export default function RepairPage() {
 
                   <button
                     onClick={() => sendWhatsAppNotification(selectedRepair)}
-                    className="primary-btn"
-                    style={{ flex: 1.2, backgroundColor: "#25d366", fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                    className="primary-btn bg-emerald-600 hover:bg-emerald-700 text-white text-xs md:text-sm font-semibold flex items-center justify-center gap-1.5 py-2.5 px-4 flex-[1.2] min-w-[180px] cursor-pointer border-0"
                   >
-                    <svg style={{ width: 16, height: 16 }} fill="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M17.472 14.382c-.022-.08-.103-.128-.352-.253-.25-.125-1.478-.73-1.705-.813-.228-.083-.393-.128-.559.127-.166.255-.641.81-.786.975-.145.166-.29.185-.54.06-.25-.125-1.048-.385-1.996-1.23-.737-.657-1.235-1.47-1.38-1.725-.144-.255-.015-.393.11-.517.113-.112.25-.29.375-.435.125-.145.166-.25.25-.417.083-.166.042-.31-.02-.435-.062-.125-.56-1.348-.767-1.85-.203-.491-.408-.423-.559-.43-.145-.008-.313-.01-.482-.01-.17 0-.445.064-.679.314-.234.25-.893.874-.893 2.132 0 1.258.916 2.474 1.043 2.643.127.17 1.8 2.748 4.36 3.856.61.264 1.085.422 1.458.54.613.195 1.17.168 1.61.102.49-.074 1.477-.604 1.684-1.19.207-.585.207-1.085.145-1.19m-5.466 7.42h-.008c-2.277 0-4.516-.612-6.47-1.767L3.5 21.048l1.398-5.105c-1.265-2.19-1.93-4.707-1.93-7.29 0-7.854 6.39-14.24 14.246-14.24 3.803 0 7.377 1.48 10.063 4.167A14.16 14.16 0 0124 8.65c0 7.855-6.39 14.242-14.243 14.242" />
                     </svg>
                     WhatsApp ile Bildir
@@ -1669,16 +1669,15 @@ export default function RepairPage() {
             </div>
 
             {/* Footer */}
-            <div style={{ padding: "1.25rem", borderTop: "1px solid var(--border)", display: "flex", justifyContent: "flex-end", gap: "0.5rem" }}>
+            <div className="px-6 py-4 border-t border-slate-200 flex justify-end gap-2 bg-slate-50/50">
               <button
-                className="primary-btn"
-                style={{ backgroundColor: "#64748b" }}
+                className="primary-btn px-4 py-2 bg-slate-600 text-white cursor-pointer"
                 onClick={() => setIsDetailModalOpen(false)}
               >
                 Kapat
               </button>
               <button
-                className="primary-btn"
+                className="primary-btn px-5 py-2 cursor-pointer"
                 onClick={handleUpdateRepair}
                 disabled={savingEdit}
               >

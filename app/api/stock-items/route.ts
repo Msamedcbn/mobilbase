@@ -27,13 +27,29 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const auth = requireRole(["ADMIN", "CASHIER"]);
+  const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN", "MANAGER"]);
   if (auth.error) return auth.error;
   const tenantId = auth.user.tenantId;
 
   try {
     const body = await req.json();
-    const { sku, name, category, quantity, purchasePrice, salePrice, minThreshold } = body;
+    const {
+      sku,
+      name,
+      category,
+      brand,
+      model,
+      variantColor,
+      variantStorage,
+      serialNumber,
+      imei,
+      quantity,
+      purchasePrice,
+      salePrice,
+      purchaseDocType,
+      purchaseDocNo,
+      minThreshold,
+    } = body;
     
     if (!sku || !name) {
       return NextResponse.json({ error: "SKU ve urun adi zorunludur." }, { status: 400 });
@@ -54,9 +70,17 @@ export async function POST(req: Request) {
         sku: sku.trim(),
         name: name.trim(),
         category: category || "Genel",
+        brand: brand?.trim() || null,
+        model: model?.trim() || null,
+        variantColor: variantColor?.trim() || null,
+        variantStorage: variantStorage?.trim() || null,
+        serialNumber: serialNumber?.trim() || null,
+        imei: imei?.trim() || null,
         quantity: Number(quantity || 0),
         purchasePrice: Number(purchasePrice || 0),
         salePrice: Number(salePrice || 0),
+        purchaseDocType: purchaseDocType?.trim() || null,
+        purchaseDocNo: purchaseDocNo?.trim() || null,
         minThreshold: Number(minThreshold || 0),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -86,6 +110,14 @@ export async function POST(req: Request) {
         quantity: Number(quantity || 0),
         purchasePrice: Number(purchasePrice || 0),
         salePrice: Number(salePrice || 0),
+        brand: brand?.trim() || null,
+        model: model?.trim() || null,
+        variantColor: variantColor?.trim() || null,
+        variantStorage: variantStorage?.trim() || null,
+        serialNumber: serialNumber?.trim() || null,
+        imei: imei?.trim() || null,
+        purchaseDocType: purchaseDocType?.trim() || null,
+        purchaseDocNo: purchaseDocNo?.trim() || null,
         minThreshold: Number(minThreshold || 0),
         tenantId,
       }

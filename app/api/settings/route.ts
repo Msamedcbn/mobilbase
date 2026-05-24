@@ -6,7 +6,7 @@ import { readLocalStore, writeLocalStore } from "@/lib/local-store";
 import { writeAuditLog } from "@/lib/audit";
 
 export async function GET() {
-  const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN"]);
+  const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN", "MANAGER"]);
   if (auth.error) return auth.error;
   const tenantId = auth.user.tenantId || "default";
 
@@ -21,7 +21,12 @@ export async function GET() {
           repairTemplate: null,
           veresiyeTemplate: null,
           installmentTemplate: null,
+          expenseTypes: ["Kira", "Fatura", "Maas", "Mal Alimi", "Diger"],
         };
+        await writeLocalStore(store);
+      }
+      if (!store.settings.expenseTypes || store.settings.expenseTypes.length === 0) {
+        store.settings.expenseTypes = ["Kira", "Fatura", "Maas", "Mal Alimi", "Diger"];
         await writeLocalStore(store);
       }
       return ok(store.settings);
@@ -40,6 +45,7 @@ export async function GET() {
           repairTemplate: null,
           veresiyeTemplate: null,
           installmentTemplate: null,
+          expenseTypes: ["Kira", "Fatura", "Maas", "Mal Alimi", "Diger"],
         },
       });
     }
@@ -55,7 +61,7 @@ export async function GET() {
 }
 
 export async function PUT(req: Request) {
-  const auth = requireRole(["ADMIN"]);
+  const auth = requireRole(["ADMIN", "MANAGER"]);
   if (auth.error) return auth.error;
   const tenantId = auth.user.tenantId || "default";
 
@@ -68,6 +74,9 @@ export async function PUT(req: Request) {
       repairTemplate: body.repairTemplate ? String(body.repairTemplate) : null,
       veresiyeTemplate: body.veresiyeTemplate ? String(body.veresiyeTemplate) : null,
       installmentTemplate: body.installmentTemplate ? String(body.installmentTemplate) : null,
+      expenseTypes: Array.isArray(body.expenseTypes)
+        ? body.expenseTypes.map((x: unknown) => String(x).trim()).filter(Boolean)
+        : ["Kira", "Fatura", "Maas", "Mal Alimi", "Diger"],
     };
 
     if (isDbDisabledMode()) {

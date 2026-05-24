@@ -36,6 +36,7 @@ export default function CustomersVeresiyePage() {
   const [banks, setBanks] = useState<BankAccount[]>([]);
   const [bankAccountId, setBankAccountId] = useState("");
   const [settings, setSettings] = useState<any>(null);
+  const [balanceFilter, setBalanceFilter] = useState<"ALL" | "RECEIVABLE" | "PAYABLE">("ALL");
 
   // Modals state
   const [isLimitModalOpen, setIsLimitModalOpen] = useState(false);
@@ -116,13 +117,28 @@ export default function CustomersVeresiyePage() {
   const filteredCustomers = useMemo(() => {
     return customers.filter((c) => {
       const term = search.toLowerCase();
-      return (
+      const baseMatch = (
         c.fullName.toLowerCase().includes(term) ||
         c.phone.includes(term) ||
         (c.email && c.email.toLowerCase().includes(term))
       );
+      if (!baseMatch) return false;
+      const bal = getCustomerBalance(c.id);
+      if (balanceFilter === "RECEIVABLE") return bal > 0;
+      if (balanceFilter === "PAYABLE") return bal < 0;
+      return true;
     });
-  }, [customers, search]);
+  }, [customers, search, balanceFilter, ledger]);
+
+  const totalOnAccountSales = useMemo(
+    () => ledger.filter((x) => x.type === "DEBIT").reduce((sum, x) => sum + Number(x.amount), 0),
+    [ledger],
+  );
+  const totalOnAccountCollections = useMemo(
+    () => ledger.filter((x) => x.type === "CREDIT").reduce((sum, x) => sum + Number(x.amount), 0),
+    [ledger],
+  );
+  const netBalance = useMemo(() => totalOnAccountSales - totalOnAccountCollections, [totalOnAccountSales, totalOnAccountCollections]);
 
   const handleUpdateLimit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -308,11 +324,9 @@ export default function CustomersVeresiyePage() {
               <path d="M8.433 7.418c.554-.589 1.448-.589 2.002 0l.007.007a1.425 1.425 0 002.016 0l.007-.007c.554-.59 1.448-.59 2.002 0l.007.007a1.425 1.425 0 000 2.015l-.007.007c-.554.59-.554 1.54 0 2.13l.007.007a1.425 1.425 0 000 2.015l-.007.007c-.554.59-1.448.59-2.002 0l-.007-.007a1.425 1.425 0 00-2.016 0l-.007.007c-.554.59-1.448.59-2.002 0l-.007-.007a1.425 1.425 0 00-2.015 0l-.007.007c-.554.59-.554 1.54 0 2.13l.007.007a1.425 1.425 0 000 2.015l-.007.007c-.554.59-1.448.59-2.002 0l-.007-.007a1.425 1.425 0 00-2.015-2.015l.007-.007c.554-.59.554-1.54 0-2.13l-.007-.007a1.425 1.425 0 000-2.015l.007-.007c.554-.59 1.448-.59 2.002 0l.007.007z" />
             </svg>
           </div>
-          <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Toplam Veresiye Alacak</p>
-          <p className="text-3xl font-extrabold text-rose-500 mt-2">
-            {customers
-              .reduce((sum, c) => sum + Math.max(0, getCustomerBalance(c.id)), 0)
-              .toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
+          <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Veresiye Sattıklarım (Alacak)</p>
+          <p className="text-3xl font-extrabold text-emerald-600 mt-2">
+            {totalOnAccountSales.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
           </p>
         </div>
 
@@ -323,9 +337,9 @@ export default function CustomersVeresiyePage() {
               <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
             </svg>
           </div>
-          <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Limit Dışı Müşteriler</p>
-          <p className="text-3xl font-extrabold text-amber-500 mt-2">
-            {customers.filter((c) => getCustomerBalance(c.id) > (c.creditLimit ?? 0)).length}
+          <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Veresiye Aldıklarım (Tahsilat)</p>
+          <p className="text-3xl font-extrabold text-rose-600 mt-2">
+            {totalOnAccountCollections.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
           </p>
         </div>
       </div>
@@ -376,6 +390,17 @@ export default function CustomersVeresiyePage() {
             Yeni Cari İşlem Ekle
           </button>
         </div>
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <button onClick={() => setBalanceFilter("ALL")} className={`px-3 py-2 rounded-lg border text-xs font-semibold ${balanceFilter === "ALL" ? "bg-slate-800 text-white border-slate-800" : "bg-white text-slate-600 border-slate-200"}`}>Tum Bakiye</button>
+          <button onClick={() => setBalanceFilter("RECEIVABLE")} className={`px-3 py-2 rounded-lg border text-xs font-semibold ${balanceFilter === "RECEIVABLE" ? "bg-emerald-600 text-white border-emerald-600" : "bg-white text-emerald-700 border-emerald-200"}`}>Alacaklarim</button>
+          <button onClick={() => setBalanceFilter("PAYABLE")} className={`px-3 py-2 rounded-lg border text-xs font-semibold ${balanceFilter === "PAYABLE" ? "bg-rose-600 text-white border-rose-600" : "bg-white text-rose-700 border-rose-200"}`}>Vereceklerim</button>
+        </div>
+      </div>
+      <div className="panel bg-white border border-slate-200 rounded-xl px-4 py-3 flex items-center justify-between">
+        <span className="text-sm text-slate-500">Net Veresiye Bakiye</span>
+        <strong className={netBalance >= 0 ? "text-emerald-600" : "text-rose-600"}>
+          {netBalance.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
+        </strong>
       </div>
 
       {/* Customer List */}
@@ -429,7 +454,7 @@ export default function CustomersVeresiyePage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 font-mono font-bold">
-                        <span className={bal > 0 ? "text-rose-400" : bal < 0 ? "text-emerald-400" : "text-slate-700"}>
+                        <span className={bal > 0 ? "text-emerald-600" : bal < 0 ? "text-rose-600" : "text-slate-700"}>
                           {bal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
                         </span>
                       </td>
@@ -439,12 +464,12 @@ export default function CustomersVeresiyePage() {
                             🚨 Limit Aşıldı ({(bal - limit).toLocaleString("tr-TR")} TL)
                           </span>
                         ) : bal > 0 ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                            Borçlu
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-600 border border-emerald-500/30">
+                            Alacaklım (Yeşil)
                           </span>
                         ) : bal < 0 ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                            Alacaklı
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-rose-500/20 text-rose-500 border border-rose-500/30">
+                            Vereceğim (Kırmızı)
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-500/20 text-slate-500 border border-slate-500/30">
@@ -514,12 +539,12 @@ export default function CustomersVeresiyePage() {
                     </td>
                     <td className="px-6 py-4">
                       {item.type === "DEBIT" ? (
-                        <span className="inline-flex px-2 py-1 rounded bg-rose-500/10 text-rose-400 text-xs font-medium border border-rose-500/20">
-                          Borç (Dışarıya Satış)
+                        <span className="inline-flex px-2 py-1 rounded bg-emerald-500/10 text-emerald-600 text-xs font-medium border border-emerald-500/20">
+                          Veresiye Satış (Alacak)
                         </span>
                       ) : (
-                        <span className="inline-flex px-2 py-1 rounded bg-emerald-500/10 text-emerald-400 text-xs font-medium border border-emerald-500/20">
-                          Alacak / Tahsilat
+                        <span className="inline-flex px-2 py-1 rounded bg-rose-500/10 text-rose-500 text-xs font-medium border border-rose-500/20">
+                          Veresiye Tahsilat (Aldığım)
                         </span>
                       )}
                     </td>

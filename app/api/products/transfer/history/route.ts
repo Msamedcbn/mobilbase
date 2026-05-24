@@ -6,7 +6,7 @@ import { ok, fail } from "@/lib/api-response";
 import { getErrorMessage } from "@/lib/errors";
 
 export async function GET() {
-  const auth = requireRole(["ADMIN", "CASHIER"]);
+  const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN", "MANAGER"]);
   if (auth.error) return auth.error;
 
   try {

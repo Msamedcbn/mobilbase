@@ -12,7 +12,7 @@ const demoProducts = [
 ];
 
 export async function POST(req: Request) {
-  const auth = requireRole(["ADMIN", "CASHIER"]);
+  const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN", "MANAGER"]);
   if (auth.error) return auth.error;
 
   try {

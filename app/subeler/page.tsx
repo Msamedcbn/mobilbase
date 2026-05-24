@@ -73,6 +73,9 @@ export default function BranchesPage() {
   const [userBranchId, setUserBranchId] = useState("");
   const [userIsActive, setUserIsActive] = useState(true);
 
+  // Active UI tab state
+  const [activeTab, setActiveTab] = useState<"branches" | "users" | "transfers">("branches");
+
   async function loadData() {
     setLoading(true);
     try {
@@ -143,6 +146,12 @@ export default function BranchesPage() {
     loadData();
     loadPerformanceAndHistory();
   }, []);
+
+  useEffect(() => {
+    if (!isUserAdmin && activeTab === "users") {
+      setActiveTab("branches");
+    }
+  }, [isUserAdmin, activeTab]);
 
   const selectedProduct = products.find((p) => p.id === selectedProductId);
 
@@ -331,108 +340,265 @@ export default function BranchesPage() {
   }
 
   return (
-    <section style={{ maxWidth: 1200, margin: "0 auto", padding: "1.5rem" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-        <h2 className="page-title" style={{ margin: 0 }}>Çoklu Şube Yönetimi</h2>
-        <button 
-          onClick={() => {
-            setEditingBranch(null);
-            setBranchName("");
-            setBranchAddress("");
-            setBranchPhone("");
-            setShowAddModal(true);
-          }} 
-          className="primary-btn"
+    <section className="max-w-[1400px] mx-auto p-4 md:p-6 space-y-6 animate-fade-in">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center shadow-sm">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="page-title !m-0">Çoklu Şube Yönetimi</h2>
+            <p className="text-xs md:text-sm text-slate-500 font-medium">Şube dağılımlarını, ciro performansını, personelleri ve şubeler arası stok transferlerini yönetin</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="flex border-b border-slate-200 dark:border-slate-800 space-x-2 overflow-x-auto pb-px">
+        <button
+          onClick={() => setActiveTab("branches")}
+          className={`flex items-center gap-2 py-3 px-4 text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+            activeTab === "branches"
+              ? "border-teal-600 text-teal-600 dark:border-teal-400 dark:text-teal-400"
+              : "border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+          }`}
         >
-          + Yeni Şube Ekle
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+          Şubeler ve Performans
+        </button>
+
+        {isUserAdmin && (
+          <button
+            onClick={() => setActiveTab("users")}
+            className={`flex items-center gap-2 py-3 px-4 text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+              activeTab === "users"
+                ? "border-teal-600 text-teal-600 dark:border-teal-400 dark:text-teal-400"
+                : "border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            Personel Yönetimi
+          </button>
+        )}
+
+        <button
+          onClick={() => setActiveTab("transfers")}
+          className={`flex items-center gap-2 py-3 px-4 text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+            activeTab === "transfers"
+              ? "border-teal-600 text-teal-600 dark:border-teal-400 dark:text-teal-400"
+              : "border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+          }`}
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+          </svg>
+          Stok Transferi
         </button>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 20, marginBottom: "2rem" }}>
-        {/* Branch List */}
-        <div className="panel" style={{ padding: "1.5rem" }}>
-          <h3 style={{ marginTop: 0, marginBottom: 12, fontWeight: 700 }}>Şubelerimiz</h3>
-          {branches.length === 0 ? (
-            <div className="empty-box">Kayıtlı şube bulunmuyor.</div>
-          ) : (
-            <div style={{ display: "grid", gap: 12 }}>
-              {branches.map((b) => (
-                <div key={b.id} className="panel" style={{ padding: 12, background: "rgba(255, 255, 255, 0.03)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div>
-                    <p style={{ fontWeight: 700, margin: "0 0 4px" }}>{b.name}</p>
-                    <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "0 0 2px" }}>📞 {b.phone || "Telefon yok"}</p>
-                    <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>📍 {b.address || "Adres girilmemiş"}</p>
-                  </div>
-                  <div style={{ display: "flex", gap: 6 }}>
-                    <button 
-                      className="field" 
-                      style={{ padding: "4px 8px", fontSize: 12, cursor: "pointer" }}
-                      onClick={() => {
-                        setEditingBranch(b);
-                        setBranchName(b.name);
-                        setBranchAddress(b.address || "");
-                        setBranchPhone(b.phone || "");
-                        setShowAddModal(true);
-                      }}
-                    >
-                      Düzenle
-                    </button>
-                    <button 
-                      className="field" 
-                      style={{ padding: "4px 8px", fontSize: 12, color: "#ef4444", borderColor: "rgba(239,68,68,0.2)", cursor: "pointer" }}
-                      onClick={() => handleDeleteBranch(b.id)}
-                    >
-                      Sil
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Consolidated reports */}
-        <div className="panel" style={{ padding: "1.5rem" }}>
-          <h3 style={{ marginTop: 0, marginBottom: 12, fontWeight: 700 }}>Konsolide Performans</h3>
-          <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>Şube bazlı toplam ciro dağılımı (Aktif Sipariş Toplamları)</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {performance.length === 0 ? (
-              <div style={{ color: "var(--text-muted)", fontSize: 13, textAlign: "center", padding: 12 }}>
-                Performans verisi yükleniyor veya şube cirosu bulunmuyor.
+      {/* Tab Contents */}
+      {activeTab === "branches" && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column: Branches list */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Kayıtlı Şubeler</h3>
+                <p className="text-xs text-slate-500">Sistemdeki tüm aktif şubelerin listesi</p>
               </div>
+              <button 
+                onClick={() => {
+                  setEditingBranch(null);
+                  setBranchName("");
+                  setBranchAddress("");
+                  setBranchPhone("");
+                  setShowAddModal(true);
+                }} 
+                className="primary-btn"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Yeni Şube Ekle
+              </button>
+            </div>
+
+            {branches.length === 0 ? (
+              <div className="empty-box">Kayıtlı şube bulunmuyor.</div>
             ) : (
-              performance.map((p, idx) => {
-                const gradient = idx % 2 === 0 
-                  ? "linear-gradient(90deg, #3b82f6, #60a5fa)" 
-                  : "linear-gradient(90deg, #ec4899, #f472b6)";
-                return (
-                  <div key={p.id}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 6 }}>
-                      <span style={{ fontWeight: 600 }}>{p.name}</span>
-                      <span>{Number(p.revenue).toLocaleString("tr-TR")} TL ({p.percentage}%)</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {branches.map((b) => {
+                  const branchUsers = users.filter((u) => u.branchId === b.id);
+                  const staffCount = branchUsers.length;
+                  
+                  return (
+                    <div key={b.id} className="panel group relative overflow-hidden flex flex-col justify-between p-5 transition-all duration-300 hover:shadow-lg hover:border-teal-500/30">
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-teal-500/5 to-transparent rounded-bl-full pointer-events-none" />
+                      
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-start">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold text-base shadow-inner shrink-0">
+                              {b.name.substring(0, 2).toUpperCase()}
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-teal-600 transition-colors duration-200">{b.name}</h4>
+                              <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 rounded-md mt-1 select-none">
+                                <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                                {staffCount} Personel
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5 text-sm text-slate-600 dark:text-slate-400">
+                          <p className="flex items-center">
+                            <svg className="w-4 h-4 text-slate-400 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 00.096.807L7 9.773V13a9 9 0 009 9h3.227l1.043-1.043a1 1 0 00.096-.807l-.548-2.2a1 1 0 01.725-.94H21a2 2 0 012 2v3a2 2 0 01-2 2h-3.09a4.5 4.5 0 01-2.94-1.11L3.3 5.3a4.5 4.5 0 01-1.11-2.94V5z" />
+                            </svg>
+                            {b.phone || "Telefon belirtilmemiş"}
+                          </p>
+                          <p className="flex items-start">
+                            <svg className="w-4 h-4 text-slate-400 mr-2 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span className="line-clamp-2">{b.address || "Adres bilgisi eklenmemiş"}</span>
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800/80">
+                        <button 
+                          onClick={() => {
+                            setEditingBranch(b);
+                            setBranchName(b.name);
+                            setBranchAddress(b.address || "");
+                            setBranchPhone(b.phone || "");
+                            setShowAddModal(true);
+                          }}
+                          className="flex-1 field py-2 text-xs font-semibold hover:border-teal-500 hover:text-teal-600 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                          Düzenle
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteBranch(b.id)}
+                          className="field py-2 text-xs font-semibold border-rose-100 text-rose-500 bg-rose-50/20 hover:bg-rose-50 hover:border-rose-300 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                          style={{ width: "fit-content", paddingLeft: 12, paddingRight: 12 }}
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Sil
+                        </button>
+                      </div>
                     </div>
-                    <div style={{ height: 10, background: "rgba(255,255,255,0.05)", borderRadius: 5, overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: `${p.percentage}%`, background: gradient, borderRadius: 5, transition: "width 0.5s ease" }} />
-                    </div>
-                  </div>
-                );
-              })
+                  );
+                })}
+              </div>
             )}
           </div>
-          <div style={{ marginTop: 24, padding: 12, background: "rgba(59, 130, 246, 0.05)", borderRadius: 8, display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 20 }}>💡</span>
-            <p style={{ fontSize: 12, margin: 0, color: "var(--text-muted)", lineHeight: 1.4 }}>
-              Toplam Ciro: <strong>{Number(totalRevenue).toLocaleString("tr-TR")} TL</strong>. Düşük stok seviyeli ürünleri cirosu yüksek olan şubeler arasında transfer ederek stok devir hızını optimize edebilirsiniz.
-            </p>
+
+          {/* Right Column: Performance and stats */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Konsolide Performans</h3>
+            
+            <div className="panel p-5 space-y-6">
+              {/* Financial Box */}
+              <div className="bg-gradient-to-br from-teal-900 to-slate-900 text-white rounded-2xl p-5 relative overflow-hidden shadow-md">
+                <div className="absolute -bottom-8 -right-8 w-24 h-24 bg-teal-500/20 rounded-full blur-xl pointer-events-none" />
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-xs font-semibold text-teal-200/80 uppercase tracking-wider">Toplam Konsolide Ciro</span>
+                    <h2 className="text-2xl md:text-3xl font-extrabold mt-1 tracking-tight">
+                      {Number(totalRevenue).toLocaleString("tr-TR")} <span className="text-lg font-semibold text-teal-300">TL</span>
+                    </h2>
+                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-teal-500/20 flex items-center justify-center backdrop-blur-sm">
+                    <svg className="w-5 h-5 text-teal-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-emerald-400 mt-4 font-semibold">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                  Aktif sipariş ve satış toplamları baz alınmıştır
+                </div>
+              </div>
+
+              {/* Progress bars list */}
+              <div className="space-y-4">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Şube Ciro Dağılımı</span>
+                {performance.length === 0 ? (
+                  <div className="text-slate-500 text-sm text-center py-4">
+                    Performans verisi yükleniyor veya şube cirosu bulunmuyor.
+                  </div>
+                ) : (
+                  <div className="space-y-3.5">
+                    {performance.map((p, idx) => {
+                      const colors = [
+                        "from-teal-500 to-emerald-500",
+                        "from-blue-500 to-indigo-500",
+                        "from-purple-500 to-pink-500",
+                        "from-amber-500 to-orange-500",
+                      ];
+                      const gradientClass = colors[idx % colors.length];
+                      return (
+                        <div key={p.id} className="space-y-1.5">
+                          <div className="flex justify-between text-sm">
+                            <span className="font-bold text-slate-700 dark:text-slate-300">{p.name}</span>
+                            <span className="font-semibold text-slate-900 dark:text-white">
+                              {Number(p.revenue).toLocaleString("tr-TR")} TL <span className="text-xs font-normal text-slate-500">({p.percentage}%)</span>
+                            </span>
+                          </div>
+                          <div className="h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden relative">
+                            <div 
+                              className={`h-full rounded-full bg-gradient-to-r ${gradientClass} transition-all duration-500 ease-out`}
+                              style={{ width: `${p.percentage}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Smart recommendation card */}
+              <div className="p-4 bg-teal-500/5 border border-teal-500/10 rounded-2xl flex gap-3 items-start">
+                <span className="text-xl shrink-0 mt-0.5">💡</span>
+                <div className="space-y-1">
+                  <h5 className="text-xs font-bold text-teal-800 dark:text-teal-300">Stok Optimizasyonu Önerisi</h5>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                    Düşük stok seviyeli ürünleri, cirosu yüksek olan şubeler arasında transfer ederek stok devir hızını ve genel satış oranlarını optimize edebilirsiniz.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Personel Yönetimi Panel */}
-      {isUserAdmin && (
-        <div className="panel" style={{ padding: "1.5rem", marginBottom: "2rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <h3 style={{ marginTop: 0, marginBottom: 0, fontWeight: 700 }}>Personel Yönetimi</h3>
+      {activeTab === "users" && isUserAdmin && (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Personel Kadrosu</h3>
+              <p className="text-xs sm:text-sm text-slate-500">Sistem yetkileri, giriş bilgileri ve personel cari hesap durumları</p>
+            </div>
             <button
               onClick={() => {
                 setEditingUser(null);
@@ -444,329 +610,394 @@ export default function BranchesPage() {
                 setUserIsActive(true);
                 setShowUserModal(true);
               }}
-              className="primary-btn"
-              style={{ padding: "6px 12px", fontSize: 13 }}
+              className="primary-btn shrink-0"
             >
-              + Yeni Personel Ekle
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+              </svg>
+              Yeni Personel Ekle
             </button>
           </div>
-          <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>
-            Şubelerinizde çalışan personelleri, sistem yetkilerini, giriş bilgilerini ve cari borç durumlarını buradan yönetebilirsiniz.
-          </p>
 
-          <div style={{ overflowX: "auto" }}>
+          <div className="panel overflow-hidden">
             {users.length === 0 ? (
               <div className="empty-box">Kayıtlı personel bulunmuyor.</div>
             ) : (
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Personel Adı</th>
-                    <th>E-posta</th>
-                    <th>Rol / Yetki</th>
-                    <th>Bağlı Şube</th>
-                    <th>Cari Durumu</th>
-                    <th>Durum</th>
-                    <th style={{ textAlign: "right" }}>İşlemler</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((u) => {
-                    const branch = branches.find((b) => b.id === u.branchId);
-                    const cari = getUserBalance(u.email);
-
-                    return (
-                      <tr key={u.id}>
-                        <td style={{ fontWeight: 600 }}>{u.fullName}</td>
-                        <td>{u.email}</td>
-                        <td>
-                          <span
-                            style={{
-                              padding: "2px 8px",
-                              borderRadius: 4,
-                              fontSize: 11,
-                              fontWeight: 600,
-                              background:
-                                u.role === "ADMIN"
-                                  ? "rgba(59, 130, 246, 0.15)"
-                                  : u.role === "MANAGER"
-                                  ? "rgba(16, 185, 129, 0.15)"
-                                  : u.role === "ACCOUNTANT"
-                                  ? "rgba(99, 102, 241, 0.15)"
-                                  : u.role === "TECHNICIAN"
-                                  ? "rgba(168, 85, 247, 0.15)"
-                                  : "rgba(234, 179, 8, 0.15)",
-                              color:
-                                u.role === "ADMIN"
-                                  ? "#60a5fa"
-                                  : u.role === "MANAGER"
-                                  ? "#34d399"
-                                  : u.role === "ACCOUNTANT"
-                                  ? "#818cf8"
-                                  : u.role === "TECHNICIAN"
-                                  ? "#c084fc"
-                                  : "#facc15",
-                            }}
-                          >
-                            {u.role === "ADMIN"
-                              ? "Yönetici"
-                              : u.role === "MANAGER"
-                              ? "Müdür"
-                              : u.role === "ACCOUNTANT"
-                              ? "Muhasebeci"
-                              : u.role === "TECHNICIAN"
-                              ? "Teknisyen"
-                              : "Kasiyer"}
-                          </span>
-                        </td>
-                        <td>{branch ? branch.name : <em style={{ color: "var(--text-muted)" }}>Şube Atanmamış</em>}</td>
-                        <td>
-                          {cari ? (
-                            <span
-                              style={{
-                                fontWeight: 700,
-                                color: cari.balance > 0 ? "#f87171" : cari.balance < 0 ? "#34d399" : "var(--text-muted)",
-                              }}
-                            >
-                              {Number(cari.balance).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
-                            </span>
-                          ) : (
-                            <button
-                              onClick={() => handleCreateUserCari(u)}
-                              style={{
-                                padding: "2px 6px",
-                                fontSize: 11,
-                                background: "rgba(59,130,246,0.1)",
-                                border: "1px solid rgba(59,130,246,0.2)",
-                                color: "#60a5fa",
-                                borderRadius: 4,
-                                cursor: "pointer",
-                              }}
-                              title="Personel için otomatik cari hesap kartı açar"
-                            >
-                              + Cari Hesap Aç
-                            </button>
-                          )}
-                        </td>
-                        <td>
-                          <span style={{ color: u.isActive ? "#34d399" : "#f87171", fontWeight: 600 }}>
-                            {u.isActive ? "Aktif" : "Pasif"}
-                          </span>
-                        </td>
-                        <td style={{ textAlign: "right" }}>
-                          <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
-                            <button
-                              onClick={() => {
-                                setEditingUser(u);
-                                setUserFullName(u.fullName);
-                                setUserEmail(u.email);
-                                setUserPassword("");
-                                setUserRole(u.role);
-                                setUserBranchId(u.branchId || "");
-                                setUserIsActive(u.isActive);
-                                setShowUserModal(true);
-                              }}
-                              className="field"
-                              style={{ padding: "3px 6px", fontSize: 11, cursor: "pointer" }}
-                            >
-                              Düzenle
-                            </button>
-                            <button
-                              onClick={() => handleDeleteUser(u.id)}
-                              className="field"
-                              style={{
-                                padding: "3px 6px",
-                                fontSize: 11,
-                                color: "#ef4444",
-                                borderColor: "rgba(239,68,68,0.2)",
-                                cursor: "pointer",
-                              }}
-                            >
-                              Sil
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Stock transfer Panel */}
-      <div className="panel" style={{ padding: "1.5rem" }}>
-        <h3 style={{ marginTop: 0, marginBottom: 12, fontWeight: 700 }}>Şubeler Arası Stok Transferi</h3>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-          <form onSubmit={handleTransfer} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <div>
-              <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 4 }}>Ürün Seçin</label>
-              <select 
-                className="field" 
-                value={selectedProductId} 
-                onChange={(e) => {
-                  setSelectedProductId(e.target.value);
-                  setSourceBranchId("");
-                  setTargetBranchId("");
-                }}
-              >
-                <option value="">Seçiniz...</option>
-                {products.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name} ({p.barcode})</option>
-                ))}
-              </select>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 4 }}>Kaynak Şube</label>
-                <select 
-                  className="field" 
-                  value={sourceBranchId} 
-                  onChange={(e) => setSourceBranchId(e.target.value)}
-                  disabled={!selectedProductId}
-                >
-                  <option value="">Seçiniz...</option>
-                  {selectedProduct?.branchStocks?.map((s) => (
-                    <option key={s.branchId} value={s.branchId}>
-                      {s.branch?.name || `Şube: ${s.branchId}`} (Stok: {s.stock})
-                    </option>
-                  )) || branches.map((b) => (
-                    <option key={b.id} value={b.id}>{b.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 4 }}>Hedef Şube</label>
-                <select 
-                  className="field" 
-                  value={targetBranchId} 
-                  onChange={(e) => setTargetBranchId(e.target.value)}
-                  disabled={!selectedProductId}
-                >
-                  <option value="">Seçiniz...</option>
-                  {branches
-                    .filter((b) => b.id !== sourceBranchId)
-                    .map((b) => (
-                      <option key={b.id} value={b.id}>{b.name}</option>
-                    ))}
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 4 }}>Transfer Miktarı</label>
-              <input 
-                type="number" 
-                min={1} 
-                className="field" 
-                value={transferQty} 
-                onChange={(e) => setTransferQty(Math.max(1, parseInt(e.target.value, 10)))}
-                disabled={!selectedProductId}
-              />
-            </div>
-
-            <button 
-              type="submit" 
-              className="primary-btn" 
-              style={{ marginTop: 6 }} 
-              disabled={loading || !selectedProductId}
-            >
-              Transferi Gerçekleştir
-            </button>
-          </form>
-
-          {/* Selected Product Branch stock levels breakdown */}
-          <div style={{ borderLeft: "1px solid var(--border)", paddingLeft: 20 }}>
-            <h4 style={{ margin: "0 0 10px" }}>Şube Stok Kırılımı</h4>
-            {!selectedProduct ? (
-              <div style={{ color: "var(--text-muted)", fontSize: 13, padding: 12, textAlign: "center", border: "1px dashed var(--border)", borderRadius: 6 }}>
-                Şube dağılımını görmek için bir ürün seçin
-              </div>
-            ) : (
-              <div style={{ display: "grid", gap: 10 }}>
-                <div style={{ padding: 10, background: "rgba(255,255,255,0.01)", border: "1px solid var(--border)", borderRadius: 6 }}>
-                  <p style={{ fontWeight: 600, margin: "0 0 4px", fontSize: 14 }}>{selectedProduct.name}</p>
-                  <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>Barkod: {selectedProduct.barcode}</p>
-                </div>
+              <div className="overflow-x-auto">
                 <table className="data-table">
                   <thead>
-                    <tr><th>Şube</th><th>Mevcut Stok</th></tr>
+                    <tr>
+                      <th>Personel Bilgisi</th>
+                      <th>Rol / Yetki</th>
+                      <th>Bağlı Şube</th>
+                      <th>Cari Borç Durumu</th>
+                      <th>Durum</th>
+                      <th style={{ textAlign: "right" }}>İşlemler</th>
+                    </tr>
                   </thead>
                   <tbody>
-                    {selectedProduct.branchStocks && selectedProduct.branchStocks.length > 0 ? (
-                      selectedProduct.branchStocks.map((s) => (
-                        <tr key={s.id}>
-                          <td>{s.branch?.name || `Şube: ${s.branchId}`}</td>
-                          <td style={{ fontWeight: 700 }}>{s.stock} adet</td>
+                    {users.map((u) => {
+                      const branch = branches.find((b) => b.id === u.branchId);
+                      const cari = getUserBalance(u.email);
+                      
+                      const roleColors: Record<string, { bg: string, text: string, label: string }> = {
+                        ADMIN: { bg: "bg-blue-500/10 dark:bg-blue-500/20", text: "text-blue-600 dark:text-blue-400", label: "Yönetici" },
+                        MANAGER: { bg: "bg-emerald-500/10 dark:bg-emerald-500/20", text: "text-emerald-600 dark:text-emerald-400", label: "Müdür" },
+                        ACCOUNTANT: { bg: "bg-indigo-500/10 dark:bg-indigo-500/20", text: "text-indigo-600 dark:text-indigo-400", label: "Muhasebeci" },
+                        TECHNICIAN: { bg: "bg-purple-500/10 dark:bg-purple-500/20", text: "text-purple-600 dark:text-purple-400", label: "Teknisyen" },
+                        CASHIER: { bg: "bg-amber-500/10 dark:bg-amber-500/20", text: "text-amber-600 dark:text-amber-400", label: "Kasiyer" },
+                        PLATFORM_OWNER: { bg: "bg-rose-500/10 dark:bg-rose-500/20", text: "text-rose-600 dark:text-rose-400", label: "Platform Sahibi" },
+                      };
+                      const roleStyle = roleColors[u.role] || { bg: "bg-slate-100", text: "text-slate-600", label: u.role };
+
+                      const initials = u.fullName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
+
+                      return (
+                        <tr key={u.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                          <td>
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-teal-500 to-indigo-500 text-white font-bold text-xs flex items-center justify-center shadow-sm shrink-0 select-none">
+                                {initials}
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="font-bold text-slate-800 dark:text-white">{u.fullName}</span>
+                                <span className="text-xs text-slate-400 font-medium">{u.email}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${roleStyle.bg} ${roleStyle.text}`}>
+                              {roleStyle.label}
+                            </span>
+                          </td>
+                          <td>
+                            {branch ? (
+                              <span className="inline-flex items-center gap-1.5 text-sm text-slate-700 dark:text-slate-300 font-medium">
+                                <svg className="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                </svg>
+                                {branch.name}
+                              </span>
+                            ) : (
+                              <em className="text-xs text-slate-400">Şube Atanmamış</em>
+                            )}
+                          </td>
+                          <td>
+                            {cari ? (
+                              <span className={`font-bold text-sm ${cari.balance > 0 ? "text-rose-500" : cari.balance < 0 ? "text-emerald-500" : "text-slate-400"}`}>
+                                {Number(cari.balance).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => handleCreateUserCari(u)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 border border-teal-500/20 hover:border-teal-500/30 rounded-lg cursor-pointer transition-all duration-200"
+                                title="Personel için otomatik cari hesap kartı açar"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                </svg>
+                                Cari Aç
+                              </button>
+                            )}
+                          </td>
+                          <td>
+                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold">
+                              <span className={`w-2 h-2 rounded-full ${u.isActive ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-rose-500"}`} />
+                              <span className={u.isActive ? "text-slate-700 dark:text-slate-300" : "text-rose-500"}>
+                                {u.isActive ? "Aktif" : "Pasif"}
+                              </span>
+                            </span>
+                          </td>
+                          <td style={{ textAlign: "right" }}>
+                            <div className="flex gap-2 justify-end">
+                              <button
+                                onClick={() => {
+                                  setEditingUser(u);
+                                  setUserFullName(u.fullName);
+                                  setUserEmail(u.email);
+                                  setUserPassword("");
+                                  setUserRole(u.role);
+                                  setUserBranchId(u.branchId || "");
+                                  setUserIsActive(u.isActive);
+                                  setShowUserModal(true);
+                                }}
+                                className="field py-1.5 px-3 text-xs font-semibold hover:border-teal-500 hover:text-teal-600 transition-colors flex items-center gap-1 cursor-pointer"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                                Düzenle
+                              </button>
+                              <button
+                                onClick={() => handleDeleteUser(u.id)}
+                                className="field py-1.5 px-3 text-xs font-semibold border-rose-100 text-rose-500 bg-rose-50/20 hover:bg-rose-50 hover:border-rose-300 transition-all flex items-center gap-1 cursor-pointer"
+                                style={{ width: "fit-content" }}
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Sil
+                              </button>
+                            </div>
+                          </td>
                         </tr>
-                      ))
-                    ) : (
-                      <tr><td colSpan={2} style={{ textAlign: "center", color: "var(--text-muted)" }}>Bu ürün için henüz şube bazlı stok bilgisi girilmemiştir.</td></tr>
-                    )}
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
             )}
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Şubeler Arası Transfer Geçmişi */}
-      <div className="panel" style={{ padding: "1.5rem", marginTop: 20 }}>
-        <h3 style={{ marginTop: 0, marginBottom: 12, fontWeight: 700 }}>Şubeler Arası Transfer Geçmişi</h3>
-        <div className="panel-scroll" style={{ maxHeight: 300, overflowY: "auto" }}>
-          {transferHistory.length === 0 ? (
-            <div className="empty-box">Kayıtlı transfer geçmişi bulunmuyor.</div>
-          ) : (
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Tarih</th>
-                  <th>Ürün</th>
-                  <th>Kaynak Şube</th>
-                  <th>Hedef Şube</th>
-                  <th>Miktar</th>
-                </tr>
-              </thead>
-              <tbody>
-                {transferHistory.map((h) => (
-                  <tr key={h.id}>
-                    <td style={{ fontSize: 13 }}>{new Date(h.createdAt).toLocaleString("tr-TR")}</td>
-                    <td style={{ fontWeight: 600 }}>{h.productName || "Bilinmeyen Ürün"}</td>
-                    <td style={{ color: "#f43f5e" }}>{h.sourceBranchName || "Bilinmeyen Şube"}</td>
-                    <td style={{ color: "#10b981" }}>{h.targetBranchName || "Bilinmeyen Şube"}</td>
-                    <td style={{ fontWeight: 700 }}>{h.quantity} adet</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
-
-      {/* Add/Edit Modal */}
-      {showAddModal && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", display: "grid", placeItems: "center", zIndex: 100, padding: 16 }}>
-          <div className="panel" style={{ width: "min(460px, 95vw)", padding: "1.5rem" }}>
-            <h3 style={{ marginTop: 0, marginBottom: 16 }}>{editingBranch ? "Şubeyi Düzenle" : "Yeni Şube Ekle"}</h3>
-            <form onSubmit={handleAddOrEditBranch} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      {activeTab === "transfers" && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Column 1: Transfer Form */}
+            <div className="panel p-5 space-y-4">
               <div>
-                <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 4 }}>Şube Adı</label>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Şubeler Arası Stok Transferi</h3>
+                <p className="text-xs text-slate-500">Mevcut envanteri şubeler arasında hızlıca taşıyın</p>
+              </div>
+
+              <form onSubmit={handleTransfer} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Ürün Seçin</label>
+                  <select 
+                    className="field font-medium cursor-pointer" 
+                    value={selectedProductId} 
+                    onChange={(e) => {
+                      setSelectedProductId(e.target.value);
+                      setSourceBranchId("");
+                      setTargetBranchId("");
+                    }}
+                  >
+                    <option value="">Ürün arayın veya seçin...</option>
+                    {products.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name} ({p.barcode})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Kaynak Şube</label>
+                    <select 
+                      className="field font-medium cursor-pointer" 
+                      value={sourceBranchId} 
+                      onChange={(e) => setSourceBranchId(e.target.value)}
+                      disabled={!selectedProductId}
+                    >
+                      <option value="">Şube seçin...</option>
+                      {selectedProduct?.branchStocks?.map((s) => (
+                        <option key={s.branchId} value={s.branchId}>
+                          {s.branch?.name || `Şube: ${s.branchId}`} (Mevcut Stok: {s.stock})
+                        </option>
+                      )) || branches.map((b) => (
+                        <option key={b.id} value={b.id}>{b.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Hedef Şube</label>
+                    <select 
+                      className="field font-medium cursor-pointer" 
+                      value={targetBranchId} 
+                      onChange={(e) => setTargetBranchId(e.target.value)}
+                      disabled={!selectedProductId}
+                    >
+                      <option value="">Şube seçin...</option>
+                      {branches
+                        .filter((b) => b.id !== sourceBranchId)
+                        .map((b) => (
+                          <option key={b.id} value={b.id}>{b.name}</option>
+                        ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Transfer Miktarı (Adet)</label>
+                  <input 
+                    type="number" 
+                    min={1} 
+                    className="field font-semibold" 
+                    value={transferQty} 
+                    onChange={(e) => setTransferQty(Math.max(1, parseInt(e.target.value, 10)))}
+                    disabled={!selectedProductId}
+                  />
+                </div>
+
+                <button 
+                  type="submit" 
+                  className="primary-btn w-full py-3" 
+                  disabled={loading || !selectedProductId}
+                >
+                  <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                  Transferi Gerçekleştir
+                </button>
+              </form>
+            </div>
+
+            {/* Column 2: Selected Product stock breakdown */}
+            <div className="panel p-5 space-y-4">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Şube Stok Durumu</h3>
+                <p className="text-xs text-slate-500">Seçili ürünün şubeler arasındaki envanter dağılımı</p>
+              </div>
+
+              {!selectedProduct ? (
+                <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl p-8 text-center min-h-[250px]">
+                  <span className="text-3xl mb-2 select-none">📦</span>
+                  <h4 className="font-bold text-slate-700 dark:text-slate-300">Ürün Seçilmedi</h4>
+                  <p className="text-xs text-slate-500 max-w-xs mt-1 leading-relaxed">
+                    Şube dağılımını görmek ve transfer işlemini başlatmak için lütfen formdan bir ürün seçin
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4 animate-fade-in">
+                  <div className="bg-slate-50 dark:bg-slate-800/40 p-4 border border-slate-100 dark:border-slate-800 rounded-xl space-y-2 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-16 h-16 bg-slate-500/5 rounded-bl-full flex items-center justify-center pointer-events-none">
+                      <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <div className="space-y-0.5">
+                      <span className="text-xs text-teal-600 dark:text-teal-400 font-bold uppercase tracking-wider">{selectedProduct.category || "Genel"}</span>
+                      <h4 className="font-bold text-slate-800 dark:text-white text-base">{selectedProduct.name}</h4>
+                    </div>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400 font-medium">
+                      <span>Barkod: <strong className="text-slate-500 dark:text-slate-300">{selectedProduct.barcode}</strong></span>
+                      <span>Toplam Stok: <strong className="text-slate-500 dark:text-slate-300">{selectedProduct.stock} adet</strong></span>
+                    </div>
+                  </div>
+
+                  <div className="border border-slate-100 dark:border-slate-800 rounded-xl overflow-hidden">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>Şube</th>
+                          <th style={{ textAlign: "right" }}>Mevcut Stok</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedProduct.branchStocks && selectedProduct.branchStocks.length > 0 ? (
+                          selectedProduct.branchStocks.map((s) => (
+                            <tr key={s.id} className="hover:bg-slate-50/50">
+                              <td className="font-bold text-slate-700 dark:text-slate-300">
+                                {s.branch?.name || `Şube: ${s.branchId}`}
+                              </td>
+                              <td style={{ textAlign: "right" }} className="font-extrabold text-slate-900 dark:text-white">
+                                {s.stock} adet
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={2} className="text-center text-slate-400 text-xs py-8">
+                              Bu ürün için henüz şube bazlı stok bilgisi girilmemiştir.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Bottom Panel: Transfer History */}
+          <div className="panel p-5 space-y-4">
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Transfer Geçmişi</h3>
+              <p className="text-xs text-slate-500">Şubeler arasında yapılmış geçmiş stok transferi kayıtları</p>
+            </div>
+
+            <div className="panel-scroll max-h-[300px] overflow-y-auto">
+              {transferHistory.length === 0 ? (
+                <div className="empty-box">Kayıtlı transfer geçmişi bulunmuyor.</div>
+              ) : (
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Tarih / Saat</th>
+                      <th>Ürün Bilgisi</th>
+                      <th>Kaynak Şube</th>
+                      <th>Hedef Şube</th>
+                      <th style={{ textAlign: "right" }}>Miktar</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transferHistory.map((h) => (
+                      <tr key={h.id} className="hover:bg-slate-50/50">
+                        <td className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                          {new Date(h.createdAt).toLocaleString("tr-TR")}
+                        </td>
+                        <td className="font-bold text-slate-800 dark:text-white">
+                          {h.productName || "Bilinmeyen Ürün"}
+                        </td>
+                        <td>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/15 select-none">
+                            {h.sourceBranchName || "Bilinmeyen Şube"}
+                          </span>
+                        </td>
+                        <td>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/15 select-none">
+                            {h.targetBranchName || "Bilinmeyen Şube"}
+                          </span>
+                        </td>
+                        <td style={{ textAlign: "right" }} className="font-extrabold text-teal-600 dark:text-teal-400 text-sm">
+                          {h.quantity} adet
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add/Edit Branch Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
+          <div className="panel w-full max-w-[460px] p-6 space-y-4 animate-scale-in">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                  {editingBranch ? "Şubeyi Düzenle" : "Yeni Şube Ekle"}
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">Şube bilgilerini detaylıca giriniz</p>
+              </div>
+              <button 
+                onClick={() => setShowAddModal(false)}
+                className="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <form onSubmit={handleAddOrEditBranch} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Şube Adı *</label>
                 <input 
                   type="text" 
                   className="field" 
                   value={branchName} 
                   onChange={(e) => setBranchName(e.target.value)} 
                   placeholder="Örn: Kadıköy Şubesi"
+                  required
                 />
               </div>
 
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 4 }}>Telefon Numarası</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Telefon Numarası</label>
                 <input 
                   type="text" 
                   className="field" 
@@ -776,8 +1007,8 @@ export default function BranchesPage() {
                 />
               </div>
 
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 4 }}>Adres</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Adres</label>
                 <textarea 
                   className="field" 
                   rows={3} 
@@ -787,16 +1018,15 @@ export default function BranchesPage() {
                 />
               </div>
 
-              <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-                <button type="submit" className="primary-btn" style={{ flex: 1 }}>Kaydet</button>
+              <div className="flex gap-3 pt-2">
                 <button 
                   type="button" 
-                  className="primary-btn" 
-                  style={{ flex: 1, backgroundColor: "#64748b" }}
+                  className="flex-1 field py-2.5 font-bold bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
                   onClick={() => setShowAddModal(false)}
                 >
                   İptal
                 </button>
+                <button type="submit" className="flex-1 primary-btn py-2.5">Kaydet</button>
               </div>
             </form>
           </div>
@@ -805,25 +1035,26 @@ export default function BranchesPage() {
 
       {/* Add/Edit User Modal */}
       {showUserModal && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.5)",
-            backdropFilter: "blur(4px)",
-            display: "grid",
-            placeItems: "center",
-            zIndex: 110,
-            padding: 16,
-          }}
-        >
-          <div className="panel" style={{ width: "min(480px, 95vw)", padding: "1.5rem" }}>
-            <h3 style={{ marginTop: 0, marginBottom: 16 }}>
-              {editingUser ? "Personeli Düzenle" : "Yeni Personel Ekle"}
-            </h3>
-            <form onSubmit={handleAddOrEditUser} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
+          <div className="panel w-full max-w-[480px] p-6 space-y-4 animate-scale-in">
+            <div className="flex justify-between items-start">
               <div>
-                <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 4 }}>Ad Soyad *</label>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                  {editingUser ? "Personeli Düzenle" : "Yeni Personel Ekle"}
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">Personel hesap bilgilerini ve yetkilerini belirleyin</p>
+              </div>
+              <button 
+                onClick={() => setShowUserModal(false)}
+                className="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleAddOrEditUser} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Ad Soyad *</label>
                 <input
                   type="text"
                   className="field"
@@ -834,8 +1065,8 @@ export default function BranchesPage() {
                 />
               </div>
 
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 4 }}>E-posta (Giriş Adı) *</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">E-posta (Giriş Adı) *</label>
                 <input
                   type="email"
                   className="field"
@@ -847,8 +1078,8 @@ export default function BranchesPage() {
                 />
               </div>
 
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 4 }}>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
                   {editingUser ? "Şifre (Değiştirmek istemiyorsanız boş bırakın)" : "Giriş Şifresi *"}
                 </label>
                 <input
@@ -862,11 +1093,11 @@ export default function BranchesPage() {
                 />
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 4 }}>Yetki Rolü</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Yetki Rolü</label>
                   <select
-                    className="field"
+                    className="field font-medium cursor-pointer"
                     value={userRole}
                     onChange={(e) => setUserRole(e.target.value as any)}
                   >
@@ -874,15 +1105,15 @@ export default function BranchesPage() {
                     <option value="TECHNICIAN">Teknisyen</option>
                     <option value="MANAGER">Müdür</option>
                     <option value="ACCOUNTANT">Muhasebeci</option>
-                    <option value="PLATFORM_OWNER">Platform Owner</option>
+                    <option value="PLATFORM_OWNER">Platform Sahibi</option>
                     <option value="ADMIN">Yönetici</option>
                   </select>
                 </div>
 
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 4 }}>Çalıştığı Şube</label>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Çalıştığı Şube</label>
                   <select
-                    className="field"
+                    className="field font-medium cursor-pointer"
                     value={userBranchId}
                     onChange={(e) => setUserBranchId(e.target.value)}
                   >
@@ -896,30 +1127,29 @@ export default function BranchesPage() {
                 </div>
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+              <div className="flex items-center gap-2 pt-1.5">
                 <input
                   type="checkbox"
                   id="userIsActiveCheckbox"
                   checked={userIsActive}
                   onChange={(e) => setUserIsActive(e.target.checked)}
-                  style={{ width: 16, height: 16 }}
+                  className="w-4 h-4 text-teal-600 border-slate-300 rounded focus:ring-teal-500 cursor-pointer"
                 />
-                <label htmlFor="userIsActiveCheckbox" style={{ fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                <label htmlFor="userIsActiveCheckbox" className="text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer select-none">
                   Kullanıcı Aktif mi? (Sisteme giriş yapabilir)
                 </label>
               </div>
 
-              <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-                <button type="submit" className="primary-btn" style={{ flex: 1 }}>
-                  Kaydet
-                </button>
+              <div className="flex gap-3 pt-2">
                 <button
                   type="button"
-                  className="primary-btn"
-                  style={{ flex: 1, backgroundColor: "#64748b" }}
+                  className="flex-1 field py-2.5 font-bold bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
                   onClick={() => setShowUserModal(false)}
                 >
                   İptal
+                </button>
+                <button type="submit" className="flex-1 primary-btn py-2.5">
+                  Kaydet
                 </button>
               </div>
             </form>

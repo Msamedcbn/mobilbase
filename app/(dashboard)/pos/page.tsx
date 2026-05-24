@@ -364,8 +364,19 @@ export default function PosPage() {
         })
       });
 
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Checkout başarısız");
+      let json: any = null;
+      try {
+        json = await res.json();
+      } catch {
+        // Non-JSON response fallback
+      }
+      if (!res.ok) {
+        throw new Error(
+          json?.error ??
+          json?.message ??
+          `POS işlemi tamamlanamadı (HTTP ${res.status})`
+        );
+      }
 
       // Set the receipt state
       setReceipt({
@@ -397,7 +408,8 @@ export default function PosPage() {
       const bankJson = await bankRes.json();
       setBanks(bankJson.data || bankJson || []);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "İşlem başarısız");
+      const msg = error instanceof Error ? error.message : "POS işlemi sırasında beklenmeyen bir hata oluştu";
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -581,26 +593,26 @@ export default function PosPage() {
   }
 
   return (
-    <section className="space-y-6 pb-12">
+    <section className="space-y-6 pb-12 animate-fade-in">
       {/* Top Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/70 backdrop-blur-md p-5 rounded-2xl border border-slate-200/60 shadow-sm">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/80 backdrop-blur-md p-6 rounded-3xl border border-slate-200/50 shadow-sm">
         <div>
-          <h2 className="text-2xl font-black tracking-tight bg-gradient-to-r from-slate-900 via-teal-900 to-indigo-900 bg-clip-text text-transparent">
-            Bulut POS Satış Ekranı
+          <h2 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-teal-900 to-indigo-900 bg-clip-text text-transparent">
+            Bulut POS Satış Terminali
           </h2>
-          <p className="text-slate-500 text-xs mt-1">Hızlı perakende satışı ve cari veresiye işlemlerini anlık yönetin.</p>
+          <p className="text-slate-500 text-xs mt-1.5 font-medium">Hızlı perakende satışı, barkodlu sepet yönetimi ve cari veresiye işlemlerini anlık yönetin.</p>
         </div>
         
         {/* Branch Selector Dropdown */}
-        <div className="flex items-center gap-3 bg-white border border-slate-200/60 p-2 rounded-xl shadow-inner shrink-0">
-          <div className="flex items-center gap-1.5 text-teal-600 pl-1">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 p-2 px-3 rounded-2xl shadow-inner shrink-0 transition hover:border-slate-350">
+          <div className="flex items-center gap-2 text-teal-600 pl-0.5">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Şube:</span>
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">ŞUBE:</span>
           </div>
           <select 
-            className="bg-transparent text-sm font-semibold text-slate-800 focus:outline-none cursor-pointer pr-4" 
+            className="bg-transparent text-xs font-bold text-slate-800 focus:outline-none cursor-pointer pr-2" 
             value={selectedBranchId}
             onChange={(e) => {
               setSelectedBranchId(e.target.value);
@@ -617,10 +629,10 @@ export default function PosPage() {
       {/* Stats Summary Panel */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Sepet Kalemi */}
-        <div className="bg-white/80 backdrop-blur-md border border-slate-200/60 p-5 rounded-2xl shadow-sm hover:shadow-md hover:scale-[1.01] transition-all duration-300 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 shadow-sm border border-slate-200/10">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+        <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm hover:shadow transition duration-200 flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-slate-50 text-slate-600 flex items-center justify-center shrink-0 border border-slate-100 shadow-sm">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
           </div>
           <div>
@@ -630,10 +642,10 @@ export default function PosPage() {
         </div>
 
         {/* Card 2: Toplam Adet */}
-        <div className="bg-white/80 backdrop-blur-md border border-slate-200/60 p-5 rounded-2xl shadow-sm hover:shadow-md hover:scale-[1.01] transition-all duration-300 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 shadow-sm border border-indigo-100/10">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm hover:shadow transition duration-200 flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-indigo-50/50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100/30 shadow-sm">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2" />
             </svg>
           </div>
           <div>
@@ -642,11 +654,11 @@ export default function PosPage() {
           </div>
         </div>
 
-        {/* Card 3: Arama Sonucu */}
-        <div className="bg-white/80 backdrop-blur-md border border-slate-200/60 p-5 rounded-2xl shadow-sm hover:shadow-md hover:scale-[1.01] transition-all duration-300 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 shadow-sm border border-blue-100/10">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        {/* Card 3: Bulunan Ürün */}
+        <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm hover:shadow transition duration-200 flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-blue-50/50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100/30 shadow-sm">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
           <div>
@@ -656,15 +668,15 @@ export default function PosPage() {
         </div>
 
         {/* Card 4: Toplam Tutar */}
-        <div className="bg-gradient-to-r from-teal-900 to-slate-900 border border-teal-500/20 p-5 rounded-2xl shadow-md flex items-center gap-4 relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-3 opacity-5">
-            <svg className="w-16 h-16 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M12 16V5" />
+        <div className="bg-gradient-to-r from-teal-900 to-teal-950 border border-teal-950 p-5 rounded-2xl shadow-md flex items-center gap-4 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-3 opacity-[0.03]">
+            <svg className="w-20 h-20 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M12 16V5" />
             </svg>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center shrink-0 border border-teal-500/20 shadow-inner">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M12 16V5" />
+          <div className="w-11 h-11 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center shrink-0 border border-teal-500/20 shadow-inner">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M12 16V5" />
             </svg>
           </div>
           <div>
@@ -674,15 +686,14 @@ export default function PosPage() {
         </div>
       </div>
 
-      {/* Main Grid: Left Catalog, Right Cart Sidebar */}
       <div className="pos-grid">
         {/* Left Side: Product Discovery & Catalog */}
-        <div className="bg-white/50 backdrop-blur-sm border border-slate-200/50 p-6 rounded-3xl shadow-sm">
+        <div className="bg-white/50 backdrop-blur-sm border border-slate-200/60 p-6 rounded-3xl shadow-sm">
           {/* Hızlı Ürünler Grid */}
           {fastCatalogItems.length > 0 && (
-            <div className="mb-6 bg-white/70 backdrop-blur-md border border-slate-200/60 p-4.5 rounded-2xl shadow-sm">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                <span>⚡ Hızlı Ürünler</span>
+            <div className="mb-6 bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3.5 flex items-center gap-1.5 pl-0.5">
+                <span>⚡ HIZLI KATEGORİ KATALOĞU</span>
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {fastCatalogItems.map((item) => {
@@ -696,11 +707,17 @@ export default function PosPage() {
                       type="button"
                       disabled={isOutOfStock}
                       onClick={() => addToCart(item)}
-                      className={`p-3 rounded-xl border text-left transition duration-200 flex flex-col justify-between gap-1.5 active:scale-[0.98] select-none ${style.bg} ${isOutOfStock ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      className={`p-3.5 rounded-xl border text-left transition duration-200 flex flex-col justify-between gap-2 active:scale-[0.98] select-none shadow-sm hover:shadow hover:scale-[1.02] ${style.bg} ${isOutOfStock ? 'opacity-40 cursor-not-allowed transform-none shadow-none' : ''}`}
                     >
                       <div className="flex justify-between items-start gap-1">
-                        <span className="text-lg">{style.icon}</span>
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-white/80 border border-slate-200/10">
+                        <span className="text-xl">{style.icon}</span>
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md border ${
+                          isOutOfStock 
+                            ? "bg-rose-50 text-rose-600 border-rose-100/50" 
+                            : bStock <= 5 
+                              ? "bg-amber-50 text-amber-600 border-amber-100/50 animate-pulse" 
+                              : "bg-white/90 text-slate-700 border-slate-200/50"
+                        }`}>
                           {isOutOfStock ? "Tükendi" : `Stok: ${bStock}`}
                         </span>
                       </div>
@@ -708,7 +725,7 @@ export default function PosPage() {
                         <p className="font-extrabold text-[11px] sm:text-xs line-clamp-1 truncate w-full">
                           {item.name}
                         </p>
-                        <p className="text-[10px] font-bold font-mono mt-0.5 opacity-90">
+                        <p className="text-[10px] font-black font-mono mt-0.5 opacity-90">
                           {Number(item.salePrice).toLocaleString("tr-TR")} TL
                         </p>
                       </div>
@@ -722,8 +739,8 @@ export default function PosPage() {
           {/* Search Box */}
           <div className="relative mb-6">
             <input
-              className="w-full pl-12 pr-10 py-3.5 bg-white border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all shadow-inner text-base"
-              placeholder="Ürün adı ara veya barkod okut (Enter)..."
+              className="w-full pl-12 pr-10 py-3.5 bg-white border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all shadow-inner text-sm font-semibold"
+              placeholder="Ürün barkodunu okutun veya isim araması yapın..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={onSearchKeyDown}
@@ -736,7 +753,7 @@ export default function PosPage() {
             {query && (
               <button
                 onClick={() => setQuery("")}
-                className="absolute inset-y-0 right-4 flex items-center text-slate-400 hover:text-slate-600 transition"
+                className="absolute inset-y-0 right-4 flex items-center text-slate-400 hover:text-slate-650 transition"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -748,7 +765,7 @@ export default function PosPage() {
           {/* Product Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredProducts.length === 0 && (
-              <div className="col-span-full py-16 flex flex-col items-center justify-center text-slate-400 border border-dashed border-slate-200 rounded-2xl bg-white/40">
+              <div className="col-span-full py-16 flex flex-col items-center justify-center text-slate-400 border border-dashed border-slate-200 rounded-3xl bg-white/40">
                 <svg className="w-12 h-12 text-slate-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
@@ -773,32 +790,32 @@ export default function PosPage() {
                   }`}
                 >
                   <div>
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="text-[10px] font-bold text-slate-400 font-mono tracking-wider">
+                    <div className="flex justify-between items-start mb-2.5">
+                      <span className="text-[9px] font-bold text-slate-400 font-mono tracking-wider bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200/40">
                         {product.barcode}
                       </span>
                       {isOutOfStock ? (
-                        <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-50 text-rose-600 border border-rose-100">
+                        <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-50 text-rose-600 border border-rose-100/50">
                           Tükendi
                         </span>
                       ) : isLowStock ? (
-                        <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-600 border border-amber-100 animate-pulse">
+                        <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-600 border border-amber-100/55 animate-pulse">
                           Kritik ({bStock})
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">
+                        <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100/55">
                           Stok: {bStock}
                         </span>
                       )}
                     </div>
                     
-                    <h4 className="font-bold text-slate-800 text-xs sm:text-sm line-clamp-2 min-h-[40px] group-hover:text-teal-700 transition-colors">
+                    <h4 className="font-extrabold text-slate-800 text-xs sm:text-sm line-clamp-2 min-h-[40px] group-hover:text-teal-700 transition-colors leading-snug">
                       {product.name}
                     </h4>
                   </div>
 
                   <div className="mt-4 pt-3 border-t border-slate-100 flex justify-between items-end">
-                    <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
+                    <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider">
                       Fiyat
                     </span>
                     <span className="font-extrabold text-slate-900 font-mono text-sm sm:text-base">
@@ -1301,29 +1318,29 @@ export default function PosPage() {
 
       {/* MODAL: Checkout Success Receipt */}
       {receipt && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm display: grid place-items-center z-50 p-4 flex items-center justify-center">
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xl max-w-md w-full animate-in fade-in-50 zoom-in-95 duration-200">
-            <div className="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+        <div className="fixed inset-0 bg-slate-950/45 backdrop-blur-md z-50 p-4 flex items-center justify-center animate-fade-in">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xl max-w-md w-full animate-scale-in">
+            <div className="flex justify-between items-center pb-3.5 border-b border-slate-100 mb-4">
               <div className="flex items-center gap-2">
-                <span className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">✓</span>
-                <h4 className="font-black text-slate-900 text-base sm:text-lg">Satış Başarılı</h4>
+                <span className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold border border-emerald-100">✓</span>
+                <h4 className="font-extrabold text-slate-900 text-base sm:text-lg">Satış Başarılı</h4>
               </div>
-              <span className="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100 uppercase tracking-wider">POS Tamamlandı</span>
+              <span className="px-2.5 py-1 rounded-md text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100 uppercase tracking-wider">POS TAMAMLANDI</span>
             </div>
             
-            <div className="space-y-1.5 text-xs text-slate-600">
-              <p>İşlem No: <span className="font-mono font-bold text-slate-800">{receipt.transactionNo}</span></p>
-              <p>Ödeme Tipi: <span className="font-bold text-slate-800">{receipt.paymentMethod === "CASH" ? "Nakit" : receipt.paymentMethod === "CREDIT_CARD" ? "Kredi Kartı" : receipt.paymentMethod === "INSTALLMENT" ? "Taksitli Satış" : "Cari Hesap"}</span></p>
+            <div className="space-y-2 text-xs text-slate-600 bg-slate-50 border border-slate-200/50 p-3.5 rounded-2xl">
+              <p className="flex justify-between"><span>İşlem No:</span> <span className="font-mono font-bold text-slate-800">{receipt.transactionNo}</span></p>
+              <p className="flex justify-between"><span>Ödeme Tipi:</span> <span className="font-bold text-slate-850">{receipt.paymentMethod === "CASH" ? "Nakit" : receipt.paymentMethod === "CREDIT_CARD" ? "Kredi Kartı" : receipt.paymentMethod === "INSTALLMENT" ? "Taksitli Satış" : "Cari Hesap"}</span></p>
               {receipt.paymentMethod === "INSTALLMENT" && receipt.installmentCount && (
-                <p>Taksit Planı: <span className="font-bold text-slate-800">{receipt.installmentCount} Taksit / Oran: %{receipt.interestRate}</span></p>
+                <p className="flex justify-between"><span>Taksit Planı:</span> <span className="font-bold text-slate-850">{receipt.installmentCount} Taksit / Oran: %{receipt.interestRate}</span></p>
               )}
             </div>
 
             {receipt.paymentMethod === "INSTALLMENT" && receipt.installments && receipt.installments.length > 0 && (
-              <div className="my-3 p-3 bg-slate-50 border border-slate-100 rounded-2xl space-y-1 max-h-[18vh] overflow-y-auto font-mono text-[11px]">
-                <p className="font-bold text-slate-700 mb-1 border-b pb-1">Taksit Ödeme Tablosu</p>
+              <div className="my-3.5 p-3.5 bg-slate-50 border border-slate-100 rounded-2xl space-y-1.5 max-h-[18vh] overflow-y-auto font-mono text-[11px] panel-scroll">
+                <p className="font-bold text-slate-750 mb-1 border-b pb-1.5">Taksit Ödeme Tablosu</p>
                 {receipt.installments.map((inst) => (
-                  <div key={inst.installmentNo} className="flex justify-between text-slate-600">
+                  <div key={inst.installmentNo} className="flex justify-between text-slate-650">
                     <span>{inst.installmentNo}. Taksit ({new Date(inst.dueDate).toLocaleDateString("tr-TR")})</span>
                     <span className="font-bold text-slate-800">{inst.amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL</span>
                   </div>
@@ -1331,30 +1348,30 @@ export default function PosPage() {
               </div>
             )}
             
-            <div className="my-4 py-2 border-t border-b border-slate-100 space-y-2 max-h-[22vh] overflow-y-auto">
+            <div className="my-4 py-2 border-t border-b border-slate-100 space-y-2.5 max-h-[22vh] overflow-y-auto panel-scroll">
               {receipt.items.map((i, idx) => (
-                <div key={`${i.productName}-${idx}`} className="flex justify-between text-xs text-slate-700">
-                  <span className="font-medium">{i.productName} <span className="text-slate-400">x{i.quantity}</span></span>
+                <div key={`${i.productName}-${idx}`} className="flex justify-between text-xs text-slate-750">
+                  <span className="font-medium text-slate-805">{i.productName} <span className="text-slate-400 font-bold font-mono">x{i.quantity}</span></span>
                   <span className="font-bold font-mono">{i.lineTotal.toLocaleString("tr-TR")} TL</span>
                 </div>
               ))}
             </div>
             
-            <p className="font-black text-slate-900 text-lg sm:text-xl my-4 flex justify-between items-center">
-              <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Toplam</span>
-              <span className="font-mono text-teal-600">{receipt.totalAmount.toLocaleString("tr-TR")} TL</span>
+            <p className="font-extrabold text-slate-900 text-base sm:text-lg my-4 flex justify-between items-center border-b pb-3 mb-4">
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">GENEL TOPLAM</span>
+              <span className="font-mono text-teal-600 text-xl">{receipt.totalAmount.toLocaleString("tr-TR")} TL</span>
             </p>
             
             <div className="flex flex-col gap-2">
               <div className="grid grid-cols-2 gap-2">
                 <button 
-                  className="py-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95" 
+                  className="py-3 bg-slate-900 hover:bg-slate-850 text-white text-xs font-bold rounded-2xl shadow-sm hover:shadow active:scale-95 transition flex items-center justify-center gap-1.5" 
                   onClick={() => printReceipt(receipt)}
                 >
                   🖨️ Fiş Yazdır
                 </button>
                 <button 
-                  className="py-3 bg-teal-700 hover:bg-teal-600 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50" 
+                  className="py-3 bg-teal-700 hover:bg-teal-650 text-white text-xs font-bold rounded-2xl shadow-sm hover:shadow active:scale-95 transition flex items-center justify-center gap-1.5 disabled:opacity-50" 
                   onClick={generateEArchiveInvoice}
                   disabled={isSigningInvoice}
                 >
@@ -1362,7 +1379,7 @@ export default function PosPage() {
                 </button>
               </div>
               <button 
-                className="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl transition active:scale-95" 
+                className="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-650 text-xs font-bold rounded-2xl transition active:scale-95" 
                 onClick={() => setReceipt(null)}
               >
                 Kapat
@@ -1374,13 +1391,13 @@ export default function PosPage() {
 
       {/* GİB Signing Progress Overlay */}
       {isSigningInvoice && (
-        <div className="fixed inset-0 bg-slate-950/80 display: flex flex-col justify-center items-center z-50 p-4 flex items-center justify-center">
-          <div className="text-center space-y-4 max-w-sm">
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-md z-50 p-4 flex flex-col justify-center items-center">
+          <div className="text-center space-y-4 max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl animate-scale-in">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-teal-500 border-t-transparent shadow-md"></div>
-            <h3 className="color: white text-white font-black text-lg">Gelir İdaresi Başkanlığı</h3>
-            <p className="text-slate-400 text-xs">Fatura imzalanıyor, e-Arşiv portal onay kodu bekleniyor...</p>
-            <div className="w-48 h-1 bg-slate-800 rounded-full mx-auto overflow-hidden">
-              <div className="h-full bg-teal-400 rounded-full animate-[loading-bar_1.5s_infinite_ease-in-out]" style={{ width: "60%" }} />
+            <h3 className="text-white font-extrabold text-base">Gelir İdaresi Başkanlığı</h3>
+            <p className="text-slate-400 text-xs leading-relaxed">Fatura verileri şifreleniyor, GİB portalı imza onayı bekleniyor...</p>
+            <div className="w-48 h-1 bg-slate-850 rounded-full mx-auto overflow-hidden">
+              <div className="h-full bg-teal-400 rounded-full animate-pulse" style={{ width: "70%" }} />
             </div>
           </div>
         </div>
@@ -1388,7 +1405,7 @@ export default function PosPage() {
 
       {/* e-Archive Invoice Details Modal */}
       {invoice && receipt && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm display: grid place-items-center z-50 p-4 flex items-center justify-center">
+        <div className="fixed inset-0 bg-slate-950/45 backdrop-blur-md z-50 p-4 flex items-center justify-center animate-fade-in">
           <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-in fade-in-50 zoom-in-95 duration-200 space-y-6">
             
             {/* GİB official look header */}

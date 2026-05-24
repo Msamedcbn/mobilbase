@@ -69,6 +69,7 @@ export type LocalStore = {
     repairTemplate: string | null;
     veresiyeTemplate: string | null;
     installmentTemplate: string | null;
+    expenseTypes?: string[] | null;
   };
   stockItems: Array<{
     id: string;
@@ -76,9 +77,17 @@ export type LocalStore = {
     sku: string;
     name: string;
     category: string;
+    brand?: string | null;
+    model?: string | null;
+    variantColor?: string | null;
+    variantStorage?: string | null;
+    serialNumber?: string | null;
+    imei?: string | null;
     quantity: number;
     purchasePrice: number;
     salePrice: number;
+    purchaseDocType?: string | null;
+    purchaseDocNo?: string | null;
     minThreshold: number;
     createdAt?: string;
     updatedAt?: string;
@@ -100,6 +109,48 @@ export type LocalStore = {
     entityId: string;
     detail: string;
     createdAt: string;
+  }>;
+  stockCostEvents?: Array<{
+    id: string;
+    stockItemId: string;
+    type: "PURCHASE_EXTERNAL" | "INTERNAL_SELL_TO_SERVICE" | "SERVICE_COST_LABOR" | "SERVICE_COST_PART" | "INTERNAL_BUYBACK_FROM_SERVICE" | "MANUAL_ADJUSTMENT";
+    amount: number;
+    costDelta: number;
+    unitCostAfter: number;
+    note?: string | null;
+    referenceNo?: string | null;
+    createdAt: string;
+  }>;
+  corporateQuotes?: Array<{
+    id: string;
+    tenantId?: string | null;
+    quoteNo: string;
+    companyName: string;
+    contactName?: string | null;
+    contactPhone?: string | null;
+    contactEmail?: string | null;
+    validUntil?: string | null;
+    status: "DRAFT" | "SENT" | "APPROVED" | "REJECTED" | "CANCELED";
+    itemsJson: string;
+    subtotal: number;
+    discountAmount: number;
+    taxAmount: number;
+    totalAmount: number;
+    note?: string | null;
+    createdAt: string;
+    updatedAt: string;
+  }>;
+  repairPriceItems?: Array<{
+    id: string;
+    tenantId?: string | null;
+    brand: string;
+    model: string;
+    category: string;
+    partType: "original" | "equivalent" | "revision";
+    partName: string;
+    price: number;
+    createdAt: string;
+    updatedAt: string;
   }>;
   resellerPricing?: {
     Lite: number;
@@ -333,6 +384,7 @@ const seedStore: LocalStore = {
     repairTemplate: null,
     veresiyeTemplate: null,
     installmentTemplate: null,
+    expenseTypes: ["Kira", "Fatura", "Maas", "Mal Alimi", "Diger"],
   },
   stockItems: [
     { id: "stock-item-1", sku: "SKU-IP11-SCR", name: "iPhone 11 Uyumlu A+ Ekran Modl", category: "Yedek Para", quantity: 12, purchasePrice: 450, salePrice: 1200, minThreshold: 5, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
@@ -344,6 +396,9 @@ const seedStore: LocalStore = {
     { id: "stock-log-1", action: "STOCK_ADD", entityId: "stock-item-1", detail: "Stok Kart1 Eklendi: SKU-IP11-SCR - iPhone 11 Uyumlu A+ Ekran Modl (Adet: 12)", createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
     { id: "stock-log-2", action: "STOCK_ADD", entityId: "stock-item-2", detail: "Stok Kart1 Eklendi: SKU-IP13-BAT - iPhone 13 Yksek Kapasiteli Batarya (Adet: 8)", createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
   ],
+  stockCostEvents: [],
+  corporateQuotes: [],
+  repairPriceItems: [],
   resellerPricing: {
     Lite: 750,
     Pro: 1500,
@@ -436,6 +491,9 @@ export async function readLocalStore(): Promise<LocalStore> {
       stockItems: fixedParsed.stockItems || seedStore.stockItems || [],
       transferLogs: fixedParsed.transferLogs || [],
       stockLogs: fixedParsed.stockLogs || seedStore.stockLogs || [],
+      stockCostEvents: fixedParsed.stockCostEvents || seedStore.stockCostEvents || [],
+      corporateQuotes: fixedParsed.corporateQuotes || seedStore.corporateQuotes || [],
+      repairPriceItems: fixedParsed.repairPriceItems || seedStore.repairPriceItems || [],
       resellerPricing: fixedParsed.resellerPricing || seedStore.resellerPricing,
       resellerExpenses: fixedParsed.resellerExpenses || seedStore.resellerExpenses,
     };

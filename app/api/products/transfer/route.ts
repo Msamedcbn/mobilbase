@@ -7,7 +7,7 @@ import { readLocalStore, writeLocalStore, localId } from "@/lib/local-store";
 import { writeAuditLog } from "@/lib/audit";
 
 export async function POST(req: Request) {
-  const auth = requireRole(["ADMIN", "CASHIER"]);
+  const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN", "MANAGER"]);
   if (auth.error) return auth.error;
 
   try {

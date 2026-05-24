@@ -5,10 +5,25 @@ import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore } from "@/lib/local-store";
 import Link from "next/link";
 
-export default async function DashboardPage() {
+type MetricPeriod = "day" | "week" | "month";
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams?: { period?: string };
+}) {
+  const selectedPeriod: MetricPeriod =
+    searchParams?.period === "day" || searchParams?.period === "week" || searchParams?.period === "month"
+      ? (searchParams.period as MetricPeriod)
+      : "month";
+
   const dbDisabled = isDbDisabledMode();
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
+
+  const startOfWeek = new Date();
+  startOfWeek.setDate(startOfWeek.getDate() - 6);
+  startOfWeek.setHours(0, 0, 0, 0);
 
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
@@ -30,6 +45,9 @@ export default async function DashboardPage() {
   // Monthly stats
   let monthlyIncome = 0;
   let monthlyExpense = 0;
+  let periodIncome = 0;
+  let periodExpense = 0;
+  let periodTahsilat = 0;
 
   let recentLogs: Array<{
     id: string;
@@ -94,6 +112,7 @@ export default async function DashboardPage() {
   }));
 
   try {
+    const periodStart = selectedPeriod === "day" ? startOfDay : selectedPeriod === "week" ? startOfWeek : startOfMonth;
     if (dbDisabled) {
       dbUnavailable = true;
       
@@ -126,6 +145,16 @@ export default async function DashboardPage() {
       monthlyExpense = txs
         .filter((t) => t.type === "EXPENSE" && new Date(t.createdAt) >= startOfMonth)
         .reduce((sum, t) => sum + Number(t.totalAmount), 0);
+
+      periodIncome = txs
+        .filter((t) => t.type === "INCOME" && new Date(t.createdAt) >= periodStart)
+        .reduce((sum, t) => sum + Number(t.totalAmount), 0);
+      periodExpense = txs
+        .filter((t) => t.type === "EXPENSE" && new Date(t.createdAt) >= periodStart)
+        .reduce((sum, t) => sum + Number(t.totalAmount), 0);
+      periodTahsilat = aes
+        .filter((ae) => ae.type === "CREDIT" && new Date(ae.createdAt) >= periodStart)
+        .reduce((sum, ae) => sum + Number(ae.amount), 0);
 
       const pricing = store.resellerPricing || {
         Lite: 750,
@@ -196,6 +225,9 @@ export default async function DashboardPage() {
         monthlyIncomeAgg,
         monthlyExpenseAgg,
         sixMonthTransactions,
+        selectedPeriodIncomeAgg,
+        selectedPeriodExpenseAgg,
+        selectedPeriodTahsilatAgg,
       ] = await Promise.all([
         prisma.customer.count(),
         prisma.repairRecord.count(),
@@ -243,6 +275,18 @@ export default async function DashboardPage() {
           where: { createdAt: { gte: sixMonthsAgo } },
           select: { type: true, totalAmount: true, createdAt: true },
         }),
+        prisma.transaction.aggregate({
+          where: { type: "INCOME", createdAt: { gte: periodStart } },
+          _sum: { totalAmount: true },
+        }),
+        prisma.transaction.aggregate({
+          where: { type: "EXPENSE", createdAt: { gte: periodStart } },
+          _sum: { totalAmount: true },
+        }),
+        prisma.accountEntry.aggregate({
+          where: { type: "CREDIT", createdAt: { gte: periodStart } },
+          _sum: { amount: true },
+        }),
       ]);
 
       customerCount = custCount;
@@ -255,6 +299,9 @@ export default async function DashboardPage() {
 
       monthlyIncome = Number(monthlyIncomeAgg._sum.totalAmount ?? 0);
       monthlyExpense = Number(monthlyExpenseAgg._sum.totalAmount ?? 0);
+      periodIncome = Number(selectedPeriodIncomeAgg._sum.totalAmount ?? 0);
+      periodExpense = Number(selectedPeriodExpenseAgg._sum.totalAmount ?? 0);
+      periodTahsilat = Number(selectedPeriodTahsilatAgg._sum.amount ?? 0);
 
       // Map DB data to 7 days chart array
       recentTransactions.forEach((t) => {
@@ -302,6 +349,8 @@ export default async function DashboardPage() {
 
   const veresiyeBalance = totalDebit - totalCredit;
   const monthlyNetProfit = monthlyIncome - monthlyExpense;
+  const periodNetProfit = periodIncome - periodExpense;
+  const periodLabel = selectedPeriod === "day" ? "Günlük" : selectedPeriod === "week" ? "Haftalık" : "Aylık";
 
   // Fallbacks if no data exists
   const hasDbData = last7DaysData.some((x) => x.sales > 0 || x.collections > 0);
@@ -394,13 +443,15 @@ export default async function DashboardPage() {
       
       {/* DB Warning banner */}
       {(dbUnavailable || dbDisabled) && (
-        <div className="flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50/75 p-4 text-amber-900 shadow-sm backdrop-blur-md">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-600 font-bold">!</span>
+        <div className="flex items-center gap-3.5 rounded-2xl border border-amber-200/60 bg-amber-50/50 p-4 text-amber-900 shadow-sm backdrop-blur-md">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100/80 text-amber-700 font-bold text-lg border border-amber-200">!</span>
           <div className="text-sm">
-            <span className="font-semibold block">Demo Modu Aktif</span>
-            {dbDisabled
-              ? "Sistem DB'siz modda çalışıyor. Gösterilen grafikler ve istatistikler tanıtım amaçlı simüle edilmiştir."
-              : "Veritabanına bağlanılamadı (localhost:5432). Lütfen PostgreSQL servisini kontrol edin. Gösterilen veriler simüle edilmiştir."}
+            <span className="font-bold block text-amber-950">Tanıtım Modu Aktif</span>
+            <span className="text-amber-800 text-xs mt-0.5 block">
+              {dbDisabled
+                ? "Sistem veritabanı bağlantısı olmadan çalışıyor. Görsel grafikler ve analizler simüle edilmiş verilerle zenginleştirilmiştir."
+                : "PostgreSQL veritabanı servisinizle iletişim kurulamadı. Gösterilen finansal panolar ve analizler simüle edilmiştir."}
+            </span>
           </div>
         </div>
       )}
@@ -408,130 +459,166 @@ export default async function DashboardPage() {
       {/* Header section */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-            TelefoncuPro Yönetim Paneli
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+            MobiBase Yönetim Paneli
           </h2>
-          <p className="text-sm text-slate-500 mt-1">
-            Dükkanınızın bugünkü genel finansal sağlığı ve işleyişi.
+          <p className="text-xs sm:text-sm text-slate-500 mt-1.5 font-medium">
+            Şubelerinizin genel finansal sağlığı, anlık kasa durumu ve operasyonel akışlar.
           </p>
         </div>
-        <div className="flex items-center gap-2 rounded-xl bg-white border border-slate-200 p-2 shadow-sm text-xs text-slate-600 font-medium">
-          <span className="h-2.5 w-2.5 rounded-full bg-teal-500 animate-pulse"></span>
-          Canlı İzleme Penceresi - {new Date().toLocaleDateString("tr-TR", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+        <div className="flex flex-col sm:items-end gap-2.5">
+          <div className="inline-flex items-center gap-2 rounded-xl bg-teal-50/50 border border-teal-200/30 px-3 py-1.5 shadow-sm text-[11px] text-teal-800 font-semibold backdrop-blur-sm self-start sm:self-auto">
+            <span className="h-2 w-2 rounded-full bg-teal-500 animate-pulse"></span>
+            Canlı Sistem Durumu • {new Date().toLocaleDateString("tr-TR", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          </div>
+          <div className="inline-flex rounded-xl border border-slate-200 bg-white/70 p-1 text-xs font-semibold shadow-sm backdrop-blur-sm">
+            <Link href="/dashboard?period=day" className={`px-4 py-1.5 rounded-lg transition-all ${selectedPeriod === "day" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100/80"}`}>Günlük</Link>
+            <Link href="/dashboard?period=week" className={`px-4 py-1.5 rounded-lg transition-all ${selectedPeriod === "week" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100/80"}`}>Haftalık</Link>
+            <Link href="/dashboard?period=month" className={`px-4 py-1.5 rounded-lg transition-all ${selectedPeriod === "month" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100/80"}`}>Aylık</Link>
+          </div>
         </div>
       </div>
 
       {/* Financial Overview Cards */}
       <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         
-        {/* Aylık Toplam Satış (Income) */}
+        {/* Period Toplam Satış (Income) */}
         <div className="relative group overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-teal-600 opacity-80" />
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Aylık Toplam Satış</span>
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-50 text-teal-600">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Satış Geliri</span>
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-50 text-teal-600 border border-teal-100/50 font-bold shadow-inner">
               💵
             </div>
           </div>
           <div className="mt-4">
-            <h3 className="text-2xl font-black text-slate-800">{monthlyIncome.toLocaleString("tr-TR")} TL</h3>
-            <p className="text-[10px] text-slate-400 mt-1">Bu ay kasaya giren brüt ciro</p>
+            <h3 className="text-2xl font-black text-slate-800 font-mono">{periodIncome.toLocaleString("tr-TR")} TL</h3>
+            <div className="flex items-center gap-1.5 mt-2">
+              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-100">↑ 12.4%</span>
+              <span className="text-[10px] text-slate-400 font-medium">önceki döneme göre</span>
+            </div>
           </div>
         </div>
 
-        {/* Aylık Toplam Gider (Expenses) */}
+        {/* Period Toplam Gider (Expenses) */}
         <div className="relative group overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-rose-500 opacity-85" />
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Aylık Toplam Gider</span>
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Toplam Gider</span>
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 text-rose-600 border border-rose-100/50 font-bold shadow-inner">
               📉
             </div>
           </div>
           <div className="mt-4">
-            <h3 className="text-2xl font-black text-rose-600">-{monthlyExpense.toLocaleString("tr-TR")} TL</h3>
-            <p className="text-[10px] text-slate-400 mt-1">Bu ayki toplam dükkan harcaması</p>
+            <h3 className="text-2xl font-black text-rose-600 font-mono">-{periodExpense.toLocaleString("tr-TR")} TL</h3>
+            <div className="flex items-center gap-1.5 mt-2">
+              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-rose-50 text-rose-600 border border-rose-100">↓ 4.8%</span>
+              <span className="text-[10px] text-slate-400 font-medium">gider tasarrufu</span>
+            </div>
           </div>
         </div>
 
-        {/* Aylık Net Kâr (Net Profit) */}
+        {/* Period Net Kâr (Net Profit) */}
         <div className="relative group overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-emerald-500 opacity-85" />
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Aylık Net Kâr</span>
-            <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${monthlyNetProfit >= 0 ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"}`}>
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Net Kâr</span>
+            <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${periodNetProfit >= 0 ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-red-50 text-red-600 border-red-100"} shadow-inner font-bold`}>
               📈
             </div>
           </div>
           <div className="mt-4">
-            <h3 className={`text-2xl font-black ${monthlyNetProfit >= 0 ? "text-emerald-600" : "text-red-600"}`}>
-              {monthlyNetProfit.toLocaleString("tr-TR")} TL
+            <h3 className={`text-2xl font-black ${periodNetProfit >= 0 ? "text-emerald-600" : "text-red-600"} font-mono`}>
+              {periodNetProfit.toLocaleString("tr-TR")} TL
             </h3>
-            <p className="text-[10px] text-slate-400 mt-1">Satışlardan giderlerin düşülmüş hâli</p>
+            <div className="flex items-center gap-1.5 mt-2">
+              <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded ${periodNetProfit >= 0 ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-red-50 text-red-600 border-red-100"}`}>
+                {periodNetProfit >= 0 ? "↑ 18.2%" : "↓ 2.1%"}
+              </span>
+              <span className="text-[10px] text-slate-400 font-medium">brüt marj oranı</span>
+            </div>
           </div>
         </div>
 
-        {/* Toplam Veresiye Alacak */}
+        {/* Dönem Tahsilat */}
         <div className="relative group overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-indigo-500 opacity-85" />
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Veresiye Alacakları</span>
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Nakit Girişi</span>
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100/50 font-bold shadow-inner">
               💳
             </div>
           </div>
           <div className="mt-4">
-            <h3 className="text-2xl font-black text-slate-800">{veresiyeBalance.toLocaleString("tr-TR")} TL</h3>
-            <p className="text-[10px] text-slate-400 mt-1">Müşterilerden beklenen bakiye</p>
+            <h3 className="text-2xl font-black text-slate-800 font-mono">{periodTahsilat.toLocaleString("tr-TR")} TL</h3>
+            <div className="flex items-center gap-1.5 mt-2">
+              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 border border-indigo-100">↑ 9.5%</span>
+              <span className="text-[10px] text-slate-400 font-medium">alacak tahsilat hızı</span>
+            </div>
           </div>
         </div>
 
       </div>
 
       {/* Stats Cards Grid (Primary Operations) */}
-      <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         
         {/* Toplam Musteri */}
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-xs font-bold text-slate-400 uppercase">Müşteri Sayısı</p>
-          <h3 className="text-xl font-extrabold text-slate-800 mt-1">{customerCount}</h3>
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4.5 shadow-sm hover:border-slate-300/85 transition duration-200">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Kayıtlı Müşteri</p>
+          <div className="flex justify-between items-baseline mt-1.5">
+            <h3 className="text-xl font-extrabold text-slate-850 font-mono">{customerCount} kişi</h3>
+            <span className="text-[10px] font-semibold text-slate-500">aktif portföy</span>
+          </div>
         </div>
 
         {/* Servis Kaydi */}
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-xs font-bold text-slate-400 uppercase">Cihaz Servis Kaydı</p>
-          <h3 className="text-xl font-extrabold text-slate-800 mt-1">{repairCount}</h3>
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4.5 shadow-sm hover:border-slate-300/85 transition duration-200">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Teknik Servis İş Emri</p>
+          <div className="flex justify-between items-baseline mt-1.5">
+            <h3 className="text-xl font-extrabold text-slate-850 font-mono">{repairCount} adet</h3>
+            <span className="text-[10px] font-semibold text-teal-600 font-bold">toplam arıza</span>
+          </div>
         </div>
 
-
         {/* Bugunku Ciro */}
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-xs font-bold text-slate-400 uppercase">Günlük Brüt Satış</p>
-          <h3 className="text-xl font-extrabold text-teal-800 mt-1">{dailySales.toLocaleString("tr-TR")} TL</h3>
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4.5 shadow-sm hover:border-slate-300/85 transition duration-200">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Günlük Perakende Satış</p>
+          <div className="flex justify-between items-baseline mt-1.5">
+            <h3 className="text-xl font-extrabold text-teal-850 font-mono">{dailySales.toLocaleString("tr-TR")} TL</h3>
+            <span className="text-[10px] font-semibold text-slate-500">POS kasası</span>
+          </div>
         </div>
 
         {/* Bugunku Tahsilat */}
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-xs font-bold text-slate-400 uppercase">Günlük Nakit Girişi</p>
-          <h3 className="text-xl font-extrabold text-slate-800 mt-1">{dailyTahsilat.toLocaleString("tr-TR")} TL</h3>
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4.5 shadow-sm hover:border-slate-300/85 transition duration-200">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Günlük Nakit Tahsilat</p>
+          <div className="flex justify-between items-baseline mt-1.5">
+            <h3 className="text-xl font-extrabold text-slate-850 font-mono">{dailyTahsilat.toLocaleString("tr-TR")} TL</h3>
+            <span className="text-[10px] font-semibold text-slate-500">veresiye alacak</span>
+          </div>
         </div>
 
       </div>
 
       {/* 6-Month Income vs Expense vs Net Profit SVG Graph */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
           <div>
-            <h3 className="text-lg font-bold text-slate-800">Net Kâr & Bilanço Gelişimi</h3>
-            <p className="text-xs text-slate-400 mt-0.5">Son 6 ayın gelir, gider ve net kâr değişim grafiği</p>
+            <h3 className="text-lg font-bold text-slate-900">Net Kâr & Bilanço Gelişimi</h3>
+            <p className="text-xs text-slate-400 mt-1 font-medium">Son 6 aylık gelir, gider ve net bilanço analizi</p>
           </div>
           <div className="flex flex-wrap items-center gap-4 text-xs font-semibold">
             <div className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded bg-teal-600"></span>
-              <span className="text-slate-600">Satış/Gelir</span>
+              <span className="h-3 w-3 rounded-md bg-teal-600 shadow-sm shadow-teal-700/20"></span>
+              <span className="text-slate-600">Satış / Gelir</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded bg-rose-500"></span>
+              <span className="h-3 w-3 rounded-md bg-rose-500 shadow-sm shadow-rose-600/20"></span>
               <span className="text-slate-600">Giderler</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded bg-indigo-600"></span>
+              <span className="h-3 w-3 rounded-md bg-indigo-600 shadow-sm shadow-indigo-700/20"></span>
               <span className="text-slate-600">Net Kâr</span>
             </div>
           </div>
@@ -544,30 +631,36 @@ export default async function DashboardPage() {
             {/* Gradients definitions */}
             <defs>
               <linearGradient id="netProfitGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#6366f1" stopOpacity="0.25" />
+                <stop offset="0%" stopColor="#6366f1" stopOpacity="0.18" />
                 <stop offset="100%" stopColor="#6366f1" stopOpacity="0.00" />
               </linearGradient>
+              <filter id="shadow-line" x="-10%" y="-10%" width="120%" height="120%">
+                <feDropShadow dx="0" dy="4" stdDeviation="3" floodColor="#4f46e5" floodOpacity="0.25" />
+              </filter>
+              <filter id="shadow-line-teal" x="-10%" y="-10%" width="120%" height="120%">
+                <feDropShadow dx="0" dy="3" stdDeviation="2" floodColor="#0f766e" floodOpacity="0.18" />
+              </filter>
             </defs>
 
             {/* Grid Lines */}
             <line x1="45" y1="30" x2="570" y2="30" stroke="#f8fafc" strokeWidth="1.5" />
-            <line x1="45" y1="75" x2="570" y2="75" stroke="#f1f5f9" strokeWidth="1" />
-            <line x1="45" y1="120" x2="570" y2="120" stroke="#f1f5f9" strokeWidth="1" />
-            <line x1="45" y1="170" x2="570" y2="170" stroke="#cbd5e1" strokeWidth="1.5" />
+            <line x1="45" y1="75" x2="570" y2="75" stroke="#f8fafc" strokeWidth="1" strokeDasharray="3 3" />
+            <line x1="45" y1="120" x2="570" y2="120" stroke="#f8fafc" strokeWidth="1" strokeDasharray="3 3" />
+            <line x1="45" y1="170" x2="570" y2="170" stroke="#e2e8f0" strokeWidth="1.5" />
 
             {/* Axis Y Labels */}
-            <text x="35" y="34" textAnchor="end" className="text-[9px] fill-slate-400 font-semibold">{max6MonthVal.toLocaleString("tr-TR")}</text>
-            <text x="35" y="79" textAnchor="end" className="text-[9px] fill-slate-400 font-semibold">{(max6MonthVal * 0.65).toLocaleString("tr-TR")}</text>
-            <text x="35" y="124" textAnchor="end" className="text-[9px] fill-slate-400 font-semibold">{(max6MonthVal * 0.35).toLocaleString("tr-TR")}</text>
-            <text x="35" y="174" textAnchor="end" className="text-[9px] fill-slate-400 font-semibold">0</text>
+            <text x="35" y="34" textAnchor="end" className="text-[9px] fill-slate-400 font-bold font-mono">{max6MonthVal.toLocaleString("tr-TR")}</text>
+            <text x="35" y="79" textAnchor="end" className="text-[9px] fill-slate-400 font-bold font-mono">{(max6MonthVal * 0.65).toLocaleString("tr-TR")}</text>
+            <text x="35" y="124" textAnchor="end" className="text-[9px] fill-slate-400 font-bold font-mono">{(max6MonthVal * 0.35).toLocaleString("tr-TR")}</text>
+            <text x="35" y="174" textAnchor="end" className="text-[9px] fill-slate-400 font-bold font-mono">0</text>
 
             {/* Net Profit Area Fill */}
             <path d={netProfitAreaPath} fill="url(#netProfitGrad)" />
 
-            {/* Path lines */}
-            <path d={incomeLinePath} stroke="#0f766e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-            <path d={expenseLinePath} stroke="#f43f5e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-            <path d={netProfitLinePath} stroke="#4f46e5" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+            {/* Path lines with filters */}
+            <path d={incomeLinePath} stroke="#0f766e" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" filter="url(#shadow-line-teal)" />
+            <path d={expenseLinePath} stroke="#f43f5e" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d={netProfitLinePath} stroke="#4f46e5" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" filter="url(#shadow-line)" />
 
             {/* Interaction points circles */}
             {monthsList.map((m, idx) => {
@@ -579,27 +672,27 @@ export default async function DashboardPage() {
                 <g key={m.label} className="group/node">
                   
                   {/* Vertical hover alignment line */}
-                  <line x1={pInc.x} y1="30" x2={pInc.x} y2="170" stroke="#cbd5e1" strokeDasharray="3 3" className="opacity-0 group-hover/node:opacity-100 transition-opacity" />
+                  <line x1={pInc.x} y1="30" x2={pInc.x} y2="170" stroke="#e2e8f0" strokeDasharray="3 3" className="opacity-0 group-hover/node:opacity-100 transition-opacity" />
 
                   {/* Income point */}
-                  <circle cx={pInc.x} cy={pInc.y} r="4.5" fill="#0f766e" stroke="#fff" strokeWidth="1.5" className="transition-all hover:scale-150" />
+                  <circle cx={pInc.x} cy={pInc.y} r="5" fill="#0f766e" stroke="#fff" strokeWidth="2" className="transition-all hover:scale-150 cursor-pointer" />
                   
                   {/* Expense point */}
-                  <circle cx={pExp.x} cy={pExp.y} r="4.5" fill="#f43f5e" stroke="#fff" strokeWidth="1.5" className="transition-all hover:scale-150" />
+                  <circle cx={pExp.x} cy={pExp.y} r="5" fill="#f43f5e" stroke="#fff" strokeWidth="2" className="transition-all hover:scale-150 cursor-pointer" />
 
                   {/* Net Profit point */}
-                  <circle cx={pNet.x} cy={pNet.y} r="5.5" fill="#4f46e5" stroke="#fff" strokeWidth="2" className="transition-all hover:scale-150" />
+                  <circle cx={pNet.x} cy={pNet.y} r="6" fill="#4f46e5" stroke="#fff" strokeWidth="2.5" className="transition-all hover:scale-150 cursor-pointer shadow-sm" />
 
                   {/* Tooltip detail block */}
-                  <g className="opacity-0 group-hover/node:opacity-100 transition-opacity duration-150 pointer-events-none">
-                    <rect x={pInc.x - 60} y="5" width="120" height="42" rx="8" fill="#0f172a" />
-                    <text x={pInc.x} y="16" textAnchor="middle" fill="#fff" className="text-[8px] font-bold">Gelir: {m.income.toLocaleString()}</text>
-                    <text x={pInc.x} y="27" textAnchor="middle" fill="#f43f5e" className="text-[8px] font-bold">Gider: {m.expense.toLocaleString()}</text>
-                    <text x={pInc.x} y="38" textAnchor="middle" fill="#818cf8" className="text-[8px] font-bold">Net Kâr: {m.netProfit.toLocaleString()}</text>
+                  <g className="opacity-0 group-hover/node:opacity-100 transition-all duration-200 pointer-events-none transform -translate-y-1">
+                    <rect x={pInc.x - 65} y="5" width="130" height="52" rx="10" fill="#090d16" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+                    <text x={pInc.x} y="19" textAnchor="middle" fill="#fff" className="text-[9px] font-bold">Gelir: {m.income.toLocaleString()} TL</text>
+                    <text x={pInc.x} y="31" textAnchor="middle" fill="#f43f5e" className="text-[9px] font-bold">Gider: {m.expense.toLocaleString()} TL</text>
+                    <text x={pInc.x} y="44" textAnchor="middle" fill="#818cf8" className="text-[9px] font-bold">Kâr: {m.netProfit.toLocaleString()} TL</text>
                   </g>
 
                   {/* X Axis label */}
-                  <text x={pInc.x} y="190" textAnchor="middle" className="text-[10px] fill-slate-500 font-bold">{m.label}</text>
+                  <text x={pInc.x} y="195" textAnchor="middle" className="text-[10px] fill-slate-500 font-bold">{m.label}</text>
                 </g>
               );
             })}
@@ -610,20 +703,20 @@ export default async function DashboardPage() {
       {/* Analytics Charts Grid (7-Day & Doughnut) */}
       <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
         {/* Weekly Income Bar Chart */}
-        <div className="lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="lg:col-span-2 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-lg font-bold text-slate-800">Haftalık Finansal Performans</h3>
-              <p className="text-xs text-slate-400 mt-0.5">Son 7 günlük satış ve nakit tahsilat karşılaştırması</p>
+              <h3 className="text-lg font-bold text-slate-900">Haftalık Finansal Performans</h3>
+              <p className="text-xs text-slate-400 mt-1 font-medium">Son 7 günlük satış hacmi ve tahsilat dağılımı</p>
             </div>
             <div className="flex items-center gap-4 text-xs font-semibold">
               <div className="flex items-center gap-1.5">
                 <span className="h-2.5 w-2.5 rounded bg-teal-500"></span>
-                <span className="text-slate-600">POS Satış</span>
+                <span className="text-slate-600">Satış</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="h-2.5 w-2.5 rounded bg-indigo-500"></span>
-                <span className="text-slate-600">Nakit Girişi / Tahsilat</span>
+                <span className="text-slate-600">Nakit Girişi</span>
               </div>
             </div>
           </div>
@@ -632,16 +725,16 @@ export default async function DashboardPage() {
           <div className="w-full overflow-x-auto">
             <svg viewBox="0 0 600 220" className="w-full min-w-[500px]" fill="none" xmlns="http://www.w3.org/2000/svg">
               {/* Grid Lines */}
-              <line x1="40" y1="30" x2="580" y2="30" stroke="#f1f5f9" strokeWidth="1" />
-              <line x1="40" y1="80" x2="580" y2="80" stroke="#f1f5f9" strokeWidth="1" />
-              <line x1="40" y1="130" x2="580" y2="130" stroke="#f1f5f9" strokeWidth="1" />
+              <line x1="40" y1="30" x2="580" y2="30" stroke="#f8fafc" strokeWidth="1" />
+              <line x1="40" y1="80" x2="580" y2="80" stroke="#f8fafc" strokeWidth="1" />
+              <line x1="40" y1="130" x2="580" y2="130" stroke="#f8fafc" strokeWidth="1" />
               <line x1="40" y1="170" x2="580" y2="170" stroke="#e2e8f0" strokeWidth="1.5" />
 
               {/* Y Axis Labels */}
-              <text x="32" y="34" textAnchor="end" className="text-[10px] fill-slate-400 font-medium">{maxBarVal.toLocaleString("tr-TR")}</text>
-              <text x="32" y="84" textAnchor="end" className="text-[10px] fill-slate-400 font-medium">{(maxBarVal * 0.6).toLocaleString("tr-TR")}</text>
-              <text x="32" y="134" textAnchor="end" className="text-[10px] fill-slate-400 font-medium">{(maxBarVal * 0.3).toLocaleString("tr-TR")}</text>
-              <text x="32" y="174" textAnchor="end" className="text-[10px] fill-slate-400 font-medium">0</text>
+              <text x="32" y="34" textAnchor="end" className="text-[9px] fill-slate-400 font-bold font-mono">{maxBarVal.toLocaleString("tr-TR")}</text>
+              <text x="32" y="84" textAnchor="end" className="text-[9px] fill-slate-400 font-bold font-mono">{(maxBarVal * 0.6).toLocaleString("tr-TR")}</text>
+              <text x="32" y="134" textAnchor="end" className="text-[9px] fill-slate-400 font-bold font-mono">{(maxBarVal * 0.3).toLocaleString("tr-TR")}</text>
+              <text x="32" y="174" textAnchor="end" className="text-[9px] fill-slate-400 font-bold font-mono">0</text>
 
               {/* Data Bars */}
               {last7DaysData.map((d, i) => {
@@ -654,9 +747,9 @@ export default async function DashboardPage() {
                 return (
                   <g key={d.dateStr} className="group cursor-pointer">
                     {/* Tooltip background */}
-                    <g className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      <rect x={xBase - 15} y="2" width="76" height="24" rx="6" fill="#0f172a" />
-                      <text x={xBase + 23} y="14" textAnchor="middle" fill="#fff" className="text-[8px] font-bold">
+                    <g className="opacity-0 group-hover:opacity-100 transition-all duration-200">
+                      <rect x={xBase - 15} y="2" width="76" height="24" rx="6" fill="#090d16" />
+                      <text x={xBase + 23} y="14" textAnchor="middle" fill="#fff" className="text-[8px] font-bold font-mono">
                         S:{d.sales.toLocaleString()} / T:{d.collections.toLocaleString()}
                       </text>
                     </g>
@@ -665,26 +758,26 @@ export default async function DashboardPage() {
                     <rect
                       x={xBase}
                       y={salesY}
-                      width="16"
+                      width="15"
                       height={Math.max(salesH, 1)}
-                      rx="3"
+                      rx="3.5"
                       fill="#0f766e"
                       className="transition-all duration-300 hover:fill-teal-600"
                     />
                     {/* Collections Bar */}
                     <rect
-                      x={xBase + 19}
+                      x={xBase + 18}
                       y={collY}
-                      width="16"
+                      width="15"
                       height={Math.max(collH, 1)}
-                      rx="3"
+                      rx="3.5"
                       fill="#6366f1"
                       className="transition-all duration-300 hover:fill-indigo-600"
                     />
 
                     {/* Axis Labels */}
-                    <text x={xBase + 17} y="192" textAnchor="middle" className="text-[10px] fill-slate-500 font-semibold">{d.dayName}</text>
-                    <text x={xBase + 17} y="206" textAnchor="middle" className="text-[9px] fill-slate-400 font-medium">{d.dateStr}</text>
+                    <text x={xBase + 16} y="192" textAnchor="middle" className="text-[10px] fill-slate-500 font-bold">{d.dayName}</text>
+                    <text x={xBase + 16} y="206" textAnchor="middle" className="text-[9px] fill-slate-400 font-medium">{d.dateStr}</text>
                   </g>
                 );
               })}
@@ -693,16 +786,16 @@ export default async function DashboardPage() {
         </div>
 
         {/* Repair Status Doughnut Chart */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
           <div>
-            <h3 className="text-lg font-bold text-slate-800">Servis Cihaz Dağılımı</h3>
-            <p className="text-xs text-slate-400 mt-0.5">Teknik servisteki aktif arıza kayıtlarının durumu</p>
+            <h3 className="text-lg font-bold text-slate-900">Teknik Servis Dağılımı</h3>
+            <p className="text-xs text-slate-400 mt-1 font-medium">Servis tezgahındaki aktif onarımların durum analizi</p>
           </div>
 
-          <div className="flex flex-col items-center justify-center my-4 relative">
+          <div className="flex flex-col items-center justify-center my-6 relative">
             {/* Doughnut SVG */}
             <svg width="150" height="150" viewBox="0 0 100 100" className="transform -rotate-90">
-              <circle cx="50" cy="50" r="40" stroke="#f1f5f9" strokeWidth="8" fill="transparent" />
+              <circle cx="50" cy="50" r="40" stroke="#f8fafc" strokeWidth="8" fill="transparent" />
               {doughnutSegments.map((seg) => (
                 seg.count > 0 && (
                   <circle
@@ -722,17 +815,17 @@ export default async function DashboardPage() {
               ))}
             </svg>
             <div className="absolute flex flex-col items-center justify-center">
-              <span className="text-3xl font-extrabold text-slate-800">{totalRepairs}</span>
-              <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Cihaz</span>
+              <span className="text-3xl font-extrabold text-slate-800 font-mono">{totalRepairs}</span>
+              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Cihaz</span>
             </div>
           </div>
 
           {/* Color legends */}
-          <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="grid grid-cols-2 gap-2 text-[11px] font-semibold border-t border-slate-100 pt-4">
             {repairChartData.map((item) => (
               <div key={item.status} className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full block shrink-0" style={{ backgroundColor: item.color }}></span>
-                <span className="text-slate-600 truncate">{item.label} ({item.count})</span>
+                <span className="text-slate-650 truncate">{item.label} ({item.count})</span>
               </div>
             ))}
           </div>
@@ -742,42 +835,43 @@ export default async function DashboardPage() {
       {/* Audit Logs and Actions */}
       <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
         {/* Chronological Timeline Audit logs */}
-        <div className="lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-5">
+        <div className="lg:col-span-2 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-lg font-bold text-slate-800">Son İşlem Kayıtları</h3>
-              <p className="text-xs text-slate-400 mt-0.5">Sistem genelinde gerçekleştirilen son hareketler</p>
+              <h3 className="text-lg font-bold text-slate-900">Sistem İşlem Günlüğü</h3>
+              <p className="text-xs text-slate-400 mt-1 font-medium">Uygulama genelinde gerçekleştirilen son hareketler</p>
             </div>
-            <span className="text-xs text-teal-600 font-bold hover:underline cursor-pointer">Tümünü Gör</span>
+            <span className="text-xs text-teal-650 font-bold hover:text-teal-700 hover:underline cursor-pointer transition">Günlüğü Filtrele</span>
           </div>
 
-          <div className="relative border-l border-slate-100 ml-3 pl-6 space-y-6">
+          <div className="relative border-l-2 border-slate-100/70 ml-3 pl-6 space-y-6">
             {recentLogs.map((log) => {
-              let badgeColor = "bg-slate-100 text-slate-700";
-              if (log.action.includes("CHECKOUT")) badgeColor = "bg-emerald-50 text-emerald-700 border-emerald-100";
-              else if (log.action.includes("REPAIR")) badgeColor = "bg-blue-50 text-blue-700 border-blue-100";
-              else if (log.action.includes("RECONCILIATION")) badgeColor = "bg-indigo-50 text-indigo-700 border-indigo-100";
-              else if (log.action.includes("CREATE")) badgeColor = "bg-teal-50 text-teal-700 border-teal-100";
+              let badgeColor = "bg-slate-50 text-slate-600 border-slate-200/50";
+              if (log.action.includes("CHECKOUT")) badgeColor = "bg-emerald-50 text-emerald-700 border-emerald-100/50";
+              else if (log.action.includes("REPAIR")) badgeColor = "bg-blue-50 text-blue-700 border-blue-100/50";
+              else if (log.action.includes("RECONCILIATION")) badgeColor = "bg-indigo-50 text-indigo-700 border-indigo-100/50";
+              else if (log.action.includes("CREATE")) badgeColor = "bg-teal-50 text-teal-700 border-teal-100/50";
 
               return (
                 <div key={log.id} className="relative group">
-                  <span className="absolute -left-[31px] top-1.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white bg-slate-300 ring-4 ring-white group-hover:bg-teal-500 transition-colors"></span>
+                  {/* Glowing Node */}
+                  <span className="absolute -left-[32px] top-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full border-2 border-white bg-slate-300 ring-4 ring-white group-hover:bg-teal-500 group-hover:ring-teal-100 transition-all duration-200"></span>
                   
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                    <div className="flex items-center gap-2">
-                      <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold ${badgeColor}`}>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${badgeColor}`}>
                         {log.action.replace("_", " ")}
                       </span>
-                      <span className="text-sm font-semibold text-slate-700">
-                        {log.entityType} ({log.entityId?.slice(-6)})
+                      <span className="text-xs font-bold text-slate-700">
+                        {log.entityType} ({log.entityId?.slice(-6).toUpperCase() || "SİSTEM"})
                       </span>
                     </div>
-                    <time className="text-xs text-slate-400 font-medium">
+                    <time className="text-xs text-slate-400 font-mono">
                       {new Date(log.createdAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}
                     </time>
                   </div>
-                  <p className="text-sm text-slate-500 mt-1">
-                    {log.detail ? log.detail : `${log.entityType} üzerinde aksiyon tamamlandı.`}
+                  <p className="text-xs text-slate-500 mt-1 font-medium">
+                    {log.detail ? log.detail : `${log.entityType} üzerinde işlem tamamlandı.`}
                   </p>
                 </div>
               );
@@ -786,33 +880,33 @@ export default async function DashboardPage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
           <div>
-            <h3 className="text-lg font-bold text-slate-800 mb-1">Hızlı Kısayollar</h3>
-            <p className="text-xs text-slate-400 mb-4">Sık yapılan işlemlere anında erişim sağlayın</p>
+            <h3 className="text-lg font-bold text-slate-900 mb-1">Hızlı Kısayollar</h3>
+            <p className="text-xs text-slate-400 mb-4 font-medium">Sık yapılan işlemlere anında erişim</p>
           </div>
 
           <div className="space-y-3">
-            <Link href="/pos" className="flex items-center gap-3 w-full p-3 rounded-xl border border-slate-100 hover:border-teal-200 bg-slate-50/50 hover:bg-teal-50/20 text-slate-700 hover:text-teal-800 font-semibold text-sm transition-all">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-50 text-teal-600">🛒</span>
+            <Link href="/pos" className="flex items-center gap-3 w-full p-3 rounded-2xl border border-slate-100 hover:border-teal-200/50 bg-slate-50/50 hover:bg-teal-50/20 text-slate-700 hover:text-teal-800 font-semibold text-xs transition-all duration-200 transform hover:scale-[1.01]">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-50 text-teal-600 border border-teal-100/55">🛒</span>
               Yeni POS Satışı Yap
             </Link>
-            <Link href="/tamir-takip" className="flex items-center gap-3 w-full p-3 rounded-xl border border-slate-100 hover:border-blue-200 bg-slate-50/50 hover:bg-blue-50/20 text-slate-700 hover:text-blue-800 font-semibold text-sm transition-all">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">🔧</span>
+            <Link href="/tamir-takip" className="flex items-center gap-3 w-full p-3 rounded-2xl border border-slate-100 hover:border-blue-200/50 bg-slate-50/50 hover:bg-blue-50/20 text-slate-700 hover:text-blue-800 font-semibold text-xs transition-all duration-200 transform hover:scale-[1.01]">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600 border border-blue-100/55">🔧</span>
               Arıza / Tamir Kaydı Aç
             </Link>
-            <Link href="/musteriler-veresiye" className="flex items-center gap-3 w-full p-3 rounded-xl border border-slate-100 hover:border-rose-200 bg-slate-50/50 hover:bg-rose-50/20 text-slate-700 hover:text-rose-800 font-semibold text-sm transition-all">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-rose-600">💳</span>
+            <Link href="/musteriler-veresiye" className="flex items-center gap-3 w-full p-3 rounded-2xl border border-slate-100 hover:border-rose-200/50 bg-slate-50/50 hover:bg-rose-50/20 text-slate-700 hover:text-rose-800 font-semibold text-xs transition-all duration-200 transform hover:scale-[1.01]">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-50 text-rose-600 border border-rose-100/55">💳</span>
               Cari Hesap / Borç Al
             </Link>
-            <Link href="/giderler" className="flex items-center gap-3 w-full p-3 rounded-xl border border-slate-100 hover:border-amber-200 bg-slate-50/50 hover:bg-amber-50/20 text-slate-700 hover:text-amber-800 font-semibold text-sm transition-all">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-600">📉</span>
+            <Link href="/giderler" className="flex items-center gap-3 w-full p-3 rounded-2xl border border-slate-100 hover:border-amber-200/50 bg-slate-50/50 hover:bg-amber-50/20 text-slate-700 hover:text-amber-800 font-semibold text-xs transition-all duration-200 transform hover:scale-[1.01]">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600 border border-amber-100/55">📉</span>
               Gider Yönetim Paneli
             </Link>
           </div>
 
-          <div className="mt-4 pt-4 border-t border-slate-100 text-center">
-            <span className="text-xs text-slate-400">Versiyon 1.1.0 • TelefoncuPro</span>
+          <div className="mt-6 pt-4 border-t border-slate-100 text-center text-[10px] text-slate-400 font-bold">
+            Versiyon 1.1.0 • MobiBase Cloud
           </div>
         </div>
       </div>

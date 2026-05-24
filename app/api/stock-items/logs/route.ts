@@ -5,7 +5,7 @@ import { readLocalStore } from "@/lib/local-store";
 import { requireRole } from "@/lib/auth";
 
 export async function GET() {
-  const auth = requireRole(["ADMIN", "CASHIER"]);
+  const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN", "MANAGER"]);
   if (auth.error) return auth.error;
 
   try {

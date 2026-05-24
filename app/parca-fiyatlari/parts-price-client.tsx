@@ -12,6 +12,15 @@ interface PriceRecord {
   revisionName: string;
   revisionPrice: string;
 }
+interface ManagedPartRecord {
+  id: string;
+  brand: "iPhone" | "Android" | "iPad" | "MacBook";
+  model: string;
+  category: string;
+  type: "original" | "equivalent" | "revision";
+  partName: string;
+  price: string;
+}
 
 interface GroupedOption {
   type: "original" | "equivalent" | "revision";
@@ -69,6 +78,14 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
   const [issueDescription, setIssueDescription] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
+  const [managedParts, setManagedParts] = useState<ManagedPartRecord[]>([]);
+  const [manageBrand, setManageBrand] = useState<ManagedPartRecord["brand"]>("iPhone");
+  const [manageModel, setManageModel] = useState("");
+  const [manageCategory, setManageCategory] = useState("");
+  const [manageType, setManageType] = useState<ManagedPartRecord["type"]>("original");
+  const [managePartName, setManagePartName] = useState("");
+  const [managePrice, setManagePrice] = useState("");
+  const [manageSaving, setManageSaving] = useState(false);
 
   // Fetch customers and devices on load
   useEffect(() => {
@@ -98,6 +115,32 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
       }
     }
     loadData();
+  }, []);
+
+  useEffect(() => {
+    async function loadManagedParts() {
+      try {
+        const res = await fetch("/api/repair-price-items");
+        const json = await res.json();
+        if (res.ok) {
+          const rows = Array.isArray(json?.data) ? json.data : [];
+          setManagedParts(
+            rows.map((row: any) => ({
+              id: row.id,
+              brand: row.brand,
+              model: row.model,
+              category: row.category,
+              type: row.partType,
+              partName: row.partName,
+              price: String(Number(row.price || 0)),
+            })),
+          );
+        }
+      } catch {
+        toast.error("Parca fiyat kayitlari yuklenemedi.");
+      }
+    }
+    void loadManagedParts();
   }, []);
 
   // Filter devices belonging to the selected customer
@@ -147,11 +190,24 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
     return cleaned || "0";
   };
 
+  const effectiveData = useMemo<PriceRecord[]>(() => {
+    const dynamicRows = managedParts.map((r) => ({
+      model: r.model.toUpperCase().includes(r.brand.toUpperCase()) ? r.model : `${r.brand} ${r.model}`,
+      originalName: r.type === "original" ? r.partName : "SUNULMUYOR",
+      originalPrice: r.type === "original" ? r.price : "",
+      equivalentName: r.type === "equivalent" ? r.partName : "SUNULMUYOR",
+      equivalentPrice: r.type === "equivalent" ? r.price : "",
+      revisionName: r.type === "revision" ? r.partName : "SUNULMUYOR",
+      revisionPrice: r.type === "revision" ? r.price : "",
+    }));
+    return [...initialData, ...dynamicRows];
+  }, [initialData, managedParts]);
+
   // Group raw rows into structured models
   const groupedModels = useMemo(() => {
     const modelMap: Record<string, GroupedModel> = {};
 
-    initialData.forEach((row) => {
+    effectiveData.forEach((row) => {
       const rawModel = row.model.trim();
       if (!rawModel) return;
 
@@ -205,7 +261,7 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
     });
 
     return Object.values(modelMap);
-  }, [initialData]);
+  }, [effectiveData]);
 
   // Filtered models by search and tab
   const filteredModels = useMemo(() => {
@@ -361,6 +417,62 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
       const opt = catObj.options[optIdx];
       setPartCost(cleanNumericPrice(opt.price));
       setIssueDescription(`${selectedModel?.model} ${opt.name}`);
+    }
+  };
+
+  const addManagedPart = async () => {
+    if (!manageModel.trim() || !manageCategory.trim() || !managePartName.trim() || !managePrice.trim()) {
+      toast.error("Marka/model/parca/fiyat alanlarini doldurun.");
+      return;
+    }
+    setManageSaving(true);
+    try {
+      const res = await fetch("/api/repair-price-items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          brand: manageBrand,
+          model: manageModel.trim(),
+          category: manageCategory.trim(),
+          partType: manageType,
+          partName: managePartName.trim(),
+          price: Number(managePrice),
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Kayit eklenemedi");
+      const row = json.data;
+      const next: ManagedPartRecord = {
+        id: row.id,
+        brand: row.brand,
+        model: row.model,
+        category: row.category,
+        type: row.partType,
+        partName: row.partName,
+        price: String(Number(row.price || 0)),
+      };
+      setManagedParts((prev) => [next, ...prev]);
+      setManageModel("");
+      setManageCategory("");
+      setManagePartName("");
+      setManagePrice("");
+      toast.success("Parca/fiyat kaydi eklendi.");
+    } catch (error: any) {
+      toast.error(error?.message || "Kayit eklenemedi.");
+    } finally {
+      setManageSaving(false);
+    }
+  };
+
+  const deleteManagedPart = async (id: string) => {
+    try {
+      const res = await fetch(`/api/repair-price-items/${id}`, { method: "DELETE" });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || "Kayit silinemedi");
+      setManagedParts((prev) => prev.filter((x) => x.id !== id));
+      toast.success("Kayit silindi.");
+    } catch (error: any) {
+      toast.error(error?.message || "Kayit silinemedi.");
     }
   };
 
@@ -572,6 +684,8 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
   };
 
   const selectedCategoryObj = selectedModel?.categories.find((c) => c.category === selectedCategoryName);
+  const totalCategoryCount = useMemo(() => groupedModels.reduce((sum, model) => sum + model.categories.length, 0), [groupedModels]);
+  const totalOptionCount = useMemo(() => groupedModels.reduce((sum, model) => sum + model.categories.reduce((s, c) => s + c.options.length, 0), 0), [groupedModels]);
 
   return (
     <div style={{ padding: "1.5rem", maxWidth: "1280px", margin: "0 auto" }}>
@@ -591,6 +705,74 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
         <p style={{ fontSize: "1rem", color: "var(--muted)", margin: 0, maxWidth: "600px", marginInline: "auto" }}>
           Tüm cihaz modellerimiz için güncel tamir ve parça değişim fiyatlarımızı inceleyebilirsiniz.
         </p>
+      </div>
+
+      <div style={{ display: "grid", gap: "0.75rem", gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))", marginBottom: "1rem" }}>
+        <div className="panel" style={{ padding: "0.75rem 0.9rem" }}>
+          <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>Model Sayisi</p>
+          <p style={{ margin: "4px 0 0", fontWeight: 800, fontSize: 20 }}>{groupedModels.length}</p>
+        </div>
+        <div className="panel" style={{ padding: "0.75rem 0.9rem" }}>
+          <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>Onarim Grubu</p>
+          <p style={{ margin: "4px 0 0", fontWeight: 800, fontSize: 20 }}>{totalCategoryCount}</p>
+        </div>
+        <div className="panel" style={{ padding: "0.75rem 0.9rem" }}>
+          <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>Parca/Fiyat Kalemi</p>
+          <p style={{ margin: "4px 0 0", fontWeight: 800, fontSize: 20 }}>{totalOptionCount}</p>
+        </div>
+        <div className="panel" style={{ padding: "0.75rem 0.9rem" }}>
+          <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>Filtre Sonucu</p>
+          <p style={{ margin: "4px 0 0", fontWeight: 800, fontSize: 20 }}>{filteredModels.length}</p>
+        </div>
+      </div>
+
+      <div className="panel" style={{ padding: "0.9rem", marginBottom: "1rem", display: "grid", gap: 8 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+          <h3 style={{ margin: 0, fontSize: 15 }}>Parca Onarim Fiyat Yonetimi</h3>
+          <span style={{ fontSize: 12, color: "var(--muted)" }}>Marka, model, ariza, parca ve fiyat ekleyin.</span>
+        </div>
+        <div className="form-grid-4">
+          <select className="field" value={manageBrand} onChange={(e) => setManageBrand(e.target.value as ManagedPartRecord["brand"])}>
+            <option value="iPhone">iPhone</option>
+            <option value="Android">Android</option>
+            <option value="iPad">iPad</option>
+            <option value="MacBook">MacBook</option>
+          </select>
+          <input className="field" placeholder="Model (or: iPhone 13)" value={manageModel} onChange={(e) => setManageModel(e.target.value)} />
+          <input className="field" placeholder="Ariza Grubu (or: EKRAN DEG.)" value={manageCategory} onChange={(e) => setManageCategory(e.target.value)} />
+          <select className="field" value={manageType} onChange={(e) => setManageType(e.target.value as ManagedPartRecord["type"])}>
+            <option value="original">Orijinal</option>
+            <option value="equivalent">Muadil</option>
+            <option value="revision">Revize</option>
+          </select>
+        </div>
+        <div className="form-grid-4">
+          <input className="field" placeholder="Parca/Islem Adi" value={managePartName} onChange={(e) => setManagePartName(e.target.value)} />
+          <input className="field" placeholder="Fiyat (or: 3500)" value={managePrice} onChange={(e) => setManagePrice(e.target.value)} />
+          <button type="button" className="primary-btn" style={{ width: 180 }} onClick={() => void addManagedPart()} disabled={manageSaving}>
+            {manageSaving ? "Kaydediliyor..." : "Kaydi Ekle"}
+          </button>
+        </div>
+        <div className="panel panel-scroll" style={{ maxHeight: 180 }}>
+          {managedParts.length === 0 ? <div className="empty-box">Henuz manuel kayit yok.</div> : (
+            <table className="data-table">
+              <thead><tr><th>Marka</th><th>Model</th><th>Ariza</th><th>Tip</th><th>Parca</th><th>Fiyat</th><th></th></tr></thead>
+              <tbody>
+                {managedParts.map((row) => (
+                  <tr key={row.id}>
+                    <td>{row.brand}</td>
+                    <td>{row.model}</td>
+                    <td>{row.category}</td>
+                    <td>{row.type}</td>
+                    <td>{row.partName}</td>
+                    <td>{row.price} TL</td>
+                    <td><button type="button" className="field" style={{ width: 56 }} onClick={() => void deleteManagedPart(row.id)}>Sil</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
 
       {/* Tabs and Search Panel */}
@@ -639,6 +821,11 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
                 </button>
               );
             })}
+          </div>
+          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+            <button type="button" className="field" style={{ width: 120 }} onClick={() => { setSelectedTab("Tümü"); setSearchTerm(""); }}>Filtreyi Sifirla</button>
+            <button type="button" className="field" style={{ width: 120 }} onClick={() => setSearchTerm("ekran")}>Ekran Isleri</button>
+            <button type="button" className="field" style={{ width: 120 }} onClick={() => setSearchTerm("batarya")}>Batarya Isleri</button>
           </div>
 
           {/* Search box with SVG icon */}
