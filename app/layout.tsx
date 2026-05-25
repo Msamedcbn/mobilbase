@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { RuntimeGuard } from "@/components/runtime-guard";
 import { AppChrome } from "@/components/app-chrome";
@@ -14,6 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <RuntimeGuard />
         <AppChrome>{children}</AppChrome>
+        <SpeedInsights />
       </body>
     </html>
   );
