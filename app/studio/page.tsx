@@ -173,7 +173,7 @@ const CANNED_REPLIES = [
 function StudioPageContent() {
   const [sessionRole, setSessionRole] = useState<"PLATFORM_OWNER" | "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT" | null>(null);
   const [tenants, setTenants] = useState<Customer[]>([]);
-  const [loadıng, setLoadıng] = useState(true);
+  const [loading, setLoadıng] = useState(true);
   const [search, setSearch] = useState("");
   const [planFilter, setPlanFilter] = useState<"ALL" | "Lite" | "Service" | "Pro" | "Enterprise">("ALL");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "ACTIVE" | "NEAR_EXPIRY" | "EXPIRED">("ALL");
@@ -1730,9 +1730,9 @@ function StudioPageContent() {
     toast.promise(
       new Promise((resolve) => setTimeout(resolve, 1500)),
       {
-        loadıng: `${editEmail} adresine e-posta fatura bildirimi hazirlaniyor...`,
+        loading: `${editEmail} adresine e-posta fatura bildirimi hazirlaniyor...`,
         success: `${editEmail} adresine e-posta fatura bildirimi başarıyla gönderildi!`,
-        error: 'Gonderim başarısız oldu.',
+        error: 'Gönderim başarısız oldu.',
       }
     );
   };
@@ -2216,7 +2216,7 @@ function StudioPageContent() {
         </div>
 
         <div className="p-6">
-          {loadıng ? (
+          {loading ? (
             <div className="p-12 text-center">
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto"></div>
               <span className="text-slate-500 text-sm mt-3 block">Muxteri listesi cekiliyor...</span>
@@ -5658,6 +5658,7 @@ export default function StudioPage() {
     </Suspense>
   );
 }
+
 
 
 
