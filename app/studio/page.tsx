@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
-import { useState, useEffect, useMemo, Suspense } from "react";
+import { useState, useEffect, useMemo, useCallback, Suspense } from "react";
 import { toast } from "sonner";
 import { useSearchParams, useRouter } from "next/navigation";
+import { normalizeLedgerEntry } from "@/lib/studio-finance";
 
 interface TicketMessage {
   sender: "Tenant" | "Admin";
@@ -29,6 +30,11 @@ interface BillingLedgerEntry {
   date: string;
   dueDate?: string;
   status?: "PAID" | "UNPAID";
+  referenceNo?: string;
+  sourceModule?: "PRICING" | "BILLING" | "HELPDESK" | "AUTOMATION" | "MANUAL";
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface LeadHistoryEntry {
@@ -37,9 +43,23 @@ interface LeadHistoryEntry {
   author: string;
 }
 
+interface CrmTask {
+  id: string;
+  type: "CALL" | "DEMO" | "FOLLOW_UP" | "OFFER_REVIEW" | "RENEWAL_TOUCH";
+  title: string;
+  description?: string;
+  dueDate: string;
+  ownerUserId?: string;
+  status: "OPEN" | "IN_PROGRESS" | "DONE" | "SNOOZED";
+  leadStatus?: "LEAD" | "NEGOTIATION" | "OFFER_SENT" | "WON" | "LOST";
+  createdAt: string;
+  updatedAt?: string;
+  source?: "MANUAL" | "SUGGESTION";
+}
+
 interface SaasMetadata {
   isSaaS: boolean;
-  plan: "Lite" | "Pro" | "Enterprise";
+  plan: "Lite" | "Service" | "Pro" | "Enterprise";
   licenseStart: string;
   licenseEnd: string;
   branchLimit: number;
@@ -57,6 +77,12 @@ interface SaasMetadata {
   };
   tickets: Ticket[];
   billingLedger: BillingLedgerEntry[];
+  crmTasks?: CrmTask[];
+  nextActionDate?: string;
+  ownerUserId?: string;
+  expectedDealAmount?: number;
+  lostReason?: string;
+  wonSource?: string;
   rolePermissions?: {
     PLATFORM_OWNER?: string[];
     ADMIN?: string[];
@@ -79,6 +105,17 @@ interface Customer {
 interface CustomerDetailPayload {
   customer: Customer;
   saasMetadata: SaasMetadata;
+  financialSummary?: {
+    totalCharges: number;
+    totalCollections: number;
+    netBalance: number;
+    overdueAmount: number;
+    overdueCount: number;
+    dueIn7Amount: number;
+    dueIn7Count: number;
+    dueIn30Amount: number;
+    dueIn30Count: number;
+  };
   devices: any[];
   accountEntries: any[];
   buybacks: any[];
@@ -86,8 +123,31 @@ interface CustomerDetailPayload {
   repairs: any[];
 }
 
+type StudioReports = {
+  asOf: string;
+  kpis: {
+    tenantCount: number;
+    totalCharges: number;
+    totalCollections: number;
+    collectionRatePct: number;
+    overdueAmount: number;
+    overdueRatePct: number;
+  };
+  dueBuckets: {
+    overdue: Array<any>;
+    dueIn7: Array<any>;
+    dueIn30: Array<any>;
+  };
+  riskTenants: Array<{ tenantId: string; tenantName: string; overdueAmount: number; remainingDays: number; reason: string }>;
+  renewalSuggestions: Array<{ tenantId: string; tenantName: string; shouldSuggest: boolean; remainingDays: number; suggestedAmount: number; description: string }>;
+  monthly: Array<{ month: string; charges: number; collections: number; byPlan: { Lite: number; Service: number; Pro: number; Enterprise: number } }>;
+  pricingHistory: Array<any>;
+  auditLogs: Array<any>;
+};
+
 const PLAN_PRICES = {
   Lite: 750,
+  Service: 990,
   Pro: 1500,
   Enterprise: 3500,
 };
@@ -95,39 +155,40 @@ const PLAN_PRICES = {
 const CANNED_REPLIES = [
   {
     id: "efatura",
-    title: "E-Fatura Entegrasyon Yardimi",
-    body: "Dexerli bayimiz, GIB e-fatura baxvurusu icin oncelikle mali muhur almaniz gerekmektedir. Ardindan entegrasyon ayarlari sekmesinden GIB bilgilerinizi doldurarak aktivasyonu tamamlayabilirsiniz. Sorulariniz icin teknik destek ekibimizle iletixime gecebilirsiniz."
+    title: "E-Fatura Entegrasyonu Yardımı",
+    body: "Değerli bayimiz, GİB e-fatura başvurusu icin öncelikle mali mühür almaniz gerekmektedir. Ardindan entegrasyon ayarları sekmesinden GIB bilgilerinizi doldurarak aktivasyonu tamamlayabilirsiniz. Sorularınız için teknik destek ekibimizle iletişime geçebilirsiniz."
   },
   {
     id: "sube_limiti",
-    title: "Sube Limiti Uyarisi",
-    body: "Sayin yetkili, lisans paketinizdeki xube limitinizi doldurduxunuz tespit edilmixtir. Sisteminizin kesintisiz calixmaya devam edebilmesi icin bir ust paket olan Enterprise paketine gecmenizi oneririz. Paket yukseltme ixlemi icin cari ixlemler sekmesini kullanabilir veya bizimle irtibata gecebilirsiniz."
+    title: "Şube Limiti Uyarısı",
+    body: "Sayın yetkili, lisans paketinizdeki şube limitinizi doldurduğunuz tespit edilmixtir. Sisteminizin kesintisiz çalışmaya devam edebilmesi icin bir ust paket olan Enterprise paketine gecmenizi öneririz. Paket yükseltme işlemi icin cari işlemler sekmesini kullanabilir veya bizimle irtibata geçebilirsiniz."
   },
   {
     id: "sms_aktif",
-    title: "SMS Paketi Etkinlextirme",
-    body: "Merhaba, satin almix olduxunuz SMS paketi hesabiniza tanimlanmix ve kotaniz guncellenmixtir. SMS kullanim oranlarinizi ERP panelinden anlik olarak takip edebilirsiniz. Iyi calixmalar dileriz."
+    title: "SMS Paketi Etkinleştirme",
+    body: "Merhaba, satın almış olduğunuz SMS paketi hesabiniza tanımlanmış ve kotanız güncellenmiştir. SMS kullanım oranlarınızı ERP panelinden anlik olarak takip edebilirsiniz. Iyi çalışmalar dileriz."
   }
 ];
 
 function StudioPageContent() {
+  const [sessionRole, setSessionRole] = useState<"PLATFORM_OWNER" | "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT" | null>(null);
   const [tenants, setTenants] = useState<Customer[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadıng, setLoadıng] = useState(true);
   const [search, setSearch] = useState("");
-  const [planFilter, setPlanFilter] = useState<"ALL" | "Lite" | "Pro" | "Enterprise">("ALL");
+  const [planFilter, setPlanFilter] = useState<"ALL" | "Lite" | "Service" | "Pro" | "Enterprise">("ALL");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "ACTIVE" | "NEAR_EXPIRY" | "EXPIRED">("ALL");
   const [viewMode, setViewMode] = useState<"table" | "kanban">("table");
 
   // Selected Tenant for the Console Modal
   const [selectedTenantId, setSelectedTenantId] = useState<string | null>(null);
   const [detailData, setDetailData] = useState<CustomerDetailPayload | null>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailLoadıng, setDetailLoadıng] = useState(false);
 
   // Form states for the editing console
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [editEmail, setEditEmail] = useState("");
-  const [editPlan, setEditPlan] = useState<"Lite" | "Pro" | "Enterprise">("Pro");
+  const [editPlan, setEditPlan] = useState<"Lite" | "Service" | "Pro" | "Enterprise">("Pro");
   const [editLicenseStart, setEditLicenseStart] = useState("");
   const [editLicenseEnd, setEditLicenseEnd] = useState("");
   const [editBranchLimit, setEditBranchLimit] = useState(5);
@@ -136,6 +197,14 @@ function StudioPageContent() {
   const [editSmsUsed, setEditSmsUsed] = useState(1200);
   const [editLeadStatus, setEditLeadStatus] = useState<SaasMetadata["leadStatus"]>("WON");
   const [editLeadHistory, setEditLeadHistory] = useState<LeadHistoryEntry[]>([]);
+  const [editCrmTasks, setEditCrmTasks] = useState<CrmTask[]>([]);
+  const [editNextActionDate, setEditNextActionDate] = useState("");
+  const [editOwnerUserId, setEditOwnerUserId] = useState("");
+  const [editExpectedDealAmount, setEditExpectedDealAmount] = useState(0);
+  const [editLostReason, setEditLostReason] = useState("");
+  const [editWonSource, setEditWonSource] = useState("");
+  const [crmSuggestions, setCrmSuggestions] = useState<any[]>([]);
+  const [crmInsights, setCrmInsights] = useState<any | null>(null);
   const [editModules, setEditModules] = useState({
     pos: true,
     repairs: true,
@@ -185,20 +254,20 @@ function StudioPageContent() {
 
   const mockLogs = useMemo(() => {
     return [
-      { time: "2026-05-23 01:45:10", level: "INFO", module: "SYSTEM", text: "Altyapi kumesi ax trafixi yuku dengeli. (Avg Latency: 12ms)" },
-      { time: "2026-05-23 01:42:05", level: "INFO", module: "API", text: "TeknoMarket Zinciri A.S. (mock-tenant-1) API Gateway uzerinden 250 xube veri exitlemesini baxariyla tamamladi." },
-      { time: "2026-05-23 01:30:00", level: "INFO", module: "CRON", text: "Gunluk otomatik lisans denetim motoru calixtirildi. Herhangi bir ihlal tespit edilmedi." },
-      { time: "2026-05-23 01:15:32", level: "INFO", module: "DATABASE", text: "Postgres veritabani havuzlari saxlikli durumda. (28 aktif baxlanti)" },
+      { time: "2026-05-23 01:45:10", level: "INFO", module: "SYSTEM", text: "Altyapi kumesi ağ trafiği yükü dengeli. (Avg Latency: 12ms)" },
+      { time: "2026-05-23 01:42:05", level: "INFO", module: "API", text: "TeknoMarket Zinciri A.S. (mock-tenant-1) API Gateway uzerinden 250 şube veri eşitlemesini başarıyla tamamladı." },
+      { time: "2026-05-23 01:30:00", level: "INFO", module: "CRON", text: "Günlük otomatik lisans denetim motoru çalıştırıldı. Herhangi bir ihlal tespit edilmedi." },
+      { time: "2026-05-23 01:15:32", level: "INFO", module: "DATABASE", text: "Postgres veritabani havuzlari sağlıklı durumda. (28 aktif bağlantı)" },
       { time: "2026-05-23 01:05:18", level: "WARNING", module: "LICENSE", text: "Mavi Cep Noktasi (mock-tenant-7) lisans suresi 30 gunden az kaldi. Uyari e-postasi siraya alindi." },
-      { time: "2026-05-23 00:55:12", level: "INFO", module: "API", text: "Apex Iletixim Grubu (mock-tenant-2) 150 xube icin POS ixlemlerini senkronize etti." },
+      { time: "2026-05-23 00:55:12", level: "INFO", module: "API", text: "Apex İletişim Grubu (mock-tenant-2) 150 şube için POS işlemlerini senkronize etti." },
       { time: "2026-05-23 00:45:00", level: "INFO", module: "SYSTEM", text: "Sunucu disk alani kontrolu: %34.2 dolu (128GB box alan kullanilabilir)" },
-      { time: "2026-05-22 23:59:00", level: "INFO", module: "SYSTEM", text: "Gunluk veritabani yedekleme ixlemi (SaaSTel_Backup_20260522.sql) baxariyla AWS S3'e yedeklendi." },
-      { time: "2026-05-22 23:45:22", level: "INFO", module: "API", text: "Mega Cep Dunyasi (mock-tenant-4) 54 xubenin stok sayim guncellemelerini ERP sunucusuna aktardi." },
-      { time: "2026-05-22 23:22:15", level: "ERROR", module: "SMS", text: "Alo Mobil Subeleri (mock-tenant-5) SMS kotasi yetersizlixi nedeniyle kampanya SMS gonderim denemesi baxarisiz oldu." },
-      { time: "2026-05-22 23:10:05", level: "INFO", module: "TICKET", text: "Genclik GSM Franchising (mock-tenant-3) yeni bir destek talebi (t4) oluxturdu." },
+      { time: "2026-05-22 23:59:00", level: "INFO", module: "SYSTEM", text: "Günlük veritabanı yedekleme işlemi (SaaSTel_Backup_20260522.sql) başarıyla AWS S3'e yedeklendi." },
+      { time: "2026-05-22 23:45:22", level: "INFO", module: "API", text: "Mega Cep Dunyasi (mock-tenant-4) 54 şubenin stok sayim güncellemelerini ERP sunucusuna aktardi." },
+      { time: "2026-05-22 23:22:15", level: "ERROR", module: "SMS", text: "Alo Mobil Şubeleri (mock-tenant-5) SMS kotası yetersizliği nedeniyle kampanya SMS gönderim denemesi başarısız oldu." },
+      { time: "2026-05-22 23:10:05", level: "INFO", module: "TICKET", text: "Genclik GSM Franchising (mock-tenant-3) yeni bir destek talebi (t4) oluşturdu." },
       { time: "2026-05-22 22:55:40", level: "INFO", module: "API", text: "/api/studio/customers/mock-tenant-1 detaylari SuperAdmin tarafindan yuklendi." },
       { time: "2026-05-22 22:15:32", level: "INFO", module: "DATABASE", text: "Postgres database connections healthy (14 pools active)" },
-      { time: "2026-05-22 22:10:05", level: "INFO", module: "API", text: "/api/auth/me called from tenant Kadikoy Iletixim (IP: 192.168.1.45)" },
+      { time: "2026-05-22 22:10:05", level: "INFO", module: "API", text: "/api/auth/me called from tenant Kadıkoy Iletixim (IP: 192.168.1.45)" },
       { time: "2026-05-22 21:55:18", level: "WARNING", module: "LICENSE", text: "Tenant Apex Mobil license expires in 8 days. Notification sent." },
       { time: "2026-05-22 20:30:10", level: "INFO", module: "CRON", text: "Daily billing engine completed. 0 accounts flagged for auto-suspend." },
       { time: "2026-05-22 20:15:00", level: "INFO", module: "SYSTEM", text: "Disk space usage at 34% (128GB free)" },
@@ -249,11 +318,12 @@ function StudioPageContent() {
   const [newTenantEmail, setNewTenantEmail] = useState("");
   const [newTenantInitialPassword, setNewTenantInitialPassword] = useState("");
   const [newTenantInitialRole, setNewTenantInitialRole] = useState<"PLATFORM_OWNER" | "ADMIN" | "MANAGER" | "CASHIER" | "TECHNICIAN" | "ACCOUNTANT">("MANAGER");
-  const [newTenantPlan, setNewTenantPlan] = useState<"Lite" | "Pro" | "Enterprise">("Pro");
+  const [newTenantPlan, setNewTenantPlan] = useState<"Lite" | "Service" | "Pro" | "Enterprise">("Pro");
 
   // Reseller Bookkeeping & Pricing States
   const [pricing, setPricing] = useState<{
     Lite: number;
+    Service: number;
     Pro: number;
     Enterprise: number;
     freeBranchLimit: number;
@@ -266,11 +336,13 @@ function StudioPageContent() {
     };
     features: {
       Lite: { pos: boolean; repairs: boolean; stock: boolean; invoicing: boolean; buyback: boolean; supportLevel: string };
+      Service: { pos: boolean; repairs: boolean; stock: boolean; invoicing: boolean; buyback: boolean; supportLevel: string };
       Pro: { pos: boolean; repairs: boolean; stock: boolean; invoicing: boolean; buyback: boolean; supportLevel: string };
       Enterprise: { pos: boolean; repairs: boolean; stock: boolean; invoicing: boolean; buyback: boolean; supportLevel: string };
     };
   }>({
     Lite: 750,
+    Service: 990,
     Pro: 1500,
     Enterprise: 3500,
     freeBranchLimit: 5,
@@ -283,8 +355,9 @@ function StudioPageContent() {
     },
     features: {
       Lite: { pos: true, repairs: true, stock: false, invoicing: false, buyback: false, supportLevel: "Standart E-Posta Destek" },
+      Service: { pos: false, repairs: true, stock: true, invoicing: false, buyback: false, supportLevel: "Teknik Servis Odakli Destek" },
       Pro: { pos: true, repairs: true, stock: true, invoicing: true, buyback: false, supportLevel: "Hizli Destek (Mesai Saatleri)" },
-      Enterprise: { pos: true, repairs: true, stock: true, invoicing: true, buyback: true, supportLevel: "7/24 Telefon & SLA Destexi" }
+      Enterprise: { pos: true, repairs: true, stock: true, invoicing: true, buyback: true, supportLevel: "7/24 Telefon & SLA Desteği" }
     }
   });
 
@@ -305,6 +378,7 @@ function StudioPageContent() {
 
   // Pricing Form State
   const [editLitePrice, setEditLitePrice] = useState(750);
+  const [editServicePrice, setEditServicePrice] = useState(990);
   const [editProPrice, setEditProPrice] = useState(1500);
   const [editEnterprisePrice, setEditEnterprisePrice] = useState(3500);
   const [editFreeBranchLimit, setEditFreeBranchLimit] = useState(5);
@@ -317,10 +391,16 @@ function StudioPageContent() {
   });
   const [editFeatures, setEditFeatures] = useState({
     Lite: { pos: true, repairs: true, stock: false, invoicing: false, buyback: false, supportLevel: "Standart E-Posta Destek" },
+    Service: { pos: false, repairs: true, stock: true, invoicing: false, buyback: false, supportLevel: "Teknik Servis Odakli Destek" },
     Pro: { pos: true, repairs: true, stock: true, invoicing: true, buyback: false, supportLevel: "Hizli Destek (Mesai Saatleri)" },
-    Enterprise: { pos: true, repairs: true, stock: true, invoicing: true, buyback: true, supportLevel: "7/24 Telefon & SLA Destexi" }
+    Enterprise: { pos: true, repairs: true, stock: true, invoicing: true, buyback: true, supportLevel: "7/24 Telefon & SLA Desteği" }
   });
   const [isSavingPricing, setIsSavingPricing] = useState(false);
+  const [pricingChangeReason, setPricingChangeReason] = useState("");
+  const [reports, setReports] = useState<StudioReports | null>(null);
+  const [reportsLoadıng, setReportsLoadıng] = useState(false);
+  const canManagePricing = sessionRole === "ADMIN" || sessionRole === "PLATFORM_OWNER";
+  const canManageFinance = sessionRole === "ADMIN" || sessionRole === "PLATFORM_OWNER";
 
   // Advanced Tenant Form States
   const [newTaxOffice, setNewTaxOffice] = useState("");
@@ -346,6 +426,7 @@ function StudioPageContent() {
         const data = await res.json();
         setPricing(data);
         setEditLitePrice(data.Lite);
+        setEditServicePrice(data.Service ?? 990);
         setEditProPrice(data.Pro);
         setEditEnterprisePrice(data.Enterprise);
         setEditFreeBranchLimit(data.freeBranchLimit);
@@ -372,6 +453,10 @@ function StudioPageContent() {
 
   const handleSavePricing = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canManagePricing) {
+      toast.error("Bu islem icin yetkiniz yok.");
+      return;
+    }
     setIsSavingPricing(true);
     try {
       const res = await fetch("/api/studio/pricing", {
@@ -379,18 +464,23 @@ function StudioPageContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           Lite: Number(editLitePrice),
+          Service: Number(editServicePrice),
           Pro: Number(editProPrice),
           Enterprise: Number(editEnterprisePrice),
           freeBranchLimit: Number(editFreeBranchLimit),
           branchSurchargePrice: Number(editBranchSurcharge),
           addons: editAddons,
           features: editFeatures,
+          reason: pricingChangeReason,
+          actor: "StudioAdmin",
         }),
       });
       if (res.ok) {
-        toast.success("Fiyatlandirma ayarlari baxariyla guncellendi.");
+        toast.success("Fiyatlandırma ayarları başarıyla güncellendi.");
         await fetchPricing();
         await fetchTenants(); // Recalculate MRR
+        await fetchReports();
+        setPricingChangeReason("");
       } else {
         toast.error("Ayarlar kaydedilemedi.");
       }
@@ -408,6 +498,11 @@ function StudioPageContent() {
       setNewTenantDbLimit(5.0);
       setNewTenantApiLimit(200000);
       setNewTenantModules({ pos: true, repairs: true, stock: true, buyback: true, invoicing: true });
+    } else if (newTenantPlan === "Service") {
+      setNewTenantBranchLimit(3);
+      setNewTenantDbLimit(0.7);
+      setNewTenantApiLimit(25000);
+      setNewTenantModules({ pos: false, repairs: true, stock: true, buyback: false, invoicing: false });
     } else if (newTenantPlan === "Pro") {
       setNewTenantBranchLimit(5);
       setNewTenantDbLimit(1.0);
@@ -424,7 +519,7 @@ function StudioPageContent() {
   const handleAddExpense = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!expenseDesc || !expenseAmount) {
-      toast.error("Lutfen aciklama ve tutar giriniz.");
+      toast.error("Lütfen açıklama ve tutar giriniz.");
       return;
     }
     try {
@@ -439,7 +534,7 @@ function StudioPageContent() {
         }),
       });
       if (res.ok) {
-        toast.success("Gider kaydi baxariyla eklendi.");
+        toast.success("Gider kaydı başarıyla eklendi.");
         setExpenseDesc("");
         setExpenseAmount("");
         setIsAddExpenseOpen(false);
@@ -471,8 +566,12 @@ function StudioPageContent() {
 
   const handleAddGlobalLedgerEntry = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canManageFinance) {
+      toast.error("Bu islem icin yetkiniz yok.");
+      return;
+    }
     if (!globalLedgerTenantId) {
-      toast.error("Lutfen bir bayi secin.");
+      toast.error("Lütfen bir bayi seçin.");
       return;
     }
     const amountNum = Number(globalLedgerAmount);
@@ -481,31 +580,30 @@ function StudioPageContent() {
       return;
     }
     if (!globalLedgerDesc) {
-      toast.error("Lutfen aciklama girin.");
+      toast.error("Lütfen açıklama girin.");
       return;
     }
 
     const tenant = tenantConfigs.find((c) => c.id === globalLedgerTenantId);
     if (!tenant) {
-      toast.error("Bayi bulunamadi.");
+      toast.error("Bayi bulunamadı.");
       return;
     }
 
     setIsAddingGlobalLedger(true);
 
-    const newEntry: BillingLedgerEntry = {
+    const newEntry: BillingLedgerEntry = normalizeLedgerEntry({
       id: "ledger-" + Date.now(),
       type: globalLedgerType,
       category: globalLedgerCategory,
       amount: amountNum,
       description: globalLedgerDesc,
       date: globalLedgerDate || new Date().toISOString().split("T")[0],
-    };
-
-    if (globalLedgerType === "CHARGE") {
-      newEntry.dueDate = globalLedgerDueDate || new Date().toISOString().split("T")[0];
-      newEntry.status = "UNPAID";
-    }
+      dueDate: globalLedgerType === "CHARGE" ? (globalLedgerDueDate || new Date().toISOString().split("T")[0]) : undefined,
+      status: globalLedgerType === "CHARGE" ? "UNPAID" : "PAID",
+      sourceModule: "BILLING",
+      createdBy: "StudioAdmin",
+    });
 
     const updatedMeta: SaasMetadata = {
       ...tenant.meta,
@@ -530,6 +628,7 @@ function StudioPageContent() {
         setGlobalLedgerDesc("");
         setGlobalLedgerDueDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]);
         fetchTenants();
+        fetchReports();
       } else {
         toast.error("Cari ixlem kaydedilemedi.");
       }
@@ -541,15 +640,19 @@ function StudioPageContent() {
   };
 
   const handleCollectInvoice = async (tenantId: string, entryId: string) => {
+    if (!canManageFinance) {
+      toast.error("Bu islem icin yetkiniz yok.");
+      return;
+    }
     const tenant = tenantConfigs.find((c) => c.id === tenantId);
     if (!tenant) {
-      toast.error("Bayi bulunamadi.");
+      toast.error("Bayi bulunamadı.");
       return;
     }
 
     const chargeIndex = tenant.meta.billingLedger.findIndex((e) => e.id === entryId);
     if (chargeIndex === -1) {
-      toast.error("Fatura kaydi bulunamadi.");
+      toast.error("Fatura kaydi bulunamadı.");
       return;
     }
 
@@ -561,20 +664,24 @@ function StudioPageContent() {
     // Mark as PAID
     const updatedLedger = tenant.meta.billingLedger.map((e) => {
       if (e.id === entryId) {
-        return { ...e, status: "PAID" as const };
+        return { ...e, status: "PAID" as const, updatedAt: new Date().toISOString() };
       }
       return e;
     });
 
     // Create a matching COLLECTION entry
-    const newCollection: BillingLedgerEntry = {
+    const newCollection: BillingLedgerEntry = normalizeLedgerEntry({
       id: "ledger-" + Date.now(),
       type: "COLLECTION",
       category: charge.category,
       amount: charge.amount,
       description: `Tahsilat: ${charge.description}`,
       date: new Date().toISOString().split("T")[0],
-    };
+      referenceNo: charge.referenceNo ? `${charge.referenceNo}-COL` : undefined,
+      sourceModule: "BILLING",
+      createdBy: "StudioAdmin",
+      status: "PAID",
+    });
 
     updatedLedger.push(newCollection);
 
@@ -598,6 +705,7 @@ function StudioPageContent() {
       if (res.ok) {
         toast.success("Tahsilat kaydi oluxturuldu ve fatura kapatildi.");
         fetchTenants();
+        fetchReports();
       } else {
         toast.error("Tahsilat ixlemi kaydedilemedi.");
       }
@@ -610,10 +718,13 @@ function StudioPageContent() {
     fetchTenants();
     fetchPricing();
     fetchExpenses();
+    fetchReports();
+    fetchCrmInsights();
+    fetchAuthMe();
   }, []);
 
   const fetchTenants = async () => {
-    setLoading(true);
+    setLoadıng(true);
     try {
       const res = await fetch("/api/studio/customers");
       if (res.ok) {
@@ -623,14 +734,14 @@ function StudioPageContent() {
         toast.error("Firma listesi yuklenemedi.");
       }
     } catch {
-      toast.error("Sunucu baxlantisi kurulamadi.");
+      toast.error("Sunucu bağlantısi kurulamadı.");
     } finally {
-      setLoading(false);
+      setLoadıng(false);
     }
   };
 
   const fetchTenantDetails = async (id: string) => {
-    setDetailLoading(true);
+    setDetailLoadıng(true);
     try {
       const res = await fetch(`/api/studio/customers/${id}`);
       if (res.ok) {
@@ -662,19 +773,26 @@ function StudioPageContent() {
         setEditSmsUsed(data.saasMetadata.smsUsed ?? 0);
         setEditLeadStatus(data.saasMetadata.leadStatus ?? "WON");
         setEditLeadHistory(data.saasMetadata.leadHistory || []);
+        setEditCrmTasks(data.saasMetadata.crmTasks || []);
+        setEditNextActionDate(data.saasMetadata.nextActionDate || "");
+        setEditOwnerUserId(data.saasMetadata.ownerUserId || "");
+        setEditExpectedDealAmount(Number(data.saasMetadata.expectedDealAmount || 0));
+        setEditLostReason(data.saasMetadata.lostReason || "");
+        setEditWonSource(data.saasMetadata.wonSource || "");
       } else {
-        toast.error("Firma detaylari alinamadi.");
+        toast.error("Firma detaylari alinamadı.");
       }
     } catch {
       toast.error("Firma detaylari yuklenirken hata oluxtu.");
     } finally {
-      setDetailLoading(false);
+      setDetailLoadıng(false);
     }
   };
 
   useEffect(() => {
     if (selectedTenantId) {
       fetchTenantDetails(selectedTenantId);
+      fetchCrmSuggestions(selectedTenantId);
       setActiveConsoleTab("GENERAL");
       setSelectedTicketIdInsideModal(null);
       setReplyBody("");
@@ -714,6 +832,12 @@ function StudioPageContent() {
       },
       tickets: [],
       billingLedger: [],
+      crmTasks: [],
+      nextActionDate: "",
+      ownerUserId: "",
+      expectedDealAmount: 0,
+      lostReason: "",
+      wonSource: "",
     };
 
     if (!notes) return defaultMeta;
@@ -741,6 +865,12 @@ function StudioPageContent() {
             description: b.description || "",
             date: b.date || new Date().toISOString().split("T")[0]
           })),
+          crmTasks: parsed.crmTasks || [],
+          nextActionDate: parsed.nextActionDate || "",
+          ownerUserId: parsed.ownerUserId || "",
+          expectedDealAmount: Number(parsed.expectedDealAmount || 0),
+          lostReason: parsed.lostReason || "",
+          wonSource: parsed.wonSource || "",
         };
       }
     } catch {}
@@ -756,6 +886,150 @@ function StudioPageContent() {
     if (diffDays <= 30) return "NEAR_EXPIRY";
     return "ACTIVE";
   };
+
+  const handleRevertPricing = async (historyId: string) => {
+    if (!canManagePricing) {
+      toast.error("Bu islem icin yetkiniz yok.");
+      return;
+    }
+    try {
+      const res = await fetch("/api/studio/pricing", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ historyId, actor: "StudioAdmin" }),
+      });
+      if (!res.ok) {
+        toast.error("Fiyatlandirma geri alinamadı.");
+        return;
+      }
+      toast.success("Fiyatlandirma gecmis kaydina gore geri alindi.");
+      await fetchPricing();
+      await fetchReports();
+      await fetchTenants();
+    } catch {
+      toast.error("Baxlanti hatasi.");
+    }
+  };
+
+  const handleCreateRenewalCharge = async (tenantId: string, suggestedAmount: number, description: string) => {
+    if (!canManageFinance) {
+      toast.error("Bu islem icin yetkiniz yok.");
+      return;
+    }
+    const tenant = tenantConfigs.find((c) => c.id === tenantId);
+    if (!tenant) return toast.error("Bayi bulunamadı.");
+    const entry = normalizeLedgerEntry({
+      id: "renew-" + Date.now(),
+      type: "CHARGE",
+      category: "LICENSE",
+      amount: Number(suggestedAmount || 0),
+      description: description || "Otomatik yenileme borclandirmasi",
+      date: new Date().toISOString().split("T")[0],
+      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+      status: "UNPAID",
+      sourceModule: "AUTOMATION",
+      createdBy: "StudioAdmin",
+    });
+    const updatedMeta: SaasMetadata = {
+      ...tenant.meta,
+      billingLedger: [...(tenant.meta.billingLedger || []), entry],
+    };
+    try {
+      const res = await fetch(`/api/studio/customers/${tenantId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: tenant.tenant.fullName,
+          phone: tenant.tenant.phone,
+          email: tenant.tenant.email,
+          saasMetadata: updatedMeta,
+        }),
+      });
+      if (!res.ok) return toast.error("Yenileme borcu olusturulamadı.");
+      toast.success("Yenileme borclandirmasi eklendi.");
+      await fetchTenants();
+      await fetchReports();
+    } catch {
+      toast.error("Baxlanti hatasi.");
+    }
+  };
+
+  const fetchReports = async () => {
+    try {
+      setReportsLoadıng(true);
+      const res = await fetch("/api/studio/reports");
+      if (res.ok) {
+        const data = await res.json();
+        setReports(data);
+      }
+    } catch (err) {
+      console.error("Error fetching reports:", err);
+    } finally {
+      setReportsLoadıng(false);
+    }
+  };
+
+  const fetchCrmInsights = async () => {
+    try {
+      const res = await fetch("/api/studio/crm/insights");
+      if (!res.ok) return;
+      const data = await res.json();
+      setCrmInsights(data);
+    } catch {
+      setCrmInsights(null);
+    }
+  };
+
+  const fetchCrmSuggestions = async (tenantId: string) => {
+    const tenant = tenantConfigs.find((t) => t.id === tenantId);
+    if (!tenant) return;
+    try {
+      const res = await fetch("/api/studio/crm/tasks");
+      if (!res.ok) return;
+      const allTasks = await res.json();
+      const openCount = (tenant.meta.tickets || []).filter((x: any) => x.status !== "RESOLVED").length;
+      const lastContact = tenant.meta.leadHistory?.[0]?.date || "";
+      const now = new Date();
+      const lastDate = lastContact ? new Date(lastContact) : new Date("2000-01-01");
+      const gap = Math.floor((now.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+      const draft: any[] = [];
+      if (gap >= 3 && tenant.meta.leadStatus !== "WON" && tenant.meta.leadStatus !== "LOST") {
+        draft.push({ type: "NO_CONTACT_3_DAYS", title: "3 gun temassiz lead" });
+      }
+      if (tenant.meta.leadStatus === "OFFER_SENT" && gap >= 2) {
+        draft.push({ type: "OFFER_NO_RESPONSE", title: "Teklife donus yok" });
+      }
+      if ((tenant.meta.expectedDealAmount || 0) >= 20000) {
+        draft.push({ type: "HIGH_MRR_CANDIDATE", title: "Yuksek MRR adayi" });
+      }
+      if (openCount > 0) {
+        draft.push({ type: "TICKET_FOLLOW_UP", title: "Ticket sonrasi musteri temasi" });
+      }
+      const existing = (allTasks?.tasks || []).filter((t: any) => t.tenantId === tenantId && t.status !== "DONE");
+      setCrmSuggestions(draft.filter((d) => !existing.some((e: any) => (e.title || "").toLowerCase().includes((d.title || "").toLowerCase()))));
+    } catch {
+      setCrmSuggestions([]);
+    }
+  };
+
+  const fetchAuthMe = async () => {
+    try {
+      const res = await fetch("/api/auth/me");
+      if (!res.ok) return;
+      const data = await res.json();
+      setSessionRole(data?.user?.role || null);
+    } catch {
+      setSessionRole(null);
+    }
+  };
+
+  const getPlanBasePrice = useCallback((plan: SaasMetadata["plan"]) => {
+    if (plan === "Lite") return pricing.Lite;
+    if (plan === "Service") return pricing.Service;
+    if (plan === "Pro") return pricing.Pro;
+    if (plan === "Enterprise") return pricing.Enterprise;
+    return 0;
+  }, [pricing]);
 
   const getLicenseStatusBadge = (status: "ACTIVE" | "NEAR_EXPIRY" | "EXPIRED") => {
     if (status === "EXPIRED") {
@@ -787,7 +1061,7 @@ function StudioPageContent() {
     return tenants.map((t) => {
       const meta = parseMetadata(t.notes);
       const status = getLicenseStatus(meta.licenseEnd);
-      const planPrice = meta.plan === "Lite" ? pricing.Lite : meta.plan === "Pro" ? pricing.Pro : meta.plan === "Enterprise" ? pricing.Enterprise : 0;
+      const planPrice = getPlanBasePrice(meta.plan);
       const mrr = planPrice + (meta.branchLimit > pricing.freeBranchLimit ? (meta.branchLimit - pricing.freeBranchLimit) * pricing.branchSurchargePrice : 0);
       
       const balance = meta.billingLedger.reduce(
@@ -833,7 +1107,7 @@ function StudioPageContent() {
         churnReason,
       };
     });
-  }, [tenants, pricing]);
+  }, [tenants, pricing, getPlanBasePrice]);
 
   const leadPipeline = useMemo(() => {
     const counts = {
@@ -929,7 +1203,7 @@ function StudioPageContent() {
   ) => {
     const tenantConfig = tenantConfigs.find((tc) => tc.id === tenantId);
     if (!tenantConfig) {
-      toast.error("Firma bulunamadi.");
+      toast.error("Firma bulunamadı.");
       return;
     }
 
@@ -973,10 +1247,10 @@ function StudioPageContent() {
       });
 
       if (res.ok) {
-        toast.success("Destek talebi guncellendi.");
+        toast.success("Destek talebi güncellendi.");
         await fetchTenants();
       } else {
-        toast.error("Bilet guncellenemedi.");
+        toast.error("Bilet güncellenemedi.");
       }
     } catch {
       toast.error("Baxlanti hatasi.");
@@ -1012,10 +1286,10 @@ function StudioPageContent() {
       });
 
       if (res.ok) {
-        toast.success("Ixlem baxariyla guncellendi.");
+        toast.success("İşlem başarıyla güncellendi.");
         fetchTenants();
       } else {
-        toast.error("Hizli guncelleme baxarisiz.");
+        toast.error("Hızlı güncelleme başarısız.");
       }
     } catch {
       toast.error("Baxlanti hatasi.");
@@ -1034,7 +1308,7 @@ function StudioPageContent() {
     meta.licenseEnd = newEnd.toISOString().split("T")[0];
     
     // Add annual charge (scaled with branch limit)
-    const planPrice = meta.plan === "Lite" ? pricing.Lite : meta.plan === "Pro" ? pricing.Pro : meta.plan === "Enterprise" ? pricing.Enterprise : 0;
+    const planPrice = getPlanBasePrice(meta.plan);
     const annualBase = planPrice * 12;
     const annualBranchSurcharge = (meta.branchLimit > pricing.freeBranchLimit ? (meta.branchLimit - pricing.freeBranchLimit) * pricing.branchSurchargePrice : 0) * 12;
     const price = annualBase + annualBranchSurcharge;
@@ -1061,7 +1335,7 @@ function StudioPageContent() {
       [modKey]: !meta.modules[modKey],
     };
 
-    toast.info(`${item.tenant.fullName} icin modul dexixtiriliyor...`);
+    toast.info(`${item.tenant.fullName} icin modül değiştiriliyor...`);
     quickUpdateTenant(item.id, meta, { fullName: item.tenant.fullName });
   };
 
@@ -1102,9 +1376,15 @@ function StudioPageContent() {
       smsUsed: Number(editSmsUsed),
       leadStatus: editLeadStatus,
       leadHistory: editLeadHistory,
+      nextActionDate: editNextActionDate,
+      ownerUserId: editOwnerUserId,
+      expectedDealAmount: Number(editExpectedDealAmount || 0),
+      lostReason: editLostReason,
+      wonSource: editWonSource,
       modules: editModules,
       tickets: editTickets,
       billingLedger: editBillingLedger,
+      crmTasks: editCrmTasks,
       rolePermissions: editRolePermissions,
     };
 
@@ -1121,11 +1401,11 @@ function StudioPageContent() {
       });
 
       if (res.ok) {
-        toast.success("Firma lisans ve yapilandirma ayarlari guncellendi.");
+        toast.success("Firma lisans ve yapılandırma ayarlari güncellendi.");
         setSelectedTenantId(null);
         fetchTenants();
       } else {
-        toast.error("Kaydetme ixlemi baxarisiz oldu.");
+        toast.error("Kaydetme ixlemi başarısız oldu.");
       }
     } catch {
       toast.error("Baxlanti hatasi.");
@@ -1135,11 +1415,11 @@ function StudioPageContent() {
   const handleAddTenant = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTenantName || !newTenantPhone) {
-      toast.error("Lutfen firma adi ve telefon bilgilerini doldurun.");
+      toast.error("Lütfen firma adı ve telefon bilgilerini doldurun.");
       return;
     }
     if (!newTenantEmail || !newTenantInitialPassword || newTenantInitialPassword.length < 6) {
-      toast.error("Lutfen e-posta ve en az 6 karakterli ilk giris sifresini girin.");
+      toast.error("Lütfen e-posta ve en az 6 karakterli ilk giriş şifresini girin.");
       return;
     }
 
@@ -1148,7 +1428,7 @@ function StudioPageContent() {
     endDateObj.setMonth(endDateObj.getMonth() + newLicenseDuration);
     const end = endDateObj.toISOString().split("T")[0];
 
-    const basePrice = newTenantPlan === "Lite" ? pricing.Lite : newTenantPlan === "Pro" ? pricing.Pro : newTenantPlan === "Enterprise" ? pricing.Enterprise : 0;
+    const basePrice = getPlanBasePrice(newTenantPlan);
     const extraBranches = newTenantBranchLimit > pricing.freeBranchLimit ? (newTenantBranchLimit - pricing.freeBranchLimit) : 0;
     const extraBranchMonthlyPrice = extraBranches * pricing.branchSurchargePrice;
     const totalMonthlyPrice = basePrice + extraBranchMonthlyPrice;
@@ -1175,21 +1455,31 @@ function StudioPageContent() {
       leadHistory: [
         { 
           date: start, 
-          note: `Sistem aktivasyonu yapildi. Plan: ${newTenantPlan}, Sure: ${newLicenseDuration} Ay, Sube Limiti: ${newTenantBranchLimit}, Yetkili: ${newAuthorizedPerson} (Sehir: ${newCity}, V.D.: ${newTaxOffice}, V.N.: ${newTaxNumber})`, 
+          note: `Sistem aktivasyonu yapildi. Plan: ${newTenantPlan}, Sure: ${newLicenseDuration} Ay, Şube Limiti: ${newTenantBranchLimit}, Yetkili: ${newAuthorizedPerson} (Sehir: ${newCity}, V.D.: ${newTaxOffice}, V.N.: ${newTaxNumber})`, 
           author: "SuperAdmin" 
         }
       ],
       modules: newTenantModules,
       tickets: [],
+      crmTasks: [],
+      nextActionDate: "",
+      ownerUserId: "",
+      expectedDealAmount: 0,
+      lostReason: "",
+      wonSource: "",
       billingLedger: [
-        {
+        normalizeLedgerEntry({
           id: "bill-" + Date.now(),
           type: "CHARGE",
           category: "LICENSE",
           amount: finalAmount,
-          description: `${newLicenseDuration} Aylik ${newTenantPlan} Lisans Screti ${newLicenseDuration === 12 ? `(%${discountPct} Yillik Indirim Uygulandi)` : ""}`,
+          description: `${newLicenseDuration} Aylik ${newTenantPlan} Lisans Screti ${newLicenseDuration === 12 ? `(%${discountPct} Yıllık Indirim Uygulandi)` : ""}`,
           date: start,
-        },
+          dueDate: end,
+          status: "UNPAID",
+          sourceModule: "AUTOMATION",
+          createdBy: "StudioAdmin",
+        }),
       ],
     };
 
@@ -1210,7 +1500,7 @@ function StudioPageContent() {
       });
 
       if (res.ok) {
-        toast.success("Firma baxariyla sisteme eklendi ve lisanslandi.");
+        toast.success("Firma başarıyla sisteme eklendi ve lisanslandı.");
         setIsAddTenantOpen(false);
         setNewTenantName("");
         setNewTenantPhone("");
@@ -1234,7 +1524,7 @@ function StudioPageContent() {
   // Lead History Helpers
   const addLeadHistoryEntry = () => {
     if (!newLeadNote.trim()) {
-      toast.error("Lutfen bir not yazin.");
+      toast.error("Lütfen bir not yazın.");
       return;
     }
     const newEntry: LeadHistoryEntry = {
@@ -1260,6 +1550,17 @@ function StudioPageContent() {
     }
     if (newIndex !== currentIndex) {
       const nextStatus = STATUS_ORDER[newIndex];
+      const missing: string[] = [];
+      if (!item.meta.nextActionDate) missing.push("nextActionDate");
+      if (!item.meta.ownerUserId) missing.push("owner");
+      if (!item.meta.expectedDealAmount) missing.push("expectedDealAmount");
+      if (!item.meta.leadHistory?.length) missing.push("stageReason");
+      if (nextStatus === "LOST" && !item.meta.lostReason) missing.push("lostReason");
+      if (nextStatus === "WON" && !item.meta.wonSource) missing.push("wonSource");
+      if (missing.length) {
+        toast.error(`Asama gecisi engellendi. Eksik alanlar: ${missing.join(", ")}`);
+        return;
+      }
       const updatedMeta = {
         ...item.meta,
         leadStatus: nextStatus,
@@ -1272,7 +1573,7 @@ function StudioPageContent() {
           ...(item.meta.leadHistory || [])
         ]
       };
-      toast.info(`${item.tenant.fullName} durumu ${nextStatus} olarak guncelleniyor...`);
+      toast.info(`${item.tenant.fullName} durumu ${nextStatus} olarak güncelleniyor...`);
       quickUpdateTenant(item.id, updatedMeta, { fullName: item.tenant.fullName });
     }
   };
@@ -1339,9 +1640,9 @@ function StudioPageContent() {
           </style>
         </head>
         <body>
-          <div class="no-print" style="margin-bottom: 20px; background: #f5f5f4; padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e7e5e4;">
+          <div class="no-print" style="margin-bottom: 20px; background: #f5f5f4; padding: 10px; border-radıus: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e7e5e4;">
             <span style="font-size: 12px; font-weight: bold; color: #44403c;">Belge nizleme & Yazdirma Ekrani</span>
-            <button onclick="window.print()" style="background: #1c1917; color: white; border: none; padding: 6px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">Yazdir / PDF Kaydet</button>
+            <button onclick="window.print()" style="background: #1c1917; color: white; border: none; padding: 6px 16px; border-radıus: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">Yazdir / PDF Kaydet</button>
           </div>
           <div class="header">
             <div>
@@ -1358,7 +1659,7 @@ function StudioPageContent() {
               <h3>Gonderen Firma</h3>
               <p><strong>MobiBase Bilixim A.S.</strong></p>
               <p>Teknokent Plaza No: 45/A</p>
-              <p>Kadikoy / Istanbul</p>
+              <p>Kadıkoy / Istanbul</p>
               <p>destek@mobibase.com</p>
             </div>
             <div>
@@ -1413,7 +1714,7 @@ function StudioPageContent() {
             </table>
           </div>
           <div class="footer">
-            Bu belge MobiBase Studio simulasyon sisteminde oluxturulmuxtur. Elektronik arxiv veya resmi fatura nitelixi taximamaktadir.
+            Bu belge MobiBase Studio simulasyon sisteminde oluxturulmuxtur. Elektronik arxiv veya resmi fatura nitelixi taximamaktadır.
           </div>
         </body>
       </html>
@@ -1423,15 +1724,15 @@ function StudioPageContent() {
 
   const handleSendInvoiceEmail = (entry: BillingLedgerEntry) => {
     if (!editEmail) {
-      toast.error("Lutfen once bayinin e-posta adresini Genel sekmesinden tanimlayin.");
+      toast.error("Lütfen önce bayinin e-posta adresini Genel sekmesinden tanımlayın.");
       return;
     }
     toast.promise(
       new Promise((resolve) => setTimeout(resolve, 1500)),
       {
-        loading: `${editEmail} adresine e-posta fatura bildirimi hazirlaniyor...`,
-        success: `${editEmail} adresine e-posta fatura bildirimi baxariyla gonderildi! S0`,
-        error: 'Gonderim baxarisiz oldu.',
+        loadıng: `${editEmail} adresine e-posta fatura bildirimi hazirlaniyor...`,
+        success: `${editEmail} adresine e-posta fatura bildirimi başarıyla gönderildi!`,
+        error: 'Gonderim başarısız oldu.',
       }
     );
   };
@@ -1439,7 +1740,7 @@ function StudioPageContent() {
   // Support Tickets Helpers
   const addSupportTicket = () => {
     if (!newTicketTitle.trim()) {
-      toast.error("Lutfen talep baxlixi girin.");
+      toast.error("Lütfen talep başlığı girin.");
       return;
     }
     const newTicket: Ticket = {
@@ -1479,21 +1780,104 @@ function StudioPageContent() {
     toast.success("Cevabiniz eklendi (Kaydet butonuna basmayi unutmayin).");
   };
 
+  const createCrmTask = async (tenantId: string, payload: Partial<CrmTask>) => {
+    try {
+      const res = await fetch("/api/studio/crm/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tenantId,
+          type: payload.type || "FOLLOW_UP",
+          title: payload.title || "CRM Görevi",
+          description: payload.description || "",
+          dueDate: payload.dueDate || new Date().toISOString().split("T")[0],
+          ownerUserId: payload.ownerUserId || editOwnerUserId || "",
+          status: payload.status || "OPEN",
+          leadStatus: payload.leadStatus || editLeadStatus,
+        }),
+      });
+      if (!res.ok) return toast.error("CRM gorevi olusturulamadı.");
+      toast.success("CRM gorevi olusturuldu.");
+      if (selectedTenantId) fetchTenantDetails(selectedTenantId);
+      fetchCrmInsights();
+    } catch {
+      toast.error("Baxlanti hatasi.");
+    }
+  };
+
+  const updateCrmTask = async (tenantId: string, taskId: string, patch: Partial<CrmTask>) => {
+    try {
+      const res = await fetch(`/api/studio/crm/tasks/${taskId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tenantId, ...patch }),
+      });
+      if (!res.ok) return toast.error("Görev güncellenemedi.");
+      if (selectedTenantId) fetchTenantDetails(selectedTenantId);
+      fetchCrmInsights();
+    } catch {
+      toast.error("Baxlanti hatasi.");
+    }
+  };
+
+  const applyCrmSuggestion = async (tenantId: string, suggestionType: string) => {
+    try {
+      const res = await fetch("/api/studio/crm/suggestions/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tenantId, suggestionType }),
+      });
+      if (!res.ok) {
+        toast.error("Oneri uygulanamadı.");
+        return;
+      }
+      toast.success("Oneriden gorev olusturuldu.");
+      if (selectedTenantId) {
+        fetchTenantDetails(selectedTenantId);
+        fetchCrmSuggestions(selectedTenantId);
+      }
+      fetchCrmInsights();
+    } catch {
+      toast.error("Baxlanti hatasi.");
+    }
+  };
+
+  const addSupportChargeFromTicket = (ticket: Ticket) => {
+    const charge = normalizeLedgerEntry({
+      id: "ledger-" + Date.now(),
+      type: "CHARGE",
+      category: "SUPPORT",
+      amount: 500,
+      description: `Destek talebi ucreti: ${ticket.title}`,
+      date: new Date().toISOString().split("T")[0],
+      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+      status: "UNPAID",
+      sourceModule: "HELPDESK",
+      createdBy: "StudioAdmin",
+      referenceNo: `TKT-${ticket.id.slice(-6)}`,
+    });
+    setEditBillingLedger((prev) => [...prev, charge]);
+    toast.success("Ticket icin destek ucreti cari harekete eklendi (Kaydet butonuna basmayi unutmayin).");
+  };
+
   // Billing Ledger Helpers
   const addLedgerEntry = () => {
     const amountNum = Number(ledgerAmount);
     if (isNaN(amountNum) || amountNum <= 0) {
-      toast.error("Lutfen gecerli bir tutar girin.");
+      toast.error("Lütfen geçerli bir tutar girin.");
       return;
     }
-    const newEntry: BillingLedgerEntry = {
+    const newEntry: BillingLedgerEntry = normalizeLedgerEntry({
       id: "ledger-" + Date.now(),
       type: ledgerType,
       category: ledgerCategory,
       amount: amountNum,
       description: ledgerDesc || (ledgerType === "CHARGE" ? "Ek Hizmet Bedeli" : "deme Tahsilati"),
       date: new Date().toISOString().split("T")[0],
-    };
+      dueDate: ledgerType === "CHARGE" ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0] : undefined,
+      sourceModule: "MANUAL",
+      createdBy: "StudioAdmin",
+    });
     setEditBillingLedger([...editBillingLedger, newEntry]);
     setLedgerAmount("");
     setLedgerDesc("");
@@ -1564,7 +1948,7 @@ function StudioPageContent() {
       </div>
 
       {/* SaaS Reseller KPIs Grid - White Clean Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6">
         {/* KPI 1 */}
         <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-10">
@@ -1638,6 +2022,18 @@ function StudioPageContent() {
             <span className="text-[10px] text-slate-500 font-semibold block">Tuketim Orani: %{apiKpis.pct}</span>
           </div>
         </div>
+        <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-10">
+            <svg className="w-16 h-16 text-indigo-600" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M3 13h8V3H3v10zm10 8h8v-8h-8v8zM3 21h8v-6H3v6zm10-10h8V3h-8v8z" />
+            </svg>
+          </div>
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Lead -&gt; Won</span>
+          <span className="text-3xl font-extrabold text-indigo-600 mt-2 block">
+            %{Number(crmInsights?.kpis?.leadToWonConversionPct || 0).toFixed(1)}
+          </span>
+          <span className="text-xs text-indigo-600 mt-2 block font-semibold">Ort Win Suresi: {crmInsights?.kpis?.averageTimeToWinDays || 0} gun</span>
+        </div>
       </div>
 
       {/* Satix Hunisi (Sales Funnel) */}
@@ -1687,11 +2083,11 @@ function StudioPageContent() {
       {/* Tab Switcher for Portfolio, Helpdesk, Infrastructure, Billing, Logs */}
       <div className="flex border-b border-slate-200 overflow-x-auto">
         {[
-          { id: "portfolio" as const, label: "Bayi Portfoyu & Lisans Yonetimi" },
+          { id: "portfolio" as const, label: "Bayi Portföyü & Lisans Yönetimi" },
           { id: "helpdesk" as const, label: "Destek Masasi (Helpdesk)", badge: kpis.totalOpenTickets },
-          { id: "infrastructure" as const, label: "Altyapi & Sube Analitigi" },
+          { id: "infrastructure" as const, label: "Altyapı & Şube Analitiği" },
           { id: "billing" as const, label: "Muhasebe & Finans" },
-          { id: "pricing" as const, label: "Paket & Fiyat Yonetimi" },
+          { id: "pricing" as const, label: "Paket & Fiyat Yönetimi" },
           { id: "logs" as const, label: "Sistem Sagligi & Loglar" },
         ].map((tab) => {
           const isActive = mainTab === tab.id;
@@ -1730,7 +2126,7 @@ function StudioPageContent() {
             <input
               type="text"
               className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-sm font-medium"
-              placeholder="Firma adi, telefon veya e-posta..."
+              placeholder="Firma adı, telefon veya e-posta..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -1748,10 +2144,11 @@ function StudioPageContent() {
               value={planFilter}
               onChange={(e) => setPlanFilter(e.target.value as any)}
             >
-              <option value="ALL">Tum Lisans Planlari</option>
+              <option value="ALL">Tüm Lisans Planlari</option>
               <option value="Lite">Lite Plani ({pricing.Lite} TL/ay)</option>
-              <option value="Pro">Pro Plani ({pricing.Pro} TL/ay)</option>
-              <option value="Enterprise">Enterprise Plani ({pricing.Enterprise} TL/ay)</option>
+              <option value="Service">Servis Planı ({pricing.Service} TL/ay)</option>
+              <option value="Pro">Pro Planı ({pricing.Pro} TL/ay)</option>
+              <option value="Enterprise">Enterprise Planı ({pricing.Enterprise} TL/ay)</option>
             </select>
           </div>
 
@@ -1762,7 +2159,7 @@ function StudioPageContent() {
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
             >
-              <option value="ALL">Tum Lisans Durumlari</option>
+              <option value="ALL">Tüm Lisans Durumlari</option>
               <option value="ACTIVE">xx Lisansi Aktif</option>
               <option value="NEAR_EXPIRY">xx Son 30 Gunu Kalanlar</option>
               <option value="EXPIRED">x Lisans Suresi Dolanlar</option>
@@ -1776,7 +2173,7 @@ function StudioPageContent() {
               value={crmStatusFilter}
               onChange={(e) => setCrmStatusFilter(e.target.value as any)}
             >
-              <option value="ALL">Tum CRM Durumlari</option>
+              <option value="ALL">Tüm CRM Durumlari</option>
               <option value="LEAD">x Muxteri Adayi (Lead)</option>
               <option value="NEGOTIATION">xx Goruxme Axamasi</option>
               <option value="OFFER_SENT">xx Teklif Iletildi</option>
@@ -1819,7 +2216,7 @@ function StudioPageContent() {
         </div>
 
         <div className="p-6">
-          {loading ? (
+          {loadıng ? (
             <div className="p-12 text-center">
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto"></div>
               <span className="text-slate-500 text-sm mt-3 block">Muxteri listesi cekiliyor...</span>
@@ -1829,7 +2226,7 @@ function StudioPageContent() {
               <svg className="w-12 h-12 mx-auto text-slate-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
-              Aradixiniz kriterlere uygun bayi bulunamadi.
+              Aradıxiniz kriterlere uygun bayi bulunamadı.
             </div>
           ) : viewMode === "table" ? (
             <div className="overflow-x-auto -mx-6 -my-6">
@@ -1838,7 +2235,7 @@ function StudioPageContent() {
                   <tr className="border-b border-slate-200 text-xs font-bold text-slate-500 uppercase bg-slate-50">
                     <th className="px-6 py-4">Firma / Bayi Profili</th>
                     <th className="px-6 py-4">CRM / Durum</th>
-                    <th className="px-6 py-4">Lisans Plani & Moduller</th>
+                    <th className="px-6 py-4">Lisans Planı & Modüller</th>
                     <th className="px-6 py-4">API & Kaynak Tuketimi</th>
                     <th className="px-6 py-4">Lisans Bitix / Sure</th>
                     <th className="px-6 py-4">Cari Bakiye & Destek</th>
@@ -1907,10 +2304,12 @@ function StudioPageContent() {
                               </span>
                             )}
                             {getLicenseStatusBadge(item.status)}
+                            <span className="text-[10px] text-slate-500">Owner: {item.meta.ownerUserId || "UNASSIGNED"}</span>
+                            <span className="text-[10px] text-slate-500">Next: {item.meta.nextActionDate || "-"}</span>
                           </div>
                         </td>
 
-                        {/* Lisans Plani & Moduller */}
+                        {/* Lisans Planı & Modüller */}
                         <td className="px-6 py-4">
                           <div className="space-y-2">
                             <div>
@@ -1978,7 +2377,7 @@ function StudioPageContent() {
                               );
                             })()}
                             <div className="text-[10px] text-slate-400">
-                              DB: <span className="font-mono text-slate-600 font-bold">{item.meta.databaseSizeGb} GB</span>  Sube: <span className="font-mono text-slate-600 font-bold">{item.meta.branchLimit}</span>
+                              DB: <span className="font-mono text-slate-600 font-bold">{item.meta.databaseSizeGb} GB</span>  Şube: <span className="font-mono text-slate-600 font-bold">{item.meta.branchLimit}</span>
                             </div>
                           </div>
                         </td>
@@ -2053,7 +2452,7 @@ function StudioPageContent() {
                               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                               </svg>
-                              Yonet (Console)
+                              Yönet (Console)
                             </button>
                           </div>
                         </td>
@@ -2168,7 +2567,7 @@ function StudioPageContent() {
                                   onClick={() => setSelectedTenantId(item.id)}
                                   className="px-2 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-bold text-[9px] shadow-sm transition-all"
                                 >
-                                  Yonet
+                                  Yönet
                                 </button>
                               </div>
                             </div>
@@ -2321,7 +2720,7 @@ function StudioPageContent() {
                 <div className="flex-1 p-6 overflow-y-auto space-y-4 bg-slate-50/50 max-h-[350px]">
                   {(activeGlobalTicket.ticket.messages || []).length === 0 ? (
                     <div className="text-center text-slate-400 italic text-xs py-12">
-                      Bu talepte henuz mesaj bulunmuyor. Bir yanit yazarak iletiximi baxlatin.
+                      Bu talepte henüz mesaj bulunmuyor. Bir yanıt yazarak iletişimi başlatın.
                     </div>
                   ) : (
                     (activeGlobalTicket.ticket.messages || []).map((msg, idx) => {
@@ -2379,7 +2778,7 @@ function StudioPageContent() {
                     <input
                       type="text"
                       className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-805 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-medium"
-                      placeholder="Cevabinizi buraya yazin..."
+                      placeholder="Cevabinizi buraya yazın..."
                       value={globalReplyBody}
                       onChange={(e) => setGlobalReplyBody(e.target.value)}
                       onKeyDown={(e) => {
@@ -2420,7 +2819,7 @@ function StudioPageContent() {
                 </svg>
                 <h4 className="font-extrabold text-sm text-slate-700 font-sans">Destek Goruxme Alani</h4>
                 <p className="text-xs text-slate-500 mt-1 max-w-sm font-sans">
-                  Gelen destek taleplerini okumak, yanitlamak, atamak ve bilet durumunu guncellemek icin sol panelden bir destek talebi secin.
+                  Gelen destek taleplerini okumak, yanitlamak, atamak ve bilet durumunu güncellemek için sol panelden bir destek talebi seçin.
                 </p>
               </div>
             )}
@@ -2435,7 +2834,7 @@ function StudioPageContent() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {/* Kart 1: Sube Doluluk Orani */}
             <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Toplam Sube Kullanimi</span>
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Toplam Şube Kullanımı</span>
               <span className="text-3xl font-extrabold text-slate-900 mt-2 block">
                 {tenantConfigs.reduce((sum, item) => sum + item.meta.branchLimit, 0)} / 1000
               </span>
@@ -2487,7 +2886,7 @@ function StudioPageContent() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Grafik 1: Sube Daxilim Grafixi */}
             <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-4">
-              <h4 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider">Bayi Sube Daxilimi</h4>
+              <h4 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider">Bayi Şube Dağılımı</h4>
               <div className="space-y-4 pt-2">
                 {tenantConfigs
                   .sort((a, b) => b.meta.branchLimit - a.meta.branchLimit)
@@ -2513,7 +2912,7 @@ function StudioPageContent() {
                         </div>
                         <div className="w-full bg-slate-100 rounded-full h-3 border border-slate-200 overflow-hidden">
                           <div
-                            className={`bg-gradient-to-r ${colorClass} h-3 rounded-full transition-all duration-500`}
+                            className={`bg-gradıent-to-r ${colorClass} h-3 rounded-full transition-all duration-500`}
                             style={{ width: `${pct}%` }}
                           ></div>
                         </div>
@@ -2552,7 +2951,7 @@ function StudioPageContent() {
                           </div>
                           <div className="w-full bg-slate-100 rounded-full h-3 border border-slate-200 overflow-hidden">
                             <div
-                              className={`bg-gradient-to-r ${colorClass} h-3 rounded-full transition-all duration-500`}
+                              className={`bg-gradıent-to-r ${colorClass} h-3 rounded-full transition-all duration-500`}
                               style={{ width: `${pct}%` }}
                             ></div>
                           </div>
@@ -2578,7 +2977,7 @@ function StudioPageContent() {
               <span className="text-3xl font-extrabold text-indigo-600 mt-2 block font-mono">
                 {kpis.totalMRR.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
               </span>
-              <span className="text-[10px] text-slate-500 mt-2 block font-semibold">x Yillik Exdexer (ARR): {(kpis.totalMRR * 12).toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}</span>
+              <span className="text-[10px] text-slate-500 mt-2 block font-semibold">x Yıllık Exdexer (ARR): {(kpis.totalMRR * 12).toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}</span>
             </div>
 
             {/* Toplam Tahsilat */}
@@ -2624,6 +3023,141 @@ function StudioPageContent() {
                   </>
                 );
               })()}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+            <div className="p-4 rounded-xl bg-white border border-slate-200">
+              <div className="text-[10px] font-bold text-slate-500 uppercase">Vadesi Gecen</div>
+              <div className="text-xl font-extrabold text-rose-700 mt-1">
+                {Number(reports?.kpis?.overdueAmount || 0).toLocaleString("tr-TR")} TL
+              </div>
+              <div className="text-[10px] text-slate-500 mt-1">{reports?.dueBuckets?.overdue?.length || 0} kayit</div>
+            </div>
+            <div className="p-4 rounded-xl bg-white border border-slate-200">
+              <div className="text-[10px] font-bold text-slate-500 uppercase">7 Gun Icinde Vade</div>
+              <div className="text-xl font-extrabold text-amber-700 mt-1">
+                {Number((reports?.dueBuckets?.dueIn7 || []).reduce((s: number, x: any) => s + Number(x.amount || 0), 0)).toLocaleString("tr-TR")} TL
+              </div>
+              <div className="text-[10px] text-slate-500 mt-1">{reports?.dueBuckets?.dueIn7?.length || 0} kayit</div>
+            </div>
+            <div className="p-4 rounded-xl bg-white border border-slate-200">
+              <div className="text-[10px] font-bold text-slate-500 uppercase">30 Gun Icinde Vade</div>
+              <div className="text-xl font-extrabold text-indigo-700 mt-1">
+                {Number((reports?.dueBuckets?.dueIn30 || []).reduce((s: number, x: any) => s + Number(x.amount || 0), 0)).toLocaleString("tr-TR")} TL
+              </div>
+              <div className="text-[10px] text-slate-500 mt-1">{reports?.dueBuckets?.dueIn30?.length || 0} kayit</div>
+            </div>
+            <div className="p-4 rounded-xl bg-white border border-slate-200">
+              <div className="text-[10px] font-bold text-slate-500 uppercase">Tahsilat Orani</div>
+              <div className="text-xl font-extrabold text-emerald-700 mt-1">%{Number(reports?.kpis?.collectionRatePct || 0).toFixed(1)}</div>
+              <div className="text-[10px] text-slate-500 mt-1">Genel gelir/tahsilat oranı</div>
+            </div>
+          </div>
+
+          {(reports?.renewalSuggestions?.length || 0) > 0 && (
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">Yenileme Onerileri (&lt;=30 gun)</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {reports?.renewalSuggestions?.slice(0, 6).map((x) => (
+                  <div key={x.tenantId} className="p-3 rounded-xl border border-amber-200 bg-amber-50">
+                    <div className="text-sm font-bold text-slate-800">{x.tenantName}</div>
+                    <div className="text-xs text-slate-600 mt-1">{x.remainingDays} gün kaldı • Öneri: {Number(x.suggestedAmount || 0).toLocaleString("tr-TR")} TL</div>
+                    <button
+                      type="button"
+                      onClick={() => void handleCreateRenewalCharge(x.tenantId, x.suggestedAmount, x.description)}
+                      disabled={!canManageFinance}
+                      className="mt-2 px-2 py-1 text-[10px] font-bold rounded border border-amber-300 bg-white hover:bg-amber-100 text-amber-800 disabled:opacity-50"
+                    >
+                      Tek Tik Yenileme Borcu Olustur
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">Riskli Bayiler</h4>
+              <div className="space-y-2 max-h-44 overflow-y-auto">
+                {(reports?.riskTenants || []).slice(0, 8).map((r) => (
+                  <div key={r.tenantId} className="p-2 rounded-lg border border-rose-200 bg-rose-50 text-xs">
+                    <div className="font-bold text-rose-800">{r.tenantName}</div>
+                    <div className="text-rose-700 mt-0.5">{r.reason} • Gecikme: {Number(r.overdueAmount || 0).toLocaleString("tr-TR")} TL</div>
+                  </div>
+                ))}
+                {!reportsLoadıng && (reports?.riskTenants || []).length === 0 && (
+                  <div className="text-xs text-slate-400 italic">Riskli bayi bulunmuyor.</div>
+                )}
+              </div>
+            </div>
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Aylik Finans Ozeti (6 Ay)</h4>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => window.open("/api/studio/reports?format=csv&type=monthly", "_blank")} className="px-2 py-1 text-[10px] border border-slate-300 rounded bg-slate-50 hover:bg-slate-100 font-bold text-slate-700">CSV Aylik</button>
+                  <button type="button" onClick={() => window.open("/api/studio/reports?format=csv&type=due", "_blank")} className="px-2 py-1 text-[10px] border border-slate-300 rounded bg-slate-50 hover:bg-slate-100 font-bold text-slate-700">CSV Vade</button>
+                  <button type="button" onClick={() => window.open("/api/studio/reports?format=csv&type=renewal", "_blank")} className="px-2 py-1 text-[10px] border border-slate-300 rounded bg-slate-50 hover:bg-slate-100 font-bold text-slate-700">CSV Yenileme</button>
+                  <button type="button" onClick={() => window.open("/api/studio/reports?format=pdf&type=monthly", "_blank")} className="px-2 py-1 text-[10px] border border-slate-300 rounded bg-slate-50 hover:bg-slate-100 font-bold text-slate-700">PDF Aylik</button>
+                  <button type="button" onClick={() => window.open("/api/studio/reports?format=pdf&type=due", "_blank")} className="px-2 py-1 text-[10px] border border-slate-300 rounded bg-slate-50 hover:bg-slate-100 font-bold text-slate-700">PDF Vade</button>
+                  <button type="button" onClick={() => window.open("/api/studio/reports?format=pdf&type=renewal", "_blank")} className="px-2 py-1 text-[10px] border border-slate-300 rounded bg-slate-50 hover:bg-slate-100 font-bold text-slate-700">PDF Yenileme</button>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="text-slate-500 border-b border-slate-200">
+                      <th className="py-1 text-left">Ay</th>
+                      <th className="py-1 text-right">Borc</th>
+                      <th className="py-1 text-right">Tahsilat</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(reports?.monthly || []).map((m) => (
+                      <tr key={m.month} className="border-b border-slate-100">
+                        <td className="py-1 font-semibold text-slate-700">{m.month}</td>
+                        <td className="py-1 text-right text-amber-700 font-mono">{Number(m.charges || 0).toLocaleString("tr-TR")} TL</td>
+                        <td className="py-1 text-right text-emerald-700 font-mono">{Number(m.collections || 0).toLocaleString("tr-TR")} TL</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mt-3 space-y-2">
+                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Plan Bazli Gelir Mini Grafik (6 Ay Toplam)</div>
+                {(() => {
+                  const totals = (reports?.monthly || []).reduce(
+                    (acc, m) => {
+                      acc.Lite += Number(m.byPlan?.Lite || 0);
+                      acc.Service += Number(m.byPlan?.Service || 0);
+                      acc.Pro += Number(m.byPlan?.Pro || 0);
+                      acc.Enterprise += Number(m.byPlan?.Enterprise || 0);
+                      return acc;
+                    },
+                    { Lite: 0, Service: 0, Pro: 0, Enterprise: 0 },
+                  );
+                  const maxVal = Math.max(1, totals.Lite, totals.Service, totals.Pro, totals.Enterprise);
+                  const bars = [
+                    { key: "Lite", val: totals.Lite, color: "bg-slate-500" },
+                    { key: "Service", val: totals.Service, color: "bg-cyan-600" },
+                    { key: "Pro", val: totals.Pro, color: "bg-indigo-600" },
+                    { key: "Enterprise", val: totals.Enterprise, color: "bg-amber-600" },
+                  ];
+                  return bars.map((b) => (
+                    <div key={b.key}>
+                      <div className="flex justify-between text-[11px] font-semibold text-slate-700 mb-1">
+                        <span>{b.key}</span>
+                        <span className="font-mono">{Number(b.val || 0).toLocaleString("tr-TR")} TL</span>
+                      </div>
+                      <div className="h-2 rounded-full bg-slate-100 border border-slate-200">
+                        <div className={`h-2 rounded-full ${b.color}`} style={{ width: `${Math.max(3, (b.val / maxVal) * 100)}%` }} />
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
             </div>
           </div>
 
@@ -2681,7 +3215,7 @@ function StudioPageContent() {
                           return (
                             <tr>
                               <td colSpan={7} className="py-8 text-center text-slate-400 italic">
-                                Bekleyen/vadesi gecmix acik fatura bulunmamaktadir.
+                                Bekleyen/vadesi gecmix acik fatura bulunmamaktadır.
                               </td>
                             </tr>
                           );
@@ -2732,6 +3266,7 @@ function StudioPageContent() {
                                 <div className="flex items-center justify-center gap-2">
                                   <button
                                     onClick={() => handleCollectInvoice(e.tenantId, e.id)}
+                                    disabled={!canManageFinance}
                                     className="px-2 py-1 text-emerald-700 hover:bg-emerald-50 border border-emerald-200 rounded-lg font-bold text-[10px] cursor-pointer transition-all active:scale-[0.98]"
                                     title="Tahsil Et ve Kapat"
                                   >
@@ -2869,7 +3404,7 @@ function StudioPageContent() {
                     <tbody>
                       {expenses.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="py-8 text-center text-slate-400 italic">Kayitli gider bulunmamaktadir.</td>
+                          <td colSpan={5} className="py-8 text-center text-slate-400 italic">Kayitli gider bulunmamaktadır.</td>
                         </tr>
                       ) : (
                         expenses
@@ -2966,7 +3501,7 @@ function StudioPageContent() {
                     <input
                       type="text"
                       className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-stone-500 focus:bg-white"
-                      placeholder="rn: 2026 Yillik Lisans Bedeli"
+                      placeholder="Örn: 2026 Yıllık Lisans Bedeli"
                       value={globalLedgerDesc}
                       onChange={(e) => setGlobalLedgerDesc(e.target.value)}
                     />
@@ -3008,7 +3543,7 @@ function StudioPageContent() {
 
                   <button
                     type="submit"
-                    disabled={isAddingGlobalLedger}
+                    disabled={isAddingGlobalLedger || !canManageFinance}
                     className="w-full py-2.5 bg-stone-900 hover:bg-stone-800 text-stone-50 rounded-xl text-xs font-bold shadow-sm transition-all active:scale-[0.98] mt-2 flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
                   >
                     <span>+</span> {isAddingGlobalLedger ? "Kaydediliyor..." : "Cari Islemi Kaydet"}
@@ -3041,7 +3576,7 @@ function StudioPageContent() {
                     <input
                       type="text"
                       className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white"
-                      placeholder="rn: Vercel Pro Hosting Screti"
+                      placeholder="Örn: Vercel Pro Hosting Screti"
                       value={expenseDesc}
                       onChange={(e) => setExpenseDesc(e.target.value)}
                     />
@@ -3124,7 +3659,7 @@ function StudioPageContent() {
                 <span>x</span> SaaS Paket & Lisans Fiyatlandirma Paneli
               </h3>
               <p className="text-xs text-slate-500 mt-1">
-                TelefoncuPro SaaS modelinde bayilerinize sunacaxiniz paketlerin aylik taban ucretlerini, xube sinir politikalarini, ek paket eklentilerini ve tier ozellik matrislerini yonetin.
+                TelefoncuPro SaaS modelinde bayilerinize sunacağınız paketlerin aylık taban ücretlerini, şube sınır politikalarını, ek paket eklentilerini ve tier özellik matrislerini yönetin.
               </p>
             </div>
 
@@ -3134,7 +3669,7 @@ function StudioPageContent() {
                 <h4 className="text-xs font-bold text-indigo-700 uppercase tracking-widest border-b border-indigo-100 pb-2 flex items-center gap-2">
                   <span>x</span> 1. Taban Plan Fiyatlari (Aylik)
                 </h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <div>
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Lite Paket Taban Fiyati</label>
                     <div className="relative mt-1.5 rounded-xl shadow-sm">
@@ -3168,6 +3703,22 @@ function StudioPageContent() {
                   </div>
 
                   <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Servis Paket Taban Fiyati</label>
+                    <div className="relative mt-1.5 rounded-xl shadow-sm">
+                      <input
+                        type="number"
+                        className="w-full pl-3 pr-10 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        value={editServicePrice}
+                        onChange={(e) => setEditServicePrice(Number(e.target.value))}
+                      />
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-[10px] font-bold text-slate-400">
+                        TL/ay
+                      </div>
+                    </div>
+                    <span className="text-[9px] text-slate-400 mt-1 block">Mevcut: {pricing.Service} </span>
+                  </div>
+
+                  <div>
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Enterprise Paket Taban Fiyati</label>
                     <div className="relative mt-1.5 rounded-xl shadow-sm">
                       <input
@@ -3185,14 +3736,14 @@ function StudioPageContent() {
                 </div>
               </div>
 
-              {/* !oklu Sube Siniri */}
+              {/* Çoklu Şube Sınırı */}
               <div className="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-4">
                 <h4 className="text-xs font-bold text-indigo-700 uppercase tracking-widest border-b border-indigo-100 pb-2 flex items-center gap-2">
-                  <span>x</span> 2. Sube Siniri & Ek Scret Politikasi
+                  <span>x</span> 2. Şube Sınırı & Ek Ücret Politikası
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Taban Scretsiz Sube Siniri</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Taban Ücretsiz Şube Sınırı</label>
                     <div className="relative mt-1.5 rounded-xl shadow-sm">
                       <input
                         type="number"
@@ -3204,11 +3755,11 @@ function StudioPageContent() {
                         Sube
                       </div>
                     </div>
-                    <span className="text-[9px] text-slate-400 mt-1 block">Taban fiyata dahil xube sayisi (Mevcut: {pricing.freeBranchLimit})</span>
+                    <span className="text-[9px] text-slate-400 mt-1 block">Taban fiyata dahil şube sayısı (Mevcut: {pricing.freeBranchLimit})</span>
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Sube Baxina Ek Aylik Scret</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Şube Başına Ek Aylık Ücret</label>
                     <div className="relative mt-1.5 rounded-xl shadow-sm">
                       <input
                         type="number"
@@ -3220,7 +3771,7 @@ function StudioPageContent() {
                         TL/ay
                       </div>
                     </div>
-                    <span className="text-[9px] text-slate-400 mt-1 block">Taban xube siniri axildixinda xube baxi uygulanacak surxarj (Mevcut: {pricing.branchSurchargePrice} )</span>
+                    <span className="text-[9px] text-slate-400 mt-1 block">Taban şube sınırı aşıldığında şube başı uygulanacak sürşarj (Mevcut: {pricing.branchSurchargePrice} )</span>
                   </div>
                 </div>
               </div>
@@ -3277,7 +3828,7 @@ function StudioPageContent() {
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Yillik deme Indirim Orani</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Yıllık deme Indirim Orani</label>
                     <div className="relative mt-1.5 rounded-xl shadow-sm">
                       <input
                         type="number"
@@ -3295,7 +3846,7 @@ function StudioPageContent() {
                 </div>
               </div>
 
-              {/* zellik Matrisi Yonetimi */}
+              {/* zellik Matrisi Yönetimi */}
               <div className="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-4">
                 <h4 className="text-xs font-bold text-indigo-700 uppercase tracking-widest border-b border-indigo-100 pb-2 flex items-center gap-2">
                   <span>x9</span> 4. Paket Bazli zellik & Limit Matrisi
@@ -3306,8 +3857,8 @@ function StudioPageContent() {
                       <tr className="border-b border-slate-200 text-slate-450 font-bold uppercase text-[9px] tracking-wider">
                         <th className="py-2.5">ERP Modulu / Hizmet Seviyesi</th>
                         <th className="py-2.5 text-center">Lite Plani</th>
-                        <th className="py-2.5 text-center">Pro Plani</th>
-                        <th className="py-2.5 text-center">Enterprise Plani</th>
+                        <th className="py-2.5 text-center">Pro Planı</th>
+                        <th className="py-2.5 text-center">Enterprise Planı</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -3389,7 +3940,7 @@ function StudioPageContent() {
 
                       {/* Stock */}
                       <tr className="border-b border-slate-200/50 font-medium">
-                        <td className="py-3 text-slate-700 font-semibold">Stok & Depo Envanter Yonetimi</td>
+                        <td className="py-3 text-slate-700 font-semibold">Stok & Depo Envanter Yönetimi</td>
                         <td className="py-3 text-center">
                           <input
                             type="checkbox"
@@ -3544,10 +4095,20 @@ function StudioPageContent() {
               </div>
 
               {/* Kaydetme Butonu */}
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Degisiklik Nedeni (Audit)</label>
+                <input
+                  type="text"
+                  className="w-full mt-1 px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white"
+                  value={pricingChangeReason}
+                  onChange={(e) => setPricingChangeReason(e.target.value)}
+                  placeholder="OÖrn: Yıllık kampanya nedeniyle Pro fiyat güncellemesi"
+                />
+              </div>
               <div className="flex justify-end pt-2">
                 <button
                   type="submit"
-                  disabled={isSavingPricing}
+                  disabled={isSavingPricing || !canManagePricing}
                   className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-400 text-white rounded-xl text-xs font-bold shadow-sm transition-all active:scale-[0.98] flex items-center gap-2 cursor-pointer"
                 >
                   {isSavingPricing ? (
@@ -3557,12 +4118,53 @@ function StudioPageContent() {
                     </>
                   ) : (
                     <>
-                      <span>x</span> Tum Fiyatlandirma & zellikleri Uygula
+                      <span>x</span> Tüm Fiyatlandirma & zellikleri Uygula
                     </>
                   )}
                 </button>
               </div>
             </form>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">Fiyatlandirma Gecmisi</h4>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {(reports?.pricingHistory || []).slice(0, 8).map((h: any) => (
+                    <div key={h.id} className="p-2 rounded-lg bg-white border border-slate-200 text-xs">
+                      <div className="font-semibold text-slate-700">{h.reason || "Degisiklik"}</div>
+                      <div className="text-slate-500 mt-0.5">{new Date(h.createdAt).toLocaleString("tr-TR")} • {h.createdBy}</div>
+                      <div className="mt-2">
+                        <button
+                          type="button"
+                          onClick={() => void handleRevertPricing(h.id)}
+                          disabled={!canManagePricing}
+                          className="px-2 py-1 rounded border border-slate-300 bg-slate-50 hover:bg-slate-100 text-[10px] font-bold text-slate-700"
+                        >
+                          Bu Kayda Geri Al
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {!reportsLoadıng && (reports?.pricingHistory || []).length === 0 && (
+                    <div className="text-xs text-slate-400 italic">Henüz gecmis kaydi yok.</div>
+                  )}
+                </div>
+              </div>
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">Audit Timeline</h4>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {(reports?.auditLogs || []).slice(0, 8).map((l: any) => (
+                    <div key={l.id} className="p-2 rounded-lg bg-white border border-slate-200 text-xs">
+                      <div className="font-semibold text-slate-700">{l.action}</div>
+                      <div className="text-slate-500 mt-0.5">{new Date(l.createdAt).toLocaleString("tr-TR")} • {l.actor}</div>
+                    </div>
+                  ))}
+                  {!reportsLoadıng && (reports?.auditLogs || []).length === 0 && (
+                    <div className="text-xs text-slate-400 italic">Audit kaydi bulunmuyor.</div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -3596,7 +4198,7 @@ function StudioPageContent() {
                   value={logLevelFilter}
                   onChange={(e) => setLogLevelFilter(e.target.value as any)}
                 >
-                  <option value="ALL">Tum Seviyeler</option>
+                  <option value="ALL">Tüm Seviyeler</option>
                   <option value="INFO">xx INFO</option>
                   <option value="WARNING">xx WARNING</option>
                   <option value="ERROR">x ERROR</option>
@@ -3606,7 +4208,7 @@ function StudioPageContent() {
 
             <div className="bg-slate-900 p-4 rounded-xl border border-slate-950 font-mono text-xs text-slate-300 space-y-2.5 h-[500px] overflow-y-auto shadow-inner">
               {filteredLogs.length === 0 ? (
-                <div className="text-slate-500 italic text-center py-12">Filtrelere uygun log kaydi bulunamadi.</div>
+                <div className="text-slate-500 italic text-center py-12">Filtrelere uygun log kaydi bulunamadı.</div>
               ) : (
                 filteredLogs.map((log, idx) => {
                   const levelColors = {
@@ -3637,9 +4239,9 @@ function StudioPageContent() {
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
               <div>
-                <span className="text-[10px] font-bold text-indigo-600 tracking-wider uppercase">SaaS CRM/ERP Yonetim Konsolu (SuperAdmin Console)</span>
+                <span className="text-[10px] font-bold text-indigo-600 tracking-wider uppercase">SaaS CRM/ERP Yönetim Konsolu (SuperAdmin Console)</span>
                 <h3 className="text-xl font-bold text-slate-800 mt-0.5">
-                  {detailLoading ? "Veri Yukleniyor..." : `Firma Yonetimi: ${detailData?.customer.fullName}`}
+                  {detailLoadıng ? "Veri Yükleniyor..." : `Firma Yönetimi: ${detailData?.customer.fullName}`}
                 </h3>
               </div>
               <button
@@ -3659,7 +4261,7 @@ function StudioPageContent() {
                 { id: "CRM" as const, label: "Aktivite & CRM", icon: "C" },
                 { id: "TICKETS" as const, label: "Destek & Talepler", icon: "T" },
                 { id: "ERP" as const, label: "Finans & ERP", icon: "E" },
-                { id: "ROLES" as const, label: "Rol & Yetki Yonetimi", icon: "R" },
+                { id: "ROLES" as const, label: "Rol & Yetki Yönetimi", icon: "R" },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -3676,7 +4278,7 @@ function StudioPageContent() {
               ))}
             </div>
 
-            {detailLoading ? (
+            {detailLoadıng ? (
               <div className="flex-1 flex flex-col items-center justify-center gap-3">
                 <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto"></div>
                 <span className="text-slate-500 text-sm">Firma lisans detaylari derleniyor...</span>
@@ -3767,19 +4369,20 @@ function StudioPageContent() {
                         <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">Lisans & Paket Kontrolu</h4>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
-                            <label className="text-[10px] font-bold text-slate-500 uppercase">Lisans Plani</label>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase">Lisans Planı</label>
                             <select
                               className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white font-semibold"
                               value={editPlan}
                               onChange={(e) => setEditPlan(e.target.value as any)}
                             >
                               <option value="Lite">Lite ({pricing.Lite} TL/ay)</option>
+                              <option value="Service">Servis ({pricing.Service} TL/ay)</option>
                               <option value="Pro">Pro ({pricing.Pro} TL/ay)</option>
                               <option value="Enterprise">Enterprise ({pricing.Enterprise} TL/ay)</option>
                             </select>
                           </div>
                           <div>
-                            <label className="text-[10px] font-bold text-slate-500 uppercase">Izin Verilen Sube Limiti</label>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase">Izin Verilen Şube Limiti</label>
                             <input
                               type="number"
                               className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white"
@@ -3808,15 +4411,37 @@ function StudioPageContent() {
                         </div>
                       </div>
 
+                      <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-3">
+                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">Finans Ozeti (Tek Bakis)</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                          <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                            <div className="text-slate-500">Net Bakiye</div>
+                            <div className="font-bold text-slate-800 mt-1">{Number(detailData.financialSummary?.netBalance || 0).toLocaleString("tr-TR")} TL</div>
+                          </div>
+                          <div className="p-3 rounded-lg bg-rose-50 border border-rose-200">
+                            <div className="text-rose-600">Vadesi Gecen</div>
+                            <div className="font-bold text-rose-700 mt-1">{Number(detailData.financialSummary?.overdueAmount || 0).toLocaleString("tr-TR")} TL</div>
+                          </div>
+                          <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
+                            <div className="text-amber-600">7 Gun Icinde</div>
+                            <div className="font-bold text-amber-700 mt-1">{Number(detailData.financialSummary?.dueIn7Amount || 0).toLocaleString("tr-TR")} TL</div>
+                          </div>
+                          <div className="p-3 rounded-lg bg-indigo-50 border border-indigo-200">
+                            <div className="text-indigo-600">30 Gun Icinde</div>
+                            <div className="font-bold text-indigo-700 mt-1">{Number(detailData.financialSummary?.dueIn30Amount || 0).toLocaleString("tr-TR")} TL</div>
+                          </div>
+                        </div>
+                      </div>
+
                       {/* Subeler ve Terminal Detaylari */}
                       <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-4">
                         <div className="flex justify-between items-center border-b border-slate-100 pb-2">
-                          <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Subeler & Terminal Detaylari ({editBranchLimit} Sube Yetkili)</h4>
-                          <span className="text-[10px] font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">500+ Sube Entegrasyonu</span>
+                          <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Şubeler & Terminal Detayları ({editBranchLimit} Şube Yetkili)</h4>
+                          <span className="text-[10px] font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">500+ Şube Entegrasyonu</span>
                         </div>
                         
                         <div className="text-xs text-slate-500 font-medium">
-                          Bayinin sunucularimiza baxli xubeleri ve aktif terminalleri.
+                          Bayinin sunucularımıza bağlı şubeleri ve aktif terminalleri.
                         </div>
 
                         {/* Search and list branches */}
@@ -3825,7 +4450,7 @@ function StudioPageContent() {
                             {(() => {
                               const branchCount = Math.min(editBranchLimit, 250);
                               const cities = ["Istanbul", "Ankara", "Izmir", "Bursa", "Antalya", "Adana", "Kocaeli", "Mersin", "Gaziantep", "Konya", "Samsun", "Eskixehir"];
-                              const districts = ["Merkez", "!arxi", "Kizilay", "Alsancak", "Kadikoy", "Nilufer", "Lara", "Yenixehir", "Ilkadim", "Odunpazari", "Bornova", "Bexiktax"];
+                              const districts = ["Merkez", "!arxi", "Kizilay", "Alsancak", "Kadıkoy", "Nilufer", "Lara", "Yenixehir", "Ilkadım", "Odunpazari", "Bornova", "Bexiktax"];
                               
                               const generatedBranches = Array.from({ length: branchCount }).map((_, idx) => {
                                 const city = cities[idx % cities.length];
@@ -3835,7 +4460,7 @@ function StudioPageContent() {
                                 const dbSize = parseFloat((0.05 + (idx % 7) * 0.08).toFixed(2));
                                 const lastSync = new Date(Date.now() - (idx % 12) * 5 * 60 * 1000).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
                                 return {
-                                  name: `${city} ${district} Subesi #${idx + 1}`,
+                                  name: `${city} ${district} Şubesi #${idx + 1}`,
                                   status: isOnline ? "ONLINE" : "OFFLINE",
                                   terminals,
                                   dbSize,
@@ -3860,7 +4485,7 @@ function StudioPageContent() {
                                     <span className="font-semibold text-slate-600 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded text-[9px]">{br.terminals} POS</span>
                                     <button
                                       type="button"
-                                      onClick={() => toast.success(`${br.name} baxariyla senkronize edildi.`)}
+                                      onClick={() => toast.success(`${br.name} başarıyla senkronize edildi.`)}
                                       className="px-2 py-1 bg-white hover:bg-slate-100 text-slate-655 hover:text-slate-800 rounded border border-slate-200 font-bold text-[9px] shadow-sm transition-all"
                                     >
                                       Senkronize Et
@@ -3871,7 +4496,7 @@ function StudioPageContent() {
                             })()}
                             {editBranchLimit > 10 && (
                               <div className="p-2.5 text-center text-[10px] text-slate-400 bg-slate-50 font-bold italic">
-                                ... ve {editBranchLimit - 10} dixer xube daha listeleniyor
+                                ... ve {editBranchLimit - 10} diğer şube daha listeleniyor
                               </div>
                             )}
                           </div>
@@ -3880,10 +4505,10 @@ function StudioPageContent() {
                           <div className="flex gap-2 justify-end pt-1">
                             <button
                               type="button"
-                              onClick={() => toast.success(`Tum ${editBranchLimit} xubeye surum guncellemeleri baxariyla gonderildi.`)}
+                              onClick={() => toast.success(`Tüm ${editBranchLimit} şubeye sürüm güncellemeleri başarıyla gönderildi.`)}
                               className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg border border-indigo-200 font-bold text-[10px] transition-all"
                             >
-                              xa Tum Subelere POS Surum Guncellemesi Gonder
+                              xa Tüm Şubelere POS Sürüm Güncellemesi Gönder
                             </button>
                           </div>
                         </div>
@@ -3899,7 +4524,7 @@ function StudioPageContent() {
                             const labelMap: Record<string, string> = {
                               pos: "POS Satix Modulu",
                               repairs: "Teknik Servis",
-                              stock: "Stok Yonetimi",
+                              stock: "Stok Yönetimi",
                               buyback: "Ikinci El Alim-Satim",
                               invoicing: "E-Arxiv Fatura",
                             };
@@ -3984,6 +4609,32 @@ function StudioPageContent() {
                           ))}
                         </div>
                       </div>
+                      <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-3">
+                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">Aksiyon Zorunluluklari</h4>
+                        <input type="date" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={editNextActionDate} onChange={(e) => setEditNextActionDate(e.target.value)} />
+                        <input type="text" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs" placeholder="ownerUserId" value={editOwnerUserId} onChange={(e) => setEditOwnerUserId(e.target.value)} />
+                        <input type="number" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs" placeholder="expectedDealAmount" value={editExpectedDealAmount} onChange={(e) => setEditExpectedDealAmount(Number(e.target.value || 0))} />
+                        <input type="text" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs" placeholder="lostReason (LOST)" value={editLostReason} onChange={(e) => setEditLostReason(e.target.value)} />
+                        <input type="text" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs" placeholder="wonSource (WON)" value={editWonSource} onChange={(e) => setEditWonSource(e.target.value)} />
+                      </div>
+                      <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-3">
+                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">Oneri Motoru</h4>
+                        {crmSuggestions.length === 0 ? (
+                          <p className="text-xs text-slate-400">Aktif oneriniz yok.</p>
+                        ) : (
+                          crmSuggestions.map((s, idx) => (
+                            <div key={idx} className="p-2 rounded border border-amber-200 bg-amber-50 flex items-center justify-between gap-2">
+                              <span className="text-[11px] font-semibold text-amber-800">{s.title}</span>
+                              <button
+                                className="px-2 py-1 rounded bg-amber-600 text-white text-[10px] font-bold"
+                                onClick={() => selectedTenantId && applyCrmSuggestion(selectedTenantId, s.type)}
+                              >
+                                Göreve Cevir
+                              </button>
+                            </div>
+                          ))
+                        )}
+                      </div>
                     </div>
 
                     {/* Timeline and Notes */}
@@ -4006,6 +4657,41 @@ function StudioPageContent() {
                             </button>
                           </div>
                         </div>
+                      </div>
+                      <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-3">
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                          <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest">CRM Görevler</h4>
+                          <button
+                            className="px-2 py-1 rounded bg-indigo-600 text-white text-[10px] font-bold"
+                            onClick={() => selectedTenantId && createCrmTask(selectedTenantId, { type: "FOLLOW_UP", title: "Yeni takip gorevi", dueDate: new Date().toISOString().split("T")[0] })}
+                          >
+                            + Görev
+                          </button>
+                        </div>
+                        {(editCrmTasks || []).length === 0 ? (
+                          <p className="text-xs text-slate-400">Görev yok.</p>
+                        ) : (
+                          <div className="space-y-2 max-h-56 overflow-y-auto">
+                            {(editCrmTasks || []).map((task) => (
+                              <div key={task.id} className="p-2 rounded border border-slate-200 bg-slate-50 flex items-center justify-between gap-2">
+                                <div>
+                                  <div className="text-xs font-bold text-slate-700">{task.title}</div>
+                                  <div className="text-[10px] text-slate-500">{task.type} • {task.dueDate} • {task.ownerUserId || "UNASSIGNED"}</div>
+                                </div>
+                                <select
+                                  value={task.status}
+                                  onChange={(e) => selectedTenantId && updateCrmTask(selectedTenantId, task.id, { status: e.target.value as any })}
+                                  className="text-[10px] px-2 py-1 rounded border border-slate-300 bg-white"
+                                >
+                                  <option value="OPEN">OPEN</option>
+                                  <option value="IN_PROGRESS">IN_PROGRESS</option>
+                                  <option value="DONE">DONE</option>
+                                  <option value="SNOOZED">SNOOZED</option>
+                                </select>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
 
                       <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-4">
@@ -4150,7 +4836,7 @@ function StudioPageContent() {
                       {selectedTicketId ? (
                         (() => {
                           const ticket = editTickets.find((t) => t.id === selectedTicketId);
-                          if (!ticket) return <div className="p-6 text-center text-slate-400">Talep bulunamadi.</div>;
+                          if (!ticket) return <div className="p-6 text-center text-slate-400">Talep bulunamadı.</div>;
                           return (
                             <div className="flex flex-col h-full">
                               {/* Thread Header */}
@@ -4164,6 +4850,13 @@ function StudioPageContent() {
                                   </div>
                                 </div>
                                 <div className="flex gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => addSupportChargeFromTicket(ticket)}
+                                    className="px-2 py-1 bg-amber-50 border border-amber-200 rounded text-[10px] font-bold text-amber-700 hover:bg-amber-100"
+                                  >
+                                    Ucretli Destek Kalemi Ekle
+                                  </button>
                                   <select
                                     className="px-2 py-1 bg-white border border-slate-200 rounded text-[10px] font-bold text-slate-705 focus:outline-none"
                                     value={ticket.assignee || "Boxta"}
@@ -4182,7 +4875,7 @@ function StudioPageContent() {
                                         t.id === selectedTicketId ? { ...t, status: e.target.value as any } : t
                                       );
                                       setEditTickets(updated);
-                                      toast.success("Bilet durumu guncellendi.");
+                                      toast.success("Bilet durumu güncellendi.");
                                     }}
                                   >
                                     <option value="OPEN">A!IK</option>
@@ -4195,7 +4888,7 @@ function StudioPageContent() {
                               {/* Messages list */}
                               <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50/50 max-h-[250px]">
                                 {(ticket.messages || []).length === 0 ? (
-                                  <div className="text-center text-slate-400 italic text-xs py-8">Henuz mesaj bulunmuyor. Mesaj yazip cevap gonderin.</div>
+                                  <div className="text-center text-slate-400 italic text-xs py-8">Henüz mesaj bulunmuyor. Mesaj yazıp cevap gönderin.</div>
                                 ) : (
                                   (ticket.messages || []).map((msg, idx) => {
                                     const isAdmin = msg.sender === "Admin";
@@ -4207,7 +4900,7 @@ function StudioPageContent() {
                                         }`}
                                       >
                                         <span className="text-[9px] font-bold text-slate-400 mb-0.5">
-                                          {isAdmin ? "Destek Ekibi (Siz)" : "Firma Yoneticisi"}  {msg.date}
+                                          {isAdmin ? "Destek Ekibi (Siz)" : "Firma Yöneticisi"}  {msg.date}
                                         </span>
                                         <div
                                           className={`p-2.5 rounded-2xl text-xs font-medium border shadow-sm ${
@@ -4250,7 +4943,7 @@ function StudioPageContent() {
                                 <input
                                   type="text"
                                   className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white"
-                                  placeholder="Cevabinizi buraya yazin..."
+                                  placeholder="Cevabinizi buraya yazın..."
                                   value={replyBody}
                                   onChange={(e) => setReplyBody(e.target.value)}
                                   onKeyDown={(e) => {
@@ -4273,7 +4966,7 @@ function StudioPageContent() {
                           <svg className="w-12 h-12 text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                           </svg>
-                          <span className="text-xs font-bold">Detaylari gormek icin sol panelden bir talep secin.</span>
+                          <span className="text-xs font-bold">Detaylari gormek icin sol panelden bir talep seçin.</span>
                         </div>
                       )}
                     </div>
@@ -4289,7 +4982,7 @@ function StudioPageContent() {
                         <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">API & Kaynak Limitleri</h4>
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="text-[10px] font-bold text-slate-500 uppercase">Aylik API Kotasi</label>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase">Aylik API Kotası</label>
                             <input
                               type="number"
                               className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white"
@@ -4537,7 +5230,7 @@ function StudioPageContent() {
                         <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
                           <span>x</span> Rol Bazli Modul ve Yetki Sinirlari
                         </h3>
-                        <p className="text-[11px] text-slate-400">Ixletme bunyesindeki rollerin hangi sistem modullerine erixebilecexini tanimlayin.</p>
+                        <p className="text-[11px] text-slate-400">Ixletme bunyesindeki rollerin hangi sistem modullerine erixebilecexini tanımlayın.</p>
                       </div>
 
                       <div className="overflow-x-auto">
@@ -4547,16 +5240,16 @@ function StudioPageContent() {
                               <th className="py-3">Rol Adi</th>
                               <th className="py-3 text-center">POS Hizli Satix</th>
                               <th className="py-3 text-center">Teknik Servis</th>
-                              <th className="py-3 text-center">Stok Yonetimi</th>
-                              <th className="py-3 text-center">E-Fatura Entegrasyon</th>
+                              <th className="py-3 text-center">Stok Yönetimi</th>
+                              <th className="py-3 text-center">E-Fatura Entegrasyonu</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100">
                             {(() => {
                               const roles = [
-                                { key: "MANAGER" as const, label: "Mudur / Yonetici (MANAGER)", desc: "Tum operasyonel izinlere sahip, xubeleri denetler." },
-                                { key: "CASHIER" as const, label: "Kasiyer / Tezgahtar (CASHIER)", desc: "Satix ixlemlerini ve basit kasa tahsilatlarini yapar." },
-                                { key: "TECHNICIAN" as const, label: "Servis Teknisyeni (TECHNICIAN)", desc: "Ariza texhisi yapar ve tamir kayitlarini gunceller." },
+                                { key: "MANAGER" as const, label: "Müdür / Yönetici (MANAGER)", desc: "Tüm operasyonel izinlere sahip, şubeleri denetler." },
+                                { key: "CASHIER" as const, label: "Kasiyer / Tezgahtar (CASHIER)", desc: "Satix işlemlerini ve basit kasa tahsilatlarini yapar." },
+                                { key: "TECHNICIAN" as const, label: "Servis Teknisyeni (TECHNICIAN)", desc: "Arıza teşhisi yapar ve tamir kayıtlarını günceller." },
                                 { key: "ACCOUNTANT" as const, label: "Muhasebe Sorumlusu (ACCOUNTANT)", desc: "Giderleri, cari kayitlari ve banka hesaplarini kontrol eder." },
                               ];
 
@@ -4608,8 +5301,8 @@ function StudioPageContent() {
                       </div>
                       
                       <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-500 font-semibold space-y-1">
-                        <p> **Yonetici (ADMIN)** rolu ana sistem yoneticisi olup, guvenlik gerexi tum modullere sinirsiz erixim yetkisine sahiptir ve bu tablodan kisitlanamaz.</p>
-                        <p> Bu alanda yapacaxiniz yetki dexixiklikleri, bayinin veri tabaninda guncellenecek olup bayi kullanicilarinin oturumlarinda aninda aktif olacaktir.</p>
+                        <p> **Yönetici (ADMIN)** rolu ana sistem yoneticisi olup, güvenlik gereği tüm modüllere sınırsız erişim yetkisine sahiptir ve bu tablodan kısıtlanamaz.</p>
+                        <p> Bu alanda yapacağınız yetki değişiklikleri, bayinin veritabanında güncellenecek olup bayi kullanıcılarının oturumlarında anında aktif olacaktır.</p>
                       </div>
                     </div>
                   </div>
@@ -4633,7 +5326,7 @@ function StudioPageContent() {
                     onClick={handleSaveTenantDetails}
                     className="px-4 py-2 bg-indigo-650 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-sm transition-all active:scale-95"
                   >
-                    Tum Ayarlari Kaydet
+                    Tüm Ayarlari Kaydet
                   </button>
                 </div>
               </div>
@@ -4648,7 +5341,7 @@ function StudioPageContent() {
           <div className="w-full max-w-3xl bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xl p-6 space-y-4 animate-fadeIn max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                <span>x</span> Yeni Bayi / Firma Lisansi Tanimla
+                <span>x</span> Yeni Bayi / Firma Lisansı Tanımla
               </h3>
               <button onClick={() => setIsAddTenantOpen(false)} className="text-slate-400 hover:text-slate-700 text-lg">
                 X
@@ -4657,29 +5350,29 @@ function StudioPageContent() {
 
             <form onSubmit={handleAddTenant} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Sol Sutun: Cari & Vergi Bilgileri */}
+                {/* Sol Sütun: Cari & Vergi Bilgileri */}
                 <div className="space-y-4">
                   <h4 className="text-xs font-bold text-indigo-700 uppercase tracking-wider border-b border-slate-100 pb-1.5">1. Firma & Vergi Bilgileri</h4>
                   
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase">Firma / Bayi Unvani</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">Firma / Bayi Unvanı</label>
                     <input
                       type="text"
                       required
                       className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white"
-                      placeholder="rn: TeknoMarket Zinciri A.S."
+                      placeholder="Örn: TeknoMarket Zinciri A.S."
                       value={newTenantName}
                       onChange={(e) => setNewTenantName(e.target.value)}
                     />
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase">Yetkili Temsilci Adi Soyadi</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">Yetkili Temsilci Adı Soyadı</label>
                     <input
                       type="text"
                       required
                       className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white"
-                      placeholder="rn: Ahmet Yilmaz"
+                      placeholder="Örn: Ahmet Yilmaz"
                       value={newAuthorizedPerson}
                       onChange={(e) => setNewAuthorizedPerson(e.target.value)}
                     />
@@ -4698,12 +5391,12 @@ function StudioPageContent() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Sehir / Bolge</label>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase">Şehir / Bölge</label>
                       <input
                         type="text"
                         required
                         className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white"
-                        placeholder="rn: Istanbul"
+                        placeholder="Örn: Istanbul"
                         value={newCity}
                         onChange={(e) => setNewCity(e.target.value)}
                       />
@@ -4716,14 +5409,14 @@ function StudioPageContent() {
                       type="email"
                       required
                       className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white"
-                      placeholder="rn: iletisim@teknomarket.com"
+                      placeholder="Örn: iletisim@teknomarket.com"
                       value={newTenantEmail}
                       onChange={(e) => setNewTenantEmail(e.target.value)}
                     />
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase">Ilk Giris Sifresi</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">İlk Giriş Şifresi</label>
                     <input
                       type="password"
                       minLength={6}
@@ -4733,19 +5426,19 @@ function StudioPageContent() {
                       value={newTenantInitialPassword}
                       onChange={(e) => setNewTenantInitialPassword(e.target.value)}
                     />
-                    <p className="text-[10px] text-slate-400 mt-1">Bayi bu sifre ile ilk giris yapar, sonra panelden sifresini degistirebilir.</p>
+                    <p className="text-[10px] text-slate-400 mt-1">Bayi bu şifre ile ilk giriş yapar, sonra panelden şifresini değiştirebilir.</p>
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase">Ilk Kullanici Rolu</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">İlk Kullanıcı Rolü</label>
                     <select
                       className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white"
                       value={newTenantInitialRole}
                       onChange={(e) => setNewTenantInitialRole(e.target.value as any)}
                     >
                       <option value="PLATFORM_OWNER">PLATFORM_OWNER - Platform Owner</option>
-                      <option value="MANAGER">MANAGER - Yonetici</option>
-                      <option value="ADMIN">ADMIN - Sistem Yoneticisi</option>
+                      <option value="MANAGER">MANAGER - Yönetici</option>
+                      <option value="ADMIN">ADMIN - Sistem Yöneticisi</option>
                       <option value="CASHIER">CASHIER - Kasiyer</option>
                       <option value="TECHNICIAN">TECHNICIAN - Teknik Servis</option>
                       <option value="ACCOUNTANT">ACCOUNTANT - Muhasebe</option>
@@ -4764,7 +5457,7 @@ function StudioPageContent() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Vergi Numarasi</label>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase">Vergi Numarası</label>
                       <input
                         type="text"
                         className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white"
@@ -4776,25 +5469,26 @@ function StudioPageContent() {
                   </div>
                 </div>
 
-                {/* Sax Sutun: Lisans, Kota & Moduller */}
+                {/* Sağ Sütun: Lisans, Kota & Modüller */}
                 <div className="space-y-4">
-                  <h4 className="text-xs font-bold text-indigo-700 uppercase tracking-wider border-b border-slate-100 pb-1.5">2. Lisans & Sistem Modulleri</h4>
+                  <h4 className="text-xs font-bold text-indigo-700 uppercase tracking-wider border-b border-slate-100 pb-1.5">2. Lisans & Sistem Modülleri</h4>
                   
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Lisans Plani</label>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase">Lisans Planı</label>
                       <select
                         className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white"
                         value={newTenantPlan}
                         onChange={(e) => setNewTenantPlan(e.target.value as any)}
                       >
                         <option value="Lite">Lite Plani ({pricing.Lite} TL)</option>
-                        <option value="Pro">Pro Plani ({pricing.Pro} TL)</option>
-                        <option value="Enterprise">Enterprise Plani ({pricing.Enterprise} TL)</option>
+                        <option value="Service">Servis Planı ({pricing.Service} TL)</option>
+                        <option value="Pro">Pro Planı ({pricing.Pro} TL)</option>
+                        <option value="Enterprise">Enterprise Planı ({pricing.Enterprise} TL)</option>
                       </select>
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Sozlexme Suresi</label>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase">Sözleşme Süresi</label>
                       <select
                         className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white"
                         value={newLicenseDuration}
@@ -4803,14 +5497,14 @@ function StudioPageContent() {
                         <option value={1}>1 Aylik</option>
                         <option value={3}>3 Aylik</option>
                         <option value={6}>6 Aylik</option>
-                        <option value={12}>1 Yillik (Indirimli)</option>
+                        <option value={12}>1 Yıllık (İndirimli)</option>
                       </select>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2">
                     <div>
-                      <label className="text-[9px] font-bold text-slate-500 uppercase">Sube Limiti</label>
+                      <label className="text-[9px] font-bold text-slate-500 uppercase">Şube Limiti</label>
                       <input
                         type="number"
                         className="w-full mt-1 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
@@ -4819,7 +5513,7 @@ function StudioPageContent() {
                       />
                     </div>
                     <div>
-                      <label className="text-[9px] font-bold text-slate-500 uppercase">DB Alani (GB)</label>
+                      <label className="text-[9px] font-bold text-slate-500 uppercase">DB Alanı (GB)</label>
                       <input
                         type="number"
                         step="0.1"
@@ -4829,7 +5523,7 @@ function StudioPageContent() {
                       />
                     </div>
                     <div>
-                      <label className="text-[9px] font-bold text-slate-500 uppercase">API Kotasi</label>
+                      <label className="text-[9px] font-bold text-slate-500 uppercase">API Kotası</label>
                       <input
                         type="number"
                         className="w-full mt-1 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
@@ -4841,7 +5535,7 @@ function StudioPageContent() {
 
                   {/* Modul Secimleri */}
                   <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider font-semibold">Aktif Edilecek Moduller</span>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase block tracking-wider font-semibold">Aktif Edilecek Modüller</span>
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <label className="flex items-center gap-2 font-semibold text-slate-700 cursor-pointer">
                         <input
@@ -4850,7 +5544,7 @@ function StudioPageContent() {
                           checked={newTenantModules.pos}
                           onChange={(e) => setNewTenantModules({ ...newTenantModules, pos: e.target.checked })}
                         />
-                        POS Satix Kasa
+                        POS Satış Kasa
                       </label>
                       <label className="flex items-center gap-2 font-semibold text-slate-700 cursor-pointer">
                         <input
@@ -4877,7 +5571,7 @@ function StudioPageContent() {
                           checked={newTenantModules.invoicing}
                           onChange={(e) => setNewTenantModules({ ...newTenantModules, invoicing: e.target.checked })}
                         />
-                        E-Fatura Entegrasyon
+                        E-Fatura Entegrasyonu
                       </label>
                       <label className="flex items-center gap-2 font-semibold text-slate-700 cursor-pointer col-span-2">
                         <input
@@ -4886,16 +5580,16 @@ function StudioPageContent() {
                           checked={newTenantModules.buyback}
                           onChange={(e) => setNewTenantModules({ ...newTenantModules, buyback: e.target.checked })}
                         />
-                        Cihaz Geri Alim (Buyback)
+                        Cihaz Geri Alım (Buyback)
                       </label>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Tutar Hesaplayici zeti */}
+              {/* Tutar Hesaplayıcı Özeti */}
               {(() => {
-                const basePrice = newTenantPlan === "Lite" ? pricing.Lite : newTenantPlan === "Pro" ? pricing.Pro : newTenantPlan === "Enterprise" ? pricing.Enterprise : 0;
+                const basePrice = getPlanBasePrice(newTenantPlan);
                 const extraBranches = newTenantBranchLimit > pricing.freeBranchLimit ? (newTenantBranchLimit - pricing.freeBranchLimit) : 0;
                 const extraBranchMonthlyPrice = extraBranches * pricing.branchSurchargePrice;
                 const totalMonthly = basePrice + extraBranchMonthlyPrice;
@@ -4908,23 +5602,23 @@ function StudioPageContent() {
                   <div className="p-4 rounded-xl bg-indigo-50 border border-indigo-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-xs">
                     <div>
                       <div className="font-bold text-indigo-900 flex items-center gap-1.5">
-                        <span>x`</span> Sozlexme Fatura Bedeli nizlemesi
+                        <span>x`</span> Sözleşme Fatura Bedeli Özeti
                       </div>
                       <div className="text-indigo-700 font-medium mt-1.5 space-y-0.5">
                         <p>Taban Plan Bedeli: <span className="font-bold">{basePrice.toLocaleString()} TL/ay</span></p>
                         {extraBranches > 0 && (
-                          <p>Ek Sube Bedeli: <span className="font-bold">+{extraBranchMonthlyPrice.toLocaleString()} TL/ay</span> ({extraBranches} ek xube icin)</p>
+                          <p>Ek Şube Bedeli: <span className="font-bold">+{extraBranchMonthlyPrice.toLocaleString()} TL/ay</span> ({extraBranches} ek şube için)</p>
                         )}
-                        <p>Sure !arpani: <span className="font-bold">x{newLicenseDuration} Ay</span></p>
+                        <p>Süre Çarpanı: <span className="font-bold">x{newLicenseDuration} Ay</span></p>
                         {discountPct > 0 && (
-                          <p className="text-emerald-700 font-semibold">Yillik Pexin deme Indirimi: <span className="font-bold">-%{discountPct}</span> (-{discountAmount.toLocaleString()} TL)</p>
+                          <p className="text-emerald-700 font-semibold">Yıllık Pexin deme Indirimi: <span className="font-bold">-%{discountPct}</span> (-{discountAmount.toLocaleString()} TL)</p>
                         )}
                       </div>
                     </div>
                     <div className="text-left sm:text-right bg-white p-3 rounded-lg border border-indigo-200 min-w-[140px] shadow-sm">
-                      <span className="text-[10px] font-bold text-slate-400 block uppercase">DENECEK TUTAR</span>
+                      <span className="text-[10px] font-bold text-slate-400 block uppercase">ÖDENECEK TUTAR</span>
                       <span className="text-xl font-black text-emerald-600 font-mono tracking-tight">{finalAmount.toLocaleString()} TL</span>
-                      <span className="text-[9px] text-slate-400 block mt-0.5">Sozlexme Baxlangici: Bugunden itibaren</span>
+                      <span className="text-[9px] text-slate-400 block mt-0.5">Sözleşme Başlangıcı: Bugünden itibaren</span>
                     </div>
                   </div>
                 );
@@ -4936,13 +5630,13 @@ function StudioPageContent() {
                   onClick={() => setIsAddTenantOpen(false)}
                   className="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold border border-slate-200 transition-all cursor-pointer"
                 >
-                  Vazgec
+                  Vazgeç
                 </button>
                 <button
                   type="submit"
                   className="px-6 py-2 bg-indigo-650 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-sm transition-all active:scale-95 cursor-pointer"
                 >
-                  Firma Tanimla ve Lisansla
+                  Firma Tanımla ve Lisansla
                 </button>
               </div>
             </form>
@@ -4964,3 +5658,8 @@ export default function StudioPage() {
     </Suspense>
   );
 }
+
+
+
+
+

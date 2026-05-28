@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
@@ -299,3 +299,5 @@ export default function StudioLayout({ children }: { children: React.ReactNode }
     </Suspense>
   );
 }
+
+
