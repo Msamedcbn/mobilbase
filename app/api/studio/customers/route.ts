@@ -9,9 +9,9 @@ const ALLOWED_USER_ROLES = ["PLATFORM_OWNER", "ADMIN", "MANAGER", "CASHIER", "TE
 type AllowedUserRole = (typeof ALLOWED_USER_ROLES)[number];
 
 const DEFAULT_ROLE_PERMISSIONS = {
-  PLATFORM_OWNER: ["pos", "repairs", "stock", "invoicing", "buyback"],
-  ADMIN: ["pos", "repairs", "stock", "invoicing", "buyback"],
-  MANAGER: ["pos", "repairs", "stock", "invoicing"],
+  PLATFORM_OWNER: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
+  ADMIN: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
+  MANAGER: ["pos", "repairs", "stock", "invoicing", "branches"],
   CASHIER: ["pos"],
   TECHNICIAN: ["repairs"],
   ACCOUNTANT: ["invoicing"],

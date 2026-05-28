@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore, writeLocalStore } from "@/lib/local-store";
 import { requireRole } from "@/lib/auth";
+import { normalizeLedgerEntry, summarizeLedger } from "@/lib/studio-finance";
 
 // SaaS Metadata Defaults & Helper
 const DEFAULT_SAAS_METADATA = {
@@ -27,8 +28,9 @@ const DEFAULT_SAAS_METADATA = {
     invoicing: false,
   },
   rolePermissions: {
-    PLATFORM_OWNER: ["pos", "repairs", "stock", "invoicing", "buyback"],
-    MANAGER: ["pos", "repairs", "stock", "invoicing"],
+    PLATFORM_OWNER: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
+    ADMIN: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
+    MANAGER: ["pos", "repairs", "stock", "invoicing", "branches"],
     CASHIER: ["pos"],
     TECHNICIAN: ["repairs"],
     ACCOUNTANT: ["invoicing"],
@@ -50,7 +52,13 @@ const DEFAULT_SAAS_METADATA = {
   billingLedger: [
     { id: "b1", type: "CHARGE", category: "LICENSE", amount: 2500, description: "Yıllık Pro Lisans Ücreti", date: "2026-01-01" },
     { id: "b2", type: "COLLECTION", category: "LICENSE", amount: 2500, description: "Havale/EFT ile Lisans Ödemesi", date: "2026-01-02" }
-  ]
+  ],
+  nextActionDate: "",
+  ownerUserId: "",
+  expectedDealAmount: 0,
+  lostReason: "",
+  wonSource: "",
+  crmTasks: []
 };
 
 function parseSaasMetadata(notesStr: string | null) {
@@ -77,14 +85,13 @@ function parseSaasMetadata(notesStr: string | null) {
           createdAt: t.createdAt || new Date().toISOString().split("T")[0],
           messages: t.messages || []
         })),
-        billingLedger: (parsed.billingLedger || []).map((b: any) => ({
-          id: b.id || "b-" + Date.now(),
-          type: b.type || "CHARGE",
-          category: b.category || "LICENSE",
-          amount: Number(b.amount) || 0,
-          description: b.description || "",
-          date: b.date || new Date().toISOString().split("T")[0]
-        }))
+        billingLedger: (parsed.billingLedger || []).map((b: any) => normalizeLedgerEntry(b)),
+        crmTasks: Array.isArray(parsed.crmTasks) ? parsed.crmTasks : [],
+        nextActionDate: parsed.nextActionDate || "",
+        ownerUserId: parsed.ownerUserId || "",
+        expectedDealAmount: Number(parsed.expectedDealAmount || 0),
+        lostReason: parsed.lostReason || "",
+        wonSource: parsed.wonSource || ""
       };
     }
   } catch {
@@ -138,9 +145,12 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
       })
       .sort((a, b) => new Date(b.receivedAt).getTime() - new Date(a.receivedAt).getTime());
 
+    const saasMetadata = parseSaasMetadata(customer.notes);
+    const financialSummary = summarizeLedger(saasMetadata.billingLedger as any[]);
     return NextResponse.json({
       customer,
-      saasMetadata: parseSaasMetadata(customer.notes),
+      saasMetadata,
+      financialSummary,
       devices: customerDevices,
       accountEntries,
       buybacks,
@@ -193,9 +203,12 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
       orderBy: { receivedAt: "desc" },
     });
 
+    const saasMetadata = parseSaasMetadata(customer.notes);
+    const financialSummary = summarizeLedger(saasMetadata.billingLedger as any[]);
     return NextResponse.json({
       customer,
-      saasMetadata: parseSaasMetadata(customer.notes),
+      saasMetadata,
+      financialSummary,
       devices,
       accountEntries,
       buybacks,

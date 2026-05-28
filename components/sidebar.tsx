@@ -8,7 +8,7 @@ import { toast } from "sonner";
 type NavItem = {
   href: string;
   label: string;
-  module?: "repairs" | "pos" | "stock" | "invoicing";
+  module?: "repairs" | "pos" | "stock" | "invoicing" | "branches";
   adminOnly?: boolean;
 };
 
@@ -51,7 +51,7 @@ const navSections: Array<{ title: string; items: NavItem[] }> = [
   {
     title: "Yonetim",
     items: [
-      { href: "/subeler", label: "Sube Yonetimi", adminOnly: true },
+      { href: "/subeler", label: "Sube Yonetimi", module: "branches" },
       { href: "/ayarlar", label: "Ayarlar", adminOnly: true },
     ],
   },
@@ -264,7 +264,9 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
               if (item.adminOnly) return false;
               if (item.module) {
                 const isModuleActive = activeModules[item.module] !== false;
-                const hasPermission = (rolePermissions[user.role] || []).includes(item.module);
+                const userPerms = rolePermissions[user.role] || [];
+                const hasBranchFallback = item.module === "branches" && userPerms.includes("stock");
+                const hasPermission = userPerms.includes(item.module) || hasBranchFallback;
                 return isModuleActive && hasPermission;
               }
               return true;

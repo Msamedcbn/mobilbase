@@ -222,9 +222,9 @@ function StudioPageContent() {
     TECHNICIAN: string[];
     ACCOUNTANT: string[];
   }>({
-    PLATFORM_OWNER: ["pos", "repairs", "stock", "invoicing", "buyback"],
-    ADMIN: ["pos", "repairs", "stock", "invoicing", "buyback"],
-    MANAGER: ["pos", "repairs", "stock", "invoicing"],
+    PLATFORM_OWNER: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
+    ADMIN: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
+    MANAGER: ["pos", "repairs", "stock", "invoicing", "branches"],
     CASHIER: ["pos"],
     TECHNICIAN: ["repairs"],
     ACCOUNTANT: ["invoicing"],
@@ -762,9 +762,9 @@ function StudioPageContent() {
         setEditBillingLedger(data.saasMetadata.billingLedger || []);
         const rolePermissions = data.saasMetadata.rolePermissions;
         setEditRolePermissions({
-          PLATFORM_OWNER: rolePermissions?.PLATFORM_OWNER ?? ["pos", "repairs", "stock", "invoicing", "buyback"],
-          ADMIN: rolePermissions?.ADMIN ?? ["pos", "repairs", "stock", "invoicing", "buyback"],
-          MANAGER: rolePermissions?.MANAGER ?? ["pos", "repairs", "stock", "invoicing"],
+          PLATFORM_OWNER: rolePermissions?.PLATFORM_OWNER ?? ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
+          ADMIN: rolePermissions?.ADMIN ?? ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
+          MANAGER: rolePermissions?.MANAGER ?? ["pos", "repairs", "stock", "invoicing", "branches"],
           CASHIER: rolePermissions?.CASHIER ?? ["pos"],
           TECHNICIAN: rolePermissions?.TECHNICIAN ?? ["repairs"],
           ACCOUNTANT: rolePermissions?.ACCOUNTANT ?? ["invoicing"],
@@ -823,9 +823,9 @@ function StudioPageContent() {
         invoicing: false,
       },
       rolePermissions: {
-        PLATFORM_OWNER: ["pos", "repairs", "stock", "invoicing", "buyback"],
-        ADMIN: ["pos", "repairs", "stock", "invoicing", "buyback"],
-        MANAGER: ["pos", "repairs", "stock", "invoicing"],
+        PLATFORM_OWNER: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
+        ADMIN: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
+        MANAGER: ["pos", "repairs", "stock", "invoicing", "branches"],
         CASHIER: ["pos"],
         TECHNICIAN: ["repairs"],
         ACCOUNTANT: ["invoicing"],
