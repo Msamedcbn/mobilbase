@@ -1,12 +1,16 @@
-export const dynamic = "force-dynamic";
+﻿export const dynamic = "force-dynamic";
 
-import { readLocalStore } from "@/lib/local-store";
 import Link from "next/link";
+import { readLocalStore } from "@/lib/local-store";
+
+type PlanKey = "Lite" | "Service" | "Pro" | "Enterprise";
 
 export default async function LandingPage() {
   const store = await readLocalStore();
+
   const pricing = store.resellerPricing || {
     Lite: 750,
+    Service: 990,
     Pro: 1500,
     Enterprise: 3500,
     freeBranchLimit: 5,
@@ -15,442 +19,316 @@ export default async function LandingPage() {
       apiPackPrice: 150,
       dbGbPrice: 200,
       customDevHourly: 1200,
-      annualDiscountPct: 15
+      annualDiscountPct: 15,
     },
     features: {
-      Lite: {
-        pos: true,
-        repairs: true,
-        stock: false,
-        invoicing: false,
-        buyback: false,
-        supportLevel: "Standart E-Posta Destek"
-      },
-      Pro: {
-        pos: true,
-        repairs: true,
-        stock: true,
-        invoicing: true,
-        buyback: false,
-        supportLevel: "Hızlı Destek (Mesai Saatleri)"
-      },
-      Enterprise: {
-        pos: true,
-        repairs: true,
-        stock: true,
-        invoicing: true,
-        buyback: true,
-        supportLevel: "7/24 Telefon & SLA Desteği"
-      }
-    }
+      Lite: { pos: true, repairs: true, stock: false, invoicing: false, buyback: false, supportLevel: "Standart" },
+      Service: { pos: false, repairs: true, stock: true, invoicing: false, buyback: false, supportLevel: "Teknik servis odakli" },
+      Pro: { pos: true, repairs: true, stock: true, invoicing: true, buyback: false, supportLevel: "Hizli" },
+      Enterprise: { pos: true, repairs: true, stock: true, invoicing: true, buyback: true, supportLevel: "7/24 SLA" },
+    },
   };
 
   const addons = pricing.addons || {
     apiPackPrice: 150,
     dbGbPrice: 200,
     customDevHourly: 1200,
-    annualDiscountPct: 15
+    annualDiscountPct: 15,
   };
 
-  const features = pricing.features || {
-    Lite: { pos: true, repairs: true, stock: false, invoicing: false, buyback: false, supportLevel: "Standart E-Posta Destek" },
-    Pro: { pos: true, repairs: true, stock: true, invoicing: true, buyback: false, supportLevel: "Hızlı Destek (Mesai Saatleri)" },
-    Enterprise: { pos: true, repairs: true, stock: true, invoicing: true, buyback: true, supportLevel: "7/24 Telefon & SLA Desteği" }
-  };
+  const plans: Array<{ key: PlanKey; subtitle: string; badge?: string }> = [
+    { key: "Lite", subtitle: "Baslangic seviyesinde net kontrol" },
+    { key: "Service", subtitle: "Teknik servis odakli operasyon" },
+    { key: "Pro", subtitle: "Buyume ve otomasyon dengesi", badge: "Editor's Pick" },
+    { key: "Enterprise", subtitle: "Kurumsal olcek ve SLA" },
+  ];
+
+  const featureNames: Array<{ key: "pos" | "repairs" | "stock" | "invoicing" | "buyback"; label: string }> = [
+    { key: "pos", label: "POS" },
+    { key: "repairs", label: "Teknik Servis" },
+    { key: "stock", label: "Stok" },
+    { key: "invoicing", label: "Faturalama" },
+    { key: "buyback", label: "Ikinci El" },
+  ];
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] text-stone-850 selection:bg-amber-200 selection:text-stone-900 font-sans antialiased relative overflow-x-hidden">
-      
-      {/* Delicate organic gradient background overlay */}
-      <div className="absolute top-0 left-1/4 w-[600px] h-[500px] bg-gradient-to-b from-[#F2EFE9] to-transparent opacity-60 blur-[100px] pointer-events-none" />
-      <div className="absolute top-1/3 right-1/4 w-[700px] h-[600px] bg-gradient-to-b from-[#EFECE6]/40 to-transparent opacity-40 blur-[120px] pointer-events-none" />
-
-      {/* Header / Navbar */}
-      <header className="sticky top-0 z-50 bg-[#FAF9F5]/90 backdrop-blur-md border-b border-stone-200/80 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between relative">
-          <Link href="/" className="flex items-center gap-3.5 group">
-            <div className="w-9 h-9 rounded-xl bg-stone-900 flex items-center justify-center shadow-md shadow-stone-900/10 group-hover:scale-105 transition-transform duration-300">
-              <svg className="w-5 h-5 text-[#FAF9F5]" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
-              </svg>
+    <div className="premium-root min-h-screen text-[#eef4ff]">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#060b16]/70 backdrop-blur-2xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="logo-mark" />
+            <div>
+              <p className="text-xs uppercase tracking-[0.26em] text-[#97a9c7]">Mobibase</p>
+              <p className="text-sm font-bold tracking-[0.08em] text-white">Cloud Atelier</p>
             </div>
-            <span className="text-xl font-bold tracking-tight text-stone-900">
-              MobiBase <span className="text-[10px] font-semibold text-stone-600 bg-stone-200/60 border border-stone-300 px-2 py-0.5 rounded-full ml-1">Cloud</span>
-            </span>
           </Link>
-
-          {/* Hidden Checkbox for CSS-Only Mobile Menu Toggle */}
-          <input type="checkbox" id="mobile-menu-toggle" className="peer hidden" />
-
-          <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-stone-600">
-            <a href="#features" className="hover:text-stone-900 transition-colors">Özellikler</a>
-            <a href="#pricing" className="hover:text-stone-900 transition-colors">Fiyatlandırma</a>
-            <a href="#about" className="hover:text-stone-900 transition-colors">Hakkımızda</a>
+          <nav className="hidden items-center gap-7 text-sm text-[#b8c6de] md:flex">
+            <a href="#vizyon" className="hover:text-white">Vizyon</a>
+            <a href="#cozum" className="hover:text-white">Mimari</a>
+            <a href="#paketler" className="hover:text-white">Paketler</a>
+            <a href="#iletisim" className="hover:text-white">Iletisim</a>
           </nav>
-
-          <div className="flex items-center gap-3">
-            <Link 
-              href="/login" 
-              className="hidden sm:inline-block px-5 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-[#FAF9F5] font-semibold text-sm shadow-md hover:shadow-stone-900/10 active:scale-[0.98] transition-all duration-300"
-            >
-              Firma Girişi 🔑
-            </Link>
-
-            {/* Mobile Menu Label Button */}
-            <label 
-              htmlFor="mobile-menu-toggle" 
-              className="md:hidden p-2 text-stone-600 hover:text-stone-900 cursor-pointer select-none rounded-xl hover:bg-stone-100 transition-colors"
-              aria-label="Menüyü Aç"
-            >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </label>
-          </div>
-
-          {/* Mobile Menu Dropdown Panel */}
-          <div className="hidden peer-checked:flex md:hidden flex-col gap-4 absolute top-full left-0 right-0 mt-2 p-6 bg-[#FAF9F5] border border-stone-200 rounded-2xl shadow-xl z-50">
-            <a href="#features" className="text-sm font-semibold text-stone-600 hover:text-stone-900 py-2 border-b border-stone-100">Özellikler</a>
-            <a href="#pricing" className="text-sm font-semibold text-stone-600 hover:text-stone-900 py-2 border-b border-stone-100">Fiyatlandırma</a>
-            <a href="#about" className="text-sm font-semibold text-stone-600 hover:text-stone-900 py-2 border-b border-stone-100">Hakkımızda</a>
-            <Link 
-              href="/login" 
-              className="sm:hidden text-center px-5 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-[#FAF9F5] font-semibold text-sm shadow-md"
-            >
-              Firma Girişi 🔑
-            </Link>
-          </div>
+          <Link href="/login" className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white hover:bg-white/15">
+            Musteri Girisi
+          </Link>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative pt-20 pb-24 px-6 overflow-hidden">
-        <div className="max-w-5xl mx-auto text-center space-y-8">
-          <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-stone-100 border border-stone-200/80 text-xs text-stone-700 font-semibold uppercase tracking-wider">
-            <span>🛡️</span> Telefon Bayileri İçin Kurumsal Bulut Platformu
-          </span>
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight text-stone-900 max-w-4xl mx-auto">
-            Dükkanınızı Modern Bulut Otomasyonu <br className="hidden sm:inline" />
-            <span className="italic font-serif font-normal text-stone-800 bg-gradient-to-r from-stone-900 via-amber-800 to-stone-900 bg-clip-text text-transparent">
-              MobiBase
-            </span>{" "}
-            İle Yönetin
-          </h1>
-          <p className="text-base sm:text-lg text-stone-600 max-w-2xl mx-auto font-medium leading-relaxed">
-            Müşteri kayıtları, cihaz teknik servisi, parça ve onarım fiyat matrisi, çoklu şube transferleri ve detaylı kasa muhasebe işlemlerini tek panelden güvenle yönetin.
-          </p>
+      <main>
+        <section id="vizyon" className="hero-wrap relative overflow-hidden px-6 pb-16 pt-20 md:pt-24">
+          <div className="parallax orbital-a" aria-hidden />
+          <div className="parallax orbital-b" aria-hidden />
+          <div className="parallax grid-fx" aria-hidden />
 
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-4">
-            <a 
-              href="#pricing" 
-              className="w-full sm:w-auto px-8 py-4 bg-white border border-stone-200 hover:border-stone-400 text-stone-850 font-semibold rounded-2xl hover:bg-stone-50 shadow-sm transition-all duration-300"
-            >
-              Paketleri İncele 👇
-            </a>
-            <Link 
-              href="/login" 
-              className="w-full sm:w-auto px-8 py-4 bg-stone-900 hover:bg-stone-800 text-[#FAF9F5] font-semibold rounded-2xl shadow-lg shadow-stone-900/10 hover:shadow-stone-900/15 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
-            >
-              Hemen Giriş Yap
-            </Link>
-          </div>
+          <div className="relative mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+            <div>
+              <p className="mb-4 inline-flex rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#91d9ff]">
+                Product Operating System for Phone Retail
+              </p>
+              <h1 className="max-w-3xl text-4xl font-extrabold leading-[1.03] tracking-[-0.03em] text-white md:text-6xl">
+                Satis, servis ve finansi
+                <span className="block bg-gradient-to-r from-[#7dd3fc] via-[#c4b5fd] to-[#f9a8d4] bg-clip-text text-transparent">
+                  premium bir kontrol katmaninda birlestirin.
+                </span>
+              </h1>
+              <p className="mt-6 max-w-2xl text-base leading-7 text-[#bbcae2] md:text-lg">
+                MobiBase, bayi operasyonunu daginik tablolar yerine bir tasarim sistemi netliginde yonetir.
+                Servis adimlari, stok ivmesi ve tahsilat riski ayni kompozisyonda gorunur olur.
+              </p>
+              <div className="mt-9 flex flex-wrap gap-3">
+                <a href="#iletisim" className="rounded-full bg-gradient-to-r from-[#7dd3fc] to-[#c4b5fd] px-7 py-3 text-sm font-bold text-[#081224] hover:brightness-110">
+                  Demo ve Gecis Plani
+                </a>
+                <a href="#paketler" className="rounded-full border border-white/20 bg-white/5 px-7 py-3 text-sm font-semibold text-white hover:bg-white/10">
+                  Paketleri Incele
+                </a>
+              </div>
+            </div>
 
-          {/* Promo Card replacing the neon mock box */}
-          <div className="pt-16 max-w-4xl mx-auto">
-            <div className="relative rounded-3xl border border-stone-200 bg-white p-3 shadow-xl shadow-stone-900/[0.03]">
-              <div className="bg-[#FAF9F5] rounded-2xl border border-stone-100 p-5 sm:p-8 overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="text-left space-y-2.5 max-w-lg">
-                  <div className="flex items-center gap-2 text-xs font-bold text-stone-700 uppercase tracking-wider">
-                    <span className="text-amber-700">💼</span> RESELLER YÖNETİMİ
+            <aside className="premium-card rounded-[28px] p-6 md:p-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#9fb3d6]">Canli Operasyon Gorunumu</p>
+              <div className="mt-5 space-y-3">
+                {[
+                  ["Servis Akisi", "Bugun 46 kayit", "+18%"],
+                  ["Tahsilat Nabzi", "Riskli vade 11 dosya", "-22%"],
+                  ["Stok Devir Hizi", "Son 7 gun 1.9x", "+14%"],
+                ].map(([title, meta, delta]) => (
+                  <div key={title} className="rounded-2xl border border-white/10 bg-[#0c1628]/75 p-4">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold text-[#e2ecff]">{title}</p>
+                      <span className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-2 py-1 text-[10px] font-bold text-emerald-200">{delta}</span>
+                    </div>
+                    <p className="mt-1 text-xs text-[#a8bddb]">{meta}</p>
                   </div>
-                  <h3 className="text-xl font-bold text-stone-900">Merkezi Yönetim ve Studio Entegrasyonu</h3>
-                  <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-normal">
-                    Sistem yöneticileri reseller `/studio` panelinden yeni lisanslar atayabilir, şube limitlerini, API kotalarını ve veritabanı boyutlarını dinamik olarak yönetebilir.
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2.5 justify-center md:justify-end">
-                  <span className="px-3.5 py-2 rounded-xl bg-white border border-stone-200 text-xs font-semibold text-stone-700 shadow-sm">🏪 Multi-Şube Destek</span>
-                  <span className="px-3.5 py-2 rounded-xl bg-white border border-stone-200 text-xs font-semibold text-stone-700 shadow-sm">🔧 Arıza & Servis</span>
-                  <span className="px-3.5 py-2 rounded-xl bg-white border border-stone-200 text-xs font-semibold text-stone-700 shadow-sm">💸 POS & Taksitler</span>
-                </div>
+                ))}
               </div>
+            </aside>
+          </div>
+        </section>
+
+        <section className="-mt-2 px-6 pb-6">
+          <div className="mx-auto grid max-w-7xl gap-4 rounded-3xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur md:grid-cols-3">
+            {["Kurulum Cikisi: 1 Is Gunu", "Canliya Gecis: Veri Tasima Dahil", "Yonetici Paneli: Tek Bakista Kontrol"].map((item) => (
+              <div key={item} className="rounded-2xl border border-white/10 bg-[#0a1322]/70 p-4 text-center text-sm font-semibold text-[#d3e3fa]">
+                {item}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section id="cozum" className="relative overflow-hidden px-6 py-16 md:py-20">
+          <div className="mx-auto max-w-7xl">
+            <h2 className="text-3xl font-extrabold tracking-tight text-white md:text-5xl">Figma kalitesinde akisa dayali bilgi mimarisi</h2>
+            <p className="mt-3 max-w-2xl text-sm text-[#b7c7df] md:text-base">Moduller sadece veri gostermiyor; operasyon kararlarini hizlandiran gorsel hiyerarsiyle sunuyor.</p>
+
+            <div className="mt-9 grid gap-5 md:grid-cols-2">
+              {[
+                ["Cihaz ve Musteri Timeline", "Tum servis, satis ve tahsilat gecmisini tek bir kronolojiye baglar."],
+                ["Pipeline Komuta Alani", "Kayit, bekleme, hazir ve teslim asamalarini gecikme sinyalleriyle izler."],
+                ["Finans Sinyal Katmani", "Vade dagilimi, borc/alacak yogunlugu ve tahsilat riskini oncelektirir."],
+                ["Satis-Stok Maliyet Motoru", "POS islemini stok, kar ve maliyet tarafina otomatik dagitir."],
+              ].map(([title, desc], idx) => (
+                <article key={title} className="feature-tile rounded-3xl border border-white/10 p-6">
+                  <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-[#8fb4ff]">Module {String(idx + 1).padStart(2, "0")}</p>
+                  <h3 className="text-xl font-bold tracking-tight text-white">{title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-[#b7c8e2]">{desc}</p>
+                </article>
+              ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Services / Features Section */}
-      <section id="features" className="py-24 border-t border-stone-200/80 bg-[#F5F2EB]/50">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center space-y-4 mb-16">
-            <span className="text-xs font-bold text-stone-600 uppercase tracking-widest pl-1">Yetenekler</span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-stone-900 tracking-tight">MobiBase Hizmet Modülleri</h2>
-            <p className="text-stone-600 text-sm max-w-xl mx-auto leading-relaxed">
-              Telefon bayiniz için özel olarak optimize edilmiş, işinizi kolaylaştıran gelişmiş modül grupları.
-            </p>
-          </div>
-
-          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-            
-            {/* Feature 1 */}
-            <div className="p-7 rounded-2xl border border-stone-200/80 bg-white hover:border-stone-300 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 space-y-4 shadow-sm">
-              <div className="w-11 h-11 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-800 text-xl font-bold">
-                🛒
-              </div>
-              <h3 className="text-lg font-bold text-stone-900">Hızlı POS Satışı</h3>
-              <p className="text-xs sm:text-sm text-stone-650 leading-relaxed font-normal">
-                Tüm barkodlu ürünleri anında sepete ekleyin, peşin, kredi kartı veya veresiye tahsilat yöntemleriyle satışı tamamlayın.
-              </p>
-            </div>
-
-            {/* Feature 2 */}
-            <div className="p-7 rounded-2xl border border-stone-200/80 bg-white hover:border-stone-300 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 space-y-4 shadow-sm">
-              <div className="w-11 h-11 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-800 text-xl font-bold">
-                🔧
-              </div>
-              <h3 className="text-lg font-bold text-stone-900">Teknik Servis</h3>
-              <p className="text-xs sm:text-sm text-stone-650 leading-relaxed font-normal">
-                Gelen arızalı cihazları IMEI ve Seri No ile kaydedin, aşama aşama durum güncellemesi yapın ve onarım bedelini kasaya aktarın.
-              </p>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="p-7 rounded-2xl border border-stone-200/80 bg-white hover:border-stone-300 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 space-y-4 shadow-sm">
-              <div className="w-11 h-11 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-800 text-xl font-bold">
-                📦
-              </div>
-              <h3 className="text-lg font-bold text-stone-900">Stok & Transfer</h3>
-              <p className="text-xs sm:text-sm text-stone-650 leading-relaxed font-normal">
-                Kategori ve asgari limit bazlı stok takibi yapın. Şubeler arası güvenli stok transfer günlüklerini tutarlı şekilde yönetin.
-              </p>
-            </div>
-
-            {/* Feature 4 */}
-            <div className="p-7 rounded-2xl border border-stone-200/80 bg-white hover:border-stone-300 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 space-y-4 shadow-sm">
-              <div className="w-11 h-11 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-800 text-xl font-bold">
-                📈
-              </div>
-              <h3 className="text-lg font-bold text-stone-900">Cari & Taksit</h3>
-              <p className="text-xs sm:text-sm text-stone-650 leading-relaxed font-normal">
-                Müşterilerinizin borç ve veresiye limitlerini belirleyin, taksitli satışlar oluşturun ve vade tarihlerine göre planlama yapın.
-              </p>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* Dynamic Pricing Section */}
-      <section id="pricing" className="py-24 border-t border-stone-200/80">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center space-y-4 mb-16">
-            <span className="text-xs font-bold text-stone-600 uppercase tracking-widest pl-1">Fiyatlandırma</span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-stone-900 tracking-tight">Kullanım Paketleri & Fiyatlandırma</h2>
-            <p className="text-stone-600 text-sm max-w-xl mx-auto leading-relaxed">
-              Dükkanınızın boyutuna ve ihtiyaçlarına en uygun lisans paketini seçin. Yıllık alımlarda <span className="text-amber-800 font-bold">%15 indirim</span> avantajından yararlanın.
-            </p>
-          </div>
-
-          <div className="grid gap-8 grid-cols-1 lg:grid-cols-3 max-w-6xl mx-auto">
-            
-            {/* Lite Plan */}
-            <div className="relative rounded-3xl border border-stone-200 bg-white p-8 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-xl font-bold text-stone-900">Lite Paket</h3>
-                  <p className="text-xs text-stone-500 mt-1">Başlangıç aşamasındaki tek şubeli telefoncular için</p>
-                </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-stone-900">{pricing.Lite.toLocaleString()} TL</span>
-                  <span className="text-xs text-stone-500 font-semibold">/ ay</span>
-                </div>
-                
-                <div className="border-t border-stone-100 pt-6">
-                  <ul className="space-y-3.5 text-xs sm:text-sm text-stone-600">
-                    <li className="flex items-center gap-2">
-                      <span className="text-stone-900 text-sm font-bold">✓</span> 
-                      <span>Dahil Şube Limiti: <strong className="text-stone-950">{pricing.freeBranchLimit} Şube</strong></span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      {features.Lite.pos ? <span className="text-stone-900 text-sm font-bold">✓</span> : <span className="text-stone-400 text-sm">✗</span>}
-                      <span>Hızlı POS Satış Modülü</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      {features.Lite.repairs ? <span className="text-stone-900 text-sm font-bold">✓</span> : <span className="text-stone-400 text-sm">✗</span>}
-                      <span>Arıza & Teknik Servis Kaydı</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      {features.Lite.stock ? <span className="text-stone-900 text-sm font-bold">✓</span> : <span className="text-stone-400 text-sm">✗</span>}
-                      <span>Stok & Transfer Modülü</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      {features.Lite.invoicing ? <span className="text-stone-900 text-sm font-bold">✓</span> : <span className="text-stone-400 text-sm">✗</span>}
-                      <span>Fatura Kesme Modülü</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-stone-900 text-sm">ℹ</span>
-                      <span>Destek Seviyesi: <strong className="text-stone-950">{features.Lite.supportLevel}</strong></span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              <div className="pt-8">
-                <Link href="/login" className="block text-center w-full py-3 rounded-xl bg-stone-100 hover:bg-stone-200/60 border border-stone-200 text-xs sm:text-sm font-semibold text-stone-850 transition-all">
-                  Hemen Başla ⚡
-                </Link>
+        <section id="paketler" className="px-6 py-16 md:py-20">
+          <div className="mx-auto max-w-7xl">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <h2 className="text-3xl font-extrabold tracking-tight text-white md:text-5xl">Premium Paket Yapisi</h2>
+                <p className="mt-2 text-sm text-[#b6c9e4]">Tum fiyatlar ayliktir. Yillik odemede %{addons.annualDiscountPct} indirim uygulanir.</p>
               </div>
             </div>
 
-            {/* Pro Plan */}
-            <div className="relative rounded-3xl border-2 border-stone-900 bg-white p-8 shadow-xl flex flex-col justify-between">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-stone-900 text-[#FAF9F5] text-[10px] font-bold uppercase tracking-wider shadow">
-                En Popüler
-              </div>
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-xl font-bold text-stone-900">Pro Paket</h3>
-                  <p className="text-xs text-stone-500 mt-1">Büyümekte olan çok şubeli bayiler için en ideal çözüm</p>
-                </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-stone-900">{pricing.Pro.toLocaleString()} TL</span>
-                  <span className="text-xs text-stone-500 font-semibold">/ ay</span>
-                </div>
-                
-                <div className="border-t border-stone-100 pt-6">
-                  <ul className="space-y-3.5 text-xs sm:text-sm text-stone-600">
-                    <li className="flex items-center gap-2">
-                      <span className="text-stone-900 text-sm font-bold">✓</span> 
-                      <span>Dahil Şube Limiti: <strong className="text-stone-950">{pricing.freeBranchLimit} Şube</strong></span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      {features.Pro.pos ? <span className="text-stone-900 text-sm font-bold">✓</span> : <span className="text-stone-400 text-sm">✗</span>}
-                      <span>Hızlı POS Satış Modülü</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      {features.Pro.repairs ? <span className="text-stone-900 text-sm font-bold">✓</span> : <span className="text-stone-400 text-sm">✗</span>}
-                      <span>Arıza & Teknik Servis Kaydı</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      {features.Pro.stock ? <span className="text-stone-900 text-sm font-bold">✓</span> : <span className="text-stone-400 text-sm">✗</span>}
-                      <span>Stok & Transfer Modülü</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      {features.Pro.invoicing ? <span className="text-stone-900 text-sm font-bold">✓</span> : <span className="text-stone-400 text-sm">✗</span>}
-                      <span>Fatura Kesme Modülü</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-stone-900 text-sm">ℹ</span>
-                      <span>Destek Seviyesi: <strong className="text-stone-950">{features.Pro.supportLevel}</strong></span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              <div className="pt-8">
-                <Link href="/login" className="block text-center w-full py-3 rounded-xl bg-stone-900 hover:bg-stone-800 text-[#FAF9F5] font-semibold text-xs sm:text-sm transition-all shadow-md">
-                  {"Pro'ya Geç 🚀"}
-                </Link>
-              </div>
+            <div className="mt-8 grid gap-5 lg:grid-cols-4">
+              {plans.map((plan) => {
+                const f = (pricing.features as any)?.[plan.key] || {};
+                const amount = Number((pricing as any)[plan.key] || 0);
+                const highlighted = Boolean(plan.badge);
+
+                return (
+                  <article
+                    key={plan.key}
+                    className={`rounded-3xl border p-6 ${
+                      highlighted
+                        ? "border-[#a78bfa]/60 bg-[linear-gradient(170deg,#15122d_0%,#0c1834_45%,#0f2742_100%)] shadow-[0_16px_70px_-24px_rgba(167,139,250,0.7)]"
+                        : "border-white/10 bg-white/[0.03]"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="text-xl font-bold text-white">{plan.key}</h3>
+                        <p className="mt-1 text-xs text-[#a9bcda]">{plan.subtitle}</p>
+                      </div>
+                      {highlighted ? <span className="rounded-full bg-white/90 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-[#28163d]">{plan.badge}</span> : null}
+                    </div>
+
+                    <div className="mt-5 text-4xl font-extrabold tracking-tight text-white">{amount.toLocaleString("tr-TR")} TL</div>
+                    <p className="text-xs text-[#9db2d2]">Aylik lisans</p>
+
+                    <div className="mt-5 space-y-2 text-xs text-[#c6d8ef]">
+                      {featureNames.map((it) => (
+                        <div key={it.key} className="flex items-center justify-between border-b border-white/10 pb-1.5">
+                          <span>{it.label}</span>
+                          <span className={f[it.key] ? "text-emerald-200" : "text-slate-400"}>{f[it.key] ? "Var" : "Yok"}</span>
+                        </div>
+                      ))}
+                      <p className="pt-2 text-[#a9c4e9]">Destek: {f.supportLevel || "Standart"}</p>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
 
-            {/* Enterprise Plan */}
-            <div className="relative rounded-3xl border border-stone-200 bg-white p-8 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-xl font-bold text-stone-900">Enterprise Paket</h3>
-                  <p className="text-xs text-stone-500 mt-1">Özel geliştirme ve tam teknik altyapı arayanlar için</p>
-                </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-stone-900">{pricing.Enterprise.toLocaleString()} TL</span>
-                  <span className="text-xs text-stone-500 font-semibold">/ ay</span>
-                </div>
-                
-                <div className="border-t border-stone-100 pt-6">
-                  <ul className="space-y-3.5 text-xs sm:text-sm text-stone-600">
-                    <li className="flex items-center gap-2">
-                      <span className="text-stone-900 text-sm font-bold">✓</span> 
-                      <span>Dahil Şube Limiti: <strong className="text-stone-950">{pricing.freeBranchLimit} Şube</strong></span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      {features.Enterprise.pos ? <span className="text-stone-900 text-sm font-bold">✓</span> : <span className="text-stone-400 text-sm">✗</span>}
-                      <span>Hızlı POS Satış Modülü</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      {features.Enterprise.repairs ? <span className="text-stone-900 text-sm font-bold">✓</span> : <span className="text-stone-400 text-sm">✗</span>}
-                      <span>Arıza & Teknik Servis Kaydı</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      {features.Enterprise.stock ? <span className="text-stone-900 text-sm font-bold">✓</span> : <span className="text-stone-400 text-sm">✗</span>}
-                      <span>Stok & Transfer Modülü</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      {features.Enterprise.invoicing ? <span className="text-stone-900 text-sm font-bold">✓</span> : <span className="text-stone-400 text-sm">✗</span>}
-                      <span>Fatura Kesme Modülü</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-stone-900 text-sm">ℹ</span>
-                      <span>Destek Seviyesi: <strong className="text-stone-950">{features.Enterprise.supportLevel}</strong></span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              <div className="pt-8">
-                <Link href="/login" className="block text-center w-full py-3 rounded-xl bg-stone-100 hover:bg-stone-200/60 border border-stone-200 text-xs sm:text-sm font-semibold text-stone-850 transition-all">
-                  İletişime Geç 📞
-                </Link>
-              </div>
-            </div>
-
-          </div>
-
-          {/* Add-ons table info */}
-          <div className="mt-16 max-w-3xl mx-auto bg-[#F5F2EB]/50 border border-stone-200 rounded-2xl p-6 shadow-sm">
-            <h4 className="text-sm font-bold text-stone-900 mb-4 flex items-center gap-2">
-              <span>➕</span> Ekstra Limit Paketleri & Eklentiler
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs sm:text-sm">
-              <div className="p-4 rounded-xl bg-white border border-stone-200 shadow-sm">
-                <p className="text-stone-500 font-medium">Ekstra 10.000 API Kotası</p>
-                <p className="text-base font-bold text-stone-900 mt-1">{addons.apiPackPrice} TL / ay</p>
-              </div>
-              <div className="p-4 rounded-xl bg-white border border-stone-200 shadow-sm">
-                <p className="text-stone-500 font-medium">Ekstra 1 GB Disk Alanı</p>
-                <p className="text-base font-bold text-stone-900 mt-1">{addons.dbGbPrice} TL / ay</p>
-              </div>
-              <div className="p-4 rounded-xl bg-white border border-stone-200 shadow-sm">
-                <p className="text-stone-500 font-medium">Özel Geliştirme Hizmeti</p>
-                <p className="text-base font-bold text-stone-900 mt-1">{addons.customDevHourly} TL / saat</p>
-              </div>
-            </div>
-            <div className="mt-4 text-[11px] text-stone-500 text-center font-medium">
-              * Dahil şube sınırının aşılması durumunda, ek şube başına aylık <strong className="text-stone-700">{pricing.branchSurchargePrice} TL</strong> şube sürşarjı uygulanır.
+            <div className="mt-7 grid gap-3 rounded-3xl border border-white/10 bg-white/[0.03] p-5 text-xs text-[#cadcf2] md:grid-cols-3">
+              <div>Ek 10.000 API: <strong>{addons.apiPackPrice} TL</strong></div>
+              <div>Ek 1 GB Veritabani: <strong>{addons.dbGbPrice} TL</strong></div>
+              <div>Ek Sube: <strong>{pricing.branchSurchargePrice} TL / ay</strong></div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* About Section */}
-      <section id="about" className="py-24 border-t border-stone-200/80 bg-[#F5F2EB]/50">
-        <div className="max-w-4xl mx-auto px-6 text-center space-y-6">
-          <span className="text-xs font-bold text-stone-600 uppercase tracking-widest pl-1">Hakkımızda</span>
-          <h2 className="text-3xl font-bold text-stone-900 tracking-tight">MobiBase Cloud Technologies</h2>
-          <p className="text-stone-650 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto">
-            MobiBase, modern telefon bayileri ve teknik servis noktaları için geliştirilmiş yüksek performanslı, bulut tabanlı bir yönetim yazılımıdır. İş süreçlerinizi dijitalleştirerek şubeleriniz arasındaki koordinasyonu güçlendirir ve operasyonel verimliliğinizi en üst düzeye çıkarır.
-          </p>
-        </div>
-      </section>
+        <section id="iletisim" className="px-6 pb-20 pt-8">
+          <div className="mx-auto max-w-5xl rounded-[32px] border border-white/15 bg-[linear-gradient(155deg,#0d1629_0%,#0f1f3c_58%,#11152c_100%)] p-8 text-center shadow-[0_18px_80px_-22px_rgba(56,189,248,0.45)] md:p-12">
+            <p className="text-xs uppercase tracking-[0.18em] text-[#8db8f5]">Launch In One Day</p>
+            <h3 className="mt-3 text-3xl font-extrabold tracking-tight text-white md:text-5xl">Size ozel teklif ve gecis plani hazirlayalim.</h3>
+            <p className="mx-auto mt-4 max-w-2xl text-sm text-[#b8cae5] md:text-base">Ihtiyaciniza uygun paket, veri gecisi ve kurulum adimlarini ayni gun icinde net yol haritasi olarak iletelim.</p>
+            <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+              <a href="mailto:satis@mobibase.com?subject=MobiBase%20Teklif%20Talebi" className="rounded-full bg-white px-7 py-3 text-sm font-bold text-[#0a1322] hover:bg-[#dbeafe]">
+                Teklif Talep Et
+              </a>
+              <a href="tel:+902120000000" className="rounded-full border border-white/30 bg-white/10 px-7 py-3 text-sm font-semibold text-white hover:bg-white/20">
+                Satis Ile Gorus
+              </a>
+            </div>
+          </div>
+        </section>
+      </main>
 
-      {/* Footer */}
-      <footer className="border-t border-stone-200 bg-white py-12 px-6 text-xs text-stone-500 text-center">
-        <div className="max-w-7xl mx-auto space-y-4">
-          <p className="font-bold text-stone-700">
-            © 2026 MobiBase Cloud Technologies. Tüm Hakları Saklıdır.
-          </p>
-          <p className="max-w-md mx-auto leading-relaxed">
-            MobiBase, telefon bayileri ve distribütör firmalar için özelleştirilmiş, çoklu şube destekli modern bir bulut SaaS otomasyon ürünüdür.
-          </p>
-        </div>
+      <footer className="px-6 pb-10 text-center text-xs text-[#87a0c2]">
+        <p>(c) 2026 MobiBase Cloud Technologies</p>
       </footer>
 
+      <style>{`
+        .premium-root {
+          background:
+            radial-gradient(1000px 540px at 9% -5%, rgba(125, 211, 252, 0.22), transparent 48%),
+            radial-gradient(980px 560px at 86% 8%, rgba(196, 181, 253, 0.18), transparent 46%),
+            linear-gradient(180deg, #050912 0%, #070e19 45%, #04070f 100%);
+        }
+
+        .logo-mark {
+          width: 38px;
+          height: 38px;
+          border-radius: 12px;
+          background:
+            conic-gradient(from 210deg, #7dd3fc, #c4b5fd, #f9a8d4, #7dd3fc);
+          box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.35), 0 8px 28px rgba(125, 211, 252, 0.28);
+        }
+
+        .hero-wrap {
+          isolation: isolate;
+        }
+
+        .premium-card {
+          border: 1px solid rgba(255, 255, 255, 0.16);
+          background: linear-gradient(165deg, rgba(13, 23, 41, 0.84) 0%, rgba(12, 22, 40, 0.7) 100%);
+          box-shadow: 0 26px 70px -28px rgba(14, 165, 233, 0.42);
+          backdrop-filter: blur(12px);
+        }
+
+        .feature-tile {
+          background: linear-gradient(160deg, rgba(16, 25, 44, 0.7) 0%, rgba(8, 16, 30, 0.88) 100%);
+          transition: transform 260ms ease, border-color 260ms ease, box-shadow 260ms ease;
+        }
+
+        .feature-tile:hover {
+          transform: translateY(-4px);
+          border-color: rgba(125, 211, 252, 0.45);
+          box-shadow: 0 16px 45px -24px rgba(125, 211, 252, 0.45);
+        }
+
+        .parallax {
+          position: absolute;
+          pointer-events: none;
+          z-index: -1;
+        }
+
+        .orbital-a {
+          inset: -16% auto auto -14%;
+          width: 58vw;
+          height: 58vw;
+          border-radius: 999px;
+          background: radial-gradient(circle, rgba(125, 211, 252, 0.26), transparent 62%);
+          transform: translateY(-8%);
+        }
+
+        .orbital-b {
+          inset: -12% -18% auto auto;
+          width: 52vw;
+          height: 52vw;
+          border-radius: 999px;
+          background: radial-gradient(circle, rgba(196, 181, 253, 0.26), transparent 62%);
+          transform: translateY(10%);
+        }
+
+        .grid-fx {
+          inset: 0;
+          opacity: 0.22;
+          background-image:
+            linear-gradient(rgba(148, 163, 184, 0.25) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(148, 163, 184, 0.25) 1px, transparent 1px);
+          background-size: 54px 54px;
+          background-attachment: fixed;
+        }
+
+        @media (max-width: 900px) {
+          .grid-fx {
+            background-attachment: scroll;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .parallax {
+            transform: none !important;
+          }
+
+          .grid-fx {
+            background-attachment: scroll !important;
+          }
+
+          .feature-tile {
+            transition: none;
+          }
+        }
+      `}</style>
     </div>
   );
 }
