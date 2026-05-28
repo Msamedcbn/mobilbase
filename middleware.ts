@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const PUBLIC_PATHS = [
@@ -133,19 +133,40 @@ export function middleware(req: NextRequest) {
     const decodedSession = decodeURIComponent(session);
     const user = JSON.parse(decodedSession);
 
-    if (user && user.role !== "ADMIN" && user.role !== "PLATFORM_OWNER") {
-      // Check branch management or admin-only routes
-      const isBranchAdminPath = path.startsWith("/subeler") || path.startsWith("/api/branches") || path.startsWith("/api/admin");
-      if (isBranchAdminPath) {
+    if (user && user.role !== "ADMIN" && user.role !== "PLATFORM_OWNER") {      // Check strict admin-only routes
+      const isStrictAdminPath = path.startsWith("/api/admin");
+      if (isStrictAdminPath) {
         if (path.startsWith("/api/")) {
           return NextResponse.json(
-            { error: "Şube yönetimi ve yönetimsel işlemler için yetkiniz bulunmamaktadır." },
+            { error: "Yonetimsel islemler icin yetkiniz bulunmamaktadir." },
             { status: 403, headers: { "x-request-id": requestId } }
           );
         }
         const url = new URL("/unauthorized", req.url);
         const response = NextResponse.redirect(url, { headers: { "x-request-id": requestId } });
         return response;
+      }
+
+      // Check branch management routes with role permissions
+      const isBranchPath = path.startsWith("/subeler") || path.startsWith("/api/branches");
+      if (isBranchPath) {
+        const rolePermissions = user.rolePermissions || {};
+        const activeModules = user.activeModules || {};
+        const perms = rolePermissions[user.role] || [];
+        const hasBranchPermission = perms.includes("branches") || perms.includes("stock");
+        const isBranchModuleActive = activeModules.branches !== false && activeModules.stock !== false;
+
+        if (!hasBranchPermission || !isBranchModuleActive) {
+          if (path.startsWith("/api/")) {
+            return NextResponse.json(
+              { error: "Sube yonetimi icin yetkiniz bulunmamaktadir." },
+              { status: 403, headers: { "x-request-id": requestId } }
+            );
+          }
+          const url = new URL("/unauthorized", req.url);
+          const response = NextResponse.redirect(url, { headers: { "x-request-id": requestId } });
+          return response;
+        }
       }
 
       // Check module restrictions
@@ -160,7 +181,7 @@ export function middleware(req: NextRequest) {
         if (!isModuleActive || !hasRolePermission) {
           if (path.startsWith("/api/")) {
             return NextResponse.json(
-              { error: `Bu modüle (${module}) erişim yetkiniz bulunmamaktadır.` },
+              { error: `Bu modÃ¼le (${module}) eriÅŸim yetkiniz bulunmamaktadÄ±r.` },
               { status: 403, headers: { "x-request-id": requestId } }
             );
           }
@@ -182,3 +203,4 @@ export function middleware(req: NextRequest) {
 export const config = {
   matcher: ["/((?!.*\\..*|_next).*)"],
 };
+

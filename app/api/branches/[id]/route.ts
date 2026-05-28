@@ -29,7 +29,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 }
 
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
-  const auth = requireRole(["ADMIN"]);
+  const auth = requireRole(["ADMIN", "MANAGER"]);
   if (auth.error) return auth.error;
   const tenantId = auth.user.tenantId;
 
@@ -74,7 +74,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 }
 
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-  const auth = requireRole(["ADMIN"]);
+  const auth = requireRole(["ADMIN", "MANAGER"]);
   if (auth.error) return auth.error;
   const tenantId = auth.user.tenantId;
 

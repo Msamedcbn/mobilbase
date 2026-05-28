@@ -27,7 +27,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const auth = requireRole(["ADMIN"]);
+  const auth = requireRole(["ADMIN", "MANAGER"]);
   if (auth.error) return auth.error;
   const tenantId = auth.user.tenantId;
 
