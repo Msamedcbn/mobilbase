@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -58,6 +58,7 @@ export default function StockPage() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("ALL");
   const [form, setForm] = useState(emptyForm);
+  const [vatRateUi, setVatRateUi] = useState("20");
   const [editingId, setEditingId] = useState<string | null>(null);
 
   // Added States for Barcode Printing and Stock logs
@@ -106,7 +107,7 @@ export default function StockPage() {
       const json = await res.json();
       setItems(Array.isArray(json) ? json : []);
     } catch {
-      toast.error("Stok verileri yüklenemedi.");
+      toast.error("Stok verileri yÃ¼klenemedi.");
     } finally {
       setLoading(false);
     }
@@ -169,6 +170,16 @@ export default function StockPage() {
     () => items.reduce((sum, x) => sum + (Number(x.salePrice) * Number(x.quantity)), 0),
     [items],
   );
+  const purchaseWithVatPreview = useMemo(() => {
+    const base = Number(form.purchasePrice || 0);
+    const vat = Number(vatRateUi || 0);
+    return base * (1 + vat / 100);
+  }, [form.purchasePrice, vatRateUi]);
+  const saleWithVatPreview = useMemo(() => {
+    const base = Number(form.salePrice || 0);
+    const vat = Number(vatRateUi || 0);
+    return base * (1 + vat / 100);
+  }, [form.salePrice, vatRateUi]);
   const inventoryByCategory = useMemo(() => {
     const map = new Map<string, { quantity: number; cost: number; retail: number }>();
     items.forEach((item) => {
@@ -209,6 +220,7 @@ export default function StockPage() {
   function resetForm() {
     setEditingId(null);
     setForm(emptyForm);
+    setVatRateUi("20");
     setCostEvents([]);
     setCostEventAmount("");
     setCostEventNote("");
@@ -217,9 +229,9 @@ export default function StockPage() {
 
   async function addCostEvent(e: React.FormEvent) {
     e.preventDefault();
-    if (!editingId) return toast.error("Maliyet hareketi için önce bir stok kartı seçin.");
+    if (!editingId) return toast.error("Maliyet hareketi iÃ§in Ã¶nce bir stok kartÄ± seÃ§in.");
     const amount = Number(costEventAmount || 0);
-    if (!Number.isFinite(amount) || amount < 0) return toast.error("Geçerli bir tutar girin.");
+    if (!Number.isFinite(amount) || amount < 0) return toast.error("GeÃ§erli bir tutar girin.");
     try {
       const res = await fetch(`/api/stock-items/${editingId}/cost-events`, {
         method: "POST",
@@ -240,13 +252,13 @@ export default function StockPage() {
       await fetchItems();
       await fetchCostEvents(editingId);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "İşlem başarısız");
+      toast.error(err instanceof Error ? err.message : "Ä°ÅŸlem baÅŸarÄ±sÄ±z");
     }
   }
 
   async function saveItem(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.sku || !form.name) return toast.error("SKU ve ürün adı zorunlu.");
+    if (!form.sku || !form.name) return toast.error("SKU ve Ã¼rÃ¼n adÄ± zorunlu.");
     const payload = {
       sku: form.sku.trim(),
       name: form.name.trim(),
@@ -275,29 +287,29 @@ export default function StockPage() {
         body: JSON.stringify(payload),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Kayıt başarısız");
-      toast.success(editingId ? "Stok kartı güncellendi." : "Stok kartı eklendi.");
+      if (!res.ok) throw new Error(json.error ?? "KayÄ±t baÅŸarÄ±sÄ±z");
+      toast.success(editingId ? "Stok kartÄ± gÃ¼ncellendi." : "Stok kartÄ± eklendi.");
       resetForm();
       await fetchItems();
       await fetchLogs(); // Refresh logs
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "İşlem başarısız");
+      toast.error(err instanceof Error ? err.message : "Ä°ÅŸlem baÅŸarÄ±sÄ±z");
     } finally {
       setSaving(false);
     }
   }
 
   async function deleteItem(id: string) {
-    if (!confirm("Bu stok kartını silmek istiyor musunuz?")) return;
+    if (!confirm("Bu stok kartÄ±nÄ± silmek istiyor musunuz?")) return;
     try {
       const res = await fetch(`/api/stock-items/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Silinemedi");
-      toast.success("Stok kartı silindi.");
+      toast.success("Stok kartÄ± silindi.");
       if (editingId === id) resetForm();
       await fetchItems();
       await fetchLogs(); // Refresh logs
     } catch {
-      toast.error("Silme işlemi başarısız.");
+      toast.error("Silme iÅŸlemi baÅŸarÄ±sÄ±z.");
     }
   }
 
@@ -436,12 +448,12 @@ export default function StockPage() {
 
   const getEventTypeName = (type: string) => {
     switch (type) {
-      case "PURCHASE_EXTERNAL": return "Dış Satın Alım";
-      case "INTERNAL_SELL_TO_SERVICE": return "İç Servise Sevk (Satış)";
-      case "SERVICE_COST_LABOR": return "İşçilik Maliyeti";
-      case "SERVICE_COST_PART": return "Parça Maliyeti";
-      case "INTERNAL_BUYBACK_FROM_SERVICE": return "Servisten Geri Satın Alım";
-      case "MANUAL_ADJUSTMENT": return "Manuel Maliyet Düzeltmesi";
+      case "PURCHASE_EXTERNAL": return "DÄ±ÅŸ SatÄ±n AlÄ±m";
+      case "INTERNAL_SELL_TO_SERVICE": return "Ä°Ã§ Servise Sevk (SatÄ±ÅŸ)";
+      case "SERVICE_COST_LABOR": return "Ä°ÅŸÃ§ilik Maliyeti";
+      case "SERVICE_COST_PART": return "ParÃ§a Maliyeti";
+      case "INTERNAL_BUYBACK_FROM_SERVICE": return "Servisten Geri SatÄ±n AlÄ±m";
+      case "MANUAL_ADJUSTMENT": return "Manuel Maliyet DÃ¼zeltmesi";
       default: return type;
     }
   };
@@ -462,8 +474,8 @@ export default function StockPage() {
     <section className="flex flex-col gap-6 animate-fade-in">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
         <div>
-          <h2 className="page-title m-0">Stok Yönetimi</h2>
-          <p className="text-slate-500 text-xs md:text-sm m-0 mt-1">Ürün envanteri, kategori bazlı kırılımlar, maliyet takibi ve barkod sticker baskısı.</p>
+          <h2 className="page-title m-0">Stok YÃ¶netimi</h2>
+          <p className="text-slate-500 text-xs md:text-sm m-0 mt-1">ÃœrÃ¼n envanteri, kategori bazlÄ± kÄ±rÄ±lÄ±mlar, maliyet takibi ve barkod sticker baskÄ±sÄ±.</p>
         </div>
       </div>
 
@@ -479,7 +491,7 @@ export default function StockPage() {
           }`}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
-          Envanter & Stok Kartları
+          Envanter & Stok KartlarÄ±
         </button>
         <button
           type="button"
@@ -491,7 +503,7 @@ export default function StockPage() {
           }`}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2" /></svg>
-          Raporlar & İşlem Logları
+          Raporlar & Ä°ÅŸlem LoglarÄ±
         </button>
       </div>
 
@@ -518,7 +530,7 @@ export default function StockPage() {
                 </svg>
               </div>
               <div>
-                <p className="m-0 text-2xs font-bold text-slate-400 uppercase tracking-wider">Düşük Stok</p>
+                <p className="m-0 text-2xs font-bold text-slate-400 uppercase tracking-wider">DÃ¼ÅŸÃ¼k Stok</p>
                 <h3 className={`m-0 mt-1.5 text-2xl font-extrabold ${lowStockCount > 0 ? "text-amber-600" : "text-teal-700"}`}>{lowStockCount}</h3>
               </div>
             </div>
@@ -530,7 +542,7 @@ export default function StockPage() {
                 </svg>
               </div>
               <div>
-                <p className="m-0 text-2xs font-bold text-slate-400 uppercase tracking-wider">Filtreli Sonuç</p>
+                <p className="m-0 text-2xs font-bold text-slate-400 uppercase tracking-wider">Filtreli SonuÃ§</p>
                 <h3 className="m-0 mt-1.5 text-2xl font-extrabold text-slate-900">{filtered.length}</h3>
               </div>
             </div>
@@ -542,7 +554,7 @@ export default function StockPage() {
                 </svg>
               </div>
               <div>
-                <p className="m-0 text-2xs font-bold text-slate-400 uppercase tracking-wider">Kategori Sayısı</p>
+                <p className="m-0 text-2xs font-bold text-slate-400 uppercase tracking-wider">Kategori SayÄ±sÄ±</p>
                 <h3 className="m-0 mt-1.5 text-2xl font-extrabold text-slate-900">{Math.max(0, categories.length - 1)}</h3>
               </div>
             </div>
@@ -552,70 +564,105 @@ export default function StockPage() {
             <div className="lg:col-span-5 flex flex-col gap-6">
               <form className="panel p-6 flex flex-col gap-4 bg-white" onSubmit={saveItem}>
                 <h3 className="m-0 text-base font-bold text-slate-800 border-b border-slate-100 pb-3">
-                  {editingId ? "Stok Kartı Düzenle" : "Detaylı Ürün Ekle"}
+                  {editingId ? "Stok KartÄ± DÃ¼zenle" : "DetaylÄ± ÃœrÃ¼n Ekle"}
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
                   <input className="field w-full text-sm" placeholder="SKU *" value={form.sku} onChange={(e) => setForm((p) => ({ ...p, sku: e.target.value }))} />
                   <input className="field w-full text-sm" placeholder="Kategori" value={form.category} onChange={(e) => setForm((p) => ({ ...p, category: e.target.value }))} />
                 </div>
-                <input className="field w-full text-sm" placeholder="Ürün Adı *" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} />
+                <p className="m-0 -mt-2 text-[11px] text-slate-400">SKU, POS ekranında barkod gibi kullanılır.</p>
+                <input className="field w-full text-sm" placeholder="ÃœrÃ¼n AdÄ± *" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} />
                 <div className="grid grid-cols-2 gap-3">
                   <input className="field w-full text-sm" placeholder="Marka (opsiyonel)" value={form.brand} onChange={(e) => setForm((p) => ({ ...p, brand: e.target.value }))} />
                   <input className="field w-full text-sm" placeholder="Model (opsiyonel)" value={form.model} onChange={(e) => setForm((p) => ({ ...p, model: e.target.value }))} />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <input className="field w-full text-sm" placeholder="Renk varyantı (opsiyonel)" value={form.variantColor} onChange={(e) => setForm((p) => ({ ...p, variantColor: e.target.value }))} />
-                  <input className="field w-full text-sm" placeholder="Hafıza varyantı (örn: 128GB)" value={form.variantStorage} onChange={(e) => setForm((p) => ({ ...p, variantStorage: e.target.value }))} />
+                  <input className="field w-full text-sm" placeholder="Renk varyantÄ± (opsiyonel)" value={form.variantColor} onChange={(e) => setForm((p) => ({ ...p, variantColor: e.target.value }))} />
+                  <input className="field w-full text-sm" placeholder="HafÄ±za varyantÄ± (Ã¶rn: 128GB)" value={form.variantStorage} onChange={(e) => setForm((p) => ({ ...p, variantStorage: e.target.value }))} />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <input className="field w-full text-sm" placeholder="Seri Kodu (opsiyonel)" value={form.serialNumber} onChange={(e) => setForm((p) => ({ ...p, serialNumber: e.target.value }))} />
                   <input className="field w-full text-sm" placeholder="IMEI (opsiyonel)" value={form.imei} onChange={(e) => setForm((p) => ({ ...p, imei: e.target.value }))} />
                 </div>
-                <div className="grid grid-cols-4 gap-2">
-                  <input className="field w-full px-2 text-xs" type="number" min={0} placeholder="Adet" value={form.quantity} onChange={(e) => setForm((p) => ({ ...p, quantity: e.target.value }))} />
-                  <input className="field w-full px-2 text-xs" type="number" min={0} step="0.01" placeholder="Alış Fiyatı" value={form.purchasePrice} onChange={(e) => setForm((p) => ({ ...p, purchasePrice: e.target.value }))} />
-                  <input className="field w-full px-2 text-xs" type="number" min={0} step="0.01" placeholder="Satış Fiyatı" value={form.salePrice} onChange={(e) => setForm((p) => ({ ...p, salePrice: e.target.value }))} />
-                  <input className="field w-full px-2 text-xs" type="number" min={0} placeholder="Min Stok" value={form.minThreshold} onChange={(e) => setForm((p) => ({ ...p, minThreshold: e.target.value }))} />
+                <p className="m-0 -mt-2 text-[11px] text-slate-400">Seri kodu/IMEI alanları tekil cihaz takibi içindir, aksesuarlar için boş bırakılabilir.</p>
+                <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-3">
+                  <p className="m-0 mb-3 text-2xs font-bold uppercase tracking-wider text-slate-600">Fiyatlandirma ve Stok</p>
+                  <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-2xs font-semibold text-slate-600">Alis Fiyati (KDV Haric)</label>
+                      <input className="field w-full px-2 text-xs" type="number" min={0} step="0.01" placeholder="Alis Fiyati (KDV Haric)" value={form.purchasePrice} onChange={(e) => setForm((p) => ({ ...p, purchasePrice: e.target.value }))} />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-2xs font-semibold text-slate-600">Satis Fiyati (KDV Haric)</label>
+                      <input className="field w-full px-2 text-xs" type="number" min={0} step="0.01" placeholder="Satis Fiyati (KDV Haric)" value={form.salePrice} onChange={(e) => setForm((p) => ({ ...p, salePrice: e.target.value }))} />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-2xs font-semibold text-slate-600">KDV Orani</label>
+                      <select className="field w-full px-2 text-xs" value={vatRateUi} onChange={(e) => setVatRateUi(e.target.value)}>
+                        <option value="0">%0</option>
+                        <option value="1">%1</option>
+                        <option value="10">%10</option>
+                        <option value="20">%20</option>
+                      </select>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-2xs font-semibold text-slate-600">Stok Adedi</label>
+                      <input className="field w-full px-2 text-xs" type="number" min={0} placeholder="Stok Adedi" value={form.quantity} onChange={(e) => setForm((p) => ({ ...p, quantity: e.target.value }))} />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-2xs font-semibold text-slate-600">Minimum Stok</label>
+                      <input className="field w-full px-2 text-xs" type="number" min={0} placeholder="Minimum Stok Uyari Esigi" value={form.minThreshold} onChange={(e) => setForm((p) => ({ ...p, minThreshold: e.target.value }))} />
+                    </div>
+                  </div>
+                  <div className="mt-3 grid grid-cols-1 gap-2 text-2xs text-slate-600 md:grid-cols-2">
+                    <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+                      Alis (KDV Dahil): <strong className="text-slate-800">{purchaseWithVatPreview.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TL</strong>
+                    </div>
+                    <div className="rounded-lg border border-teal-200 bg-teal-50/60 px-2.5 py-2">
+                      Satis (KDV Dahil): <strong className="text-teal-800">{saleWithVatPreview.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TL</strong>
+                    </div>
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <select className="field w-full text-xs" value={form.purchaseDocType} onChange={(e) => setForm((p) => ({ ...p, purchaseDocType: e.target.value }))}>
-                    <option value="">Alım Belgesi Türü (opsiyonel)</option>
+                    <option value="">AlÄ±m Belgesi TÃ¼rÃ¼ (opsiyonel)</option>
                     <option value="INVOICE">Fatura</option>
-                    <option value="EXPENSE_SLIP">Gider Pusulası</option>
-                    <option value="OTHER">Diğer</option>
+                    <option value="EXPENSE_SLIP">Gider PusulasÄ±</option>
+                    <option value="OTHER">DiÄŸer</option>
                   </select>
                   <input className="field w-full text-sm" placeholder="Belge No (fatura no / pusula no)" value={form.purchaseDocNo} onChange={(e) => setForm((p) => ({ ...p, purchaseDocNo: e.target.value }))} />
                 </div>
+                <p className="m-0 -mt-2 text-[11px] text-slate-400">Alım belgesi bilgileri rapor ve maliyet denetimi için referans olarak saklanır.</p>
                 <div className="flex gap-2.5 mt-2">
-                  <button className="primary-btn flex-1 py-2.5 font-semibold text-sm cursor-pointer shadow-md shadow-teal-700/10 hover:shadow-teal-700/20" disabled={saving}>{saving ? "Kaydediliyor..." : editingId ? "Güncelle" : "Ürün Ekle"}</button>
+                  <button className="primary-btn flex-1 py-2.5 font-semibold text-sm cursor-pointer shadow-md shadow-teal-700/10 hover:shadow-teal-700/20" disabled={saving}>{saving ? "Kaydediliyor..." : editingId ? "GÃ¼ncelle" : "ÃœrÃ¼n Ekle"}</button>
                   <button type="button" className="field w-28 py-2.5 cursor-pointer font-medium text-slate-500 hover:text-slate-800" onClick={resetForm}>Temizle</button>
                 </div>
               </form>
 
               {editingId && (
                 <div className="panel p-6 flex flex-col gap-4 bg-white border border-slate-200">
-                  <h3 className="m-0 text-base font-bold text-slate-800 border-b border-slate-100 pb-3">Manuel Maliyet Düzeltme</h3>
+                  <h3 className="m-0 text-base font-bold text-slate-800 border-b border-slate-100 pb-3">Manuel Maliyet DÃ¼zeltme</h3>
                   <form className="flex flex-col gap-3" onSubmit={addCostEvent}>
                     <div className="grid grid-cols-2 gap-3">
                       <select className="field w-full text-xs" value={costEventType} onChange={(e) => setCostEventType(e.target.value)}>
-                        <option value="PURCHASE_EXTERNAL">Dış Alım</option>
-                        <option value="INTERNAL_SELL_TO_SERVICE">Teknik Servise İç Satış</option>
-                        <option value="SERVICE_COST_LABOR">Servis İşçilik Maliyeti</option>
-                        <option value="SERVICE_COST_PART">Servis Parça Maliyeti</option>
-                        <option value="INTERNAL_BUYBACK_FROM_SERVICE">Servisten Mağazaya Geri Alım</option>
-                        <option value="MANUAL_ADJUSTMENT">Manuel Düzeltme</option>
+                        <option value="PURCHASE_EXTERNAL">DÄ±ÅŸ AlÄ±m</option>
+                        <option value="INTERNAL_SELL_TO_SERVICE">Teknik Servise Ä°Ã§ SatÄ±ÅŸ</option>
+                        <option value="SERVICE_COST_LABOR">Servis Ä°ÅŸÃ§ilik Maliyeti</option>
+                        <option value="SERVICE_COST_PART">Servis ParÃ§a Maliyeti</option>
+                        <option value="INTERNAL_BUYBACK_FROM_SERVICE">Servisten MaÄŸazaya Geri AlÄ±m</option>
+                        <option value="MANUAL_ADJUSTMENT">Manuel DÃ¼zeltme</option>
                       </select>
                       <input className="field w-full text-xs" type="number" min={0} step="0.01" placeholder="Tutar" value={costEventAmount} onChange={(e) => setCostEventAmount(e.target.value)} />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <input className="field w-full text-xs" placeholder="Ref No (Fatura/Pusula)" value={costEventRef} onChange={(e) => setCostEventRef(e.target.value)} />
-                      <input className="field w-full text-xs" placeholder="Kısa Açıklama/Not" value={costEventNote} onChange={(e) => setCostEventNote(e.target.value)} />
+                      <input className="field w-full text-xs" placeholder="KÄ±sa AÃ§Ä±klama/Not" value={costEventNote} onChange={(e) => setCostEventNote(e.target.value)} />
                     </div>
                     <button className="primary-btn w-full py-2 cursor-pointer font-semibold text-xs shadow-md">Hareket Ekle</button>
                   </form>
                   <div className="border border-slate-200 rounded-xl overflow-hidden max-h-48 overflow-y-auto">
                     {costEvents.length === 0 ? (
-                      <div className="p-4 text-center text-xs text-slate-400">Henüz maliyet hareketi yok.</div>
+                      <div className="p-4 text-center text-xs text-slate-400">HenÃ¼z maliyet hareketi yok.</div>
                     ) : (
                       <table className="data-table text-xs">
                         <thead>
@@ -652,11 +699,11 @@ export default function StockPage() {
                 <div className="relative">
                   <input 
                     className="field w-full pl-9" 
-                    placeholder="SKU, Ürün adı veya kategori ara..." 
+                    placeholder="SKU, ÃœrÃ¼n adÄ± veya kategori ara..." 
                     value={search} 
                     onChange={(e) => setSearch(e.target.value)} 
                   />
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">ğŸ”</span>
                 </div>
 
                 <div className="flex gap-1.5 overflow-x-auto pb-1.5 scrollbar-thin">
@@ -673,7 +720,7 @@ export default function StockPage() {
                             : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-800"
                         }`}
                       >
-                        {c === "ALL" ? "Tümü" : c}
+                        {c === "ALL" ? "TÃ¼mÃ¼" : c}
                       </button>
                     );
                   })}
@@ -682,18 +729,18 @@ export default function StockPage() {
 
               <div className="overflow-x-auto border border-slate-200/80 rounded-xl shadow-2xs max-h-[640px] overflow-y-auto">
                 {loading ? (
-                  <div className="p-8 text-center text-slate-400">Yükleniyor...</div>
+                  <div className="p-8 text-center text-slate-400">YÃ¼kleniyor...</div>
                 ) : filtered.length === 0 ? (
-                  <div className="p-8 text-center text-slate-400">Kayıt bulunamadı.</div>
+                  <div className="p-8 text-center text-slate-400">KayÄ±t bulunamadÄ±.</div>
                 ) : (
                   <table className="data-table">
                     <thead>
                       <tr>
                         <th className="sticky top-0 bg-slate-50 z-10 text-xs">SKU</th>
-                        <th className="sticky top-0 bg-slate-50 z-10 text-xs">Ürün Detayı</th>
+                        <th className="sticky top-0 bg-slate-50 z-10 text-xs">ÃœrÃ¼n DetayÄ±</th>
                         <th className="sticky top-0 bg-slate-50 z-10 text-xs">Kategori</th>
                         <th className="sticky top-0 bg-slate-50 z-10 text-xs">Miktar</th>
-                        <th className="sticky top-0 bg-slate-50 z-10 text-xs">Maliyet / Satış</th>
+                        <th className="sticky top-0 bg-slate-50 z-10 text-xs">Maliyet / SatÄ±ÅŸ</th>
                         <th className="sticky top-0 bg-slate-50 z-10 text-right text-xs">Aksiyon</th>
                       </tr>
                     </thead>
@@ -732,12 +779,12 @@ export default function StockPage() {
                             <td>
                               <div className="flex flex-col text-2xs">
                                 <span className="text-slate-500">Maliyet: <strong className="text-slate-700">{Number(item.purchasePrice).toLocaleString("tr-TR")} TL</strong></span>
-                                <span className="text-teal-700">Satış: <strong>{Number(item.salePrice).toLocaleString("tr-TR")} TL</strong></span>
+                                <span className="text-teal-700">SatÄ±ÅŸ: <strong>{Number(item.salePrice).toLocaleString("tr-TR")} TL</strong></span>
                               </div>
                             </td>
                             <td className="text-right">
                               <div className="flex gap-1 justify-end">
-                                <button type="button" className="px-2 py-1 text-xs border border-slate-200 hover:border-slate-300 rounded-lg text-slate-600 hover:text-slate-800 bg-white transition-colors cursor-pointer" onClick={() => startEdit(item)}>Düzenle</button>
+                                <button type="button" className="px-2 py-1 text-xs border border-slate-200 hover:border-slate-300 rounded-lg text-slate-600 hover:text-slate-800 bg-white transition-colors cursor-pointer" onClick={() => startEdit(item)}>DÃ¼zenle</button>
                                 <button
                                   type="button"
                                   className="px-2 py-1 text-xs border border-teal-200/50 hover:border-teal-300 rounded-lg bg-teal-50 text-teal-700 hover:bg-teal-100 transition-colors cursor-pointer"
@@ -772,11 +819,11 @@ export default function StockPage() {
           <div className="panel p-6 flex flex-col gap-4 bg-white">
             <h3 className="m-0 text-base font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
               <svg className="w-5 h-5 text-teal-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /><path strokeLinecap="round" strokeLinejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" /></svg>
-              Genel Envanter Değer Analizi
+              Genel Envanter DeÄŸer Analizi
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="panel p-4 bg-slate-50/50 border-slate-200/50">
-                <p className="m-0 text-2xs font-bold text-slate-400 uppercase tracking-wider">Toplam Ürün Adedi</p>
+                <p className="m-0 text-2xs font-bold text-slate-400 uppercase tracking-wider">Toplam ÃœrÃ¼n Adedi</p>
                 <p className="m-0 mt-1 text-xl font-extrabold text-slate-900">{totalStockUnits.toLocaleString("tr-TR")}</p>
               </div>
               <div className="panel p-4 bg-slate-50/50 border-slate-200/50">
@@ -784,11 +831,11 @@ export default function StockPage() {
                 <p className="m-0 mt-1 text-xl font-extrabold text-slate-900">{totalInventoryCost.toLocaleString("tr-TR")} TL</p>
               </div>
               <div className="panel p-4 bg-slate-50/50 border-slate-200/50">
-                <p className="m-0 text-2xs font-bold text-slate-400 uppercase tracking-wider">Toplam Satış Değeri</p>
+                <p className="m-0 text-2xs font-bold text-slate-400 uppercase tracking-wider">Toplam SatÄ±ÅŸ DeÄŸeri</p>
                 <p className="m-0 mt-1 text-xl font-extrabold text-slate-900">{totalInventoryRetail.toLocaleString("tr-TR")} TL</p>
               </div>
               <div className="panel p-4 bg-slate-50/50 border-slate-200/50">
-                <p className="m-0 text-2xs font-bold text-slate-400 uppercase tracking-wider">Tahmini Brüt Kâr Potansiyeli</p>
+                <p className="m-0 text-2xs font-bold text-slate-400 uppercase tracking-wider">Tahmini BrÃ¼t KÃ¢r Potansiyeli</p>
                 <p className={`m-0 mt-1 text-xl font-extrabold ${totalInventoryRetail - totalInventoryCost >= 0 ? "text-teal-700" : "text-rose-600"}`}>
                   {(totalInventoryRetail - totalInventoryCost).toLocaleString("tr-TR")} TL
                 </p>
@@ -797,7 +844,7 @@ export default function StockPage() {
             
             <div className="overflow-x-auto border border-slate-200/80 rounded-xl max-h-60 overflow-y-auto">
               {inventoryByCategory.length === 0 ? (
-                <div className="p-8 text-center text-slate-400 italic">Rapor için ürün verisi bulunamadı.</div>
+                <div className="p-8 text-center text-slate-400 italic">Rapor iÃ§in Ã¼rÃ¼n verisi bulunamadÄ±.</div>
               ) : (
                 <table className="data-table text-xs">
                   <thead>
@@ -805,8 +852,8 @@ export default function StockPage() {
                       <th className="sticky top-0 bg-slate-50 z-10">Kategori</th>
                       <th className="sticky top-0 bg-slate-50 z-10">Adet</th>
                       <th className="sticky top-0 bg-slate-50 z-10">Toplam Maliyet</th>
-                      <th className="sticky top-0 bg-slate-50 z-10">Toplam Satış</th>
-                      <th className="sticky top-0 bg-slate-50 z-10">Tahmini Brüt Kâr</th>
+                      <th className="sticky top-0 bg-slate-50 z-10">Toplam SatÄ±ÅŸ</th>
+                      <th className="sticky top-0 bg-slate-50 z-10">Tahmini BrÃ¼t KÃ¢r</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -830,13 +877,13 @@ export default function StockPage() {
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="m-0 text-base font-bold text-slate-800 flex items-center gap-2">
                 <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-                Stok Hareket Logları
+                Stok Hareket LoglarÄ±
               </h3>
-              <span className="text-xs text-slate-400 font-mono">Son 50 işlem listeleniyor</span>
+              <span className="text-xs text-slate-400 font-mono">Son 50 iÅŸlem listeleniyor</span>
             </div>
             <div className="max-h-80 overflow-y-auto flex flex-col gap-2">
               {logs.length === 0 ? (
-                <div className="p-8 text-center text-slate-400 italic border border-dashed border-slate-200 rounded-lg">Henüz hareket kaydı yok.</div>
+                <div className="p-8 text-center text-slate-400 italic border border-dashed border-slate-200 rounded-lg">HenÃ¼z hareket kaydÄ± yok.</div>
               ) : (
                 logs.map((log) => (
                   <div key={log.id} className="flex justify-between items-center py-2.5 px-4 rounded-xl bg-slate-50 border border-slate-150 flex-wrap gap-2 hover:border-slate-300 transition-colors text-xs">
@@ -868,7 +915,7 @@ export default function StockPage() {
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm grid place-items-center z-50 p-4 animate-fade-in">
           <div className="panel w-full max-w-sm p-6 border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl flex flex-col gap-5">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <h3 className="m-0 text-base font-bold text-slate-800">Barkod Sticker Önizleme</h3>
+              <h3 className="m-0 text-base font-bold text-slate-800">Barkod Sticker Ã–nizleme</h3>
               <button
                 onClick={() => setShowBarcodeModal(false)}
                 className="text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors w-8 h-8 rounded-full flex items-center justify-center text-xl font-bold cursor-pointer"
@@ -882,7 +929,7 @@ export default function StockPage() {
               
               <div className="w-[280px] h-[168px] bg-white text-black rounded-lg p-3 flex flex-col justify-between shadow-lg box-border select-none relative z-10 border border-slate-250">
                 <div className="text-[9px] font-black text-slate-800 uppercase tracking-widest border-b border-black pb-1 mb-1 font-mono">
-                  SaaSTel İletişim
+                  SaaSTel Ä°letiÅŸim
                 </div>
                 <div className="text-[10px] leading-tight font-bold text-slate-900 line-clamp-2 overflow-hidden h-[24px] font-sans">
                   {selectedItem.name}
@@ -923,13 +970,13 @@ export default function StockPage() {
                 className="primary-btn flex-1 py-2.5 flex items-center justify-center gap-2 font-semibold text-sm cursor-pointer shadow-lg shadow-teal-700/10 hover:shadow-teal-700/20"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-5a2 2 0 00-2-2H5a2 2 0 00-2 2v5a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                Yazdır
+                YazdÄ±r
               </button>
               <button
                 onClick={() => setShowBarcodeModal(false)}
                 className="field w-28 py-2.5 font-medium text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
               >
-                İptal
+                Ä°ptal
               </button>
             </div>
           </div>
@@ -938,3 +985,7 @@ export default function StockPage() {
     </section>
   );
 }
+
+
+
+

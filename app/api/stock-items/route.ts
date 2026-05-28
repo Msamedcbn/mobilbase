@@ -88,6 +88,16 @@ export async function POST(req: Request) {
       };
 
       store.stockItems.push(newItem);
+      if (!store.productBranchStocks) store.productBranchStocks = [];
+      const targetBranchId = store.branches?.[0]?.id;
+      if (targetBranchId) {
+        store.productBranchStocks.push({
+          id: localId("pbs"),
+          productId: newItem.id,
+          branchId: targetBranchId,
+          stock: newItem.quantity,
+        });
+      }
       
       const logDetail = `Yeni Stok Karti Eklendi: ${sku} - ${name} (Adet: ${quantity})`;
       store.stockLogs.unshift({
@@ -122,6 +132,78 @@ export async function POST(req: Request) {
         tenantId,
       }
     });
+
+    const defaultBranch = await prisma.branch.findFirst({
+      where: { tenantId },
+      orderBy: { createdAt: "asc" },
+      select: { id: true },
+    });
+
+    const existingProduct = await prisma.product.findFirst({
+      where: {
+        barcode: item.sku,
+        tenantId: tenantId ?? null,
+      },
+      select: { id: true },
+    });
+
+    const createdProduct = existingProduct
+      ? await prisma.product.update({
+      where: { id: existingProduct.id },
+      data: {
+        name: item.name,
+        category: item.category,
+        brand: item.brand,
+        model: item.model,
+        variantColor: item.variantColor,
+        variantStorage: item.variantStorage,
+        serialNumber: item.serialNumber,
+        imei: item.imei,
+        stock: item.quantity,
+        purchasePrice: item.purchasePrice,
+        salePrice: item.salePrice,
+        purchaseDocType: item.purchaseDocType,
+        purchaseDocNo: item.purchaseDocNo,
+      },
+    })
+      : await prisma.product.create({
+      data: {
+        name: item.name,
+        barcode: item.sku,
+        category: item.category,
+        brand: item.brand,
+        model: item.model,
+        variantColor: item.variantColor,
+        variantStorage: item.variantStorage,
+        serialNumber: item.serialNumber,
+        imei: item.imei,
+        stock: item.quantity,
+        purchasePrice: item.purchasePrice,
+        salePrice: item.salePrice,
+        purchaseDocType: item.purchaseDocType,
+        purchaseDocNo: item.purchaseDocNo,
+        tenantId,
+      },
+    });
+
+    if (defaultBranch) {
+      await prisma.productBranchStock.upsert({
+        where: {
+          productId_branchId: {
+            productId: createdProduct.id,
+            branchId: defaultBranch.id,
+          },
+        },
+        create: {
+          productId: createdProduct.id,
+          branchId: defaultBranch.id,
+          stock: item.quantity,
+        },
+        update: {
+          stock: item.quantity,
+        },
+      });
+    }
     
     await writeAuditLog({
       action: "STOCK_ADD",

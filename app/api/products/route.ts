@@ -12,6 +12,26 @@ export async function GET() {
 
   if (isDbDisabledMode()) {
     const store = await readLocalStore();
+    const stockItemsAsProducts = (store.stockItems || []).map((item) => ({
+      id: item.id,
+      name: item.name,
+      barcode: item.sku,
+      category: item.category,
+      stock: item.quantity,
+      purchasePrice: Number(item.purchasePrice).toFixed(2),
+      salePrice: Number(item.salePrice).toFixed(2),
+      branchStocks: (store.productBranchStocks || [])
+        .filter((s) => s.productId === item.id)
+        .map((s) => ({
+          ...s,
+          branch: store.branches?.find((b) => b.id === s.branchId) || null,
+        })),
+    }));
+
+    if (stockItemsAsProducts.length > 0) {
+      return ok(stockItemsAsProducts);
+    }
+
     return ok([
       {
         id: "demo-prod-1",

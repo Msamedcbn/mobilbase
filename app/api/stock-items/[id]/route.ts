@@ -61,6 +61,21 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       };
 
       store.stockItems[idx] = updatedItem;
+      if (!store.productBranchStocks) store.productBranchStocks = [];
+      const defaultBranchId = store.branches?.[0]?.id;
+      if (defaultBranchId) {
+        const bsIdx = store.productBranchStocks.findIndex((x) => x.productId === updatedItem.id && x.branchId === defaultBranchId);
+        if (bsIdx === -1) {
+          store.productBranchStocks.push({
+            id: localId("pbs"),
+            productId: updatedItem.id,
+            branchId: defaultBranchId,
+            stock: updatedItem.quantity,
+          });
+        } else {
+          store.productBranchStocks[bsIdx].stock = updatedItem.quantity;
+        }
+      }
 
       const logDetail = `Stok Karti Guncellendi: ${updatedItem.sku} - ${updatedItem.name} (Adet: ${updatedItem.quantity}, Fiyat: ${updatedItem.salePrice} TL)`;
       store.stockLogs.unshift({
@@ -73,6 +88,11 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
       await writeLocalStore(store);
       return NextResponse.json(updatedItem);
+    }
+
+    const existingItem = await prisma.stockItem.findUnique({ where: { id: params.id } });
+    if (!existingItem) {
+      return NextResponse.json({ error: "Urun bulunamadi." }, { status: 404 });
     }
 
     const updated = await prisma.stockItem.update({
@@ -89,6 +109,79 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         purchaseDocNo: purchaseDocNo !== undefined ? (purchaseDocNo?.trim() || null) : undefined,
       },
     });
+
+    const defaultBranch = await prisma.branch.findFirst({
+      where: { tenantId: auth.user.tenantId },
+      orderBy: { createdAt: "asc" },
+      select: { id: true },
+    });
+
+    const existingProduct = await prisma.product.findFirst({
+      where: {
+        barcode: existingItem.sku,
+        tenantId: auth.user.tenantId ?? null,
+      },
+      select: { id: true },
+    });
+
+    const syncedProduct = existingProduct
+      ? await prisma.product.update({
+      where: { id: existingProduct.id },
+      data: {
+        name: updated.name,
+        barcode: updated.sku,
+        category: updated.category,
+        brand: updated.brand,
+        model: updated.model,
+        variantColor: updated.variantColor,
+        variantStorage: updated.variantStorage,
+        serialNumber: updated.serialNumber,
+        imei: updated.imei,
+        stock: updated.quantity,
+        purchasePrice: updated.purchasePrice,
+        salePrice: updated.salePrice,
+        purchaseDocType: updated.purchaseDocType,
+        purchaseDocNo: updated.purchaseDocNo,
+      },
+    })
+      : await prisma.product.create({
+      data: {
+        name: updated.name,
+        barcode: updated.sku,
+        category: updated.category,
+        brand: updated.brand,
+        model: updated.model,
+        variantColor: updated.variantColor,
+        variantStorage: updated.variantStorage,
+        serialNumber: updated.serialNumber,
+        imei: updated.imei,
+        stock: updated.quantity,
+        purchasePrice: updated.purchasePrice,
+        salePrice: updated.salePrice,
+        purchaseDocType: updated.purchaseDocType,
+        purchaseDocNo: updated.purchaseDocNo,
+        tenantId: auth.user.tenantId,
+      },
+    });
+
+    if (defaultBranch) {
+      await prisma.productBranchStock.upsert({
+        where: {
+          productId_branchId: {
+            productId: syncedProduct.id,
+            branchId: defaultBranch.id,
+          },
+        },
+        create: {
+          productId: syncedProduct.id,
+          branchId: defaultBranch.id,
+          stock: updated.quantity,
+        },
+        update: {
+          stock: updated.quantity,
+        },
+      });
+    }
 
     await writeAuditLog({
       action: "STOCK_UPDATE",
@@ -121,6 +214,9 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 
       const item = store.stockItems[idx];
       store.stockItems.splice(idx, 1);
+      if (store.productBranchStocks) {
+        store.productBranchStocks = store.productBranchStocks.filter((x) => x.productId !== item.id);
+      }
 
       const logDetail = `Stok Karti Silindi: ${item.sku} - ${item.name}`;
       store.stockLogs.unshift({
@@ -141,6 +237,12 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     }
 
     await prisma.stockItem.delete({ where: { id: params.id } });
+    await prisma.product.deleteMany({
+      where: {
+        barcode: item.sku,
+        tenantId: auth.user.tenantId,
+      },
+    });
 
     await writeAuditLog({
       action: "STOCK_DELETE",
