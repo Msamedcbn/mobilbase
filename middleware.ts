@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const PUBLIC_PATHS = [
@@ -10,10 +10,24 @@ const PUBLIC_PATHS = [
   "/api/health",
   "/api/health/liveness",
   "/api/health/readiness",
+  "/api/internal/tenant-status",
   "/_next",
   "/favicon.ico",
   "/servis",
 ];
+
+function decodeSessionPayloadFromToken(token: string) {
+  try {
+    const [encodedBody] = token.split(".");
+    if (!encodedBody) return null;
+    const normalized = encodedBody.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
+    const json = atob(padded);
+    return JSON.parse(json) as any;
+  } catch {
+    return null;
+  }
+}
 
 function getModuleFromPath(path: string): "pos" | "repairs" | "stock" | "invoicing" | null {
   const cleanPath = path.toLowerCase();
@@ -59,34 +73,13 @@ function getModuleFromPath(path: string): "pos" | "repairs" | "stock" | "invoici
   return null;
 }
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
   const requestId = req.headers.get("x-request-id") ?? crypto.randomUUID();
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-request-id", requestId);
   requestHeaders.set("x-request-path", path); // Set x-request-path header for API downstream checks
 
-  const isBuybackPage =
-    path.startsWith("/buyback") ||
-    path.startsWith("/ikinci-el");
-  const isBuybackApi =
-    path.startsWith("/api/buyback") ||
-    path.startsWith("/api/buybacks") ||
-    path.startsWith("/api/buyback-wizard");
-
-  if (isBuybackApi) {
-    return NextResponse.json(
-      { error: "Buyback modulu bu SaaS urununden kaldirildi." },
-      { status: 410, headers: { "x-request-id": requestId } },
-    );
-  }
-
-  if (isBuybackPage) {
-    const url = new URL("/", req.url);
-    const response = NextResponse.redirect(url, { headers: { "x-request-id": requestId } });
-    response.headers.set("x-request-id", requestId);
-    return response;
-  }
 
   if (path === "/" || PUBLIC_PATHS.some((p) => path.startsWith(p))) {
     const response = NextResponse.next({ request: { headers: requestHeaders } });
@@ -107,8 +100,8 @@ export function middleware(req: NextRequest) {
   // Reseller Studio Authorization check
   if (path.startsWith("/studio") || path.startsWith("/api/studio")) {
     try {
-      const decodedSession = decodeURIComponent(session);
-      const user = JSON.parse(decodedSession);
+      const user = decodeSessionPayloadFromToken(session);
+      if (!user) throw new Error("Invalid session token");
       if (user.role !== "ADMIN" && user.role !== "PLATFORM_OWNER") {
         if (path.startsWith("/api/")) {
           return NextResponse.json(
@@ -130,12 +123,50 @@ export function middleware(req: NextRequest) {
 
   // Normal App Module Authorization checks
   try {
-    const decodedSession = decodeURIComponent(session);
-    const user = JSON.parse(decodedSession);
+    const user = decodeSessionPayloadFromToken(session);
+    if (!user) throw new Error("Invalid session token");
 
-    if (user && user.role !== "ADMIN" && user.role !== "PLATFORM_OWNER") {      // Check strict admin-only routes
+    if (user.tenantId && user.role !== "PLATFORM_OWNER") {
+      try {
+        const statusRes = await fetch(`${req.nextUrl.origin}/api/internal/tenant-status?tenantId=${encodeURIComponent(user.tenantId)}`, {
+          headers: {
+            "x-internal-token": process.env.INTERNAL_API_TOKEN || process.env.SESSION_SECRET || "",
+          },
+          cache: "no-store",
+        });
+        if (statusRes.ok) {
+          const statusPayload = await statusRes.json();
+          if (statusPayload?.frozen === true) {
+            if (path.startsWith("/api/")) {
+              return NextResponse.json(
+                { error: "Bu tenant dondurulmustur. Erisim gecici olarak kapatilmistir." },
+                { status: 403, headers: { "x-request-id": requestId } }
+              );
+            }
+            const url = new URL("/login", req.url);
+            const response = NextResponse.redirect(url, { headers: { "x-request-id": requestId } });
+            response.cookies.delete("tp_session");
+            return response;
+          }
+        }
+      } catch {
+        // fail-open to avoid accidental global lockout on transient internal route errors
+      }
+    }
+
+    if (user && user.role !== "ADMIN" && user.role !== "PLATFORM_OWNER" && user.role !== "MANAGER") {      // Check strict admin-only routes
       const isStrictAdminPath = path.startsWith("/api/admin");
+      const isManagerAllowedAdminPath =
+        user.role === "MANAGER" &&
+        (path.startsWith("/api/admin/users") ||
+          path.startsWith("/api/admin/system/config") ||
+          path.startsWith("/api/admin/system/pdf-settings"));
       if (isStrictAdminPath) {
+        if (isManagerAllowedAdminPath) {
+          const response = NextResponse.next({ request: { headers: requestHeaders } });
+          response.headers.set("x-request-id", requestId);
+          return response;
+        }
         if (path.startsWith("/api/")) {
           return NextResponse.json(
             { error: "Yonetimsel islemler icin yetkiniz bulunmamaktadir." },
@@ -181,7 +212,7 @@ export function middleware(req: NextRequest) {
         if (!isModuleActive || !hasRolePermission) {
           if (path.startsWith("/api/")) {
             return NextResponse.json(
-              { error: `Bu modÃ¼le (${module}) eriÅŸim yetkiniz bulunmamaktadÄ±r.` },
+              { error: `Bu modüle (${module}) erişim yetkiniz bulunmamaktadır.` },
               { status: 403, headers: { "x-request-id": requestId } }
             );
           }

@@ -5,6 +5,8 @@ import { compareSync } from "bcryptjs";
 import { getErrorCode, getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { getDemoAuthUser, isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore } from "@/lib/local-store";
+import { createSignedSessionToken } from "@/lib/session";
+import { isTenantFrozenFromNotes } from "@/lib/tenant-metadata";
 
 const schema = z.object({
   email: z.string().email(),
@@ -33,7 +35,7 @@ export async function POST(req: Request) {
     activeModules?: Record<string, boolean>;
   }) => {
     const response = NextResponse.json({ ok: true, user: payload });
-    response.cookies.set("tp_session", JSON.stringify(payload), {
+    response.cookies.set("tp_session", createSignedSessionToken(payload as any), {
       httpOnly: true,
       sameSite: "lax",
       secure: secureCookie,
@@ -55,7 +57,7 @@ export async function POST(req: Request) {
       let rolePermissions: Record<string, string[]> = {
         PLATFORM_OWNER: ["pos", "repairs", "stock", "invoicing", "buyback"],
         ADMIN: ["pos", "repairs", "stock", "invoicing", "buyback"],
-        MANAGER: ["pos", "repairs", "stock", "invoicing"],
+        MANAGER: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
         CASHIER: ["pos"],
         TECHNICIAN: ["repairs"],
         ACCOUNTANT: ["invoicing"],
@@ -65,7 +67,7 @@ export async function POST(req: Request) {
         repairs: true,
         stock: true,
         invoicing: true,
-        buyback: false,
+        buyback: true,
       };
 
       try {
@@ -76,7 +78,7 @@ export async function POST(req: Request) {
           if (customer && customer.notes) {
             const parsedNotes = JSON.parse(customer.notes);
             if (parsedNotes.rolePermissions) rolePermissions = parsedNotes.rolePermissions;
-            if (parsedNotes.modules) activeModules = parsedNotes.modules;
+            if (parsedNotes.modules) activeModules = { ...parsedNotes.modules, buyback: true };
           }
         } else {
           const customer = customerId
@@ -85,7 +87,7 @@ export async function POST(req: Request) {
           if (customer && customer.notes) {
             const parsedNotes = JSON.parse(customer.notes);
             if (parsedNotes.rolePermissions) rolePermissions = parsedNotes.rolePermissions;
-            if (parsedNotes.modules) activeModules = parsedNotes.modules;
+            if (parsedNotes.modules) activeModules = { ...parsedNotes.modules, buyback: true };
           }
         }
       } catch (err) {
@@ -142,6 +144,9 @@ export async function POST(req: Request) {
         where: { email: parsed.data.email.toLowerCase() },
       });
     } catch {
+      if (process.env.NODE_ENV === "production") {
+        throw new Error("Veritabani baglantisi olmadan giris fallback devre disi.");
+      }
       const demo = getDemoAuthUser();
       if (parsed.data.email.toLowerCase() === demo.email && parsed.data.password === demo.password) {
         const tenantConf = await getTenantConfig();
@@ -224,62 +229,35 @@ export async function POST(req: Request) {
         }
         resolvedTenantId = userTenant.id;
       } else {
-        // tenantId yok - TENANT_NAME üzerinden default tenant'a bağla
-        const tenantName = process.env.TENANT_NAME ?? "TelefoncuPro";
-        let defaultTenant = await prisma.customer.findFirst({
-          where: { fullName: tenantName },
-          select: { id: true, email: true },
-        });
-
-        // Default tenant da yoksa oluştur
-        if (!defaultTenant) {
-          try {
-            const created = await prisma.customer.create({
-              data: {
-                fullName: tenantName,
-                phone: "5550000001",
-                email: authenticatedUser.email,
-                notes: JSON.stringify({
-                  isSaaS: true, plan: "Pro", branchLimit: 5, databaseSizeGb: 1.0,
-                  smsQuota: 5000, smsUsed: 0, leadStatus: "WON",
-                  modules: { pos: true, repairs: true, stock: true, buyback: false, invoicing: true },
-                  rolePermissions: {
-                    PLATFORM_OWNER: ["pos", "repairs", "stock", "invoicing", "buyback"],
-                    ADMIN: ["pos", "repairs", "stock", "invoicing", "buyback"],
-                    MANAGER: ["pos", "repairs", "stock", "invoicing"],
-                    CASHIER: ["pos"], TECHNICIAN: ["repairs"], ACCOUNTANT: ["invoicing"],
-                  },
-                  tickets: [], billingLedger: [],
-                }),
-                creditLimit: 0,
-              },
-              select: { id: true, email: true },
-            });
-            defaultTenant = created;
-            console.info(`[auth/login] Default tenant otomatik oluşturuldu: ${tenantName}`);
-          } catch (err) {
-            console.error("[auth/login] Default tenant oluşturulamadı:", err);
-            return NextResponse.json({ error: "Sistem yapılandırması tamamlanamadı." }, { status: 503 });
-          }
-        }
-
-        // Kullanıcıyı default tenant'a bağla (email eşleşmesi veya ADMIN)
-        const emailMatch = defaultTenant.email && authenticatedUser.email.toLowerCase() === defaultTenant.email.toLowerCase();
-        if (emailMatch || authenticatedUser.role === "ADMIN") {
-          authenticatedUser = await prisma.appUser.update({
-            where: { id: authenticatedUser.id },
-            data: { tenantId: defaultTenant.id } as any,
-          });
-          resolvedTenantId = defaultTenant.id;
-        } else {
-          return NextResponse.json({ error: "Bu kullanici herhangi bir tenant ile eslesmemis. Yönetici ile irtibata gecin." }, { status: 403 });
-        }
+        return NextResponse.json(
+          { error: "Kullaniciya tenant atanmamis. Studio'dan tenant atamasi yapin." },
+          { status: 403 }
+        );
       }
     }
 
     // Kullanıcının kendi tenant config'ini yükle
     const finalTenantId = resolvedTenantId ?? (authenticatedUser as any).tenantId ?? null;
+    if (finalTenantId && authenticatedUser.role !== "PLATFORM_OWNER") {
+      if (isDbDisabledMode()) {
+        const store = await readLocalStore();
+        const tenant = store.customers.find((c) => c.id === finalTenantId);
+        if (isTenantFrozenFromNotes(tenant?.notes)) {
+          return NextResponse.json({ error: "Bu tenant dondurulmustur. Giris gecici olarak kapatilmistir." }, { status: 403 });
+        }
+      } else {
+        const tenant = await prisma.customer.findUnique({ where: { id: finalTenantId }, select: { notes: true } });
+        if (isTenantFrozenFromNotes(tenant?.notes)) {
+          return NextResponse.json({ error: "Bu tenant dondurulmustur. Giris gecici olarak kapatilmistir." }, { status: 403 });
+        }
+      }
+    }
     const tenantConf = await getTenantConfig(finalTenantId);
+    if (authenticatedUser.role === "MANAGER") {
+      const adminPerms = tenantConf.rolePermissions.ADMIN || [];
+      const managerPerms = tenantConf.rolePermissions.MANAGER || [];
+      tenantConf.rolePermissions.MANAGER = Array.from(new Set([...adminPerms, ...managerPerms, "branches"]));
+    }
     const expiresAt = Date.now() + 1000 * 60 * 60 * 8;
     const payload = {
       userId: authenticatedUser.id,

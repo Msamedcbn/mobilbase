@@ -89,6 +89,13 @@ export type LocalStore = {
     purchaseDocType?: string | null;
     purchaseDocNo?: string | null;
     minThreshold: number;
+    isCatalog?: boolean;
+    condition?: string | null;
+    isBuybackItem?: boolean;
+    buybackProcessStatus?: "SERVICE_TRANSFERRED" | "READY_FOR_SALE" | null;
+    buybackSaleEnabled?: boolean;
+    buybackDealId?: string | null;
+    purchaseDate?: string;
     createdAt?: string;
     updatedAt?: string;
   }>;
@@ -154,6 +161,7 @@ export type LocalStore = {
   }>;
   resellerPricing?: {
     Lite: number;
+    Service: number;
     Pro: number;
     Enterprise: number;
     freeBranchLimit: number;
@@ -166,6 +174,14 @@ export type LocalStore = {
     };
     features?: {
       Lite: {
+        pos: boolean;
+        repairs: boolean;
+        stock: boolean;
+        invoicing: boolean;
+        buyback: boolean;
+        supportLevel: string;
+      };
+      Service: {
         pos: boolean;
         repairs: boolean;
         stock: boolean;
@@ -191,6 +207,37 @@ export type LocalStore = {
       };
     };
   };
+  resellerPricingHistory?: Array<{
+    id: string;
+    createdAt: string;
+    createdBy: string;
+    reason: string;
+    snapshot: {
+      Lite: number;
+      Service: number;
+      Pro: number;
+      Enterprise: number;
+      freeBranchLimit: number;
+      branchSurchargePrice: number;
+      addons?: {
+        apiPackPrice: number;
+        dbGbPrice: number;
+        customDevHourly: number;
+        annualDiscountPct: number;
+      };
+      features?: Record<string, unknown>;
+    };
+  }>;
+  studioAuditLogs?: Array<{
+    id: string;
+    createdAt: string;
+    actor: string;
+    action: string;
+    targetType: "TENANT" | "PRICING" | "LEDGER" | "LICENSE" | "HELPDESK";
+    targetId: string;
+    detail: string;
+    context?: Record<string, unknown>;
+  }>;
   resellerExpenses?: Array<{
     id: string;
     category: string;
@@ -401,6 +448,7 @@ const seedStore: LocalStore = {
   repairPriceItems: [],
   resellerPricing: {
     Lite: 750,
+    Service: 990,
     Pro: 1500,
     Enterprise: 3500,
     freeBranchLimit: 5,
@@ -419,6 +467,14 @@ const seedStore: LocalStore = {
         invoicing: false,
         buyback: false,
         supportLevel: "Standart E-Posta Destek"
+      },
+      Service: {
+        pos: false,
+        repairs: true,
+        stock: true,
+        invoicing: false,
+        buyback: false,
+        supportLevel: "Teknik Servis Odakli Destek"
       },
       Pro: {
         pos: true,
@@ -444,7 +500,9 @@ const seedStore: LocalStore = {
     { id: "exp-3", category: "Pazarlama/Reklam", description: "Google Ads & Meta SaaS Reklam Kampanyas1", amount: 8500, date: "2026-05-10" },
     { id: "exp-4", category: "Ofis/Dier", description: "Ofis Ortak Alan Kullan1m1 ve Muhasebe Giderleri", amount: 5000, date: "2026-05-02" },
     { id: "exp-5", category: "Altyap1/Sunucu", description: "Neon Database Postgres Kme creti", amount: 1800, date: "2026-05-18" }
-  ]
+  ],
+  resellerPricingHistory: [],
+  studioAuditLogs: [],
 };
 
 export async function readLocalStore(): Promise<LocalStore> {
@@ -494,8 +552,34 @@ export async function readLocalStore(): Promise<LocalStore> {
       stockCostEvents: fixedParsed.stockCostEvents || seedStore.stockCostEvents || [],
       corporateQuotes: fixedParsed.corporateQuotes || seedStore.corporateQuotes || [],
       repairPriceItems: fixedParsed.repairPriceItems || seedStore.repairPriceItems || [],
-      resellerPricing: fixedParsed.resellerPricing || seedStore.resellerPricing,
+      resellerPricing: (() => {
+        const base = seedStore.resellerPricing!;
+        const incoming = fixedParsed.resellerPricing;
+        if (!incoming) return base;
+        return {
+          Lite: Number(incoming.Lite ?? base.Lite),
+          Service: Number(incoming.Service ?? base.Service),
+          Pro: Number(incoming.Pro ?? base.Pro),
+          Enterprise: Number(incoming.Enterprise ?? base.Enterprise),
+          freeBranchLimit: Number(incoming.freeBranchLimit ?? base.freeBranchLimit),
+          branchSurchargePrice: Number(incoming.branchSurchargePrice ?? base.branchSurchargePrice),
+          addons: {
+            apiPackPrice: Number(incoming.addons?.apiPackPrice ?? base.addons?.apiPackPrice ?? 150),
+            dbGbPrice: Number(incoming.addons?.dbGbPrice ?? base.addons?.dbGbPrice ?? 200),
+            customDevHourly: Number(incoming.addons?.customDevHourly ?? base.addons?.customDevHourly ?? 1200),
+            annualDiscountPct: Number(incoming.addons?.annualDiscountPct ?? base.addons?.annualDiscountPct ?? 15),
+          },
+          features: {
+            Lite: { ...(base.features?.Lite || {}), ...(incoming.features?.Lite || {}) } as any,
+            Service: { ...(base.features?.Service || {}), ...(incoming.features?.Service || {}) } as any,
+            Pro: { ...(base.features?.Pro || {}), ...(incoming.features?.Pro || {}) } as any,
+            Enterprise: { ...(base.features?.Enterprise || {}), ...(incoming.features?.Enterprise || {}) } as any,
+          },
+        };
+      })(),
       resellerExpenses: fixedParsed.resellerExpenses || seedStore.resellerExpenses,
+      resellerPricingHistory: fixedParsed.resellerPricingHistory || [],
+      studioAuditLogs: fixedParsed.studioAuditLogs || [],
     };
   } catch {
     await writeLocalStore(seedStore);

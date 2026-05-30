@@ -8,18 +8,10 @@ import { writeAuditLog } from "@/lib/audit";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore, writeLocalStore } from "@/lib/local-store";
 
-async function resolveCurrentTenantId() {
-  const tenantName = process.env.TENANT_NAME ?? "TelefoncuPro";
-  const tenant = await prisma.customer.findFirst({
-    where: { fullName: tenantName },
-    select: { id: true },
-  });
-  return tenant?.id ?? null;
-}
-
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  const auth = requireRole(["ADMIN"]);
+  const auth = requireRole(["ADMIN", "MANAGER"]);
   if (auth.error) return auth.error;
+  const tenantId = auth.user?.tenantId ?? null;
 
   try {
     const body = await req.json();
@@ -30,7 +22,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
-      const userIndex = (store.users || []).findIndex((u) => u.id === params.id);
+      const userIndex = (store.users || []).findIndex(
+        (u) => u.id === params.id && (auth.user?.role === "PLATFORM_OWNER" ? true : u.tenantId === tenantId)
+      );
       if (userIndex === -1) return fail("Kullanıcı bulunamadı", "NOT_FOUND", 404);
 
       const u = store.users![userIndex];
@@ -46,7 +40,6 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       return ok(safeUser, 200, "Kullanici guncellendi");
     }
 
-    const tenantId = await resolveCurrentTenantId();
     if (!tenantId) return fail("Tenant baglami bulunamadi", "NOT_FOUND", 404);
     const scoped = await prisma.appUser.findFirst({
       where: { id: params.id, tenantId } as any,
@@ -91,14 +84,17 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 }
 
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-  const auth = requireRole(["ADMIN"]);
+  const auth = requireRole(["ADMIN", "MANAGER"]);
   if (auth.error) return auth.error;
+  const tenantId = auth.user?.tenantId ?? null;
 
   try {
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
       const initialLength = store.users?.length || 0;
-      store.users = (store.users || []).filter((u) => u.id !== params.id);
+      store.users = (store.users || []).filter(
+        (u) => !(u.id === params.id && (auth.user?.role === "PLATFORM_OWNER" ? true : u.tenantId === tenantId))
+      );
       if ((store.users?.length || 0) === initialLength) {
         return fail("Kullanıcı bulunamadı", "NOT_FOUND", 404);
       }
@@ -106,7 +102,6 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       return ok({ success: true }, 200, "Kullanıcı başarıyla silindi");
     }
 
-    const tenantId = await resolveCurrentTenantId();
     if (!tenantId) return fail("Tenant baglami bulunamadi", "NOT_FOUND", 404);
     const scoped = await prisma.appUser.findFirst({
       where: { id: params.id, tenantId } as any,

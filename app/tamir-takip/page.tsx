@@ -37,6 +37,28 @@ type RepairRecord = {
   device: Device & { customer: Customer };
 };
 
+type CustomerHistoryResult = {
+  customer: Customer;
+  summary: {
+    totalDebit: number;
+    totalCredit: number;
+    netBalance: number;
+    repairCount: number;
+    transactionCount: number;
+    deviceCount: number;
+  };
+  timeline: Array<{
+    id: string;
+    date: string;
+    kind: "ACCOUNT_ENTRY" | "REPAIR" | "TRANSACTION" | "INVOICE";
+    title: string;
+    amount: number | null;
+    direction: "IN" | "OUT" | null;
+    detail: string | null;
+    status: string | null;
+  }>;
+};
+
 const CHECKLIST_KEYS = [
   { key: "screen", label: "Ekran / Dokunmatik" },
   { key: "frontCam", label: "Ön Kamera" },
@@ -122,9 +144,9 @@ function PhoneVisualExpertise({ value, onChange }: PhoneVisualExpertiseProps) {
   });
 
   return (
-    <div className="bg-slate-950/95 border border-slate-800 rounded-2xl p-6 shadow-2xl mb-6 relative overflow-hidden">
+    <div className="relative mx-auto mb-6 w-full max-w-[920px] overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 p-3 shadow-xl md:p-4">
       {/* Visual background scanning lines */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(15,23,42,0.3)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.3)_1px,transparent_1px)] bg-[size:14px_14px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-40 pointer-events-none" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(20,184,166,0.10),transparent_35%),radial-gradient(circle_at_80%_15%,rgba(99,102,241,0.10),transparent_35%)]" />
       <style>{`
         .pulse-bad {
           animation: visualPulse 1.8s infinite ease-in-out;
@@ -140,14 +162,14 @@ function PhoneVisualExpertise({ value, onChange }: PhoneVisualExpertiseProps) {
         }
       `}</style>
 
-      <div className="flex gap-10 justify-center flex-wrap my-2.5 relative z-10">
+      <div className="relative z-10 mb-3 flex flex-wrap items-start justify-center gap-3 md:gap-5">
         {/* Front View */}
-        <div className="text-center">
-          <div className="text-2xs font-bold text-slate-400 mb-4 tracking-widest uppercase flex items-center justify-center gap-1.5 font-mono bg-slate-900/60 py-1.5 px-3 rounded-lg border border-slate-800/40">
+        <div className="rounded-xl border border-slate-800/60 bg-slate-900/45 p-2 text-center md:p-3">
+          <div className="mb-3 flex items-center justify-center gap-1.5 rounded-lg border border-slate-700/60 bg-slate-950/50 px-3 py-1.5 font-mono text-2xs font-bold uppercase tracking-widest text-slate-300">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
             ÖN YÜZ (FRONT SIDE)
           </div>
-          <svg width="160" height="280" viewBox="0 0 160 280" className="overflow-visible select-none">
+          <svg width="128" height="224" viewBox="0 0 160 280" className="overflow-visible select-none">
             {/* Outer phone container rect (non-interactive) */}
             <rect x="10" y="10" width="140" height="260" rx="24" fill="#090d16" stroke="rgba(148, 163, 184, 0.15)" strokeWidth="2.5" />
             
@@ -176,12 +198,12 @@ function PhoneVisualExpertise({ value, onChange }: PhoneVisualExpertiseProps) {
         </div>
 
         {/* Back View */}
-        <div className="text-center">
-          <div className="text-2xs font-bold text-slate-400 mb-4 tracking-widest uppercase flex items-center justify-center gap-1.5 font-mono bg-slate-900/60 py-1.5 px-3 rounded-lg border border-slate-800/40">
+        <div className="rounded-xl border border-slate-800/60 bg-slate-900/45 p-2 text-center md:p-3">
+          <div className="mb-3 flex items-center justify-center gap-1.5 rounded-lg border border-slate-700/60 bg-slate-950/50 px-3 py-1.5 font-mono text-2xs font-bold uppercase tracking-widest text-slate-300">
             <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
             ARKA YÜZ (BACK SIDE)
           </div>
-          <svg width="160" height="280" viewBox="0 0 160 280" className="overflow-visible select-none">
+          <svg width="128" height="224" viewBox="0 0 160 280" className="overflow-visible select-none">
             {/* Outer phone container rect (non-interactive) */}
             <rect x="10" y="10" width="140" height="260" rx="24" fill="#090d16" stroke="rgba(148, 163, 184, 0.15)" strokeWidth="2.5" />
             
@@ -221,9 +243,9 @@ function PhoneVisualExpertise({ value, onChange }: PhoneVisualExpertiseProps) {
       </div>
 
       {/* Interactive Info Panel */}
-      <div className="mt-4 px-4 py-3 rounded-xl bg-slate-905 bg-slate-900/80 border border-slate-800/80 text-center min-h-[44px] flex items-center justify-center text-xs md:text-sm font-semibold tracking-wide shadow-inner relative z-10">
+      <div className="relative z-10 mx-auto mt-2 min-h-[48px] max-w-[840px] rounded-xl border border-slate-700/70 bg-slate-950/60 px-3 py-2 text-center shadow-inner">
         {hoveredPart ? (
-          <div className="font-mono text-slate-300 flex items-center justify-center gap-2 flex-wrap">
+          <div className="flex flex-wrap items-center justify-center gap-1.5 font-mono text-2xs text-slate-200 md:text-xs">
             <span className="text-cyan-400">⚡ DIAGNOSTIC:</span>
             <strong>{CHECKLIST_KEYS.find(k => k.key === hoveredPart)?.label}</strong>
             <span>➜</span>
@@ -234,7 +256,7 @@ function PhoneVisualExpertise({ value, onChange }: PhoneVisualExpertiseProps) {
             </span>
           </div>
         ) : (
-          <div className="font-mono text-2xs md:text-xs text-slate-500 flex items-center justify-center gap-2">
+          <div className="flex items-center justify-center gap-1.5 font-mono text-[10px] text-slate-400 md:text-2xs">
             <span className="inline-block w-2 h-2 rounded-full bg-cyan-400/80 animate-ping"></span>
             <span>Durumu değiştirmek için görseldeki parçalara tıklayın (NA ➜ OK ➜ BAD)</span>
           </div>
@@ -242,16 +264,16 @@ function PhoneVisualExpertise({ value, onChange }: PhoneVisualExpertiseProps) {
       </div>
 
       {/* Color legend */}
-      <div className="flex gap-5 justify-center mt-4 text-2xs md:text-xs text-slate-400 font-mono tracking-wider relative z-10">
-        <div className="flex items-center gap-1.5">
+      <div className="relative z-10 mt-3 flex flex-wrap items-center justify-center gap-1.5 text-[10px] font-mono tracking-wide text-slate-300 md:text-2xs">
+        <div className="flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/20 border border-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></span>
           Çalışıyor
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 rounded-full border border-rose-500/40 bg-rose-500/10 px-2.5 py-1">
           <span className="w-2.5 h-2.5 rounded-full bg-rose-500/25 border border-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"></span>
           Sorunlu
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 rounded-full border border-slate-600/70 bg-slate-800/60 px-2.5 py-1">
           <span className="w-2.5 h-2.5 rounded-full bg-slate-800 border border-dashed border-slate-600"></span>
           Seçilmedi
         </div>
@@ -269,6 +291,13 @@ export default function RepairPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [historyQuery, setHistoryQuery] = useState("");
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyResults, setHistoryResults] = useState<CustomerHistoryResult[]>([]);
+
+  const [banks, setBanks] = useState<any[]>([]);
+  const [editPaymentMethod, setEditPaymentMethod] = useState<"CASH" | "CREDIT_CARD" | "ON_ACCOUNT">("CASH");
+  const [editBankAccountId, setEditBankAccountId] = useState<string>("");
 
   // Modal control states
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
@@ -370,19 +399,21 @@ export default function RepairPage() {
   async function fetchData() {
     setLoading(true);
     try {
-      const [repRes, custRes, devRes, modelRes, settingsRes] = await Promise.all([
+      const [repRes, custRes, devRes, modelRes, settingsRes, bankRes] = await Promise.all([
         fetch("/api/repairs"),
         fetch("/api/customers"),
         fetch("/api/devices"),
         fetch("/api/device-models").catch(() => null),
         fetch("/api/settings").catch(() => null),
+        fetch("/api/banks").catch(() => null),
       ]);
-      const [repData, custData, devData, modelData, settingsData] = await Promise.all([
+      const [repData, custData, devData, modelData, settingsData, bankData] = await Promise.all([
         repRes.json(),
         custRes.json(),
         devRes.json(),
         modelRes ? modelRes.json() : [],
         settingsRes ? settingsRes.json() : null,
+        bankRes ? bankRes.json() : null,
       ]);
 
       setRepairs(Array.isArray(repData) ? repData : []);
@@ -390,10 +421,34 @@ export default function RepairPage() {
       setDevices(devData.data ?? (Array.isArray(devData) ? devData : []));
       setAvailableModels(Array.isArray(modelData) ? modelData : []);
       setSettings(settingsData?.data || settingsData || null);
+
+      const loadedBanksRaw = bankData?.data ?? bankData;
+      const loadedBanks = Array.isArray(loadedBanksRaw) ? loadedBanksRaw : [];
+      setBanks(loadedBanks);
     } catch {
       toast.error("Teknik servis verileri yüklenemedi.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleCustomerHistorySearch() {
+    const q = historyQuery.trim();
+    if (q.length < 2) {
+      toast.warning("Müşteri adı için en az 2 karakter girin.");
+      return;
+    }
+    setHistoryLoading(true);
+    try {
+      const res = await fetch(`/api/customers/history?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Müşteri geçmişi getirilemedi.");
+      setHistoryResults(Array.isArray(data.items) ? data.items : []);
+      if (!data.items?.length) toast.info("Aramaya uygun müşteri bulunamadı.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Müşteri geçmişi getirilemedi.");
+    } finally {
+      setHistoryLoading(false);
     }
   }
 
@@ -471,6 +526,15 @@ export default function RepairPage() {
     const parsed = parseDiagnosis(repair.diagnosisNote);
     setEditChecklist(parsed.checklist);
     setEditCustomNote(parsed.note);
+    
+    // Initialize payment states
+    setEditPaymentMethod("CASH");
+    if (banks && banks.length > 0) {
+      setEditBankAccountId(banks[0].id);
+    } else {
+      setEditBankAccountId("");
+    }
+    
     setIsDetailModalOpen(true);
   }
 
@@ -636,6 +700,8 @@ export default function RepairPage() {
           issueDescription: editIssue,
           diagnosisNote: diagnosisString,
           completedAt: editStatus === "DELIVERED" ? new Date().toISOString() : selectedRepair.completedAt,
+          paymentMethod: editStatus === "DELIVERED" ? editPaymentMethod : undefined,
+          bankAccountId: (editStatus === "DELIVERED" && (editPaymentMethod === "CASH" || editPaymentMethod === "CREDIT_CARD")) ? editBankAccountId : undefined,
         }),
       });
 
@@ -674,10 +740,19 @@ export default function RepairPage() {
       .replace(/{cihaz_model}/g, repair.device.model)
       .replace(/{durum}/g, STATUS_LABELS[repair.status])
       .replace(/{tutar}/g, Number(repair.totalCost).toLocaleString("tr-TR"))
-      .replace(/{servis_no}/g, repair.id.slice(0, 8).toUpperCase());
+      .replace(/{servis_no}/g, getNumericServiceNo(repair));
 
     const encoded = encodeURIComponent(message);
     window.open(`https://api.whatsapp.com/send?phone=${phoneNum}&text=${encoded}`, "_blank");
+  }
+
+  function getNumericServiceNo(repair: RepairRecord) {
+    const datePart = new Date(repair.receivedAt).toISOString().slice(0, 10).replace(/-/g, "");
+    let hash = 0;
+    for (let i = 0; i < repair.id.length; i++) {
+      hash = (hash * 31 + repair.id.charCodeAt(i)) % 1000000;
+    }
+    return `${datePart}${String(Math.abs(hash)).padStart(6, "0")}`;
   }
 
   // Fiş yazdırma templates (80mm)
@@ -701,20 +776,21 @@ export default function RepairPage() {
 
     const dateStr = new Date(repair.receivedAt).toLocaleString("tr-TR");
 
+    const serviceNo = getNumericServiceNo(repair);
     const html = `
       <!DOCTYPE html>
       <html>
       <head>
         <meta charset="utf-8">
-        <title>Tamir Kabul Fişi #${repair.id.slice(0, 8)}</title>
+        <title>Servis Kabul Belgesi #${serviceNo}</title>
         <style>
           @page { size: 80mm auto; margin: 0; }
           body {
-            font-family: 'Courier New', Courier, monospace;
-            width: 72mm;
+            font-family: Arial, Helvetica, sans-serif;
+            width: 74mm;
             margin: 0 auto;
-            padding: 10px 4px;
-            color: #000;
+            padding: 12px 5px;
+            color: #0f172a;
             background: #fff;
             font-size: 12px;
             line-height: 1.4;
@@ -722,24 +798,26 @@ export default function RepairPage() {
           .text-center { text-align: center; }
           .text-right { text-align: right; }
           .bold { font-weight: bold; }
-          .header { margin-bottom: 12px; border-bottom: 1px dashed #000; padding-bottom: 8px; }
-          .title { font-size: 15px; font-weight: bold; margin: 0 0 4px; }
+          .mono { font-family: 'Courier New', Courier, monospace; letter-spacing: .2px; }
+          .header { margin-bottom: 10px; border: 1px solid #0f172a; border-radius: 6px; padding: 8px; }
+          .title { font-size: 14px; font-weight: 800; margin: 0 0 3px; }
           .info-table, .checklist-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-          .section-title { font-weight: bold; border-bottom: 1px dashed #000; margin: 10px 0 6px; padding-bottom: 2px; text-transform: uppercase; font-size: 13px; }
-          .disclaimer { font-size: 10px; text-align: justify; margin-top: 10px; border-top: 1px dashed #000; padding-top: 8px; line-height: 1.3; }
-          .signatures { display: flex; justify-content: space-between; margin-top: 25px; font-size: 11px; }
+          .info-table td { padding: 2px 0; }
+          .section-title { font-weight: 800; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 4px; margin: 10px 0 6px; padding: 4px 6px; text-transform: uppercase; font-size: 11px; }
+          .disclaimer { font-size: 9px; text-align: justify; margin-top: 10px; border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 6px; padding: 7px; line-height: 1.35; }
+          .signatures { display: flex; justify-content: space-between; margin-top: 22px; font-size: 10px; }
+          .signatures div { width: 30mm; text-align: center; border-top: 1px solid #94a3b8; padding-top: 3px; }
         </style>
       </head>
       <body>
         <div class="header text-center">
-          <div class="title">TELEFONCUPRO</div>
-          <div style="font-size: 12px; font-weight: bold;">TEKNİK SERVİS KABUL FİŞİ</div>
-          <div style="font-size: 10px; margin-top: 4px;">Akıllı Cihaz Bakım ve Onarım Merkezi</div>
+          <div class="title">SERVIS KABUL BELGESI</div>
+          <div style="font-size: 10px; font-weight: 600;">Teknik Servis Giris Formu</div>
+          <div class="mono" style="font-size: 11px; margin-top: 4px;">No: ${serviceNo}</div>
         </div>
 
         <table class="info-table">
           <tr><td class="bold">Tarih:</td><td class="text-right">${dateStr}</td></tr>
-          <tr><td class="bold">Servis No:</td><td class="text-right">${repair.id.slice(0, 8).toUpperCase()}</td></tr>
           <tr><td class="bold">Müşteri:</td><td class="text-right">${repair.device.customer.fullName}</td></tr>
           <tr><td class="bold">Telefon:</td><td class="text-right">${repair.device.customer.phone}</td></tr>
         </table>
@@ -802,20 +880,21 @@ export default function RepairPage() {
     const part = Number(repair.partCost);
     const total = Number(repair.totalCost);
 
+    const serviceNo = getNumericServiceNo(repair);
     const html = `
       <!DOCTYPE html>
       <html>
       <head>
         <meta charset="utf-8">
-        <title>Tamir Teslim Fişi #${repair.id.slice(0, 8)}</title>
+        <title>Servis Teslim Belgesi #${serviceNo}</title>
         <style>
           @page { size: 80mm auto; margin: 0; }
           body {
-            font-family: 'Courier New', Courier, monospace;
-            width: 72mm;
+            font-family: Arial, Helvetica, sans-serif;
+            width: 74mm;
             margin: 0 auto;
-            padding: 10px 4px;
-            color: #000;
+            padding: 12px 5px;
+            color: #0f172a;
             background: #fff;
             font-size: 12px;
             line-height: 1.4;
@@ -823,25 +902,27 @@ export default function RepairPage() {
           .text-center { text-align: center; }
           .text-right { text-align: right; }
           .bold { font-weight: bold; }
-          .header { margin-bottom: 12px; border-bottom: 1px dashed #000; padding-bottom: 8px; }
-          .title { font-size: 15px; font-weight: bold; margin: 0 0 4px; }
+          .mono { font-family: 'Courier New', Courier, monospace; letter-spacing: .2px; }
+          .header { margin-bottom: 10px; border: 1px solid #0f172a; border-radius: 6px; padding: 8px; }
+          .title { font-size: 14px; font-weight: 800; margin: 0 0 3px; }
           .info-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-          .section-title { font-weight: bold; border-bottom: 1px dashed #000; margin: 10px 0 6px; padding-bottom: 2px; text-transform: uppercase; font-size: 13px; }
-          .totals-box { border-top: 1px dashed #000; padding-top: 6px; margin-top: 10px; }
+          .info-table td { padding: 2px 0; }
+          .section-title { font-weight: 800; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 4px; margin: 10px 0 6px; padding: 4px 6px; text-transform: uppercase; font-size: 11px; }
+          .totals-box { border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 6px; padding: 7px; margin-top: 10px; }
           .totals-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 2px; }
-          .signatures { display: flex; justify-content: space-between; margin-top: 25px; font-size: 11px; }
+          .signatures { display: flex; justify-content: space-between; margin-top: 22px; font-size: 10px; }
+          .signatures div { width: 30mm; text-align: center; border-top: 1px solid #94a3b8; padding-top: 3px; }
         </style>
       </head>
       <body>
         <div class="header text-center">
-          <div class="title">TELEFONCUPRO</div>
-          <div style="font-size: 12px; font-weight: bold;">TEKNİK SERVİS TESLİM FİŞİ</div>
-          <div style="font-size: 10px; margin-top: 4px;">Cihaz Teslim ve Ödeme Makbuzu</div>
+          <div class="title">SERVIS TESLIM BELGESI</div>
+          <div style="font-size: 10px; font-weight: 600;">Onarim Sonrasi Teslim Formu</div>
+          <div class="mono" style="font-size: 11px; margin-top: 4px;">No: ${serviceNo}</div>
         </div>
 
         <table class="info-table">
           <tr><td class="bold">Teslim Tarihi:</td><td class="text-right">${dateStr}</td></tr>
-          <tr><td class="bold">Servis No:</td><td class="text-right">${repair.id.slice(0, 8).toUpperCase()}</td></tr>
           <tr><td class="bold">Müşteri:</td><td class="text-right">${repair.device.customer.fullName}</td></tr>
           <tr><td class="bold">Model:</td><td class="text-right">${repair.device.brand} ${repair.device.model}</td></tr>
           <tr><td class="bold">IMEI:</td><td class="text-right">${repair.device.imei || "-"}</td></tr>
@@ -975,6 +1056,79 @@ export default function RepairPage() {
         </div>
       </div>
 
+      <div className="panel p-4 mb-6">
+        <div className="flex flex-col md:flex-row md:items-center gap-3">
+          <div className="w-full md:max-w-md">
+            <input
+              className="field w-full"
+              placeholder="Müşteri adı veya telefon ile geçmiş sorgula..."
+              value={historyQuery}
+              onChange={(e) => setHistoryQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void handleCustomerHistorySearch();
+              }}
+            />
+          </div>
+          <button
+            className="primary-btn"
+            onClick={() => void handleCustomerHistorySearch()}
+            disabled={historyLoading}
+            style={{ minWidth: 180 }}
+          >
+            {historyLoading ? "Sorgulanıyor..." : "Müşteri Geçmiş Sorgula"}
+          </button>
+        </div>
+
+        {historyResults.length > 0 && (
+          <div className="mt-4 grid gap-3">
+            {historyResults.map((item) => (
+              <div key={item.customer.id} className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <strong>{item.customer.fullName}</strong>
+                    <div className="text-xs text-slate-500">{item.customer.phone}</div>
+                  </div>
+                  <div className="text-xs text-slate-600">
+                    Borç: <strong>{Number(item.summary.totalDebit).toLocaleString("tr-TR")} TL</strong> | Tahsilat:{" "}
+                    <strong>{Number(item.summary.totalCredit).toLocaleString("tr-TR")} TL</strong> | Net:{" "}
+                    <strong>{Number(item.summary.netBalance).toLocaleString("tr-TR")} TL</strong>
+                  </div>
+                </div>
+
+                <div className="mt-2 text-xs text-slate-500">
+                  Tamir: {item.summary.repairCount} | İşlem: {item.summary.transactionCount} | Cihaz: {item.summary.deviceCount}
+                </div>
+
+                <div className="mt-2 overflow-x-auto">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Tarih</th>
+                        <th>Tip</th>
+                        <th>Açıklama</th>
+                        <th>Tutar</th>
+                        <th>Durum</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {item.timeline.slice(0, 20).map((row) => (
+                        <tr key={row.id}>
+                          <td>{new Date(row.date).toLocaleString("tr-TR")}</td>
+                          <td>{row.kind}</td>
+                          <td>{row.title}{row.detail ? ` - ${row.detail}` : ""}</td>
+                          <td>{row.amount == null ? "-" : `${Number(row.amount).toLocaleString("tr-TR")} TL`}</td>
+                          <td>{row.status || "-"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Repairs Table / Cards */}
       {loading ? (
         <div className="panel" style={{ padding: "3rem", textAlign: "center", color: "var(--muted)" }}>Veriler yükleniyor...</div>
@@ -1002,7 +1156,7 @@ export default function RepairPage() {
                   const color = STATUS_COLORS[item.status] || "var(--muted)";
                   return (
                     <tr key={item.id} style={{ cursor: "pointer" }} onClick={() => openDetail(item)}>
-                      <td style={{ fontWeight: 600, color: "#64748b" }}>#{item.id.slice(0, 8).toUpperCase()}</td>
+                      <td style={{ fontWeight: 600, color: "#64748b" }}>#{getNumericServiceNo(item)}</td>
                       <td>
                         <div style={{ fontWeight: 600 }}>{item.device.customer.fullName}</div>
                         <div style={{ fontSize: "0.75rem", color: "#64748b" }}>{item.device.customer.phone}</div>
@@ -1510,13 +1664,14 @@ export default function RepairPage() {
 
       {/* 2. REPAIR DETAIL & STATUS ACTION MODAL */}
       {isDetailModalOpen && selectedRepair && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm grid place-items-center z-50 p-4 animate-fade-in">
-          <div className="panel w-full max-w-3xl max-h-[90vh] flex flex-col p-0 border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md overflow-hidden rounded-2xl">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 p-3 backdrop-blur-sm animate-fade-in sm:p-4">
+          <div className="flex h-full w-full items-center justify-center">
+            <div className="panel translate-y-[200px] flex w-full max-w-5xl max-h-[calc(100vh-1.5rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white/95 p-0 shadow-2xl backdrop-blur-md sm:max-h-[calc(100vh-2rem)]">
             {/* Header */}
             <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
               <div>
                 <h3 className="m-0 text-lg font-bold text-slate-900">Servis Kaydı Detayları</h3>
-                <p className="m-0 text-slate-400 text-xs mt-0.5 font-mono">Kayıt No: #{selectedRepair.id.slice(0, 8).toUpperCase()}</p>
+                <p className="m-0 text-slate-400 text-xs mt-0.5 font-mono">Kayıt No: #{getNumericServiceNo(selectedRepair)}</p>
               </div>
               <button
                 onClick={() => setIsDetailModalOpen(false)}
@@ -1527,7 +1682,7 @@ export default function RepairPage() {
             </div>
 
             {/* Scrollable Content */}
-            <div className="p-6 overflow-y-auto flex-1 bg-white flex flex-col gap-6">
+            <div className="flex-1 overflow-y-auto bg-white p-4 md:p-6 flex flex-col gap-6">
               {/* Row 1: Customer & Device Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="panel p-4 bg-slate-50/80 border-slate-200/60 shadow-xs hover:border-slate-200">
@@ -1614,7 +1769,13 @@ export default function RepairPage() {
                     </div>
                     <div>
                       <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">Güncel Durum</label>
-                      <select className="field w-full" value={editStatus} onChange={(e) => setEditStatus(e.target.value as any)}>
+                      <select className="field w-full font-bold" value={editStatus} onChange={(e) => {
+                        const newStatus = e.target.value as any;
+                        setEditStatus(newStatus);
+                        if (newStatus === "DELIVERED" && banks.length > 0 && !editBankAccountId) {
+                          setEditBankAccountId(banks[0].id);
+                        }
+                      }}>
                         <option value="RECEIVED">Teslim Alındı</option>
                         <option value="IN_PROGRESS">Onarımda</option>
                         <option value="WAITING_PART">Parça Bekliyor</option>
@@ -1624,6 +1785,38 @@ export default function RepairPage() {
                       </select>
                     </div>
                   </div>
+
+                  {editStatus === "DELIVERED" && selectedRepair?.status !== "DELIVERED" && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-teal-200/50 bg-teal-50/20 p-4.5 rounded-2xl animate-fade-in col-span-full">
+                      <div>
+                        <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">Ödeme Yöntemi</label>
+                        <select 
+                          className="field w-full bg-white font-bold" 
+                          value={editPaymentMethod} 
+                          onChange={(e) => setEditPaymentMethod(e.target.value as any)}
+                        >
+                          <option value="CASH">Nakit</option>
+                          <option value="CREDIT_CARD">Kredi Kartı</option>
+                          <option value="ON_ACCOUNT">Cari Hesap (Veresiye)</option>
+                        </select>
+                      </div>
+                      
+                      {(editPaymentMethod === "CASH" || editPaymentMethod === "CREDIT_CARD") && (
+                        <div>
+                          <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">Kasa / Banka Hesabı</label>
+                          <select 
+                            className="field w-full bg-white font-bold" 
+                            value={editBankAccountId} 
+                            onChange={(e) => setEditBankAccountId(e.target.value)}
+                          >
+                            {banks.map((b) => (
+                              <option key={b.id} value={b.id}>{b.name} ({Number(b.balance).toLocaleString("tr-TR")} TL)</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <div className="text-sm md:text-base font-extrabold mt-2 flex justify-between items-center border-t border-slate-200 pt-4">
                     <span>Toplam Hizmet Bedeli: <span className="text-teal-700">{(Number(editLabor) + Number(editPart)).toLocaleString("tr-TR")} TL</span></span>
                   </div>
@@ -1669,7 +1862,7 @@ export default function RepairPage() {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-slate-200 flex justify-end gap-2 bg-slate-50/50">
+            <div className="shrink-0 border-t border-slate-200 bg-slate-50/80 px-4 py-3 md:px-6 md:py-4 flex justify-end gap-2">
               <button
                 className="primary-btn px-4 py-2 bg-slate-600 text-white cursor-pointer"
                 onClick={() => setIsDetailModalOpen(false)}
@@ -1683,6 +1876,7 @@ export default function RepairPage() {
               >
                 {savingEdit ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
               </button>
+            </div>
             </div>
           </div>
         </div>

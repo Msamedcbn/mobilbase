@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+﻿export const dynamic = "force-dynamic";
 
 import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
@@ -59,7 +59,7 @@ export default async function DashboardPage({
   }> = [];
 
   // Grouped datasets for our 7-day sales chart
-  const weekdays = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
+  const weekdays = ["Pazar", "Pazartesi", "Sali", "Carsamba", "Persembe", "Cuma", "Cumartesi"];
   const last7DaysData = Array.from({ length: 7 }).map((_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (6 - i));
@@ -87,12 +87,12 @@ export default async function DashboardPage({
   });
 
   const statusLabels: Record<string, string> = {
-    RECEIVED: "Teslim Alındı",
-    IN_PROGRESS: "İşlemde",
-    WAITING_PART: "Parça Bekliyor",
-    READY: "Hazır",
+    RECEIVED: "Teslim Alindi",
+    IN_PROGRESS: "Islemde",
+    WAITING_PART: "Parca Bekliyor",
+    READY: "Hazir",
     DELIVERED: "Teslim Edildi",
-    CANCELED: "İptal Edildi",
+    CANCELED: "Iptal Edildi",
   };
 
   const statusColors: Record<string, string> = {
@@ -350,7 +350,9 @@ export default async function DashboardPage({
   const veresiyeBalance = totalDebit - totalCredit;
   const monthlyNetProfit = monthlyIncome - monthlyExpense;
   const periodNetProfit = periodIncome - periodExpense;
-  const periodLabel = selectedPeriod === "day" ? "Günlük" : selectedPeriod === "week" ? "Haftalık" : "Aylık";
+  const periodLabel = selectedPeriod === "day" ? "Gunluk" : selectedPeriod === "week" ? "Haftalik" : "Aylik";
+  const collectionRate = periodIncome > 0 ? (periodTahsilat / periodIncome) * 100 : 0;
+  const veresiyeRiskRate = totalDebit > 0 ? (veresiyeBalance / totalDebit) * 100 : 0;
 
   // Fallbacks if no data exists
   const hasDbData = last7DaysData.some((x) => x.sales > 0 || x.collections > 0);
@@ -398,9 +400,9 @@ export default async function DashboardPage({
   if (recentLogs.length === 0) {
     recentLogs = [
       { id: "mock-1", createdAt: new Date(Date.now() - 1000 * 60 * 12), action: "POS_CHECKOUT", entityType: "Transaction", entityId: "tr-9304", detail: "POS-1716298000 / 1,299.00 TL" },
-      { id: "mock-2", createdAt: new Date(Date.now() - 1000 * 60 * 45), action: "REPAIR_RECEIVED", entityType: "RepairRecord", entityId: "rep-0210", detail: "iPhone 11 Ekran Değişimi" },
-      { id: "mock-3", createdAt: new Date(Date.now() - 1000 * 60 * 120), action: "INVENTORY_UPDATE", entityType: "StockItem", entityId: "stk-4482", detail: "Stok kartı güncellemesi" },
-      { id: "mock-4", createdAt: new Date(Date.now() - 1000 * 60 * 240), action: "CUSTOMER_CREATE", entityType: "Customer", entityId: "cust-9941", detail: "Ahmet Yılmaz (532xxxxxxx)" },
+      { id: "mock-2", createdAt: new Date(Date.now() - 1000 * 60 * 45), action: "REPAIR_RECEIVED", entityType: "RepairRecord", entityId: "rep-0210", detail: "iPhone 11 Ekran Degisimi" },
+      { id: "mock-3", createdAt: new Date(Date.now() - 1000 * 60 * 120), action: "INVENTORY_UPDATE", entityType: "StockItem", entityId: "stk-4482", detail: "Stok kart guncellemesi" },
+      { id: "mock-4", createdAt: new Date(Date.now() - 1000 * 60 * 240), action: "CUSTOMER_CREATE", entityType: "Customer", entityId: "cust-9941", detail: "Ahmet Ylmaz (532xxxxxxx)" },
     ];
   }
 
@@ -446,11 +448,11 @@ export default async function DashboardPage({
         <div className="flex items-center gap-3.5 rounded-2xl border border-amber-200/60 bg-amber-50/50 p-4 text-amber-900 shadow-sm backdrop-blur-md">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100/80 text-amber-700 font-bold text-lg border border-amber-200">!</span>
           <div className="text-sm">
-            <span className="font-bold block text-amber-950">Tanıtım Modu Aktif</span>
+            <span className="font-bold block text-amber-950">Tanitim Modu Aktif</span>
             <span className="text-amber-800 text-xs mt-0.5 block">
               {dbDisabled
-                ? "Sistem veritabanı bağlantısı olmadan çalışıyor. Görsel grafikler ve analizler simüle edilmiş verilerle zenginleştirilmiştir."
-                : "PostgreSQL veritabanı servisinizle iletişim kurulamadı. Gösterilen finansal panolar ve analizler simüle edilmiştir."}
+                ? "Sistem veritabani baglantisi olmadan calisiyor. Gorsel grafikler ve analizler simule edilmis verilerle zenginlestirilmistir."
+                : "PostgreSQL veritabani servisinizle iletisim kurulamadi. Gosterilen finansal panolar ve analizler simule edilmistir."}
             </span>
           </div>
         </div>
@@ -460,21 +462,21 @@ export default async function DashboardPage({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-            MobiBase Yönetim Paneli
+            MobiBase Yonetim Paneli
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 mt-1.5 font-medium">
-            Şubelerinizin genel finansal sağlığı, anlık kasa durumu ve operasyonel akışlar.
+            Subelerinizin genel finansal sagligi, anlik kasa durumu ve operasyonel akislar.
           </p>
         </div>
         <div className="flex flex-col sm:items-end gap-2.5">
           <div className="inline-flex items-center gap-2 rounded-xl bg-teal-50/50 border border-teal-200/30 px-3 py-1.5 shadow-sm text-[11px] text-teal-800 font-semibold backdrop-blur-sm self-start sm:self-auto">
             <span className="h-2 w-2 rounded-full bg-teal-500 animate-pulse"></span>
-            Canlı Sistem Durumu • {new Date().toLocaleDateString("tr-TR", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            Canli Sistem Durumu - {new Date().toLocaleDateString("tr-TR", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </div>
           <div className="inline-flex rounded-xl border border-slate-200 bg-white/70 p-1 text-xs font-semibold shadow-sm backdrop-blur-sm">
-            <Link href="/dashboard?period=day" className={`px-4 py-1.5 rounded-lg transition-all ${selectedPeriod === "day" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100/80"}`}>Günlük</Link>
-            <Link href="/dashboard?period=week" className={`px-4 py-1.5 rounded-lg transition-all ${selectedPeriod === "week" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100/80"}`}>Haftalık</Link>
-            <Link href="/dashboard?period=month" className={`px-4 py-1.5 rounded-lg transition-all ${selectedPeriod === "month" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100/80"}`}>Aylık</Link>
+            <Link href="/dashboard?period=day" className={`px-4 py-1.5 rounded-lg transition-all ${selectedPeriod === "day" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100/80"}`}>Gunluk</Link>
+            <Link href="/dashboard?period=week" className={`px-4 py-1.5 rounded-lg transition-all ${selectedPeriod === "week" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100/80"}`}>Haftalik</Link>
+            <Link href="/dashboard?period=month" className={`px-4 py-1.5 rounded-lg transition-all ${selectedPeriod === "month" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100/80"}`}>Aylik</Link>
           </div>
         </div>
       </div>
@@ -482,20 +484,20 @@ export default async function DashboardPage({
       {/* Financial Overview Cards */}
       <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         
-        {/* Period Toplam Satış (Income) */}
+        {/* Period Toplam Satis (Income) */}
         <div className="relative group overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
           <div className="absolute top-0 left-0 w-full h-[3px] bg-teal-600 opacity-80" />
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Satış Geliri</span>
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Satis Geliri</span>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-50 text-teal-600 border border-teal-100/50 font-bold shadow-inner">
-              💵
+              
             </div>
           </div>
           <div className="mt-4">
             <h3 className="text-2xl font-black text-slate-800 font-mono">{periodIncome.toLocaleString("tr-TR")} TL</h3>
             <div className="flex items-center gap-1.5 mt-2">
-              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-100">↑ 12.4%</span>
-              <span className="text-[10px] text-slate-400 font-medium">önceki döneme göre</span>
+              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-100"> 12.4%</span>
+              <span className="text-[10px] text-slate-400 font-medium">onceki doneme gore</span>
             </div>
           </div>
         </div>
@@ -506,25 +508,25 @@ export default async function DashboardPage({
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Toplam Gider</span>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 text-rose-600 border border-rose-100/50 font-bold shadow-inner">
-              📉
+              
             </div>
           </div>
           <div className="mt-4">
             <h3 className="text-2xl font-black text-rose-600 font-mono">-{periodExpense.toLocaleString("tr-TR")} TL</h3>
             <div className="flex items-center gap-1.5 mt-2">
-              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-rose-50 text-rose-600 border border-rose-100">↓ 4.8%</span>
+              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-rose-50 text-rose-600 border border-rose-100"> 4.8%</span>
               <span className="text-[10px] text-slate-400 font-medium">gider tasarrufu</span>
             </div>
           </div>
         </div>
 
-        {/* Period Net Kâr (Net Profit) */}
+        {/* Period Net Kar (Net Profit) */}
         <div className="relative group overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
           <div className="absolute top-0 left-0 w-full h-[3px] bg-emerald-500 opacity-85" />
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Net Kâr</span>
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Net Kar</span>
             <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${periodNetProfit >= 0 ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-red-50 text-red-600 border-red-100"} shadow-inner font-bold`}>
-              📈
+              
             </div>
           </div>
           <div className="mt-4">
@@ -533,27 +535,27 @@ export default async function DashboardPage({
             </h3>
             <div className="flex items-center gap-1.5 mt-2">
               <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded ${periodNetProfit >= 0 ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-red-50 text-red-600 border-red-100"}`}>
-                {periodNetProfit >= 0 ? "↑ 18.2%" : "↓ 2.1%"}
+                {periodNetProfit >= 0 ? " 18.2%" : " 2.1%"}
               </span>
-              <span className="text-[10px] text-slate-400 font-medium">brüt marj oranı</span>
+              <span className="text-[10px] text-slate-400 font-medium">brut marj orani</span>
             </div>
           </div>
         </div>
 
-        {/* Dönem Tahsilat */}
+        {/* Donem Tahsilat */}
         <div className="relative group overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
           <div className="absolute top-0 left-0 w-full h-[3px] bg-indigo-500 opacity-85" />
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Nakit Girişi</span>
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Nakit Girisi</span>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100/50 font-bold shadow-inner">
-              💳
+              
             </div>
           </div>
           <div className="mt-4">
             <h3 className="text-2xl font-black text-slate-800 font-mono">{periodTahsilat.toLocaleString("tr-TR")} TL</h3>
             <div className="flex items-center gap-1.5 mt-2">
-              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 border border-indigo-100">↑ 9.5%</span>
-              <span className="text-[10px] text-slate-400 font-medium">alacak tahsilat hızı</span>
+              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 border border-indigo-100"> 9.5%</span>
+              <span className="text-[10px] text-slate-400 font-medium">alacak tahsilat hizi</span>
             </div>
           </div>
         </div>
@@ -561,41 +563,57 @@ export default async function DashboardPage({
       </div>
 
       {/* Stats Cards Grid (Primary Operations) */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-6">
         
         {/* Toplam Musteri */}
         <div className="rounded-2xl border border-slate-200/80 bg-white p-4.5 shadow-sm hover:border-slate-300/85 transition duration-200">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Kayıtlı Müşteri</p>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Kayitli Musteri</p>
           <div className="flex justify-between items-baseline mt-1.5">
-            <h3 className="text-xl font-extrabold text-slate-850 font-mono">{customerCount} kişi</h3>
-            <span className="text-[10px] font-semibold text-slate-500">aktif portföy</span>
+            <h3 className="text-xl font-extrabold text-slate-850 font-mono">{customerCount} kisi</h3>
+            <span className="text-[10px] font-semibold text-slate-500">aktif portfoy</span>
           </div>
         </div>
 
         {/* Servis Kaydi */}
         <div className="rounded-2xl border border-slate-200/80 bg-white p-4.5 shadow-sm hover:border-slate-300/85 transition duration-200">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Teknik Servis İş Emri</p>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Teknik Servis Is Emri</p>
           <div className="flex justify-between items-baseline mt-1.5">
             <h3 className="text-xl font-extrabold text-slate-850 font-mono">{repairCount} adet</h3>
-            <span className="text-[10px] font-semibold text-teal-600 font-bold">toplam arıza</span>
+            <span className="text-[10px] font-semibold text-teal-600 font-bold">toplam ariza</span>
           </div>
         </div>
 
         {/* Bugunku Ciro */}
         <div className="rounded-2xl border border-slate-200/80 bg-white p-4.5 shadow-sm hover:border-slate-300/85 transition duration-200">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Günlük Perakende Satış</p>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Gunluk Perakende Satis</p>
           <div className="flex justify-between items-baseline mt-1.5">
             <h3 className="text-xl font-extrabold text-teal-850 font-mono">{dailySales.toLocaleString("tr-TR")} TL</h3>
-            <span className="text-[10px] font-semibold text-slate-500">POS kasası</span>
+            <span className="text-[10px] font-semibold text-slate-500">POS kasasi</span>
           </div>
         </div>
 
         {/* Bugunku Tahsilat */}
         <div className="rounded-2xl border border-slate-200/80 bg-white p-4.5 shadow-sm hover:border-slate-300/85 transition duration-200">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Günlük Nakit Tahsilat</p>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Gunluk Nakit Tahsilat</p>
           <div className="flex justify-between items-baseline mt-1.5">
             <h3 className="text-xl font-extrabold text-slate-850 font-mono">{dailyTahsilat.toLocaleString("tr-TR")} TL</h3>
             <span className="text-[10px] font-semibold text-slate-500">veresiye alacak</span>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4.5 shadow-sm hover:border-slate-300/85 transition duration-200">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tahsilat Orani</p>
+          <div className="flex justify-between items-baseline mt-1.5">
+            <h3 className="text-xl font-extrabold text-indigo-700 font-mono">{collectionRate.toFixed(1)}%</h3>
+            <span className="text-[10px] font-semibold text-slate-500">{periodLabel.toLowerCase()} etki</span>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4.5 shadow-sm hover:border-slate-300/85 transition duration-200">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Veresiye Risk Orani</p>
+          <div className="flex justify-between items-baseline mt-1.5">
+            <h3 className={`text-xl font-extrabold font-mono ${veresiyeRiskRate > 65 ? "text-rose-600" : "text-emerald-700"}`}>{veresiyeRiskRate.toFixed(1)}%</h3>
+            <span className="text-[10px] font-semibold text-slate-500">net bakiye / toplam borc</span>
           </div>
         </div>
 
@@ -605,13 +623,13 @@ export default async function DashboardPage({
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
           <div>
-            <h3 className="text-lg font-bold text-slate-900">Net Kâr & Bilanço Gelişimi</h3>
-            <p className="text-xs text-slate-400 mt-1 font-medium">Son 6 aylık gelir, gider ve net bilanço analizi</p>
+            <h3 className="text-lg font-bold text-slate-900">Net Kar ve Bilanco Gelisimi</h3>
+            <p className="text-xs text-slate-400 mt-1 font-medium">Son 6 aylik gelir, gider ve net bilanco analizi</p>
           </div>
           <div className="flex flex-wrap items-center gap-4 text-xs font-semibold">
             <div className="flex items-center gap-1.5">
               <span className="h-3 w-3 rounded-md bg-teal-600 shadow-sm shadow-teal-700/20"></span>
-              <span className="text-slate-600">Satış / Gelir</span>
+              <span className="text-slate-600">Satis / Gelir</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="h-3 w-3 rounded-md bg-rose-500 shadow-sm shadow-rose-600/20"></span>
@@ -619,7 +637,7 @@ export default async function DashboardPage({
             </div>
             <div className="flex items-center gap-1.5">
               <span className="h-3 w-3 rounded-md bg-indigo-600 shadow-sm shadow-indigo-700/20"></span>
-              <span className="text-slate-600">Net Kâr</span>
+              <span className="text-slate-600">Net Kar</span>
             </div>
           </div>
         </div>
@@ -688,7 +706,7 @@ export default async function DashboardPage({
                     <rect x={pInc.x - 65} y="5" width="130" height="52" rx="10" fill="#090d16" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
                     <text x={pInc.x} y="19" textAnchor="middle" fill="#fff" className="text-[9px] font-bold">Gelir: {m.income.toLocaleString()} TL</text>
                     <text x={pInc.x} y="31" textAnchor="middle" fill="#f43f5e" className="text-[9px] font-bold">Gider: {m.expense.toLocaleString()} TL</text>
-                    <text x={pInc.x} y="44" textAnchor="middle" fill="#818cf8" className="text-[9px] font-bold">Kâr: {m.netProfit.toLocaleString()} TL</text>
+                    <text x={pInc.x} y="44" textAnchor="middle" fill="#818cf8" className="text-[9px] font-bold">Kar: {m.netProfit.toLocaleString()} TL</text>
                   </g>
 
                   {/* X Axis label */}
@@ -706,17 +724,17 @@ export default async function DashboardPage({
         <div className="lg:col-span-2 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-lg font-bold text-slate-900">Haftalık Finansal Performans</h3>
-              <p className="text-xs text-slate-400 mt-1 font-medium">Son 7 günlük satış hacmi ve tahsilat dağılımı</p>
+              <h3 className="text-lg font-bold text-slate-900">Haftalik Finansal Performans</h3>
+              <p className="text-xs text-slate-400 mt-1 font-medium">Son 7 gunluk satis hacmi ve tahsilat dagilimi</p>
             </div>
             <div className="flex items-center gap-4 text-xs font-semibold">
               <div className="flex items-center gap-1.5">
                 <span className="h-2.5 w-2.5 rounded bg-teal-500"></span>
-                <span className="text-slate-600">Satış</span>
+                <span className="text-slate-600">Satis</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="h-2.5 w-2.5 rounded bg-indigo-500"></span>
-                <span className="text-slate-600">Nakit Girişi</span>
+                <span className="text-slate-600">Nakit Girisi</span>
               </div>
             </div>
           </div>
@@ -788,8 +806,8 @@ export default async function DashboardPage({
         {/* Repair Status Doughnut Chart */}
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
           <div>
-            <h3 className="text-lg font-bold text-slate-900">Teknik Servis Dağılımı</h3>
-            <p className="text-xs text-slate-400 mt-1 font-medium">Servis tezgahındaki aktif onarımların durum analizi</p>
+            <h3 className="text-lg font-bold text-slate-900">Teknik Servis Dagilimi</h3>
+            <p className="text-xs text-slate-400 mt-1 font-medium">Servis tezgahindaki aktif onarimlarin durum analizi</p>
           </div>
 
           <div className="flex flex-col items-center justify-center my-6 relative">
@@ -838,10 +856,10 @@ export default async function DashboardPage({
         <div className="lg:col-span-2 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-lg font-bold text-slate-900">Sistem İşlem Günlüğü</h3>
-              <p className="text-xs text-slate-400 mt-1 font-medium">Uygulama genelinde gerçekleştirilen son hareketler</p>
+              <h3 className="text-lg font-bold text-slate-900">Sistem Islem Gunlugu</h3>
+              <p className="text-xs text-slate-400 mt-1 font-medium">Uygulama genelinde gerceklestirilen son hareketler</p>
             </div>
-            <span className="text-xs text-teal-650 font-bold hover:text-teal-700 hover:underline cursor-pointer transition">Günlüğü Filtrele</span>
+            <span className="text-xs text-teal-650 font-bold hover:text-teal-700 hover:underline cursor-pointer transition">Gunlugu Filtrele</span>
           </div>
 
           <div className="relative border-l-2 border-slate-100/70 ml-3 pl-6 space-y-6">
@@ -863,7 +881,7 @@ export default async function DashboardPage({
                         {log.action.replace("_", " ")}
                       </span>
                       <span className="text-xs font-bold text-slate-700">
-                        {log.entityType} ({log.entityId?.slice(-6).toUpperCase() || "SİSTEM"})
+                        {log.entityType} ({log.entityId?.slice(-6).toUpperCase() || "SISTEM"})
                       </span>
                     </div>
                     <time className="text-xs text-slate-400 font-mono">
@@ -871,7 +889,7 @@ export default async function DashboardPage({
                     </time>
                   </div>
                   <p className="text-xs text-slate-500 mt-1 font-medium">
-                    {log.detail ? log.detail : `${log.entityType} üzerinde işlem tamamlandı.`}
+                    {log.detail ? log.detail : `${log.entityType} uzerinde islem tamamlandi.`}
                   </p>
                 </div>
               );
@@ -882,34 +900,35 @@ export default async function DashboardPage({
         {/* Quick Actions */}
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
           <div>
-            <h3 className="text-lg font-bold text-slate-900 mb-1">Hızlı Kısayollar</h3>
-            <p className="text-xs text-slate-400 mb-4 font-medium">Sık yapılan işlemlere anında erişim</p>
+            <h3 className="text-lg font-bold text-slate-900 mb-1">Hizli Kisayollar</h3>
+            <p className="text-xs text-slate-400 mb-4 font-medium">Sik yapilan islemlere aninda erisim</p>
           </div>
 
           <div className="space-y-3">
             <Link href="/pos" className="flex items-center gap-3 w-full p-3 rounded-2xl border border-slate-100 hover:border-teal-200/50 bg-slate-50/50 hover:bg-teal-50/20 text-slate-700 hover:text-teal-800 font-semibold text-xs transition-all duration-200 transform hover:scale-[1.01]">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-50 text-teal-600 border border-teal-100/55">🛒</span>
-              Yeni POS Satışı Yap
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-50 text-teal-600 border border-teal-100/55"></span>
+              Yeni POS Satis Yap
             </Link>
             <Link href="/tamir-takip" className="flex items-center gap-3 w-full p-3 rounded-2xl border border-slate-100 hover:border-blue-200/50 bg-slate-50/50 hover:bg-blue-50/20 text-slate-700 hover:text-blue-800 font-semibold text-xs transition-all duration-200 transform hover:scale-[1.01]">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600 border border-blue-100/55">🔧</span>
-              Arıza / Tamir Kaydı Aç
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600 border border-blue-100/55"></span>
+              Ariza / Tamir Kaydi Ac
             </Link>
             <Link href="/musteriler-veresiye" className="flex items-center gap-3 w-full p-3 rounded-2xl border border-slate-100 hover:border-rose-200/50 bg-slate-50/50 hover:bg-rose-50/20 text-slate-700 hover:text-rose-800 font-semibold text-xs transition-all duration-200 transform hover:scale-[1.01]">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-50 text-rose-600 border border-rose-100/55">💳</span>
-              Cari Hesap / Borç Al
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-50 text-rose-600 border border-rose-100/55"></span>
+              Cari Hesap / Borc Takibi
             </Link>
             <Link href="/giderler" className="flex items-center gap-3 w-full p-3 rounded-2xl border border-slate-100 hover:border-amber-200/50 bg-slate-50/50 hover:bg-amber-50/20 text-slate-700 hover:text-amber-800 font-semibold text-xs transition-all duration-200 transform hover:scale-[1.01]">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600 border border-amber-100/55">📉</span>
-              Gider Yönetim Paneli
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600 border border-amber-100/55"></span>
+              Gider Yonetim Paneli
             </Link>
           </div>
 
           <div className="mt-6 pt-4 border-t border-slate-100 text-center text-[10px] text-slate-400 font-bold">
-            Versiyon 1.1.0 • MobiBase Cloud
+            Versiyon 1.1.0 - MobiBase Cloud
           </div>
         </div>
       </div>
     </section>
   );
 }
+

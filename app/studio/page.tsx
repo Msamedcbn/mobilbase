@@ -59,6 +59,7 @@ interface CrmTask {
 
 interface SaasMetadata {
   isSaaS: boolean;
+  isFrozen?: boolean;
   plan: "Lite" | "Service" | "Pro" | "Enterprise";
   licenseStart: string;
   licenseEnd: string;
@@ -804,6 +805,7 @@ function StudioPageContent() {
   const parseMetadata = (notes: string | null): SaasMetadata => {
     const defaultMeta: SaasMetadata = {
       isSaaS: true,
+      isFrozen: false,
       plan: "Pro",
       licenseStart: "2026-01-01",
       licenseEnd: "2027-01-01",
@@ -1780,6 +1782,45 @@ function StudioPageContent() {
     toast.success("Cevabiniz eklendi (Kaydet butonuna basmayi unutmayin).");
   };
 
+  const handleTenantAdminAction = async (
+    id: string,
+    action: "FREEZE" | "UNFREEZE" | "RESET_PASSWORD",
+    tenantName: string
+  ) => {
+    try {
+      let body: Record<string, string> = { action };
+      if (action === "RESET_PASSWORD") {
+        const newPassword = window.prompt(`${tenantName} için yeni şifreyi girin (en az 6 karakter):`);
+        if (!newPassword) return;
+        const confirmPassword = window.prompt("Yeni şifreyi tekrar girin:");
+        if (!confirmPassword) return;
+        body = { action, newPassword, confirmPassword };
+      } else {
+        const op = action === "FREEZE" ? "dondurmak" : "aktif etmek";
+        const ok = window.confirm(`"${tenantName}" tenantını ${op} istediğinize emin misiniz?`);
+        if (!ok) return;
+      }
+
+      const res = await fetch(`/api/studio/customers/${id}/tenant-admin`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(payload.error || "İşlem başarısız.");
+        return;
+      }
+      toast.success(payload.message || "İşlem tamamlandı.");
+      fetchTenants();
+      if (selectedTenantId === id) {
+        fetchTenantDetails(id);
+      }
+    } catch {
+      toast.error("Bağlantı hatası.");
+    }
+  };
+
   const createCrmTask = async (tenantId: string, payload: Partial<CrmTask>) => {
     try {
       const res = await fetch("/api/studio/crm/tasks", {
@@ -2429,6 +2470,32 @@ function StudioPageContent() {
                         {/* Action buttons - Added Quick extend 1 year */}
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() =>
+                                handleTenantAdminAction(
+                                  item.id,
+                                  item.meta.isFrozen ? "UNFREEZE" : "FREEZE",
+                                  item.tenant.fullName
+                                )
+                              }
+                              title={item.meta.isFrozen ? "Tenantı tekrar aktif et" : "Tenantı dondur"}
+                              className={`px-2.5 py-1.5 rounded-xl font-bold text-xs border transition-all active:scale-95 flex items-center gap-1 ${
+                                item.meta.isFrozen
+                                  ? "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200"
+                                  : "bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200"
+                              }`}
+                            >
+                              <span>{item.meta.isFrozen ? "Aktif Et" : "Dondur"}</span>
+                            </button>
+
+                            <button
+                              onClick={() => handleTenantAdminAction(item.id, "RESET_PASSWORD", item.tenant.fullName)}
+                              title="Tenant ana kullanıcı şifresini sıfırla"
+                              className="px-2.5 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-xl font-bold text-xs border border-sky-200 transition-all active:scale-95 flex items-center gap-1"
+                            >
+                              <span>Şifre Sıfırla</span>
+                            </button>
+
                             <button
                               onClick={() => handleQuickExtendLicense(item)}
                               title="Lisansi Hizli Olarak +1 Yil Uzat ve Faturasi Kes"

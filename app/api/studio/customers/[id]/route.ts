@@ -289,24 +289,39 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
       // 3. Remove bank accounts
       store.bankAccounts = (store.bankAccounts || []).filter((b) => b.tenantId !== customerId);
       
-      // 4. Remove stock items
+      // 4. Remove stock items + linked cost/log data
+      const tenantStockIds = (store.stockItems || []).filter((s) => s.tenantId === customerId).map((s) => s.id);
       store.stockItems = (store.stockItems || []).filter((s) => s.tenantId !== customerId);
+      store.stockCostEvents = (store.stockCostEvents || []).filter((e) => !tenantStockIds.includes(e.stockItemId));
+      store.stockLogs = (store.stockLogs || []).filter((l) => !tenantStockIds.includes(l.entityId));
       
-      // 5. Remove transactions
+      // 5. Remove transactions and tenant-scoped side modules
       store.transactions = (store.transactions || []).filter((t) => t.tenantId !== customerId);
+      store.corporateQuotes = (store.corporateQuotes || []).filter((q) => q.tenantId !== customerId);
+      store.repairPriceItems = (store.repairPriceItems || []).filter((p) => p.tenantId !== customerId);
       
       // 6. Remove customer devices, repairs, and buybacks
       const tenantCustIds = store.customers.filter((c) => c.tenantId === customerId).map((c) => c.id);
       
+      const removedDeviceIds = store.devices
+        .filter((d) => tenantCustIds.includes(d.customerId))
+        .map((d) => d.id);
       store.devices = store.devices.filter((d) => !tenantCustIds.includes(d.customerId));
-      const activeDeviceIds = store.devices.map((d) => d.id);
-      store.repairs = store.repairs.filter((r) => activeDeviceIds.includes(r.deviceId));
+      store.repairs = (store.repairs || []).filter((r) => !removedDeviceIds.includes(r.deviceId));
       store.buybacks = store.buybacks.filter((b) => !tenantCustIds.includes(b.customerId));
+      store.accountEntries = (store.accountEntries || []).filter((e) => !tenantCustIds.includes(e.customerId));
       
       // 7. Remove retail customers
       store.customers = store.customers.filter((c) => c.tenantId !== customerId);
       
-      // 8. Remove the company (customer) itself
+      // 8. Remove branch relations to avoid orphan records
+      const tenantBranchIds = (store.branches || []).filter((b) => b.tenantId === customerId).map((b) => b.id);
+      store.productBranchStocks = (store.productBranchStocks || []).filter((pbs) => !tenantBranchIds.includes(pbs.branchId));
+      store.transferLogs = (store.transferLogs || []).filter(
+        (t) => !tenantBranchIds.includes(t.sourceBranchId) && !tenantBranchIds.includes(t.targetBranchId)
+      );
+
+      // 9. Remove the company (customer) itself
       const initialLength = store.customers.length;
       store.customers = store.customers.filter((c) => c.id !== customerId);
 
@@ -330,31 +345,35 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
       // 1. Delete AppUsers
       await tx.appUser.deleteMany({ where: { tenantId: customerId } });
       
-      // 2. Delete Invoices
+      // 2. Delete tenant-scoped feature tables
+      await tx.corporateQuote.deleteMany({ where: { tenantId: customerId } });
+      await tx.repairPriceItem.deleteMany({ where: { tenantId: customerId } });
+
+      // 3. Delete Invoices
       await tx.invoice.deleteMany({ where: { tenantId: customerId } });
       
-      // 3. Delete Transactions (this cascades to TransactionItem)
+      // 4. Delete Transactions (this cascades to TransactionItem)
       await tx.transaction.deleteMany({ where: { tenantId: customerId } });
       
-      // 4. Delete PosSales
+      // 5. Delete PosSales
       await tx.posSale.deleteMany({ where: { tenantId: customerId } });
       
-      // 5. Delete StockItems
+      // 6. Delete StockItems
       await tx.stockItem.deleteMany({ where: { tenantId: customerId } });
       
-      // 6. Delete Products (this cascades to ProductBranchStock)
+      // 7. Delete Products (this cascades to ProductBranchStock)
       await tx.product.deleteMany({ where: { tenantId: customerId } });
       
-      // 7. Delete BankAccounts
+      // 8. Delete BankAccounts
       await tx.bankAccount.deleteMany({ where: { tenantId: customerId } });
       
-      // 8. Delete Branches
+      // 9. Delete Branches
       await tx.branch.deleteMany({ where: { tenantId: customerId } });
       
-      // 9. Delete retail Customers (this cascades to Device, RepairRecord, BuybackDeal, AccountEntry, BuybackWizardData, etc.)
+      // 10. Delete retail Customers (this cascades to Device, RepairRecord, BuybackDeal, AccountEntry, BuybackWizardData, etc.)
       await tx.customer.deleteMany({ where: { tenantId: customerId } });
       
-      // 10. Delete the tenant Customer record itself
+      // 11. Delete the tenant Customer record itself
       await tx.customer.delete({ where: { id: customerId } });
     });
 

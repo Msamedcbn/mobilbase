@@ -305,6 +305,8 @@ export async function GET(req: Request) {
         salePrice: Number(s.salePrice),
         purchaseDocType: s.purchaseDocType,
         purchaseDocNo: s.purchaseDocNo,
+        condition: (s as any).condition || null,
+        purchaseDate: (s as any).purchaseDate ? (s as any).purchaseDate.toISOString() : null,
         createdAt: s.createdAt.toISOString(),
         updatedAt: s.updatedAt.toISOString(),
       })),

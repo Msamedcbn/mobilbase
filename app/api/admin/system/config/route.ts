@@ -4,7 +4,7 @@ import { getBootstrapStatus } from "@/lib/config";
 import { isBuybackBackofficeAdminOnly, isBuybackBackofficeEnabled, isBuybackOpsEnabled, isErpSyncEnabled, isReconciliationEnabled } from "@/lib/feature-flags";
 
 export async function GET() {
-  const auth = requireRole(["ADMIN"]);
+  const auth = requireRole(["ADMIN", "MANAGER"]);
   if (auth.error) return auth.error;
 
   const smtpReady = Boolean(

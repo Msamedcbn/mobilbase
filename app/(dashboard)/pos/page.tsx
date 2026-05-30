@@ -228,9 +228,6 @@ export default function PosPage() {
         setSession(sData.user ?? null);
         const loadedBranches = Array.isArray(bData) ? bData : [];
         setBranches(loadedBranches);
-        if (loadedBranches.length > 0) {
-          setSelectedBranchId(loadedBranches[0].id);
-        }
         const loadedBanksRaw = bankData?.data ?? bankData;
         const loadedBanks = Array.isArray(loadedBanksRaw) ? loadedBanksRaw : [];
         setBanks(loadedBanks);
@@ -291,17 +288,17 @@ export default function PosPage() {
   const cartUnitCount = cart.reduce((sum, i) => sum + i.quantity, 0);
 
   function addToCart(product: Product) {
-    if (!selectedBranchId) {
-      toast.warning("Lütfen işlem yapılacak şubeyi seçin.");
-      return;
-    }
     const branchStock = getStockForBranch(product, selectedBranchId);
 
     setCart((prev) => {
       const found = prev.find((i) => i.productId === product.id);
       if (found) {
         if (found.quantity >= branchStock) {
-          toast.warning(`Bu şubedeki stok adedi (${branchStock}) aşılamaz.`);
+          toast.warning(
+            selectedBranchId
+              ? `Bu şubedeki stok adedi (${branchStock}) aşılamaz.`
+              : `Genel stok adedi (${branchStock}) aşılamaz.`
+          );
           return prev;
         }
         return prev.map((i) =>
@@ -309,7 +306,11 @@ export default function PosPage() {
         );
       }
       if (branchStock <= 0) {
-        toast.warning("Seçilen şubede bu ürünün stoğu bulunmamaktadır.");
+        toast.warning(
+          selectedBranchId
+            ? "Seçilen şubede bu ürünün stoğu bulunmamaktadır."
+            : "Genel stokta bu ürünün stoğu bulunmamaktadır."
+        );
         return prev;
       }
       return [
@@ -340,9 +341,6 @@ export default function PosPage() {
     if (paymentMethod === "ON_ACCOUNT" && !customerId) {
       return toast.warning("Cari hesap satışı için müşteri seçimi zorunlu");
     }
-    if (!selectedBranchId) {
-      return toast.warning("Lütfen işlem yapacağınız şubeyi seçin");
-    }
 
     setLoading(true);
     try {
@@ -358,7 +356,7 @@ export default function PosPage() {
           })),
           paymentMethod,
           customerId: (paymentMethod === "ON_ACCOUNT" || (paymentMethod === "INSTALLMENT" && customerId)) ? customerId : undefined,
-          branchId: selectedBranchId,
+          branchId: selectedBranchId || undefined,
           bankAccountId: (paymentMethod !== "ON_ACCOUNT" && paymentMethod !== "INSTALLMENT") && bankAccountId ? bankAccountId : undefined,
           installmentCount: paymentMethod === "INSTALLMENT" ? installmentCount : undefined,
           interestRate: paymentMethod === "INSTALLMENT" ? interestRate : undefined
@@ -497,7 +495,9 @@ export default function PosPage() {
       `;
     }
 
-    const branchName = branches.find((b) => b.id === selectedBranchId)?.name || "Merkez Şube";
+    const branchName = selectedBranchId
+      ? (branches.find((b) => b.id === selectedBranchId)?.name || "Şube")
+      : "Genel Stok (Şubesiz)";
 
     const html = `
       <!DOCTYPE html>
@@ -621,6 +621,7 @@ export default function PosPage() {
               setCart([]); // Reset cart to prevent stock validation mismatch across branches
             }}
           >
+            <option value="">Şube Seçilmedi (Genel Stok)</option>
             {branches.map((b) => (
               <option key={b.id} value={b.id}>{b.name}</option>
             ))}
@@ -876,7 +877,7 @@ export default function PosPage() {
                             } else {
                               setCart(hc.items);
                             }
-                            if (hc.branchId && hc.branchId !== selectedBranchId) {
+                            if (hc.branchId !== undefined && hc.branchId !== selectedBranchId) {
                               setSelectedBranchId(hc.branchId);
                               toast.info("Şube seçimi sepetin şubesi ile senkronize edildi.");
                             }

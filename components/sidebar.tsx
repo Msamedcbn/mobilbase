@@ -8,7 +8,7 @@ import { toast } from "sonner";
 type NavItem = {
   href: string;
   label: string;
-  module?: "repairs" | "pos" | "stock" | "invoicing" | "branches";
+  module?: "repairs" | "pos" | "stock" | "invoicing" | "branches" | "buyback";
   adminOnly?: boolean;
 };
 
@@ -40,6 +40,13 @@ const navSections: Array<{ title: string; items: NavItem[] }> = [
     ],
   },
   {
+    title: "İkinci El ve Cihaz Alımı",
+    items: [
+      { href: "/buyback/backoffice", label: "Cihaz Alimi (Buyback)", module: "buyback" },
+      { href: "/ikinci-el", label: "İkinci El İşlemleri", module: "buyback" },
+    ],
+  },
+  {
     title: "Finans",
     items: [
       { href: "/musteriler-veresiye", label: "Musteriler & Veresiye", module: "invoicing" },
@@ -52,7 +59,7 @@ const navSections: Array<{ title: string; items: NavItem[] }> = [
     title: "Yonetim",
     items: [
       { href: "/subeler", label: "Sube Yonetimi", module: "branches" },
-      { href: "/ayarlar", label: "Ayarlar", adminOnly: true },
+      { href: "/ayarlar", label: "Ayarlar", module: "branches" },
     ],
   },
 ];
@@ -161,6 +168,18 @@ const getIcon = (href: string) => {
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       );
+    case "/buyback/backoffice":
+      return (
+        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2zM12 7v6m0 0l-2-2m2 2l2-2" />
+        </svg>
+      );
+    case "/ikinci-el":
+      return (
+        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+        </svg>
+      );
     case "/ayarlar":
       return (
         <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -203,8 +222,7 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
     toast.success("Oturum kapatildi");
-    router.push("/login");
-    router.refresh();
+    window.location.href = "/login";
   }
 
   const getRoleLabel = (role: string) => {

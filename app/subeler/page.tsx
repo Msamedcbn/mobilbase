@@ -72,6 +72,10 @@ export default function BranchesPage() {
   const [userRole, setUserRole] = useState<"PLATFORM_OWNER" | "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT">("CASHIER");
   const [userBranchId, setUserBranchId] = useState("");
   const [userIsActive, setUserIsActive] = useState(true);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
 
   // Active UI tab state
   const [activeTab, setActiveTab] = useState<"branches" | "users" | "transfers">("branches");
@@ -339,6 +343,41 @@ export default function BranchesPage() {
     }
   }
 
+  async function handleChangeOwnPassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.warning("Tum sifre alanlarini doldurun.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast.warning("Yeni sifre en az 8 karakter olmali.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.warning("Yeni sifre ve tekrar alani ayni olmali.");
+      return;
+    }
+
+    try {
+      setChangingPassword(true);
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Sifre guncellenemedi.");
+      toast.success(json.message || "Sifre guncellendi.");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Sifre guncellenemedi.");
+    } finally {
+      setChangingPassword(false);
+    }
+  }
+
   return (
     <section className="max-w-[1400px] mx-auto p-4 md:p-6 space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
@@ -513,6 +552,43 @@ export default function BranchesPage() {
           {/* Right Column: Performance and stats */}
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Konsolide Performans</h3>
+            <div className="panel p-5 space-y-4">
+              <div>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Hesap Guvenligi</h4>
+                <p className="text-xs text-slate-500">Kendi kullanici sifrenizi buradan degistirebilirsiniz.</p>
+              </div>
+              <form className="space-y-3" onSubmit={handleChangeOwnPassword}>
+                <input
+                  type="password"
+                  className="field"
+                  placeholder="Mevcut sifre"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  required
+                />
+                <input
+                  type="password"
+                  className="field"
+                  placeholder="Yeni sifre (en az 8 karakter)"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  minLength={8}
+                  required
+                />
+                <input
+                  type="password"
+                  className="field"
+                  placeholder="Yeni sifre (tekrar)"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  minLength={8}
+                  required
+                />
+                <button type="submit" className="primary-btn w-full" disabled={changingPassword}>
+                  {changingPassword ? "Guncelleniyor..." : "Sifremi Guncelle"}
+                </button>
+              </form>
+            </div>
             
             <div className="panel p-5 space-y-6">
               {/* Financial Box */}

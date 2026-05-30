@@ -5,6 +5,27 @@ import { readLocalStore, writeLocalStore, localId } from "@/lib/local-store";
 import { requireRole } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 
+let stockItemBuybackColumnsCache: boolean | null = null;
+async function supportsStockItemBuybackColumns() {
+  if (stockItemBuybackColumnsCache !== null) return stockItemBuybackColumnsCache;
+  try {
+    const rows = await prisma.$queryRaw<Array<{ column_name: string }>>`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_schema = 'public' AND lower(table_name) = lower('StockItem')
+    `;
+    const columns = new Set(rows.map((r) => String(r.column_name).toLowerCase()));
+    stockItemBuybackColumnsCache =
+      columns.has("isbuybackitem") &&
+      columns.has("buybackprocessstatus") &&
+      columns.has("buybacksaleenabled") &&
+      columns.has("buybackdealid");
+  } catch {
+    stockItemBuybackColumnsCache = false;
+  }
+  return stockItemBuybackColumnsCache;
+}
+
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN", "MANAGER"]);
   if (auth.error) return auth.error;
@@ -27,6 +48,12 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       purchaseDocType,
       purchaseDocNo,
       minThreshold,
+      condition,
+      purchaseDate,
+      isBuybackItem,
+      buybackProcessStatus,
+      buybackSaleEnabled,
+      buybackDealId,
     } = body;
 
     if (isDbDisabledMode()) {
@@ -57,6 +84,14 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         purchaseDocType: purchaseDocType !== undefined ? (purchaseDocType?.trim() || null) : (existing as any).purchaseDocType ?? null,
         purchaseDocNo: purchaseDocNo !== undefined ? (purchaseDocNo?.trim() || null) : (existing as any).purchaseDocNo ?? null,
         minThreshold: minThreshold !== undefined ? Number(minThreshold) : existing.minThreshold,
+        condition: condition !== undefined ? condition : (existing as any).condition ?? null,
+        isBuybackItem: isBuybackItem !== undefined ? Boolean(isBuybackItem) : Boolean((existing as any).isBuybackItem ?? false),
+        buybackProcessStatus:
+          buybackProcessStatus !== undefined ? buybackProcessStatus : ((existing as any).buybackProcessStatus ?? null),
+        buybackSaleEnabled:
+          buybackSaleEnabled !== undefined ? Boolean(buybackSaleEnabled) : Boolean((existing as any).buybackSaleEnabled ?? false),
+        buybackDealId: buybackDealId !== undefined ? (buybackDealId || null) : ((existing as any).buybackDealId ?? null),
+        purchaseDate: purchaseDate !== undefined ? purchaseDate : (existing as any).purchaseDate ?? null,
         updatedAt: new Date().toISOString(),
       };
 
@@ -95,6 +130,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       return NextResponse.json({ error: "Urun bulunamadi." }, { status: 404 });
     }
 
+    const hasBuybackCols = await supportsStockItemBuybackColumns();
     const updated = await prisma.stockItem.update({
       where: { id: params.id },
       data: {
@@ -107,6 +143,16 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         imei: imei !== undefined ? (imei?.trim() || null) : undefined,
         purchaseDocType: purchaseDocType !== undefined ? (purchaseDocType?.trim() || null) : undefined,
         purchaseDocNo: purchaseDocNo !== undefined ? (purchaseDocNo?.trim() || null) : undefined,
+        condition: condition !== undefined ? condition : undefined,
+        ...(hasBuybackCols
+          ? {
+              isBuybackItem: isBuybackItem !== undefined ? Boolean(isBuybackItem) : undefined,
+              buybackProcessStatus: buybackProcessStatus !== undefined ? buybackProcessStatus : undefined,
+              buybackSaleEnabled: buybackSaleEnabled !== undefined ? Boolean(buybackSaleEnabled) : undefined,
+              buybackDealId: buybackDealId !== undefined ? (buybackDealId || null) : undefined,
+            }
+          : {}),
+        purchaseDate: purchaseDate !== undefined ? (purchaseDate ? new Date(purchaseDate) : null) : undefined,
       },
     });
 
@@ -142,6 +188,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         salePrice: updated.salePrice,
         purchaseDocType: updated.purchaseDocType,
         purchaseDocNo: updated.purchaseDocNo,
+        condition: updated.condition,
+        purchaseDate: updated.purchaseDate,
       },
     })
       : await prisma.product.create({
@@ -160,6 +208,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         salePrice: updated.salePrice,
         purchaseDocType: updated.purchaseDocType,
         purchaseDocNo: updated.purchaseDocNo,
+        condition: updated.condition,
+        purchaseDate: updated.purchaseDate,
         tenantId: auth.user.tenantId,
       },
     });

@@ -69,6 +69,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
+    const isDelivering = body.status === "DELIVERED" && current.status !== "DELIVERED";
+
     const updated = {
       ...current,
       status: body.status ?? current.status,
@@ -80,6 +82,52 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       completedAt: body.completedAt !== undefined ? body.completedAt : current.completedAt,
     };
     store.repairs![idx] = updated;
+
+    if (isDelivering) {
+      const totalAmount = Number(updated.totalCost);
+      const payMethod = body.paymentMethod || "CASH";
+      const bankId = body.bankAccountId || null;
+      const trNo = `TR-REP-${Date.now()}`;
+
+      // Update bank account balance
+      if ((payMethod === "CASH" || payMethod === "CREDIT_CARD") && bankId) {
+        if (!store.bankAccounts) store.bankAccounts = [];
+        const bankIdx = store.bankAccounts.findIndex((b) => b.id === bankId);
+        if (bankIdx !== -1) {
+          store.bankAccounts[bankIdx].balance = Number(store.bankAccounts[bankIdx].balance) + totalAmount;
+        }
+      }
+
+      // If veresiye (on account), add an account entry
+      if (payMethod === "ON_ACCOUNT") {
+        if (!store.accountEntries) store.accountEntries = [];
+        store.accountEntries.push({
+          id: `entry-${Math.random().toString(36).substr(2, 9)}`,
+          customerId: customer.id,
+          type: "DEBIT",
+          amount: totalAmount,
+          description: `${trNo} no'lu teknik servis onarım borcu`,
+          createdAt: new Date().toISOString(),
+        });
+      }
+
+      // Create transaction record
+      if (!store.transactions) store.transactions = [];
+      store.transactions.unshift({
+        id: `tr-${Math.random().toString(36).substr(2, 9)}`,
+        tenantId,
+        transactionNo: trNo,
+        type: "INCOME",
+        paymentMethod: payMethod,
+        customerId: customer.id,
+        totalAmount,
+        note: `[Servis Onarımı] Servis No: ${current.id} / Cihaz: ${device?.brand || ""} ${device?.model || ""}`,
+        createdAt: new Date().toISOString(),
+        branchId: current.branchId ?? "branch-kadikoy",
+        bankAccountId: bankId,
+      });
+    }
+
     await writeLocalStore(store);
 
     return NextResponse.json({
@@ -98,14 +146,86 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         },
       },
     },
+    include: {
+      device: {
+        include: {
+          customer: true,
+        },
+      },
+      invoice: true,
+    },
   });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const item = await prisma.repairRecord.update({
-    where: { id: params.id },
-    data: body,
+  const isDelivering = body.status === "DELIVERED" && existing.status !== "DELIVERED";
+
+  const { paymentMethod, bankAccountId, ...updateData } = body;
+
+  const result = await prisma.$transaction(async (tx) => {
+    const item = await tx.repairRecord.update({
+      where: { id: params.id },
+      data: updateData,
+    });
+
+    if (isDelivering) {
+      const totalAmount = Number(item.totalCost);
+      const payMethod = paymentMethod || "CASH";
+      const bankId = bankAccountId || null;
+      const trNo = `TR-REP-${Date.now()}`;
+
+      // Create transaction
+      await tx.transaction.create({
+        data: {
+          tenantId,
+          transactionNo: trNo,
+          type: "INCOME",
+          paymentMethod: payMethod,
+          customerId: existing.device.customerId,
+          totalAmount,
+          note: `[Servis Onarımı] Servis No: ${item.id} / Cihaz: ${existing.device.brand} ${existing.device.model}`,
+          bankAccountId: bankId,
+          branchId: item.branchId,
+        },
+      });
+
+      // Update bank account balance
+      if ((payMethod === "CASH" || payMethod === "CREDIT_CARD") && bankId) {
+        await tx.bankAccount.update({
+          where: { id: bankId },
+          data: { balance: { increment: totalAmount } },
+        });
+      }
+
+      // Create AccountEntry if ON_ACCOUNT
+      if (payMethod === "ON_ACCOUNT") {
+        await tx.accountEntry.create({
+          data: {
+            customerId: existing.device.customerId,
+            type: "DEBIT",
+            amount: totalAmount,
+            description: `${trNo} no'lu teknik servis onarım borcu`,
+          },
+        });
+      }
+
+      // Create Invoice
+      await tx.invoice.create({
+        data: {
+          tenantId,
+          customerId: existing.device.customerId,
+          repairRecordId: item.id,
+          invoiceNo: `INV-${Date.now()}`,
+          totalAmount,
+          paidAmount: payMethod === "ON_ACCOUNT" ? 0 : totalAmount,
+          dueAmount: payMethod === "ON_ACCOUNT" ? totalAmount : 0,
+        },
+      });
+    }
+
+    return item;
   });
-  return NextResponse.json(item);
+
+  return NextResponse.json(result);
 }
 
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {

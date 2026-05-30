@@ -8,22 +8,16 @@ import { writeAuditLog } from "@/lib/audit";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { localId, readLocalStore, writeLocalStore } from "@/lib/local-store";
 
-async function resolveCurrentTenantId() {
-  const tenantName = process.env.TENANT_NAME ?? "TelefoncuPro";
-  const tenant = await prisma.customer.findFirst({
-    where: { fullName: tenantName },
-    select: { id: true },
-  });
-  return tenant?.id ?? null;
-}
-
 export async function GET() {
-  const auth = requireRole(["ADMIN"]);
+  const auth = requireRole(["ADMIN", "MANAGER"]);
   if (auth.error) return auth.error;
+  const tenantId = auth.user?.tenantId ?? null;
 
   if (isDbDisabledMode()) {
     const store = await readLocalStore();
-    const users = (store.users || []).map((u) => ({
+    const users = (store.users || [])
+      .filter((u) => (auth.user?.role === "PLATFORM_OWNER" ? true : u.tenantId === tenantId))
+      .map((u) => ({
       id: u.id,
       fullName: u.fullName,
       email: u.email,
@@ -37,7 +31,6 @@ export async function GET() {
   }
 
   try {
-    const tenantId = await resolveCurrentTenantId();
     if (!tenantId) return fail("Tenant baglami bulunamadi", "NOT_FOUND", 404);
 
     const users = await prisma.appUser.findMany({
@@ -61,7 +54,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const auth = requireRole(["ADMIN"]);
+  const auth = requireRole(["ADMIN", "MANAGER"]);
   if (auth.error) return auth.error;
 
   try {
@@ -70,7 +63,7 @@ export async function POST(req: Request) {
     if (!parsed.success) return fail("Kullanici verisi gecersiz", "VALIDATION", 400);
 
     const payloadEmail = parsed.data.email.toLowerCase().trim();
-    const tenantId = await resolveCurrentTenantId();
+    const tenantId = auth.user?.tenantId ?? null;
     if (!tenantId) return fail("Tenant baglami bulunamadi", "NOT_FOUND", 404);
 
     if (isDbDisabledMode()) {

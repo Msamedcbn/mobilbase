@@ -17,7 +17,7 @@ export async function GET() {
       { id: "demo-prod-1", name: "Type-C Hizli Sarj Adaptoru" },
       { id: "demo-prod-2", name: "Temperli Cam" },
     ];
-    const branches = (store.branches || []).filter((b) => b.tenantId === tenantId || !b.tenantId);
+    const branches = (store.branches || []).filter((b) => b.tenantId === tenantId);
     const movements = (store.transactions || [])
       .filter((t) => (t.note || "").includes("[WHOLESALE]"))
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())

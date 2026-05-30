@@ -18,7 +18,7 @@ export async function GET() {
   try {
     const branches = await prisma.branch.findMany({
       where: { tenantId },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: "asc" },
     });
     return ok(branches);
   } catch (error) {

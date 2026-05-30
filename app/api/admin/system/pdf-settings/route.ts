@@ -5,7 +5,7 @@ import { readPdfSettings, writePdfSettings } from "@/lib/pdf-settings";
 import { writeAuditLog } from "@/lib/audit";
 
 export async function GET() {
-  const auth = requireRole(["ADMIN"]);
+  const auth = requireRole(["ADMIN", "MANAGER"]);
   if (auth.error) return auth.error;
 
   const settings = await readPdfSettings();
@@ -13,7 +13,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const auth = requireRole(["ADMIN"]);
+  const auth = requireRole(["ADMIN", "MANAGER"]);
   if (auth.error) return auth.error;
 
   const body = await req.json();

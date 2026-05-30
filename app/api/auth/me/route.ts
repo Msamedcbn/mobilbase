@@ -3,11 +3,12 @@ import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore } from "@/lib/local-store";
+import { isTenantFrozenFromNotes } from "@/lib/tenant-metadata";
 
 const DEFAULT_ROLE_PERMISSIONS = {
   PLATFORM_OWNER: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
   ADMIN: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
-  MANAGER: ["pos", "repairs", "stock", "invoicing", "branches"],
+  MANAGER: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
   CASHIER: ["pos"],
   TECHNICIAN: ["repairs"],
   ACCOUNTANT: ["invoicing"],
@@ -18,12 +19,26 @@ const DEFAULT_ACTIVE_MODULES = {
   repairs: true,
   stock: true,
   invoicing: true,
-  buyback: false,
+  buyback: true,
 };
 
 export async function GET() {
   const user = getSessionUser();
   if (!user) return NextResponse.json({ user: null }, { status: 401 });
+  if (user.tenantId && user.role !== "PLATFORM_OWNER") {
+    if (isDbDisabledMode()) {
+      const store = await readLocalStore();
+      const tenant = store.customers.find((c) => c.id === user.tenantId);
+      if (isTenantFrozenFromNotes(tenant?.notes)) {
+        return NextResponse.json({ error: "Tenant dondurulmustur." }, { status: 403 });
+      }
+    } else {
+      const tenant = await prisma.customer.findUnique({ where: { id: user.tenantId }, select: { notes: true } });
+      if (isTenantFrozenFromNotes(tenant?.notes)) {
+        return NextResponse.json({ error: "Tenant dondurulmustur." }, { status: 403 });
+      }
+    }
+  }
   
   let tenantName = "TelefoncuPro";
   let rolePermissions = DEFAULT_ROLE_PERMISSIONS;
@@ -40,7 +55,7 @@ export async function GET() {
         if (customer.notes) {
           const parsed = JSON.parse(customer.notes);
           if (parsed.rolePermissions) rolePermissions = parsed.rolePermissions;
-          if (parsed.modules) activeModules = parsed.modules;
+          if (parsed.modules) activeModules = { ...parsed.modules, buyback: true };
         }
       }
     } else {
@@ -52,7 +67,7 @@ export async function GET() {
         if (customer.notes) {
           const parsed = JSON.parse(customer.notes);
           if (parsed.rolePermissions) rolePermissions = parsed.rolePermissions;
-          if (parsed.modules) activeModules = parsed.modules;
+          if (parsed.modules) activeModules = { ...parsed.modules, buyback: true };
         }
       }
     }

@@ -53,8 +53,11 @@ type SearchResult = {
     serialNumber?: string | null;
     imei?: string | null;
     quantity: number;
+    purchasePrice?: number;
     purchaseDocType?: string | null;
     purchaseDocNo?: string | null;
+    condition?: string | null;
+    purchaseDate?: string | null;
     createdAt: string;
     updatedAt: string;
   }>;
@@ -158,11 +161,22 @@ export default function SerialNumberTrackingPage() {
               <div className="panel bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-3">
                 <h3 className="font-bold text-slate-900">Envanter Kayitlari</h3>
                 {result.stockItems.map((s) => (
-                  <div key={s.id} className="rounded-xl border border-slate-200 p-3 bg-slate-50 text-sm text-slate-700">
-                    <p><strong>{s.name}</strong> ({s.sku})</p>
-                    <p>Kategori: {s.category} / Adet: {s.quantity}</p>
-                    <p>{[s.brand, s.model, s.variantColor, s.variantStorage].filter(Boolean).join(" / ") || "-"}</p>
-                    <p>{(s.purchaseDocType || s.purchaseDocNo) ? `Belge: ${s.purchaseDocType || "-"} ${s.purchaseDocNo || ""}` : "Belge yok"}</p>
+                  <div key={s.id} className="rounded-xl border border-slate-200 p-4 bg-slate-50 text-sm text-slate-700 space-y-2">
+                    <div className="flex justify-between items-start">
+                      <p className="m-0"><strong>{s.name}</strong> ({s.sku})</p>
+                      {s.condition && (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 border border-indigo-100 text-indigo-700">
+                          {s.condition}
+                        </span>
+                      )}
+                    </div>
+                    <p className="m-0 text-xs text-slate-500">Kategori: {s.category} / Adet: {s.quantity}</p>
+                    <p className="m-0 text-xs text-slate-550">{[s.brand, s.model, s.variantColor, s.variantStorage].filter(Boolean).join(" / ") || "-"}</p>
+                    <div className="pt-1.5 border-t border-slate-200 grid grid-cols-2 gap-2 text-2xs font-semibold text-slate-600">
+                      <div>Alış: <strong className="text-slate-800">{Number(s.purchasePrice || 0).toLocaleString("tr-TR")} TL</strong></div>
+                      <div>Tarih: <strong className="text-slate-800">{s.purchaseDate ? new Date(s.purchaseDate).toLocaleDateString("tr-TR") : "-"}</strong></div>
+                    </div>
+                    <p className="m-0 text-[10px] text-slate-400">{(s.purchaseDocType || s.purchaseDocNo) ? `Belge: ${s.purchaseDocType || "-"} ${s.purchaseDocNo || ""}` : "Belge yok"}</p>
                   </div>
                 ))}
               </div>

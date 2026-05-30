@@ -9,6 +9,15 @@ import { isValidBuybackStatusTransition } from "@/lib/buyback-policy";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore, writeLocalStore } from "@/lib/local-store";
 
+function buildBuybackStockName(device: { brand?: string | null; model?: string | null; storage?: string | null; color?: string | null; imei?: string | null }) {
+  return [device.brand, device.model, device.storage, device.color].filter(Boolean).join(" ").trim() || "Buyback Cihaz";
+}
+
+function buildBuybackSku(dealId: string, imei?: string | null) {
+  const tail = dealId.slice(-8).toUpperCase();
+  return imei ? `BUYBACK-${tail}-${imei}` : `BUYBACK-${tail}`;
+}
+
 function mapDocuments(item: any, customer: any, device: any) {
   const docs: Array<{ kind: "PDF" | "IMAGE" | "IDENTITY"; name: string; fileType: string; url: string | null }> = [
     { kind: "PDF", name: "Sozlesme", fileType: "pdf", url: `/api/buyback/documents/${item.id}/template/1` },
@@ -140,6 +149,56 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         }
       }
 
+      if (nextStatus === "COMPLETED" && current.status !== "COMPLETED") {
+        const existingStock = (store.stockItems || []).find((s: any) => s.buybackDealId === current.id && s.tenantId === auth.user.tenantId);
+        const device = (store.devices || []).find((d) => d.id === current.deviceId);
+        if (!existingStock && device) {
+          const now = new Date().toISOString();
+          const stockItemId = `stock-item-${Math.random().toString(36).slice(2, 11)}`;
+          const sku = buildBuybackSku(current.id, device.imei);
+          const stockItem = {
+            id: stockItemId,
+            tenantId: auth.user.tenantId,
+            sku,
+            name: buildBuybackStockName(device),
+            category: "Telefon",
+            brand: device.brand || null,
+            model: device.model || null,
+            variantColor: device.color || null,
+            variantStorage: device.storage || null,
+            serialNumber: device.serialNumber || null,
+            imei: device.imei || null,
+            quantity: 1,
+            purchasePrice: Number(agreedPriceValue || 0),
+            salePrice: Number(current.offeredPrice || 0),
+            purchaseDocType: "BUYBACK",
+            purchaseDocNo: current.id,
+            minThreshold: 0,
+            isCatalog: false,
+            condition: "Buyback",
+            isBuybackItem: true,
+            buybackProcessStatus: "SERVICE_TRANSFERRED",
+            buybackSaleEnabled: false,
+            buybackDealId: current.id,
+            purchaseDate: now,
+            createdAt: now,
+            updatedAt: now,
+          };
+          if (!store.stockItems) store.stockItems = [];
+          store.stockItems.push(stockItem as any);
+          if (!store.productBranchStocks) store.productBranchStocks = [];
+          const branchId = store.branches?.[0]?.id;
+          if (branchId) {
+            store.productBranchStocks.push({
+              id: `pbs-${Math.random().toString(36).slice(2, 11)}`,
+              productId: stockItemId,
+              branchId,
+              stock: 1,
+            });
+          }
+        }
+      }
+
       Object.assign(current, parsed.data);
       await writeLocalStore(store);
       return ok(current, 200, "Buyback kaydi guncellendi");
@@ -178,6 +237,118 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
           where: { id: targetBankAccountId },
           data: { balance: { decrement: Number(agreedPriceValue) } },
         });
+      }
+      if (nextStatus === "COMPLETED" && current.status !== "COMPLETED") {
+        const existingStock = await tx.stockItem.findFirst({
+          where: { tenantId: auth.user.tenantId, buybackDealId: current.id },
+          select: { id: true },
+        });
+
+        if (!existingStock) {
+          const device = await tx.device.findUnique({ where: { id: current.deviceId } });
+          if (device) {
+            const stockItem = await tx.stockItem.create({
+              data: {
+                tenantId: auth.user.tenantId,
+                sku: buildBuybackSku(current.id, device.imei),
+                name: buildBuybackStockName(device),
+                category: "Telefon",
+                brand: device.brand || null,
+                model: device.model || null,
+                variantColor: device.color || null,
+                variantStorage: device.storage || null,
+                serialNumber: device.serialNumber || null,
+                imei: device.imei || null,
+                quantity: 1,
+                purchasePrice: Number(agreedPriceValue || 0),
+                salePrice: Number(current.offeredPrice || 0),
+                purchaseDocType: "BUYBACK",
+                purchaseDocNo: current.id,
+                minThreshold: 0,
+                isCatalog: false,
+                condition: "Buyback",
+                isBuybackItem: true,
+                buybackProcessStatus: "SERVICE_TRANSFERRED",
+                buybackSaleEnabled: false,
+                buybackDealId: current.id,
+                purchaseDate: new Date(),
+              },
+            });
+
+            const existingProduct = await tx.product.findFirst({
+              where: { barcode: stockItem.sku, tenantId: auth.user.tenantId ?? null },
+              select: { id: true },
+            });
+            const createdProduct = existingProduct
+              ? await tx.product.update({
+                  where: { id: existingProduct.id },
+                  data: {
+                    name: stockItem.name,
+                    category: stockItem.category,
+                    brand: stockItem.brand,
+                    model: stockItem.model,
+                    variantColor: stockItem.variantColor,
+                    variantStorage: stockItem.variantStorage,
+                    serialNumber: stockItem.serialNumber,
+                    imei: stockItem.imei,
+                    stock: stockItem.quantity,
+                    purchasePrice: stockItem.purchasePrice,
+                    salePrice: stockItem.salePrice,
+                    purchaseDocType: stockItem.purchaseDocType,
+                    purchaseDocNo: stockItem.purchaseDocNo,
+                    isCatalog: false,
+                    condition: stockItem.condition,
+                    purchaseDate: stockItem.purchaseDate,
+                  },
+                })
+              : await tx.product.create({
+                  data: {
+                    name: stockItem.name,
+                    barcode: stockItem.sku,
+                    category: stockItem.category,
+                    brand: stockItem.brand,
+                    model: stockItem.model,
+                    variantColor: stockItem.variantColor,
+                    variantStorage: stockItem.variantStorage,
+                    serialNumber: stockItem.serialNumber,
+                    imei: stockItem.imei,
+                    stock: stockItem.quantity,
+                    purchasePrice: stockItem.purchasePrice,
+                    salePrice: stockItem.salePrice,
+                    purchaseDocType: stockItem.purchaseDocType,
+                    purchaseDocNo: stockItem.purchaseDocNo,
+                    isCatalog: false,
+                    condition: stockItem.condition,
+                    purchaseDate: stockItem.purchaseDate,
+                    tenantId: auth.user.tenantId,
+                  },
+                });
+
+            const defaultBranch = await tx.branch.findFirst({
+              where: { tenantId: auth.user.tenantId },
+              orderBy: { createdAt: "asc" },
+              select: { id: true },
+            });
+            if (defaultBranch) {
+              await tx.productBranchStock.upsert({
+                where: {
+                  productId_branchId: {
+                    productId: createdProduct.id,
+                    branchId: defaultBranch.id,
+                  },
+                },
+                create: {
+                  productId: createdProduct.id,
+                  branchId: defaultBranch.id,
+                  stock: stockItem.quantity,
+                },
+                update: {
+                  stock: stockItem.quantity,
+                },
+              });
+            }
+          }
+        }
       }
       return updated;
     });

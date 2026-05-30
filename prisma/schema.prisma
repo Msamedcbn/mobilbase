@@ -24,6 +24,11 @@ enum BuybackStatus {
   COMPLETED
 }
 
+enum BuybackProcessStatus {
+  SERVICE_TRANSFERRED
+  READY_FOR_SALE
+}
+
 enum ReconciliationStatus {
   NONE
   SENT
@@ -244,6 +249,7 @@ model BuybackDeal {
   notifications   BuybackNotification[]
   bankAccountId   String?
   bankAccount     BankAccount?    @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
+  stockItems      StockItem[]
 }
 
 model PosSale {
@@ -284,14 +290,24 @@ model StockItem {
   purchaseDocType String?
   purchaseDocNo   String?
   minThreshold    Int             @default(0)
+  isCatalog       Boolean         @default(false)
+  condition       String?
+  isBuybackItem   Boolean         @default(false)
+  buybackProcessStatus BuybackProcessStatus?
+  buybackSaleEnabled Boolean      @default(false)
+  buybackDealId   String?
+  purchaseDate    DateTime        @default(now())
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   costEvents      StockCostEvent[]
+  buybackDeal     BuybackDeal?    @relation(fields: [buybackDealId], references: [id], onDelete: SetNull)
 
   tenantId        String?
   tenant          Customer?       @relation("TenantToStockItems", fields: [tenantId], references: [id])
 
   @@unique([sku, tenantId])
+  @@index([tenantId, isBuybackItem])
+  @@index([buybackDealId])
 }
 
 model StockCostEvent {
@@ -339,6 +355,9 @@ model Product {
   salePrice       Decimal           @default(0) @db.Decimal(10, 2)
   purchaseDocType String?
   purchaseDocNo   String?
+  isCatalog       Boolean           @default(false)
+  condition       String?
+  purchaseDate    DateTime          @default(now())
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
   transactionItems TransactionItem[]

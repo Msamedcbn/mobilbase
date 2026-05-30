@@ -28,7 +28,7 @@ function isSaasTenant(notes: string | null | undefined) {
 }
 
 export async function GET() {
-  const auth = requireRole(["ADMIN", "PLATFORM_OWNER"]);
+  const auth = requireRole(["PLATFORM_OWNER"]);
   if (auth.error) return auth.error;
 
   if (isDbDisabledMode()) {
@@ -41,7 +41,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const auth = requireRole(["ADMIN", "PLATFORM_OWNER"]);
+  const auth = requireRole(["PLATFORM_OWNER"]);
   if (auth.error) return auth.error;
 
   const body = await req.json();
@@ -69,6 +69,7 @@ export async function POST(req: Request) {
   const notes = JSON.stringify({
     ...notesObj,
     isSaaS: true,
+    isFrozen: typeof (notesObj as any).isFrozen === "boolean" ? (notesObj as any).isFrozen : false,
     rolePermissions: {
       ...DEFAULT_ROLE_PERMISSIONS,
       ...(typeof notesObj.rolePermissions === "object" && notesObj.rolePermissions ? notesObj.rolePermissions : {}),

@@ -23,7 +23,7 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<SettingsState>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [canManageSettings, setCanManageSettings] = useState(false);
   const [activeTab, setActiveTab] = useState<"repair" | "veresiye" | "installment">("repair");
 
   useEffect(() => {
@@ -31,9 +31,10 @@ export default function SettingsPage() {
     fetch("/api/auth/me")
       .then((res) => res.json())
       .then((json) => {
-        setIsAdmin(json.user?.role === "ADMIN");
+        const role = json.user?.role;
+        setCanManageSettings(role === "ADMIN" || role === "MANAGER" || role === "PLATFORM_OWNER");
       })
-      .catch(() => setIsAdmin(false));
+      .catch(() => setCanManageSettings(false));
 
     // Fetch existing settings
     fetch("/api/settings")
@@ -61,7 +62,7 @@ export default function SettingsPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isAdmin) {
+    if (!canManageSettings) {
       toast.error("Ayarları güncellemek için yönetici yetkiniz olmalıdır.");
       return;
     }
@@ -128,12 +129,12 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      {!isAdmin && (
+      {!canManageSettings && (
         <div className="p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-sm font-medium flex items-center gap-3">
           <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
-          Görüntüleme Modu: Sistem ayarlarını sadece yönetici (ADMIN) rolündeki kullanıcılar düzenleyebilir.
+          Görüntüleme Modu: Sistem ayarlarını sadece yetkili roller (ADMIN/MANAGER) düzenleyebilir.
         </div>
       )}
 
@@ -166,7 +167,7 @@ export default function SettingsPage() {
                       className="sr-only peer"
                       checked={settings.whatsappEnabled}
                       onChange={(e) => setSettings({ ...settings, whatsappEnabled: e.target.checked })}
-                      disabled={!isAdmin}
+                      disabled={!canManageSettings}
                     />
                     <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                   </label>
@@ -182,7 +183,7 @@ export default function SettingsPage() {
                     placeholder="Örn: 905551234567"
                     value={settings.whatsappNumber}
                     onChange={(e) => setSettings({ ...settings, whatsappNumber: e.target.value })}
-                    disabled={!isAdmin}
+                    disabled={!canManageSettings}
                   />
                   <p className="text-[11px] text-slate-500 leading-normal">
                     Numarayı ülke kodu dahil boşluksuz giriniz (Örn: 905XXXXXXXXX).
@@ -271,7 +272,7 @@ export default function SettingsPage() {
                       value={settings.repairTemplate}
                       onChange={(e) => setSettings({ ...settings, repairTemplate: e.target.value })}
                       placeholder="Teknik servis şablonu..."
-                      disabled={!isAdmin}
+                      disabled={!canManageSettings}
                     />
                     <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl space-y-2">
                       <span className="block text-[11px] font-bold text-slate-600 uppercase">Kullanılabilir Değişkenler:</span>
@@ -298,7 +299,7 @@ export default function SettingsPage() {
                       value={settings.veresiyeTemplate}
                       onChange={(e) => setSettings({ ...settings, veresiyeTemplate: e.target.value })}
                       placeholder="Veresiye şablonu..."
-                      disabled={!isAdmin}
+                      disabled={!canManageSettings}
                     />
                     <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl space-y-2">
                       <span className="block text-[11px] font-bold text-slate-600 uppercase">Kullanılabilir Değişkenler:</span>
@@ -325,7 +326,7 @@ export default function SettingsPage() {
                       value={settings.installmentTemplate}
                       onChange={(e) => setSettings({ ...settings, installmentTemplate: e.target.value })}
                       placeholder="Taksit şablonu..."
-                      disabled={!isAdmin}
+                      disabled={!canManageSettings}
                     />
                     <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl space-y-2">
                       <span className="block text-[11px] font-bold text-slate-600 uppercase">Kullanılabilir Değişkenler:</span>
@@ -360,7 +361,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Action bar */}
-        {isAdmin && (
+        {canManageSettings && (
           <div className="flex justify-end pt-4 border-t border-slate-200">
             <button
               type="submit"

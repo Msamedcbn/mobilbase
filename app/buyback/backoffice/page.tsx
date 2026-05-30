@@ -99,11 +99,12 @@ export default function BuybackBackofficePage() {
     bodyCondition: "good" as "excellent" | "good" | "bad",
     batteryHealth: "between80_90" as "above90" | "between80_90" | "below80",
     hasBrokenComponent: false,
-    offeredPrice: "0",
+    offeredPrice: "",
     imageFrontUrl: "",
     imageBackUrl: "",
     imageTopUrl: "",
     imageBottomUrl: "",
+    condition: "İyi",
   });
 
   useEffect(() => {
@@ -325,22 +326,19 @@ export default function BuybackBackofficePage() {
     toast.success("Tahmini teklif hesaplandi");
   }
   async function createBuybackFromIntake() {
-    if (!intake.fullName || !intake.phone || !intake.model) {
-      return toast.error("Musteri ve cihaz alanlarini doldurun.");
+    if (!intake.fullName || !intake.phone || !intake.model || !intake.brand) {
+      return toast.error("Lütfen müşteri ve cihaz bilgilerini doldurun.");
     }
-    if ((intake.nationalId || "").length !== 11) return toast.error("TC 11 hane olmali.");
-    if ((intake.imei || "").length < 14) return toast.error("IMEI en az 14 hane olmali.");
+    if ((intake.nationalId || "").length !== 11) return toast.error("TC Kimlik Numarası 11 hane olmalıdır.");
+    if ((intake.imei || "").length < 14) return toast.error("IMEI en az 14 hane olmalıdır.");
     const offeredPrice = Number(intake.offeredPrice || 0);
-    if (!Number.isFinite(offeredPrice) || offeredPrice <= 0) return toast.error("Teklif tutari gecersiz.");
+    if (!Number.isFinite(offeredPrice) || offeredPrice <= 0) return toast.error("Alım fiyatı geçersiz.");
 
     setIntakeBusy(true);
     try {
       const customerNotes = [
-        intake.city ? `Sehir:${intake.city}` : "",
-        intake.district ? `Ilce:${intake.district}` : "",
-        intake.address ? `Adres:${intake.address}` : "",
-        intakeStep ? `AkisAdim:${intakeStep}` : "",
-        `Gorseller:On:${intake.imageFrontUrl || "-"},Arka:${intake.imageBackUrl || "-"},Ust:${intake.imageTopUrl || "-"},Alt:${intake.imageBottomUrl || "-"}`,
+        intake.email ? `Eposta:${intake.email}` : "",
+        `Sadeleştirilmiş cihaz alımı`,
       ]
         .filter(Boolean)
         .join(" | ");
@@ -357,7 +355,7 @@ export default function BuybackBackofficePage() {
         }),
       });
       const customerJson = await customerRes.json();
-      if (!customerRes.ok) throw new Error(customerJson.error ?? "Musteri olusturulamadi");
+      if (!customerRes.ok) throw new Error(customerJson.error ?? "Müşteri oluşturulamadı.");
 
       const deviceRes = await fetch("/api/devices", {
         method: "POST",
@@ -369,20 +367,12 @@ export default function BuybackBackofficePage() {
           storage: intake.storage || parseStorageFromModel(intake.model),
           imei: intake.imei,
           color: intake.color || null,
-          conditionNote: [
-            `BTK:${intake.screenCondition}`,
-            `Aciliyor:${intake.bodyCondition !== "bad" ? "Evet" : "Hayir"}`,
-            `SiviTemasi:${intake.hasBrokenComponent ? "Evet" : "Hayir"}`,
-            `FaceID:${intake.screenCondition === "excellent" ? "Evet" : "Hayir"}`,
-            `Kasa:${intake.bodyCondition}`,
-            `Pil:${intake.batteryHealth}`,
-            `Ariza:${intake.hasBrokenComponent ? "Var" : "Yok"}`,
-          ].join(" | "),
+          conditionNote: `Kondisyon: ${intake.condition}`,
           isSecondHandStock: true,
         }),
       });
       const deviceJson = await deviceRes.json();
-      if (!deviceRes.ok) throw new Error(deviceJson.error ?? "Cihaz olusturulamadi");
+      if (!deviceRes.ok) throw new Error(deviceJson.error ?? "Cihaz oluşturulamadı.");
 
       const dealRes = await fetch("/api/buybacks", {
         method: "POST",
@@ -391,19 +381,47 @@ export default function BuybackBackofficePage() {
           customerId: customerJson.id,
           deviceId: deviceJson.id,
           offeredPrice,
-          status: "DRAFT",
-          evaluationNote: "Backoffice Islem Alimi",
+          agreedPrice: offeredPrice,
+          status: "APPROVED",
+          evaluationNote: "Sadeleştirilmiş Cihaz Alımı",
         }),
       });
       const dealJson = await dealRes.json();
-      if (!dealRes.ok) throw new Error(dealJson.error ?? "Buyback kaydi olusturulamadi");
+      if (!dealRes.ok) throw new Error(dealJson.error ?? "Buyback kaydı oluşturulamadı.");
 
-      toast.success("Islem basariyla iceri alindi.");
+      toast.success("Cihaz alım işlemi başarıyla kaydedildi.");
+      
+      // Reset form
+      setIntake({
+        fullName: "",
+        phone: "",
+        nationalId: "",
+        email: "",
+        city: "",
+        district: "",
+        address: "",
+        brand: "Apple",
+        model: "",
+        storage: "",
+        imei: "",
+        color: "",
+        screenCondition: "good",
+        bodyCondition: "good",
+        batteryHealth: "between80_90",
+        hasBrokenComponent: false,
+        offeredPrice: "",
+        imageFrontUrl: "",
+        imageBackUrl: "",
+        imageTopUrl: "",
+        imageBottomUrl: "",
+        condition: "İyi",
+      });
+
       await loadList();
       setSelectedId(dealJson.id);
       setActiveModule("queue");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Islem alimi basarisiz");
+      toast.error(e instanceof Error ? e.message : "Cihaz alımı başarısız.");
     } finally {
       setIntakeBusy(false);
     }
@@ -489,134 +507,100 @@ export default function BuybackBackofficePage() {
 
         <div style={{ display: "grid", gap: 10 }}>
           {activeModule === "intake" && (
-            <div className="panel" style={{ padding: "1rem", display: "grid", gap: 12 }}>
-              <div className="panel" style={{ padding: "0.8rem", background: "#f8fcfb" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 8 }}>
-                  {[1, 2, 3].map((stepNo) => (
-                    <button
-                      key={stepNo}
-                      className="field"
-                      style={{ background: intakeStep === stepNo ? "#e6fff4" : "#fff", borderColor: intakeStep === stepNo ? "#1f8f63" : "#dbe2ea" }}
-                      onClick={() => setIntakeStep(stepNo as 1 | 2 | 3)}
-                    >
-                      {stepNo}. {stepNo === 1 ? "CIHAZ" : stepNo === 2 ? "CIHAZ DURUMU" : "ILETISIM VE ONAY"}
-                    </button>
-                  ))}
-                </div>
+            <div className="panel" style={{ padding: "1.5rem", display: "grid", gap: 20 }}>
+              <div style={{ borderBottom: "1px solid #e2e8f0", paddingBottom: "0.75rem" }}>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "#0f172a" }}>Cihaz Alım Formu</h3>
+                <p style={{ margin: "4px 0 0", color: "#64748b", fontSize: 13 }}>Müşteriden cihaz satın alırken kullanılacak pratik alım formu</p>
               </div>
 
-              <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1.6fr 1fr" }}>
-                <div className="panel" style={{ padding: "0.9rem", display: "grid", gap: 10 }}>
-                  {intakeStep === 1 && (
-                    <>
-                      <h3 style={{ margin: 0 }}>Adim 1 - Cihaz Secimi</h3>
-                      <div className="form-grid-3">
-                        <input className="field" placeholder="Marka" value={intake.brand} onChange={(e) => setIntake((p) => ({ ...p, brand: e.target.value }))} />
-                        <select className="field" value={intake.model} onChange={(e) => setIntake((p) => ({ ...p, model: e.target.value, storage: parseStorageFromModel(e.target.value) }))}>
-                          <option value="">Model secin</option>
-                          {modelOptions.map((m) => <option key={m} value={m}>{m}</option>)}
-                        </select>
-                        <input className="field" placeholder="IMEI *" value={intake.imei} onChange={(e) => setIntake((p) => ({ ...p, imei: e.target.value.replace(/[^\d]/g, "").slice(0, 16) }))} />
-                      </div>
-                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                        {modelOptions.slice(0, 8).map((m) => (
-                          <button key={m} className="field" style={{ width: "auto", padding: "0.4rem 0.75rem" }} onClick={() => setIntake((p) => ({ ...p, model: m, storage: parseStorageFromModel(m) }))}>
+              <div style={{ display: "grid", gap: 20, gridTemplateColumns: "1fr 1fr" }}>
+                {/* Sol Kolon: Müşteri Bilgileri */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  <h4 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "#334155", borderBottom: "1px dashed #e2e8f0", paddingBottom: 6 }}>Müşteri Bilgileri</h4>
+                  
+                  <div style={{ display: "grid", gap: 4 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Adı Soyadı *</label>
+                    <input className="field" placeholder="Müşteri Adı Soyadı" value={intake.fullName} onChange={(e) => setIntake((p) => ({ ...p, fullName: e.target.value }))} />
+                  </div>
+
+                  <div style={{ display: "grid", gap: 4 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Telefon Numarası *</label>
+                    <input className="field" placeholder="0555 555 5555" value={intake.phone} onChange={(e) => setIntake((p) => ({ ...p, phone: e.target.value }))} />
+                  </div>
+
+                  <div style={{ display: "grid", gap: 4 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>TC Kimlik Numarası *</label>
+                    <input className="field" placeholder="11 Haneli TC Kimlik No" value={intake.nationalId} onChange={(e) => setIntake((p) => ({ ...p, nationalId: e.target.value.replace(/[^\d]/g, "").slice(0, 11) }))} />
+                  </div>
+
+                  <div style={{ display: "grid", gap: 4 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>E-posta Adresi (İsteğe Bağlı)</label>
+                    <input className="field" placeholder="ornek@eposta.com" value={intake.email} onChange={(e) => setIntake((p) => ({ ...p, email: e.target.value }))} />
+                  </div>
+                </div>
+
+                {/* Sağ Kolon: Cihaz ve Fiyat Bilgileri */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  <h4 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "#334155", borderBottom: "1px dashed #e2e8f0", paddingBottom: 6 }}>Cihaz ve Fiyat Bilgileri</h4>
+
+                  <div style={{ display: "grid", gap: 4 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Cihaz Markası *</label>
+                    <input className="field" placeholder="Örn: Apple, Samsung, Xiaomi" value={intake.brand} onChange={(e) => setIntake((p) => ({ ...p, brand: e.target.value }))} />
+                  </div>
+
+                  <div style={{ display: "grid", gap: 4 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Cihaz Modeli *</label>
+                    <input className="field" placeholder="Örn: iPhone 13 128GB" value={intake.model} onChange={(e) => setIntake((p) => ({ ...p, model: e.target.value }))} />
+                    {modelOptions.length > 0 && (
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 4 }}>
+                        {modelOptions.slice(0, 5).map((m) => (
+                          <button 
+                            key={m} 
+                            type="button" 
+                            className="field" 
+                            style={{ width: "auto", padding: "2px 8px", fontSize: 11, background: "#f1f5f9", cursor: "pointer" }} 
+                            onClick={() => setIntake((p) => ({ ...p, model: m, storage: parseStorageFromModel(m) }))}
+                          >
                             {m}
                           </button>
                         ))}
                       </div>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ color: "#64748b", fontSize: 13 }}>Secili model: {intake.model || "-"}</span>
-                        <button className="primary-btn" style={{ width: 160 }} onClick={() => setIntakeStep(2)}>Sorulara Gec</button>
-                      </div>
-                    </>
-                  )}
-
-                  {intakeStep === 2 && (
-                    <>
-                      <h3 style={{ margin: 0 }}>Adim 2 - Cihaz Durumu</h3>
-                      <QuestionBlock
-                        title="Cihazin BTK sorgulama sonucu nedir?"
-                        options={["Kayitli", "Kayitdisi", "Yenilenmis Cihaz"]}
-                        selected={intake.screenCondition}
-                        onPick={(v) => setIntake((p) => ({ ...p, screenCondition: v === "Kayitli" ? "excellent" : v === "Yenilenmis Cihaz" ? "good" : "bad" }))}
-                      />
-                      <QuestionBlock
-                        title="Cihaz aciliyor mu?"
-                        options={["Evet", "Hayir"]}
-                        selected={intake.bodyCondition === "bad" ? "Hayir" : "Evet"}
-                        onPick={(v) => setIntake((p) => ({ ...p, bodyCondition: v === "Evet" ? "good" : "bad" }))}
-                      />
-                      <QuestionBlock
-                        title="Sivi temasi var mi?"
-                        options={["Hayir", "Evet"]}
-                        selected={intake.hasBrokenComponent ? "Evet" : "Hayir"}
-                        onPick={(v) => setIntake((p) => ({ ...p, hasBrokenComponent: v === "Evet" }))}
-                      />
-                      <QuestionBlock
-                        title="Pil sagligi"
-                        options={["%90 Ustu", "%80-%90", "%80 Alti"]}
-                        selected={intake.batteryHealth === "above90" ? "%90 Ustu" : intake.batteryHealth === "between80_90" ? "%80-%90" : "%80 Alti"}
-                        onPick={(v) => setIntake((p) => ({ ...p, batteryHealth: v === "%90 Ustu" ? "above90" : v === "%80-%90" ? "between80_90" : "below80" }))}
-                      />
-                      <div style={{ display: "flex", gap: 8, justifyContent: "space-between" }}>
-                        <button className="field" style={{ width: 140 }} onClick={() => setIntakeStep(1)}>Geri Don</button>
-                        <button className="field" style={{ width: 140 }} onClick={() => void calculateIntakeOffer()}>Teklif Hesapla</button>
-                        <button className="primary-btn" style={{ width: 180 }} onClick={() => setIntakeStep(3)}>Iletisim ve Onay</button>
-                      </div>
-                    </>
-                  )}
-
-                  {intakeStep === 3 && (
-                    <>
-                      <h3 style={{ margin: 0 }}>Adim 3 - Iletisim ve Evrak</h3>
-                      <div className="form-grid-4">
-                        <input className="field" placeholder="Ad Soyad *" value={intake.fullName} onChange={(e) => setIntake((p) => ({ ...p, fullName: e.target.value }))} />
-                        <input className="field" placeholder="Telefon *" value={intake.phone} onChange={(e) => setIntake((p) => ({ ...p, phone: e.target.value }))} />
-                        <input className="field" placeholder="TC Kimlik No *" value={intake.nationalId} onChange={(e) => setIntake((p) => ({ ...p, nationalId: e.target.value.replace(/[^\d]/g, "").slice(0, 11) }))} />
-                        <input className="field" placeholder="Eposta" value={intake.email} onChange={(e) => setIntake((p) => ({ ...p, email: e.target.value }))} />
-                      </div>
-                      <div className="form-grid-3">
-                        <input className="field" placeholder="Sehir" value={intake.city} onChange={(e) => setIntake((p) => ({ ...p, city: e.target.value }))} />
-                        <input className="field" placeholder="Ilce" value={intake.district} onChange={(e) => setIntake((p) => ({ ...p, district: e.target.value }))} />
-                        <input className="field" placeholder="Adres" value={intake.address} onChange={(e) => setIntake((p) => ({ ...p, address: e.target.value }))} />
-                      </div>
-                      <div className="form-grid-4">
-                        <input className="field" placeholder="On gorsel URL" value={intake.imageFrontUrl} onChange={(e) => setIntake((p) => ({ ...p, imageFrontUrl: e.target.value }))} />
-                        <input className="field" placeholder="Arka gorsel URL" value={intake.imageBackUrl} onChange={(e) => setIntake((p) => ({ ...p, imageBackUrl: e.target.value }))} />
-                        <input className="field" placeholder="Ust kenar URL" value={intake.imageTopUrl} onChange={(e) => setIntake((p) => ({ ...p, imageTopUrl: e.target.value }))} />
-                        <input className="field" placeholder="Alt kenar URL" value={intake.imageBottomUrl} onChange={(e) => setIntake((p) => ({ ...p, imageBottomUrl: e.target.value }))} />
-                      </div>
-                      <div style={{ display: "flex", gap: 8, justifyContent: "space-between" }}>
-                        <button className="field" style={{ width: 140 }} onClick={() => setIntakeStep(2)}>Geri Don</button>
-                        <button className="field" style={{ width: 140 }} onClick={() => void calculateIntakeOffer()}>Teklif Hesapla</button>
-                        <button className="primary-btn" style={{ width: 190 }} disabled={intakeBusy} onClick={() => void createBuybackFromIntake()}>
-                          {intakeBusy ? "Kaydediliyor..." : "Teklifi Gonder / Iceri Al"}
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                <div style={{ display: "grid", gap: 10, alignSelf: "start" }}>
-                  <div className="panel" style={{ padding: "1rem", color: "#fff", background: "linear-gradient(135deg,#142e66,#0b1f4b 70%)" }}>
-                    <p style={{ margin: 0, fontSize: 12, letterSpacing: 0.6 }}>TAHMINI TEKLIF</p>
-                    <p style={{ margin: "8px 0 6px", fontSize: 44, fontWeight: 800 }}>
-                      {Number(intake.offeredPrice || 0).toLocaleString("tr-TR")} TL
-                    </p>
-                    <p style={{ margin: 0, fontSize: 12, opacity: 0.9 }}>
-                      {intakeStep === 3 ? "Son adim: onay sonrasi teklif kayda alinacak." : "Secimlerinize gore anlik hesaplanir."}
-                    </p>
+                    )}
                   </div>
-                  <div className="panel" style={{ padding: "0.8rem" }}>
-                    <p style={{ margin: "0 0 6px", fontWeight: 700 }}>Nasil ilerler?</p>
-                    <ul style={{ margin: 0, paddingLeft: 18, color: "#334155", lineHeight: 1.9 }}>
-                      <li>Model secin, durum sorularini yanitlayin.</li>
-                      <li>Sistem tahmini teklifi otomatik hesaplasin.</li>
-                      <li>Iletisim ve gorsellerle kaydi iceri alin.</li>
-                    </ul>
+
+                  <div style={{ display: "grid", gap: 4 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>IMEI Numarası *</label>
+                    <input className="field" placeholder="15 haneli IMEI girin" value={intake.imei} onChange={(e) => setIntake((p) => ({ ...p, imei: e.target.value.replace(/[^\d]/g, "").slice(0, 15) }))} />
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                    <div style={{ display: "grid", gap: 4 }}>
+                      <label style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Cihaz Kondisyonu *</label>
+                      <select className="field" value={intake.condition} onChange={(e) => setIntake((p) => ({ ...p, condition: e.target.value }))}>
+                        <option value="Mükemmel">Mükemmel</option>
+                        <option value="İyi">İyi</option>
+                        <option value="Orta">Orta</option>
+                        <option value="Kırık / Arızalı">Kırık / Arızalı</option>
+                      </select>
+                    </div>
+
+                    <div style={{ display: "grid", gap: 4 }}>
+                      <label style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Alım Fiyatı (TL) *</label>
+                      <input className="field" type="number" min={0} placeholder="Örn: 15000" value={intake.offeredPrice} onChange={(e) => setIntake((p) => ({ ...p, offeredPrice: e.target.value }))} />
+                    </div>
                   </div>
                 </div>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10, borderTop: "1px solid #e2e8f0", paddingTop: 15 }}>
+                <button 
+                  className="primary-btn" 
+                  style={{ width: 220, height: 42, fontSize: 14, fontWeight: 700 }}
+                  disabled={intakeBusy}
+                  onClick={() => void createBuybackFromIntake()}
+                >
+                  {intakeBusy ? "Kaydediliyor..." : "Cihaz Alımını Kaydet"}
+                </button>
               </div>
             </div>
           )}
