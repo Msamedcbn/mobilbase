@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
@@ -37,11 +37,11 @@ export async function POST(req: Request) {
   const price = Number(body.price || 0);
 
   if (!brand || !model || !category || !partType || !partName || price <= 0) {
-    return NextResponse.json({ error: "Eksik veya gecersiz alanlar var." }, { status: 400 });
+    return NextResponse.json({ error: "Eksik veya geçersiz alanlar var." }, { status: 400 });
   }
 
   if (!["original", "equivalent", "revision"].includes(partType)) {
-    return NextResponse.json({ error: "Gecersiz parca tipi." }, { status: 400 });
+    return NextResponse.json({ error: "Geçersiz parca tipi." }, { status: 400 });
   }
 
   if (isDbDisabledMode()) {
@@ -80,3 +80,4 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ data: created }, { status: 201 });
 }
+

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore } from "@/lib/local-store";
@@ -31,6 +31,7 @@ export async function GET() {
 
     return NextResponse.json(dbLogs);
   } catch (error) {
-    return NextResponse.json({ error: "Loglar yuklenemedi" }, { status: 500 });
+    return NextResponse.json({ error: "Loglar yüklenemedi" }, { status: 500 });
   }
 }
+

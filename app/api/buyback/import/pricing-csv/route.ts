@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+﻿import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { fail, ok } from "@/lib/api-response";
 import { isErpSyncEnabled, requireFeature } from "@/lib/feature-flags";
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.text();
     const rows = parseCsv(body);
-    if (rows.length === 0) return fail("CSV bos veya gecersiz", "VALIDATION", 400);
+    if (rows.length === 0) return fail("CSV bos veya geçersiz", "VALIDATION", 400);
 
     let inserted = 0;
     let updated = 0;
@@ -204,3 +204,4 @@ export async function POST(req: Request) {
     return fail(getErrorMessage(error, "CSV import hatasi"), getErrorCode(error), getErrorStatus(error));
   }
 }
+

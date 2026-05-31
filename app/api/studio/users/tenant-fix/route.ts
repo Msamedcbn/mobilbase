@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
@@ -12,7 +12,7 @@ export async function GET() {
   const auth = requireRole(["ADMIN", "PLATFORM_OWNER"]);
   if (auth.error) return auth.error;
   if (!auth.user || !canManage(auth.user.role)) {
-    return NextResponse.json({ error: "Bu islem icin yetkiniz yok." }, { status: 403 });
+    return NextResponse.json({ error: "Bu işlem icin yetkiniz yok." }, { status: 403 });
   }
 
   if (isDbDisabledMode()) {
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
   const auth = requireRole(["ADMIN", "PLATFORM_OWNER"]);
   if (auth.error) return auth.error;
   if (!auth.user || !canManage(auth.user.role)) {
-    return NextResponse.json({ error: "Bu islem icin yetkiniz yok." }, { status: 403 });
+    return NextResponse.json({ error: "Bu işlem icin yetkiniz yok." }, { status: 403 });
   }
 
   const body = await req.json().catch(() => ({}));
@@ -135,3 +135,4 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ success: true, message: "Kullanici tenant'a atandi." });
 }
+

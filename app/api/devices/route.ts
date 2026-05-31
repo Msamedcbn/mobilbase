@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+﻿import { prisma } from "@/lib/prisma";
 import { deviceSchema } from "@/lib/validations";
 import { getErrorCode, getErrorMessage } from "@/lib/errors";
 import { requireRole, getSessionUser } from "@/lib/auth";
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     const parsed = deviceSchema.safeParse(body);
     if (!parsed.success) {
       console.error("Device validation failure details:", parsed.error.format(), "Body was:", body);
-      return fail("Gecersiz cihaz verisi", "VALIDATION", 400);
+      return fail("Geçersiz cihaz verisi", "VALIDATION", 400);
     }
 
     const deviceData = {
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
       const store = await readLocalStore();
       const customer = store.customers.find((c) => c.id === deviceData.customerId && c.tenantId === tenantId);
       if (!customer) {
-        return fail("Müşteri bulunamadı veya yetkisiz", "NOT_FOUND", 404);
+        return fail("MÃ¼ÅŸteri bulunamadÄ± veya yetkisiz", "NOT_FOUND", 404);
       }
       const item = { ...deviceData, id: localId("dev"), color: deviceData.color ?? null, conditionNote: deviceData.conditionNote ?? null, isSecondHandStock: deviceData.isSecondHandStock ?? false };
       store.devices.unshift(item);
@@ -70,7 +70,7 @@ export async function POST(req: Request) {
       where: { id: deviceData.customerId, tenantId },
     });
     if (!customer) {
-      return fail("Müşteri bulunamadı veya yetkisiz", "NOT_FOUND", 404);
+      return fail("MÃ¼ÅŸteri bulunamadÄ± veya yetkisiz", "NOT_FOUND", 404);
     }
 
     const item = await prisma.device.create({ data: deviceData });
@@ -87,3 +87,4 @@ export async function POST(req: Request) {
     return fail(getErrorMessage(error), getErrorCode(error), 400);
   }
 }
+

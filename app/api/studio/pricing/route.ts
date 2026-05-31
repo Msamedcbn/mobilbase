@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { localId, readLocalStore, writeLocalStore } from "@/lib/local-store";
 import { requireRole } from "@/lib/auth";
 
@@ -95,7 +95,7 @@ export async function PUT(req: Request) {
       freeBranchLimit < 0 ||
       branchSurchargePrice < 0
     ) {
-      return NextResponse.json({ error: "Gecersiz veri formati" }, { status: 400 });
+      return NextResponse.json({ error: "Geçersiz veri formati" }, { status: 400 });
     }
 
     const store = await readLocalStore();
@@ -128,14 +128,14 @@ export async function PUT(req: Request) {
       action: "PRICING_UPDATE",
       targetType: "PRICING",
       targetId: "resellerPricing",
-      detail: `${Lite}/${Service}/${Pro}/${Enterprise} fiyatlari guncellendi`,
+      detail: `${Lite}/${Service}/${Pro}/${Enterprise} fiyatlari güncellendi`,
       context: { reason: reason || null },
     });
 
     await writeLocalStore(store);
     return NextResponse.json({ success: true, pricing: store.resellerPricing, history: store.resellerPricingHistory });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Fiyatlandirma guncellenemedi" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Fiyatlandirma güncellenemedi" }, { status: 500 });
   }
 }
 
@@ -190,3 +190,4 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: error.message || "Fiyatlandirma geri alinamadi" }, { status: 500 });
   }
 }
+

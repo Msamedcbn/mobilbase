@@ -1,4 +1,4 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 import { calculateOfferPriceDetailed } from "@/lib/pricing";
 import { requireRole } from "@/lib/auth";
 import { fail, ok } from "@/lib/api-response";
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const parsed = schema.safeParse(body);
-    if (!parsed.success) return fail("Teklif hesaplama verisi gecersiz", "VALIDATION", 400);
+    if (!parsed.success) return fail("Teklif hesaplama verisi geçersiz", "VALIDATION", 400);
 
     if (isDbDisabledMode()) {
       let price = 20000;
@@ -41,3 +41,4 @@ export async function POST(req: Request) {
     return fail(getErrorMessage(error), getErrorCode(error), getErrorStatus(error));
   }
 }
+

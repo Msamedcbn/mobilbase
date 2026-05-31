@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+﻿import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { getErrorCode, getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { fail, ok } from "@/lib/api-response";
@@ -140,7 +140,7 @@ export async function GET(req: Request) {
             id: t.id,
             type: "SALE",
             date: t.createdAt,
-            title: t.type === "INCOME" ? "Satis Islemi" : "Gider Islemi",
+            title: t.type === "INCOME" ? "Satış İşlemi" : "Gider İşlemi",
             status: t.paymentMethod,
             detail: `${t.transactionNo} / ${Number(t.totalAmount).toLocaleString("tr-TR")} TL`,
             note: t.note || "-",
@@ -249,7 +249,7 @@ export async function GET(req: Request) {
         id: t.id,
         type: "SALE",
         date: t.createdAt.toISOString(),
-        title: t.type === "INCOME" ? "Satis Islemi" : "Gider Islemi",
+        title: t.type === "INCOME" ? "Satış İşlemi" : "Gider İşlemi",
         status: t.paymentMethod,
         detail: `${t.transactionNo} / ${Number(t.totalAmount).toLocaleString("tr-TR")} TL`,
         note: t.note || "-",
@@ -316,3 +316,4 @@ export async function GET(req: Request) {
     return fail(getErrorMessage(error), getErrorCode(error), getErrorStatus(error));
   }
 }
+

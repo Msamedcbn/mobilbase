@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+﻿import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { fail, ok } from "@/lib/api-response";
 import { getErrorCode, getErrorMessage, getErrorStatus } from "@/lib/errors";
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const parsed = appUserCreateSchema.safeParse(body);
-    if (!parsed.success) return fail("Kullanici verisi gecersiz", "VALIDATION", 400);
+    if (!parsed.success) return fail("Kullanici verisi geçersiz", "VALIDATION", 400);
 
     const payloadEmail = parsed.data.email.toLowerCase().trim();
     const tenantId = auth.user?.tenantId ?? null;
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
       const existing = (store.users || []).find((u) => u.email.toLowerCase() === payloadEmail);
-      if (existing) return fail("Bu e-posta adresiyle zaten bir kullanıcı kayıtlı", "CONFLICT", 409);
+      if (existing) return fail("Bu e-posta adresiyle zaten bir kullanÄ±cÄ± kayÄ±tlÄ±", "CONFLICT", 409);
 
       const created = {
         id: localId("usr"),
@@ -91,7 +91,7 @@ export async function POST(req: Request) {
     }
 
     const existingDb = await prisma.appUser.findUnique({ where: { email: payloadEmail } });
-    if (existingDb) return fail("Bu e-posta adresiyle zaten bir kullanıcı kayıtlı", "CONFLICT", 409);
+    if (existingDb) return fail("Bu e-posta adresiyle zaten bir kullanÄ±cÄ± kayÄ±tlÄ±", "CONFLICT", 409);
 
     const user = await prisma.appUser.create({
       data: {
@@ -128,3 +128,4 @@ export async function POST(req: Request) {
     return fail(getErrorMessage(error), getErrorCode(error), getErrorStatus(error));
   }
 }
+

@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+﻿import { prisma } from "@/lib/prisma";
 import { requireRole, getSessionUser } from "@/lib/auth";
 import { getErrorCode, getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { fail, ok } from "@/lib/api-response";
@@ -7,7 +7,7 @@ import { readLocalStore, writeLocalStore, localId } from "@/lib/local-store";
 
 export async function GET() {
   const user = getSessionUser();
-  if (!user) return fail("Oturum bulunamadi", "UNAUTHORIZED", 401);
+  if (!user) return fail("Oturum bulunamadı", "UNAUTHORIZED", 401);
   const tenantId = user.tenantId;
 
   if (isDbDisabledMode()) {
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { name, address, phone } = body;
     if (!name) {
-      return fail("Şube adı zorunludur", "VALIDATION", 400);
+      return fail("Åube adÄ± zorunludur", "VALIDATION", 400);
     }
 
     if (isDbDisabledMode()) {
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
       
       const exists = store.branches.some((b) => b.name.toLowerCase() === name.toLowerCase() && b.tenantId === tenantId);
       if (exists) {
-        return fail("Bu şube adı zaten kayıtlı", "CONFLICT", 409);
+        return fail("Bu ÅŸube adÄ± zaten kayÄ±tlÄ±", "CONFLICT", 409);
       }
 
       const newBranch = {
@@ -59,14 +59,15 @@ export async function POST(req: Request) {
 
       store.branches.push(newBranch);
       await writeLocalStore(store);
-      return ok(newBranch, 201, "Şube başarıyla oluşturuldu");
+      return ok(newBranch, 201, "Åube baÅŸarÄ±yla oluÅŸturuldu");
     }
 
     const branch = await prisma.branch.create({
       data: { name, address, phone, tenantId },
     });
-    return ok(branch, 201, "Şube başarıyla oluşturuldu");
+    return ok(branch, 201, "Åube baÅŸarÄ±yla oluÅŸturuldu");
   } catch (error) {
     return fail(getErrorMessage(error), getErrorCode(error), getErrorStatus(error));
   }
 }
+

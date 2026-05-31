@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { localId, readLocalStore, writeLocalStore } from "@/lib/local-store";
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
     const note = body.note ? String(body.note) : "";
 
     if (!productId || quantity <= 0 || unitPrice < 0) {
-      return NextResponse.json({ error: "Urun, adet ve birim fiyat zorunludur." }, { status: 400 });
+      return NextResponse.json({ error: "Ürün, adet ve birim fiyat zorunludur." }, { status: 400 });
     }
 
     if (isDbDisabledMode()) {
@@ -79,25 +79,25 @@ export async function POST(req: Request) {
       };
 
       if (action === "EXTERNAL_PURCHASE") {
-        if (!targetBranchId) return NextResponse.json({ error: "Hedef sube zorunludur." }, { status: 400 });
+        if (!targetBranchId) return NextResponse.json({ error: "Hedef şube zorunludur." }, { status: 400 });
         if (!applyBranch(targetBranchId, quantity)) return NextResponse.json({ error: "Stok artisi uygulanamadi." }, { status: 400 });
 
         store.transactions.unshift({ id: localId("tr"), tenantId, transactionNo: `EXP-${Date.now()}`, type: "EXPENSE", paymentMethod: "CASH", customerId: null, totalAmount, note: `[WHOLESALE][EXTERNAL_PURCHASE] ${invoiceNo ? `Belge:${invoiceNo} ` : ""}${note}`.trim(), createdAt: new Date().toISOString(), branchId: targetBranchId });
       } else if (action === "EXTERNAL_SALE") {
-        if (!sourceBranchId) return NextResponse.json({ error: "Kaynak sube zorunludur." }, { status: 400 });
-        if (!applyBranch(sourceBranchId, -quantity)) return NextResponse.json({ error: "Kaynak sube stok yetersiz." }, { status: 400 });
+        if (!sourceBranchId) return NextResponse.json({ error: "Kaynak şube zorunludur." }, { status: 400 });
+        if (!applyBranch(sourceBranchId, -quantity)) return NextResponse.json({ error: "Kaynak şube stok yetersiz." }, { status: 400 });
 
         store.transactions.unshift({ id: localId("tr"), tenantId, transactionNo: `INC-${Date.now()}`, type: "INCOME", paymentMethod: "CASH", customerId: null, totalAmount, note: `[WHOLESALE][EXTERNAL_SALE] ${invoiceNo ? `Belge:${invoiceNo} ` : ""}${note}`.trim(), createdAt: new Date().toISOString(), branchId: sourceBranchId });
       } else if (action === "INTERNAL_TRANSFER") {
-        if (!sourceBranchId || !targetBranchId || sourceBranchId === targetBranchId) return NextResponse.json({ error: "Kaynak/hedef sube bilgisi gecersiz." }, { status: 400 });
-        if (!applyBranch(sourceBranchId, -quantity)) return NextResponse.json({ error: "Kaynak sube stok yetersiz." }, { status: 400 });
-        if (!applyBranch(targetBranchId, quantity)) return NextResponse.json({ error: "Hedef stok guncellenemedi." }, { status: 400 });
+        if (!sourceBranchId || !targetBranchId || sourceBranchId === targetBranchId) return NextResponse.json({ error: "Kaynak/hedef şube bilgisi geçersiz." }, { status: 400 });
+        if (!applyBranch(sourceBranchId, -quantity)) return NextResponse.json({ error: "Kaynak şube stok yetersiz." }, { status: 400 });
+        if (!applyBranch(targetBranchId, quantity)) return NextResponse.json({ error: "Hedef stok güncellenemedi." }, { status: 400 });
 
         const ref = `IC-${Date.now()}`;
         store.transactions.unshift({ id: localId("tr"), tenantId, transactionNo: `INC-${Date.now()}-S`, type: "INCOME", paymentMethod: "ON_ACCOUNT", customerId: null, totalAmount, note: `[WHOLESALE][INTERNAL_SELL] Ref:${ref} ${note}`.trim(), createdAt: new Date().toISOString(), branchId: sourceBranchId });
         store.transactions.unshift({ id: localId("tr"), tenantId, transactionNo: `EXP-${Date.now()}-A`, type: "EXPENSE", paymentMethod: "ON_ACCOUNT", customerId: null, totalAmount, note: `[WHOLESALE][INTERNAL_BUY] Ref:${ref} ${note}`.trim(), createdAt: new Date().toISOString(), branchId: targetBranchId });
       } else {
-        return NextResponse.json({ error: "Gecersiz aksiyon." }, { status: 400 });
+        return NextResponse.json({ error: "Geçersiz aksiyon." }, { status: 400 });
       }
 
       await writeLocalStore(store);
@@ -108,37 +108,38 @@ export async function POST(req: Request) {
       const adjustBranchStock = async (branchId: string, delta: number) => {
         const current = await tx.productBranchStock.findUnique({ where: { productId_branchId: { productId, branchId } } });
         if (!current) {
-          if (delta < 0) throw new Error("Kaynak sube stok kaydi yok");
+          if (delta < 0) throw new Error("Kaynak şube stok kaydi yok");
           await tx.productBranchStock.create({ data: { productId, branchId, stock: delta } });
           return;
         }
         const next = current.stock + delta;
-        if (next < 0) throw new Error("Kaynak sube stok yetersiz");
+        if (next < 0) throw new Error("Kaynak şube stok yetersiz");
         await tx.productBranchStock.update({ where: { id: current.id }, data: { stock: next } });
       };
 
       if (action === "EXTERNAL_PURCHASE") {
-        if (!targetBranchId) throw new Error("Hedef sube zorunlu");
+        if (!targetBranchId) throw new Error("Hedef şube zorunlu");
         await adjustBranchStock(targetBranchId, quantity);
         await tx.transaction.create({ data: { tenantId, transactionNo: `EXP-${Date.now()}`, type: "EXPENSE", paymentMethod: "CASH", customerId: null, totalAmount, note: `[WHOLESALE][EXTERNAL_PURCHASE] ${invoiceNo ? `Belge:${invoiceNo} ` : ""}${note}`.trim(), branchId: targetBranchId } });
       } else if (action === "EXTERNAL_SALE") {
-        if (!sourceBranchId) throw new Error("Kaynak sube zorunlu");
+        if (!sourceBranchId) throw new Error("Kaynak şube zorunlu");
         await adjustBranchStock(sourceBranchId, -quantity);
         await tx.transaction.create({ data: { tenantId, transactionNo: `INC-${Date.now()}`, type: "INCOME", paymentMethod: "CASH", customerId: null, totalAmount, note: `[WHOLESALE][EXTERNAL_SALE] ${invoiceNo ? `Belge:${invoiceNo} ` : ""}${note}`.trim(), branchId: sourceBranchId } });
       } else if (action === "INTERNAL_TRANSFER") {
-        if (!sourceBranchId || !targetBranchId || sourceBranchId === targetBranchId) throw new Error("Kaynak/hedef sube gecersiz");
+        if (!sourceBranchId || !targetBranchId || sourceBranchId === targetBranchId) throw new Error("Kaynak/hedef şube geçersiz");
         await adjustBranchStock(sourceBranchId, -quantity);
         await adjustBranchStock(targetBranchId, quantity);
         const ref = `IC-${Date.now()}`;
         await tx.transaction.create({ data: { tenantId, transactionNo: `INC-${Date.now()}-S`, type: "INCOME", paymentMethod: "ON_ACCOUNT", customerId: null, totalAmount, note: `[WHOLESALE][INTERNAL_SELL] Ref:${ref} ${note}`.trim(), branchId: sourceBranchId } });
         await tx.transaction.create({ data: { tenantId, transactionNo: `EXP-${Date.now()}-A`, type: "EXPENSE", paymentMethod: "ON_ACCOUNT", customerId: null, totalAmount, note: `[WHOLESALE][INTERNAL_BUY] Ref:${ref} ${note}`.trim(), branchId: targetBranchId } });
       } else {
-        throw new Error("Gecersiz aksiyon");
+        throw new Error("Geçersiz aksiyon");
       }
     });
 
     return NextResponse.json({ ok: true });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Islem basarisiz" }, { status: 400 });
+    return NextResponse.json({ error: error.message || "İşlem başarısız" }, { status: 400 });
   }
 }
+

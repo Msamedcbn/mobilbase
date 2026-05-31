@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+﻿import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import { fail, ok } from "@/lib/api-response";
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const parsed = schema.safeParse(body);
-    if (!parsed.success) return fail("Toplu guncelleme verisi gecersiz", "VALIDATION", 400);
+    if (!parsed.success) return fail("Toplu guncelleme verisi geçersiz", "VALIDATION", 400);
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
       let updatedCount = 0;
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
         }
       }
       await writeLocalStore(store);
-      return ok({ updatedCount }, 200, "Toplu durum guncellendi");
+      return ok({ updatedCount }, 200, "Toplu durum güncellendi");
     }
 
     const result = await prisma.buybackDeal.updateMany({
@@ -49,8 +49,9 @@ export async function POST(req: Request) {
       detail: `Count:${result.count} Status:${parsed.data.status}`,
     });
 
-    return ok({ updatedCount: result.count }, 200, "Toplu durum guncellendi");
+    return ok({ updatedCount: result.count }, 200, "Toplu durum güncellendi");
   } catch (error) {
     return fail(getErrorMessage(error, "Toplu guncelleme hatasi"), getErrorCode(error), getErrorStatus(error));
   }
 }
+

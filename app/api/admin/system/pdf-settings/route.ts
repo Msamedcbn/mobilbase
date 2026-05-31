@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth";
+﻿import { requireRole } from "@/lib/auth";
 import { fail, ok } from "@/lib/api-response";
 import { pdfSettingsSchema } from "@/lib/validations";
 import { readPdfSettings, writePdfSettings } from "@/lib/pdf-settings";
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
 
   const body = await req.json();
   const parsed = pdfSettingsSchema.safeParse(body);
-  if (!parsed.success) return fail("PDF ayar verisi gecersiz", "VALIDATION", 400);
+  if (!parsed.success) return fail("PDF ayar verisi geçersiz", "VALIDATION", 400);
 
   await writePdfSettings(parsed.data);
   await writeAuditLog({
@@ -30,3 +30,4 @@ export async function POST(req: Request) {
 
   return ok(parsed.data, 200, "PDF ayarlari kaydedildi");
 }
+

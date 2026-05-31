@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+﻿import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { fail, ok } from "@/lib/api-response";
 import { erpSyncSchema } from "@/lib/validations";
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const parsed = erpSyncSchema.safeParse(body);
-    if (!parsed.success) return fail("ERP sync payload gecersiz", "VALIDATION", 400);
+    if (!parsed.success) return fail("ERP sync payload geçersiz", "VALIDATION", 400);
 
     let inserted = 0;
     let updated = 0;
@@ -119,3 +119,4 @@ export async function POST(req: Request) {
     return fail(error instanceof Error ? error.message : "ERP sync hatasi", "INTERNAL", 400);
   }
 }
+

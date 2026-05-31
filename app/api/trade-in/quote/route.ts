@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth";
+﻿import { requireRole } from "@/lib/auth";
 import { fail, ok } from "@/lib/api-response";
 import { getErrorCode, getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { tradeInQuoteSchema } from "@/lib/validations";
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const parsed = tradeInQuoteSchema.safeParse(body);
-    if (!parsed.success) return fail("Takas teklif verisi gecersiz", "VALIDATION", 400);
+    if (!parsed.success) return fail("Takas teklif verisi geçersiz", "VALIDATION", 400);
 
     const { buybackCredit, productId, quantity } = parsed.data;
     let salePrice = 0;
@@ -25,12 +25,12 @@ export async function POST(req: Request) {
 
     if (isDbDisabledMode()) {
       const product = demoProducts.find((p) => p.id === productId);
-      if (!product) return fail("Urun bulunamadi", "NOT_FOUND", 404);
+      if (!product) return fail("Ürün bulunamadı", "NOT_FOUND", 404);
       salePrice = product.salePrice;
       productName = product.name;
     } else {
       const product = await prisma.product.findUnique({ where: { id: productId } });
-      if (!product) return fail("Urun bulunamadi", "NOT_FOUND", 404);
+      if (!product) return fail("Ürün bulunamadı", "NOT_FOUND", 404);
       salePrice = Number(product.salePrice);
       productName = product.name;
     }
@@ -51,4 +51,5 @@ export async function POST(req: Request) {
     return fail(getErrorMessage(error), getErrorCode(error), getErrorStatus(error));
   }
 }
+
 

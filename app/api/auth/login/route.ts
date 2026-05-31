@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { compareSync } from "bcryptjs";
@@ -49,10 +49,10 @@ export async function POST(req: Request) {
     const body = await req.json();
     const parsed = schema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: "Gecersiz giris verisi" }, { status: 400 });
+      return NextResponse.json({ error: "Geçersiz giris verisi" }, { status: 400 });
     }
 
-    // Helper to fetch tenant config - customerId ile belirli tenant'ın konfigürasyonunu yükler
+    // Helper to fetch tenant config - customerId ile belirli tenant'Ä±n konfigÃ¼rasyonunu yÃ¼kler
     const getTenantConfig = async (customerId?: string | null) => {
       let rolePermissions: Record<string, string[]> = {
         PLATFORM_OWNER: ["pos", "repairs", "stock", "invoicing", "buyback"],
@@ -210,22 +210,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "E-posta veya sifre hatali" }, { status: 401 });
     }
 
-    // Multi-tenant giriş kontrolü
-    // Her tenant kendi Customer kaydına bağlı kullanıcılarıyla giriş yapabilir.
-    // PLATFORM_OWNER için tenant kontrolü yoktur.
+    // Multi-tenant giriÅŸ kontrolÃ¼
+    // Her tenant kendi Customer kaydÄ±na baÄŸlÄ± kullanÄ±cÄ±larÄ±yla giriÅŸ yapabilir.
+    // PLATFORM_OWNER iÃ§in tenant kontrolÃ¼ yoktur.
     let resolvedTenantId: string | null = null;
 
     if (authenticatedUser.role !== "PLATFORM_OWNER") {
       const userTenantId = (authenticatedUser as any).tenantId as string | null | undefined;
 
       if (userTenantId) {
-        // Kullanıcının mevcut tenantId'si var - geçerli bir Customer'a işaret ediyor mu?
+        // KullanÄ±cÄ±nÄ±n mevcut tenantId'si var - geÃ§erli bir Customer'a iÅŸaret ediyor mu?
         const userTenant = await prisma.customer.findUnique({
           where: { id: userTenantId },
           select: { id: true },
         });
         if (!userTenant) {
-          return NextResponse.json({ error: "Kullanicinin tenant kaydı geçersiz veya silinmiş." }, { status: 403 });
+          return NextResponse.json({ error: "Kullanicinin tenant kaydÄ± geÃ§ersiz veya silinmiÅŸ." }, { status: 403 });
         }
         resolvedTenantId = userTenant.id;
       } else {
@@ -236,7 +236,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // Kullanıcının kendi tenant config'ini yükle
+    // KullanÄ±cÄ±nÄ±n kendi tenant config'ini yÃ¼kle
     const finalTenantId = resolvedTenantId ?? (authenticatedUser as any).tenantId ?? null;
     if (finalTenantId && authenticatedUser.role !== "PLATFORM_OWNER") {
       if (isDbDisabledMode()) {
@@ -278,3 +278,4 @@ export async function POST(req: Request) {
     );
   }
 }
+

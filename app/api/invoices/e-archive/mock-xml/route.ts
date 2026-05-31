@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+﻿import { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -77,7 +77,7 @@ export async function GET(req: NextRequest) {
   <cac:AccountingCustomerParty>
     <cac:Party>
       <cac:PartyName>
-        <cbc:Name>Demo Musteri</cbc:Name>
+        <cbc:Name>Demo Müşteri</cbc:Name>
       </cac:PartyName>
       <cac:PostalAddress>
         <cbc:CityName>Istanbul</cbc:CityName>
@@ -95,3 +95,4 @@ export async function GET(req: NextRequest) {
     },
   });
 }
+

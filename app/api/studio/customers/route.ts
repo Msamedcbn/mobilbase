@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
   try {
     notesObj = body.notes ? JSON.parse(String(body.notes)) : {};
   } catch {
-    return NextResponse.json({ error: "Gecersiz metadata formati." }, { status: 400 });
+    return NextResponse.json({ error: "Geçersiz metadata formati." }, { status: 400 });
   }
 
   const notes = JSON.stringify({
@@ -162,3 +162,4 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ data: created }, { status: 201 });
 }
+

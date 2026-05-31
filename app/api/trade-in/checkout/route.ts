@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth";
+﻿import { requireRole } from "@/lib/auth";
 import { fail, ok } from "@/lib/api-response";
 import { getErrorCode, getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { tradeInCheckoutSchema } from "@/lib/validations";
@@ -18,20 +18,20 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const parsed = tradeInCheckoutSchema.safeParse(body);
-    if (!parsed.success) return fail("Takas checkout verisi gecersiz", "VALIDATION", 400);
+    if (!parsed.success) return fail("Takas checkout verisi geçersiz", "VALIDATION", 400);
 
     const { buybackCredit, productId, quantity, paymentMethod, customerId, branchId, note } = parsed.data;
 
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
       const product = demoProducts.find((p) => p.id === productId);
-      if (!product) return fail("Urun bulunamadi", "NOT_FOUND", 404);
+      if (!product) return fail("Ürün bulunamadı", "NOT_FOUND", 404);
 
       const activeBranchId = branchId || "branch-kadikoy";
       if (!store.productBranchStocks) store.productBranchStocks = [];
       const branchStock = store.productBranchStocks.find((s) => s.productId === productId && s.branchId === activeBranchId);
       const currentStock = branchStock?.stock ?? 0;
-      if (currentStock < quantity) return fail(`Sube stogu yetersiz (Mevcut: ${currentStock})`, "STOCK", 409);
+      if (currentStock < quantity) return fail(`Şube stogu yetersiz (Mevcut: ${currentStock})`, "STOCK", 409);
       if (branchStock) branchStock.stock -= quantity;
 
       const grossAmount = product.salePrice * quantity;
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
         paymentMethod,
         customerId: customerId ?? null,
         totalAmount: differenceAmount,
-        note: note || `Takas islemi / Urun:${product.name} / Kredi:${buybackCredit}`,
+        note: note || `Takas işlemi / Ürün:${product.name} / Kredi:${buybackCredit}`,
         createdAt: new Date().toISOString(),
         branchId: activeBranchId,
       });
@@ -71,11 +71,11 @@ export async function POST(req: Request) {
         grossAmount,
         buybackCredit,
         differenceAmount,
-      }, 201, "Takas islemi tamamlandi");
+      }, 201, "Takas işlemi tamamlandi");
     }
 
     const product = await prisma.product.findUnique({ where: { id: productId } });
-    if (!product) return fail("Urun bulunamadi", "NOT_FOUND", 404);
+    if (!product) return fail("Ürün bulunamadı", "NOT_FOUND", 404);
     if (product.stock < quantity) return fail("Stok yetersiz", "STOCK", 409);
 
     const grossAmount = Number(product.salePrice) * quantity;
@@ -91,7 +91,7 @@ export async function POST(req: Request) {
           customerId: customerId ?? null,
           totalAmount: differenceAmount,
           branchId: branchId ?? null,
-          note: note || `Takas islemi / Urun:${product.name} / Kredi:${buybackCredit}`,
+          note: note || `Takas işlemi / Ürün:${product.name} / Kredi:${buybackCredit}`,
           items: {
             create: [
               {
@@ -113,9 +113,10 @@ export async function POST(req: Request) {
       grossAmount,
       buybackCredit,
       differenceAmount,
-    }, 201, "Takas islemi tamamlandi");
+    }, 201, "Takas işlemi tamamlandi");
   } catch (error) {
     return fail(getErrorMessage(error), getErrorCode(error), getErrorStatus(error));
   }
 }
+
 

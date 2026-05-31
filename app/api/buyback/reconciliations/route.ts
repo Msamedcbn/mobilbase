@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+﻿import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import { fail, ok } from "@/lib/api-response";
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const parsed = reconciliationCreateSchema.safeParse(body);
-    if (!parsed.success) return fail("Mutabakat verisi gecersiz", "VALIDATION", 400);
+    if (!parsed.success) return fail("Mutabakat verisi geçersiz", "VALIDATION", 400);
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
       const deal = store.buybacks.find((b) => b.id === parsed.data.buybackDealId);
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
       const existingOpen = store.reconciliations.find(
         (r) => r.buybackDealId === deal.id && (r.status === "SENT" || r.status === "VIEWED"),
       );
-      if (existingOpen) return fail("Bu teklif icin acik mutabakat zaten var", "CONFLICT", 409);
+      if (existingOpen) return fail("Bu teklif icin açık mutabakat zaten var", "CONFLICT", 409);
       const rawToken = createReconciliationToken();
       const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 3);
       const diff = Number(parsed.data.companyPrice) - Number(parsed.data.customerPrice);
@@ -117,3 +117,4 @@ export async function POST(req: Request) {
     return fail(getErrorMessage(error), getErrorCode(error), 400);
   }
 }
+

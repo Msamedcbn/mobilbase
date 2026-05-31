@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+﻿import { prisma } from "@/lib/prisma";
 import { buybackDealCreateSchema } from "@/lib/validations";
 import { getErrorCode, getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { requireRole } from "@/lib/auth";
@@ -75,12 +75,12 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const parsed = buybackDealCreateSchema.safeParse(body);
-    if (!parsed.success) return fail("Gecersiz buyback verisi", "VALIDATION", 400);
+    if (!parsed.success) return fail("Geçersiz buyback verisi", "VALIDATION", 400);
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
       const customer = store.customers.find((c) => c.id === parsed.data.customerId && c.tenantId === auth.user.tenantId);
       if (!customer) {
-        return fail("Müşteri bulunamadı veya yetkisiz", "NOT_FOUND", 404);
+        return fail("MÃ¼ÅŸteri bulunamadÄ± veya yetkisiz", "NOT_FOUND", 404);
       }
       const item = {
         id: localId("buy"),
@@ -101,7 +101,7 @@ export async function POST(req: Request) {
       where: { id: parsed.data.customerId, tenantId: auth.user.tenantId },
     });
     if (!customer) {
-      return fail("Müşteri bulunamadı veya yetkisiz", "NOT_FOUND", 404);
+      return fail("MÃ¼ÅŸteri bulunamadÄ± veya yetkisiz", "NOT_FOUND", 404);
     }
 
     const item = await prisma.buybackDeal.create({ data: parsed.data });
@@ -119,3 +119,4 @@ export async function POST(req: Request) {
     return fail(getErrorMessage(error), getErrorCode(error), getErrorStatus(error));
   }
 }
+

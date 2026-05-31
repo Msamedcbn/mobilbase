@@ -297,8 +297,8 @@ const seedStore: LocalStore = {
   notifications: [],
   accountEntries: [],
   branches: [
-    { id: "branch-kadikoy", name: "Kad1ky ^ubesi", address: "Kad1ky, 0stanbul", phone: "0216 111 22 33" },
-    { id: "branch-besiktas", name: "Be_ikta_ ^ubesi", address: "Be_ikta_, 0stanbul", phone: "0212 222 33 44" }
+    { id: "branch-kadikoy", name: "Kadıköy Şubesi", address: "Kadıköy, İstanbul", phone: "0216 111 22 33" },
+    { id: "branch-besiktas", name: "Beşiktaş Şubesi", address: "Beşiktaş, İstanbul", phone: "0212 222 33 44" }
   ],
   productBranchStocks: [
     { id: "stock-1", productId: "demo-prod-1", branchId: "branch-kadikoy", stock: 15 },
@@ -307,17 +307,17 @@ const seedStore: LocalStore = {
     { id: "stock-4", productId: "demo-prod-2", branchId: "branch-besiktas", stock: 10 }
   ],
   transactions: [
-    { id: "tr-seed-1", transactionNo: "POS-1716298000", type: "INCOME", paymentMethod: "CASH", customerId: "demo-cust-1", totalAmount: 12500, note: "POS Sat1_1", createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), branchId: "branch-kadikoy" },
-    { id: "tr-seed-2", transactionNo: "POS-1716298001", type: "INCOME", paymentMethod: "CREDIT_CARD", customerId: "demo-cust-1", totalAmount: 18000, note: "POS Sat1_1", createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(), branchId: "branch-besiktas" },
-    { id: "tr-seed-3", transactionNo: "EXP-seed-1", type: "EXPENSE", paymentMethod: "CASH", customerId: null, totalAmount: 15000, note: "[Kategori: Kira] May1s Ay1 Dkkan Kiras1", createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), branchId: "branch-kadikoy" },
-    { id: "tr-seed-4", transactionNo: "EXP-seed-2", type: "EXPENSE", paymentMethod: "CREDIT_CARD", customerId: null, totalAmount: 2300, note: "[Kategori: Fatura] Elektrik Faturas1", createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), branchId: "branch-kadikoy" }
+    { id: "tr-seed-1", transactionNo: "POS-1716298000", type: "INCOME", paymentMethod: "CASH", customerId: "demo-cust-1", totalAmount: 12500, note: "POS Satışı", createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), branchId: "branch-kadikoy" },
+    { id: "tr-seed-2", transactionNo: "POS-1716298001", type: "INCOME", paymentMethod: "CREDIT_CARD", customerId: "demo-cust-1", totalAmount: 18000, note: "POS Satışı", createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(), branchId: "branch-besiktas" },
+    { id: "tr-seed-3", transactionNo: "EXP-seed-1", type: "EXPENSE", paymentMethod: "CASH", customerId: null, totalAmount: 15000, note: "[Kategori: Kira] Mayıs Ayı Dükkan Kirası", createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), branchId: "branch-kadikoy" },
+    { id: "tr-seed-4", transactionNo: "EXP-seed-2", type: "EXPENSE", paymentMethod: "CREDIT_CARD", customerId: null, totalAmount: 2300, note: "[Kategori: Fatura] Elektrik Faturası", createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), branchId: "branch-kadikoy" }
   ],
   repairs: [
     {
       id: "rep-seed-1",
       deviceId: "demo-dev-1",
       issueDescription: "Ekran k1r1k, dokunmatik basm1yor",
-      diagnosisNote: JSON.stringify({ checklist: { screen: "BAD", frontCam: "OK", backCam: "OK", wifi: "OK" }, note: "Ekran dei_imi yap1lacak." }),
+      diagnosisNote: JSON.stringify({ checklist: { screen: "BAD", frontCam: "OK", backCam: "OK", wifi: "OK" }, note: "Ekran değişimi yapılacak." }),
       laborCost: 400,
       partCost: 1500,
       totalCost: 1900,
@@ -330,7 +330,7 @@ const seedStore: LocalStore = {
       id: "rep-seed-2",
       deviceId: "demo-dev-1",
       issueDescription: "Batarya ok abuk bitiyor, _i_me var",
-      diagnosisNote: JSON.stringify({ checklist: { battery: "BAD", chargingPort: "OK" }, note: "Batarya dei_imi tamamland1." }),
+      diagnosisNote: JSON.stringify({ checklist: { battery: "BAD", chargingPort: "OK" }, note: "Batarya değişimi tamamlandı." }),
       laborCost: 200,
       partCost: 600,
       totalCost: 800,
@@ -434,14 +434,14 @@ const seedStore: LocalStore = {
     expenseTypes: ["Kira", "Fatura", "Maas", "Mal Alimi", "Diger"],
   },
   stockItems: [
-    { id: "stock-item-1", sku: "SKU-IP11-SCR", name: "iPhone 11 Uyumlu A+ Ekran Modl", category: "Yedek Para", quantity: 12, purchasePrice: 450, salePrice: 1200, minThreshold: 5, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-    { id: "stock-item-2", sku: "SKU-IP13-BAT", name: "iPhone 13 Yksek Kapasiteli Batarya", category: "Yedek Para", quantity: 8, purchasePrice: 350, salePrice: 850, minThreshold: 3, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-    { id: "stock-item-3", sku: "SKU-APL-LIG", name: "Lightning USB H1zl1 ^arj Kablosu 1m", category: "Aksesuar", quantity: 45, purchasePrice: 50, salePrice: 199, minThreshold: 10, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { id: "stock-item-1", sku: "SKU-IP11-SCR", name: "iPhone 11 Uyumlu A+ Ekran Modülü", category: "Yedek Parça", quantity: 12, purchasePrice: 450, salePrice: 1200, minThreshold: 5, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { id: "stock-item-2", sku: "SKU-IP13-BAT", name: "iPhone 13 Yüksek Kapasiteli Batarya", category: "Yedek Parça", quantity: 8, purchasePrice: 350, salePrice: 850, minThreshold: 3, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { id: "stock-item-3", sku: "SKU-APL-LIG", name: "Lightning USB Hızlı Şarj Kablosu 1m", category: "Aksesuar", quantity: 45, purchasePrice: 50, salePrice: 199, minThreshold: 10, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
   ],
   transferLogs: [],
   stockLogs: [
-    { id: "stock-log-1", action: "STOCK_ADD", entityId: "stock-item-1", detail: "Stok Kart1 Eklendi: SKU-IP11-SCR - iPhone 11 Uyumlu A+ Ekran Modl (Adet: 12)", createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
-    { id: "stock-log-2", action: "STOCK_ADD", entityId: "stock-item-2", detail: "Stok Kart1 Eklendi: SKU-IP13-BAT - iPhone 13 Yksek Kapasiteli Batarya (Adet: 8)", createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
+    { id: "stock-log-1", action: "STOCK_ADD", entityId: "stock-item-1", detail: "Stok Kartı Eklendi: SKU-IP11-SCR - iPhone 11 Uyumlu A+ Ekran Modülü (Adet: 12)", createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+    { id: "stock-log-2", action: "STOCK_ADD", entityId: "stock-item-2", detail: "Stok Kartı Eklendi: SKU-IP13-BAT - iPhone 13 Yüksek Kapasiteli Batarya (Adet: 8)", createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
   ],
   stockCostEvents: [],
   corporateQuotes: [],
@@ -474,7 +474,7 @@ const seedStore: LocalStore = {
         stock: true,
         invoicing: false,
         buyback: false,
-        supportLevel: "Teknik Servis Odakli Destek"
+        supportLevel: "Teknik Servis Odaklı Destek"
       },
       Pro: {
         pos: true,
@@ -482,7 +482,7 @@ const seedStore: LocalStore = {
         stock: true,
         invoicing: true,
         buyback: false,
-        supportLevel: "H1zl1 Destek (Mesai Saatleri)"
+        supportLevel: "Hızlı Destek (Mesai Saatleri)"
       },
       Enterprise: {
         pos: true,
@@ -490,16 +490,16 @@ const seedStore: LocalStore = {
         stock: true,
         invoicing: true,
         buyback: true,
-        supportLevel: "7/24 Telefon & SLA Destei"
+        supportLevel: "7/24 Telefon & SLA Desteği"
       }
     }
   },
   resellerExpenses: [
-    { id: "exp-1", category: "Altyap1/Sunucu", description: "AWS & Vercel Bulut Sunucu Altyap1 Bedeli", amount: 4200, date: "2026-05-15" },
-    { id: "exp-2", category: "Personel Maa_lar1", description: "Yaz1l1m Geli_tirme & Teknik Destek Ekip Maa_lar1", amount: 65000, date: "2026-05-05" },
-    { id: "exp-3", category: "Pazarlama/Reklam", description: "Google Ads & Meta SaaS Reklam Kampanyas1", amount: 8500, date: "2026-05-10" },
-    { id: "exp-4", category: "Ofis/Dier", description: "Ofis Ortak Alan Kullan1m1 ve Muhasebe Giderleri", amount: 5000, date: "2026-05-02" },
-    { id: "exp-5", category: "Altyap1/Sunucu", description: "Neon Database Postgres Kme creti", amount: 1800, date: "2026-05-18" }
+    { id: "exp-1", category: "Altyapı/Sunucu", description: "AWS & Vercel Bulut Sunucu Altyapı Bedeli", amount: 4200, date: "2026-05-15" },
+    { id: "exp-2", category: "Personel Maaşları", description: "Yazılım Geliştirme & Teknik Destek Ekip Maaşları", amount: 65000, date: "2026-05-05" },
+    { id: "exp-3", category: "Pazarlama/Reklam", description: "Google Ads & Meta SaaS Reklam Kampanyası", amount: 8500, date: "2026-05-10" },
+    { id: "exp-4", category: "Ofis/Diğer", description: "Ofis Ortak Alan Kullanımı ve Muhasebe Giderleri", amount: 5000, date: "2026-05-02" },
+    { id: "exp-5", category: "Altyapı/Sunucu", description: "Neon Database Postgres Küme Ücreti", amount: 1800, date: "2026-05-18" }
   ],
   resellerPricingHistory: [],
   studioAuditLogs: [],

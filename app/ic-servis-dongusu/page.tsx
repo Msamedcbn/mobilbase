@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -35,12 +35,25 @@ type StockCostEvent = {
 };
 
 export default function InternalServiceFlowPage() {
+  const serviceOperationOptions = [
+    "Ekran değişti",
+    "Kasa değişti",
+    "Pil değişti",
+    "Anakart değişti",
+    "Arka kapak değişti",
+    "Kamera değişti",
+    "Şarj soketi değişti",
+  ] as const;
+
   const [items, setItems] = useState<StockItem[]>([]);
+  const [inServiceItems, setInServiceItems] = useState<StockItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedItemId, setSelectedItemId] = useState<string>("");
   const [costEvents, setCostEvents] = useState<StockCostEvent[]>([]);
   const [flowBuybackPrice, setFlowBuybackPrice] = useState("");
+  const [flowServiceOperations, setFlowServiceOperations] = useState<string[]>([]);
+  const [flowServiceNote, setFlowServiceNote] = useState("");
   const [flowSalePrice, setFlowSalePrice] = useState("");
   const [flowStatusLoading, setFlowStatusLoading] = useState(false);
 
@@ -60,6 +73,16 @@ export default function InternalServiceFlowPage() {
     }
   }
 
+  async function fetchInServiceItems() {
+    try {
+      const res = await fetch("/api/stock-items/in-service");
+      const json = await res.json();
+      setInServiceItems(Array.isArray(json) ? json : []);
+    } catch {
+      setInServiceItems([]);
+    }
+  }
+
   async function fetchCostEvents(itemId: string) {
     try {
       const res = await fetch(`/api/stock-items/${itemId}/cost-events`);
@@ -72,6 +95,7 @@ export default function InternalServiceFlowPage() {
 
   useEffect(() => {
     void fetchItems();
+    void fetchInServiceItems();
   }, []);
 
   useEffect(() => {
@@ -81,8 +105,12 @@ export default function InternalServiceFlowPage() {
       if (item) {
         setFlowSalePrice(String(Number(item.salePrice || 0)));
       }
+      setFlowServiceOperations([]);
+      setFlowServiceNote("");
     } else {
       setCostEvents([]);
+      setFlowServiceOperations([]);
+      setFlowServiceNote("");
     }
   }, [selectedItemId, items]);
 
@@ -132,6 +160,7 @@ export default function InternalServiceFlowPage() {
   // Actions
   async function handleSendToService() {
     if (!selectedItemId) return;
+
     setFlowStatusLoading(true);
     try {
       const res = await fetch(`/api/stock-items/${selectedItemId}/cost-events`, {
@@ -147,6 +176,7 @@ export default function InternalServiceFlowPage() {
       if (!res.ok) throw new Error(json.error || "İşlem başarısız");
       toast.success("Cihaz başarıyla teknik servise sevk edildi.");
       await fetchItems();
+      await fetchInServiceItems();
       await fetchCostEvents(selectedItemId);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "İşlem başarısız");
@@ -176,6 +206,17 @@ export default function InternalServiceFlowPage() {
       return;
     }
 
+    const detailLines: string[] = [];
+    if (flowServiceOperations.length > 0) {
+      detailLines.push(`Yapılan İşlemler: ${flowServiceOperations.join(", ")}`);
+    }
+    if (flowServiceNote.trim()) {
+      detailLines.push(`Servis Notu: ${flowServiceNote.trim()}`);
+    }
+    if (detailLines.length > 0) {
+      note = `${note}\n${detailLines.join("\n")}`;
+    }
+
     setFlowStatusLoading(true);
     try {
       const res = await fetch(`/api/stock-items/${selectedItemId}/cost-events`, {
@@ -191,13 +232,22 @@ export default function InternalServiceFlowPage() {
       if (!res.ok) throw new Error(json.error || "İşlem başarısız");
       toast.success("Cihaz başarıyla mağaza satış stoğuna geri alındı.");
       setFlowBuybackPrice("");
+      setFlowServiceOperations([]);
+      setFlowServiceNote("");
       await fetchItems();
+      await fetchInServiceItems();
       await fetchCostEvents(selectedItemId);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "İşlem başarısız");
     } finally {
       setFlowStatusLoading(false);
     }
+  }
+
+  function handleToggleServiceOperation(operation: string) {
+    setFlowServiceOperations((prev) =>
+      prev.includes(operation) ? prev.filter((item) => item !== operation) : [...prev, operation],
+    );
   }
 
   async function handleUpdateSalePrice(e: React.FormEvent) {
@@ -231,8 +281,20 @@ export default function InternalServiceFlowPage() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "İşlem başarısız");
+
+      await fetch(`/api/stock-items/${selectedItemId}/cost-events`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "MANUAL_ADJUSTMENT",
+          amount: 0,
+          note: "__INTERNAL_SERVICE_STEP3_COMPLETED__ Vitrin listeleme tamamlandı.",
+        }),
+      });
+
       toast.success("Cihaz satış fiyatı başarıyla güncellendi.");
       await fetchItems();
+      await fetchInServiceItems();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "İşlem başarısız");
     } finally {
@@ -290,6 +352,36 @@ export default function InternalServiceFlowPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Device Selection and List */}
         <div className="lg:col-span-4 flex flex-col gap-4">
+          <div className="panel p-4 bg-amber-50/50 border border-amber-200/70 flex flex-col gap-2.5">
+            <div className="flex items-center justify-between">
+              <h3 className="m-0 text-xs font-bold text-amber-900">Teknik Servisteki Cihazlar</h3>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                {inServiceItems.length} Adet
+              </span>
+            </div>
+            {inServiceItems.length === 0 ? (
+              <p className="m-0 text-[11px] text-amber-700/80">Şu an serviste bekleyen cihaz yok.</p>
+            ) : (
+              <div className="flex flex-col gap-1.5 max-h-40 overflow-y-auto pr-1">
+                {inServiceItems.slice(0, 8).map((item) => (
+                  <button
+                    key={`service-${item.id}`}
+                    type="button"
+                    onClick={() => setSelectedItemId(item.id)}
+                    className={`text-left rounded-lg border px-2.5 py-2 text-[11px] transition-colors cursor-pointer ${
+                      selectedItemId === item.id
+                        ? "bg-white border-amber-400"
+                        : "bg-white/70 border-amber-200 hover:bg-white"
+                    }`}
+                  >
+                    <div className="font-semibold text-slate-800 line-clamp-1">{item.name}</div>
+                    <div className="text-[10px] text-slate-500 font-mono line-clamp-1">{item.sku}</div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="panel p-5 bg-white flex flex-col gap-3">
             <h3 className="m-0 text-sm font-bold text-slate-800 flex items-center gap-2">
               <svg className="w-4 h-4 text-teal-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -514,7 +606,7 @@ export default function InternalServiceFlowPage() {
                             </span>
                           ) : (
                             <span className="text-slate-400 bg-slate-100 border border-slate-200 text-[10px] font-semibold px-2 py-0.5 rounded-full">
-                              🔒 Kilitli
+                              Kilitli
                             </span>
                           )}
                         </div>
@@ -523,28 +615,61 @@ export default function InternalServiceFlowPage() {
                         {(flowStepsStatus.step2 === "active" || flowStepsStatus.step2 === "completed") && (
                           <div className="mt-4 flex flex-col gap-3">
                             {flowStepsStatus.step2 === "active" && (
-                              <form onSubmit={handleBuybackFromService} className="flex gap-3 items-end max-w-md">
-                                <div className="flex-1 flex flex-col gap-1">
-                                  <span className="text-slate-700 text-2xs font-bold">Geri Satın Alma Fiyatı (TL)</span>
-                                  <input
-                                    type="number"
-                                    min={Number(selectedItem.purchasePrice)}
-                                    className="field text-xs w-full py-2"
-                                    placeholder="Örn: 32000"
-                                    value={flowBuybackPrice}
-                                    onChange={(e) => setFlowBuybackPrice(e.target.value)}
-                                    disabled={flowStatusLoading}
-                                  />
-                                </div>
-                                <button
-                                  type="submit"
-                                  disabled={flowStatusLoading || !flowBuybackPrice}
-                                  className="primary-btn py-2 px-4 text-xs font-bold cursor-pointer"
-                                >
-                                  {flowStatusLoading ? "İşlem yapılıyor..." : "Geri Satın Al"}
-                                </button>
-                              </form>
-                            )}
+  <form onSubmit={handleBuybackFromService} className="max-w-xl flex flex-col gap-3">
+    <div className="flex gap-3 items-end">
+      <div className="flex-1 flex flex-col gap-1">
+        <span className="text-slate-700 text-2xs font-bold">Geri Satın Alma Fiyatı (TL)</span>
+        <input
+          type="number"
+          min={Number(selectedItem.purchasePrice)}
+          className="field text-xs w-full py-2"
+          placeholder="Örn: 32000"
+          value={flowBuybackPrice}
+          onChange={(e) => setFlowBuybackPrice(e.target.value)}
+          disabled={flowStatusLoading}
+        />
+      </div>
+      <button
+        type="submit"
+        disabled={flowStatusLoading || !flowBuybackPrice}
+        className="primary-btn py-2 px-4 text-xs font-bold cursor-pointer"
+      >
+        {flowStatusLoading ? "İşlem yapılıyor..." : "Geri Satın Al"}
+      </button>
+    </div>
+
+    <div className="flex flex-col gap-1.5">
+      <span className="text-slate-700 text-2xs font-bold">Yapılan İşlemler</span>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {serviceOperationOptions.map((operation) => (
+          <label
+            key={operation}
+            className="flex items-center gap-2 text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5"
+          >
+            <input
+              type="checkbox"
+              checked={flowServiceOperations.includes(operation)}
+              onChange={() => handleToggleServiceOperation(operation)}
+              disabled={flowStatusLoading}
+            />
+            <span>{operation}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+
+    <div className="flex flex-col gap-1">
+      <span className="text-slate-700 text-2xs font-bold">Servis Notu</span>
+      <textarea
+        className="field text-xs w-full min-h-[88px] resize-y"
+        placeholder="Bu geri alım için not ekleyin..."
+        value={flowServiceNote}
+        onChange={(e) => setFlowServiceNote(e.target.value)}
+        disabled={flowStatusLoading}
+      />
+    </div>
+  </form>
+)}
 
                             {flowStepsStatus.step2 === "completed" && (
                               <div className="text-2xs text-slate-650 bg-slate-100/50 p-2.5 rounded-lg border border-slate-200/50 w-fit flex flex-col gap-1">
@@ -582,7 +707,7 @@ export default function InternalServiceFlowPage() {
                           </h4>
                           {flowStepsStatus.step3 === "active" ? (
                             <span className="text-amber-700 bg-amber-50 border border-amber-200 text-[10px] font-semibold px-2 py-0.5 rounded-full animate-pulse">
-                              ✎ Fiyat Belirleme Aktif
+                              Fiyat Belirleme Aktif
                             </span>
                           ) : flowStepsStatus.step3 === "completed" ? (
                             <span className="text-teal-700 bg-teal-50 border border-teal-200 text-[10px] font-semibold px-2 py-0.5 rounded-full">
@@ -590,7 +715,7 @@ export default function InternalServiceFlowPage() {
                             </span>
                           ) : (
                             <span className="text-slate-400 bg-slate-100 border border-slate-200 text-[10px] font-semibold px-2 py-0.5 rounded-full">
-                              🔒 Kilitli
+                              Kilitli
                             </span>
                           )}
                         </div>
@@ -797,7 +922,7 @@ export default function InternalServiceFlowPage() {
               </div>
 
               <div className="text-center text-xs text-slate-400 py-6 border-t border-slate-100">
-                👈 Başlamak için sol menüden veya arama kutusundan bir cihaz seçin.
+                Başlamak için sol menüden veya arama kutusundan bir cihaz seçin.
               </div>
             </div>
           )}
@@ -806,3 +931,7 @@ export default function InternalServiceFlowPage() {
     </section>
   );
 }
+
+
+
+

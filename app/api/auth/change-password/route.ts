@@ -59,7 +59,7 @@ export async function POST(req: Request) {
   try {
     const parsed = schema.safeParse(await req.json());
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.issues[0]?.message || "Gecersiz sifre verisi." }, { status: 400 });
+      return NextResponse.json({ error: parsed.error.issues[0]?.message || "Geçersiz sifre verisi." }, { status: 400 });
     }
 
     const { currentPassword, newPassword } = parsed.data;
@@ -79,7 +79,7 @@ export async function POST(req: Request) {
       user.passwordHash = hashSync(newPassword, 10);
       user.updatedAt = new Date().toISOString();
       await writeLocalStore(store);
-      return NextResponse.json({ ok: true, message: "Sifreniz guncellendi." });
+      return NextResponse.json({ ok: true, message: "Sifreniz güncellendi." });
     }
 
     const dbUser = await prisma.appUser.findUnique({ where: { id: auth.user.userId } });
@@ -100,7 +100,7 @@ export async function POST(req: Request) {
     if (!dbUser.passwordHash) {
       const updated = await updateSupabasePassword(dbUser.id, newPassword);
       if (!updated) {
-        return NextResponse.json({ error: "Supabase sifre guncelleme basarisiz." }, { status: 502 });
+        return NextResponse.json({ error: "Supabase sifre guncelleme başarısız." }, { status: 502 });
       }
     }
 
@@ -109,8 +109,9 @@ export async function POST(req: Request) {
       data: { passwordHash: hashSync(newPassword, 10) },
     });
 
-    return NextResponse.json({ ok: true, message: "Sifreniz guncellendi." });
+    return NextResponse.json({ ok: true, message: "Sifreniz güncellendi." });
   } catch {
-    return NextResponse.json({ error: "Sifre guncellenemedi." }, { status: 500 });
+    return NextResponse.json({ error: "Sifre güncellenemedi." }, { status: 500 });
   }
 }
+

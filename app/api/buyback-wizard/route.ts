@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+﻿import { prisma } from "@/lib/prisma";
 import { buybackWizardSchema } from "@/lib/validations";
 import { getErrorCode, getErrorMessage } from "@/lib/errors";
 import { requireRole } from "@/lib/auth";
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const parsed = buybackWizardSchema.safeParse(body);
-    if (!parsed.success) return fail("Buyback verisi gecersiz", "VALIDATION", 400);
+    if (!parsed.success) return fail("Buyback verisi geçersiz", "VALIDATION", 400);
 
     const serverOffer = isDbDisabledMode()
       ? (() => {
@@ -44,15 +44,15 @@ export async function POST(req: Request) {
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
       const customer = store.customers.find((c) => c.id === parsed.data.customerId);
-      if (!customer) return fail("Musteri kaydi bulunamadi", "NOT_FOUND", 404);
+      if (!customer) return fail("Müşteri kaydi bulunamadi", "NOT_FOUND", 404);
       const device = store.devices.find((d) => d.id === parsed.data.deviceId);
       if (!device) return fail("Cihaz kaydi bulunamadi", "NOT_FOUND", 404);
       if (device.customerId !== customer.id) {
-        return fail("Cihaz ile musteri iliskisi tutarsiz", "VALIDATION", 400);
+        return fail("Cihaz ile müşteri iliskisi tutarsiz", "VALIDATION", 400);
       }
       const duplicate = store.buybacks.find((b) => b.deviceId === device.id && b.status !== "REJECTED");
       if (duplicate) {
-        return fail("Bu cihaz icin acik bir buyback kaydi zaten var", "CONFLICT", 409);
+        return fail("Bu cihaz icin açık bir buyback kaydi zaten var", "CONFLICT", 409);
       }
       const deal = {
         id: localId("buy"),
@@ -128,3 +128,4 @@ export async function POST(req: Request) {
     return fail(getErrorMessage(error), getErrorCode(error), 400);
   }
 }
+

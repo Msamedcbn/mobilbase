@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+﻿import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { getErrorCode, getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { fail, ok } from "@/lib/api-response";
@@ -31,13 +31,13 @@ function cleanString(str: string): string {
   return str
     .trim()
     .toUpperCase()
-    .replace(/Ğ/g, "G")
-    .replace(/Ü/g, "U")
-    .replace(/Ş/g, "S")
-    .replace(/İ/g, "I")
+    .replace(/Ä/g, "G")
+    .replace(/Ãœ/g, "U")
+    .replace(/Å/g, "S")
+    .replace(/Ä°/g, "I")
     .replace(/I/g, "I")
-    .replace(/Ö/g, "O")
-    .replace(/Ç/g, "C")
+    .replace(/Ã–/g, "O")
+    .replace(/Ã‡/g, "C")
     .replace(/[^A-Z0-9-]/g, "")
     .replace(/-+/g, "-");
 }
@@ -250,7 +250,7 @@ export async function POST(req: Request) {
       }
 
       await writeLocalStore(store);
-      return ok(newCatalogItem, 201, "Urun kaydi basarili");
+      return ok(newCatalogItem, 201, "Ürün kaydi basarili");
     }
 
     const product = await prisma.product.create({
@@ -375,8 +375,9 @@ export async function POST(req: Request) {
       }
     }
 
-    return ok(product, 201, "Urun kaydi basarili");
+    return ok(product, 201, "Ürün kaydi basarili");
   } catch (error) {
     return fail(getErrorMessage(error), getErrorCode(error), getErrorStatus(error));
   }
 }
+
