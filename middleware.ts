@@ -7,6 +7,7 @@ const PUBLIC_PATHS = [
   "/studio/login",
   "/trial-expired",
   "/yardim",
+  "/takas-hesapla",
   "/api/auth/login",
   "/api/auth/logout",
   "/api/auth/me",

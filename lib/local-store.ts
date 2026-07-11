@@ -233,7 +233,7 @@ export type LocalStore = {
     createdAt: string;
     actor: string;
     action: string;
-    targetType: "TENANT" | "PRICING" | "LEDGER" | "LICENSE" | "HELPDESK";
+    targetType: "TENANT" | "PRICING" | "LEDGER" | "LICENSE" | "HELPDESK" | "LEAD" | "TRIAL";
     targetId: string;
     detail: string;
     context?: Record<string, unknown>;

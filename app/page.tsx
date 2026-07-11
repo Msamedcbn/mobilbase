@@ -96,6 +96,7 @@ export default async function LandingPage() {
             <a href="#sorun" className="hover:text-white">Sorun</a>
             <a href="#cozum" className="hover:text-white">Çözüm</a>
             <a href="#paketler" className="hover:text-white">Paketler</a>
+            <a href="/takas-hesapla" className="hover:text-white">Takas Hesapla</a>
             <a href="#iletisim" className="hover:text-white">Demo</a>
           </nav>
           <Link href="/login" className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-white/15">
