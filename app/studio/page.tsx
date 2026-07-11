@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback, Suspense } from "react";
 import { toast } from "sonner";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { normalizeLedgerEntry } from "@/lib/studio-finance";
+import { TrialHealthPanel } from "@/components/trial-health-panel";
 
 interface TicketMessage {
   sender: "Tenant" | "Admin";
@@ -2148,6 +2149,10 @@ function StudioPageContent() {
         </div>
       </div>
         </>
+      )}
+
+      {mainTab === "portfolio" && (
+        <TrialHealthPanel customers={tenants} />
       )}
 
       {mainTab === "portfolio" && (
