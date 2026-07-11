@@ -248,6 +248,16 @@ export type LocalStore = {
 };
 
 const STORE_PATH = path.join(process.cwd(), "data", "local-store.json");
+const LOCK_PATH = STORE_PATH + ".lock";
+let writeLock: Promise<void> = Promise.resolve();
+
+async function acquireLock(): Promise<() => void> {
+  let release: () => void;
+  const prev = writeLock;
+  writeLock = new Promise<void>((resolve) => { release = resolve; });
+  await prev;
+  return release!;
+}
 
 const seedStore: LocalStore = {
   users: [
@@ -510,7 +520,7 @@ export async function readLocalStore(): Promise<LocalStore> {
     const raw = await fs.readFile(STORE_PATH, "utf8");
     const parsed = JSON.parse(raw) as LocalStore;
     const maybeFix = (value: string) => {
-      if (!/[]/.test(value)) return value;
+      if (!/[ÃÂÄÅ]/u.test(value)) return value;
       const repaired = Buffer.from(value, "latin1").toString("utf8");
       return /[_10^]/.test(repaired) ? repaired : value;
     };
@@ -588,8 +598,15 @@ export async function readLocalStore(): Promise<LocalStore> {
 }
 
 export async function writeLocalStore(state: LocalStore) {
-  await fs.mkdir(path.dirname(STORE_PATH), { recursive: true });
-  await fs.writeFile(STORE_PATH, JSON.stringify(state, null, 2), "utf8");
+  const release = await acquireLock();
+  try {
+    await fs.mkdir(path.dirname(STORE_PATH), { recursive: true });
+    const tmpPath = STORE_PATH + ".tmp";
+    await fs.writeFile(tmpPath, JSON.stringify(state, null, 2), "utf8");
+    await fs.rename(tmpPath, STORE_PATH);
+  } finally {
+    release();
+  }
 }
 
 export function localId(prefix: string) {

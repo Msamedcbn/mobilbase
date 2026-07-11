@@ -339,7 +339,7 @@ export default function PricingPage() {
                                   features: {
                                     ...editPricing.features,
                                     [plan]: {
-                                      ...editPricing.features[plan],
+                                      ...(editPricing.features[plan] || {}),
                                       [f.key]: !editPricing.features[plan]?.[f.key as keyof typeof editPricing.features.Pro],
                                     },
                                   },
@@ -372,7 +372,7 @@ export default function PricingPage() {
                               ...editPricing,
                               features: {
                                 ...editPricing.features,
-                                [plan]: { ...editPricing.features[plan], supportLevel: e.target.value },
+                                [plan]: { ...(editPricing.features[plan] || { pos: false, repairs: false, stock: false, invoicing: false, buyback: false, supportLevel: "" }), supportLevel: e.target.value },
                               },
                             });
                           }}

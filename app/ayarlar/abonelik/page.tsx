@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { toast } from "sonner";
-import { PLAN_USD_PRICES, type LsPlan, type LsBillingCycle } from "@/lib/subscription-plans";
+import { PLAN_USD_PRICES, ANNUAL_DISCOUNT_PCT, type LsPlan, type LsBillingCycle } from "@/lib/subscription-plans";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -472,7 +472,7 @@ export default function AbonelikPage() {
                   {cycle === "monthly" ? "Aylık" : "Yıllık"}
                   {cycle === "annual" && (
                     <span className={`ml-2 text-[10px] font-black ${billingCycle === "annual" ? "text-indigo-200" : "text-emerald-600"}`}>
-                      −15%
+                      −{ANNUAL_DISCOUNT_PCT}%
                     </span>
                   )}
                 </button>

@@ -15,3 +15,4 @@ export const PLAN_USD_PRICES: Record<LsPlan, { monthly: number; annual: number }
 };
 
 export const PLAN_LIST: LsPlan[] = ["Lite", "Service", "Pro", "Enterprise"];
+export const ANNUAL_DISCOUNT_PCT = 15;
