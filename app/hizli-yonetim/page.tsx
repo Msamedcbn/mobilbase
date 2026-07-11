@@ -68,7 +68,7 @@ export default async function QuickManagementPage() {
     <section className="compact-shell" style={{ display: "grid", gap: 10 }}>
       <div className="panel" style={{ padding: "0.8rem", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
         <div>
-          <h2 className="page-title" style={{ margin: 0 }}>Hizli Yonetim</h2>
+          <h2 className="page-title" style={{ margin: 0 }}>Hızlı Yönetim</h2>
           <p style={{ margin: "4px 0 0", color: "#64748b", fontSize: 13 }}>Sade arayuz, hizli karar, detay islemlere tek tik erisim.</p>
         </div>
         <div style={{ display: "flex", gap: 8 }}>

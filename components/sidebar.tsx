@@ -16,7 +16,7 @@ const navSections: Array<{ title: string; items: NavItem[] }> = [
   {
     title: "Genel",
     items: [
-      { href: "/hizli-yonetim", label: "Hizli Yonetim" },
+      { href: "/hizli-yonetim", label: "Hızlı Yönetim" },
       { href: "/dashboard", label: "Dashboard" },
     ],
   },
@@ -24,18 +24,18 @@ const navSections: Array<{ title: string; items: NavItem[] }> = [
     title: "Operasyon",
     items: [
       { href: "/tamir-takip", label: "Tamir Takip", module: "repairs" },
-      { href: "/parca-fiyatlari", label: "Parca & Onarim Fiyatlari", module: "repairs" },
-      { href: "/pos", label: "Hizli Satis (POS)", module: "pos" },
+      { href: "/parca-fiyatlari", label: "Parça & Onarım Fiyatları", module: "repairs" },
+      { href: "/pos", label: "Hızlı Satış (POS)", module: "pos" },
       { href: "/kurumsal-teklifler", label: "Kurumsal Teklifler", module: "invoicing" },
     ],
   },
   {
     title: "Stok ve Lojistik",
     items: [
-      { href: "/stok", label: "Stok Yonetimi", module: "stock" },
+      { href: "/stok", label: "Stok Yönetimi", module: "stock" },
       { href: "/ic-servis-dongusu", label: "İç Servis Döngüsü", module: "stock" },
-      { href: "/toptan-alim-satis", label: "Toptan Alis / Satis", module: "stock" },
-      { href: "/distributor-ithalat", label: "Distributor Ithalat", module: "stock" },
+      { href: "/toptan-alim-satis", label: "Toptan Alış / Satış", module: "stock" },
+      { href: "/distributor-ithalat", label: "Distribütör İthalat", module: "stock" },
       { href: "/seri-no-takip", label: "Seri No Takip", module: "stock" },
     ],
   },
@@ -49,16 +49,16 @@ const navSections: Array<{ title: string; items: NavItem[] }> = [
   {
     title: "Finans",
     items: [
-      { href: "/musteriler-veresiye", label: "Musteriler & Veresiye", module: "invoicing" },
-      { href: "/banka", label: "Banka Yonetimi", module: "invoicing" },
-      { href: "/taksit-yonetimi", label: "Taksit Yonetimi", module: "invoicing" },
-      { href: "/giderler", label: "Gider Yonetimi", module: "invoicing" },
+      { href: "/musteriler-veresiye", label: "Müşteriler & Veresiye", module: "invoicing" },
+      { href: "/banka", label: "Banka Yönetimi", module: "invoicing" },
+      { href: "/taksit-yonetimi", label: "Taksit Yönetimi", module: "invoicing" },
+      { href: "/giderler", label: "Gider Yönetimi", module: "invoicing" },
     ],
   },
   {
-    title: "Yonetim",
+    title: "Yönetim",
     items: [
-      { href: "/subeler", label: "Sube Yonetimi", module: "branches" },
+      { href: "/subeler", label: "Şube Yönetimi", module: "branches" },
       { href: "/ayarlar", label: "Ayarlar", module: "branches" },
     ],
   },
@@ -221,7 +221,7 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
-    toast.success("Oturum kapatildi");
+    toast.success("Oturum kapatıldı");
     window.location.href = "/login";
   }
 
@@ -328,7 +328,7 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
         </svg>
-        Cikis Yap
+        Çıkış Yap
       </button>
     </aside>
   );

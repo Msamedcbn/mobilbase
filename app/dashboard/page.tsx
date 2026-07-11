@@ -59,7 +59,7 @@ export default async function DashboardPage({
   }> = [];
 
   // Grouped datasets for our 7-day sales chart
-  const weekdays = ["Pazar", "Pazartesi", "Sali", "Carsamba", "Persembe", "Cuma", "Cumartesi"];
+  const weekdays = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
   const last7DaysData = Array.from({ length: 7 }).map((_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (6 - i));
@@ -448,7 +448,7 @@ export default async function DashboardPage({
         <div className="flex items-center gap-3.5 rounded-2xl border border-amber-200/60 bg-amber-50/50 p-4 text-amber-900 shadow-sm backdrop-blur-md">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100/80 text-amber-700 font-bold text-lg border border-amber-200">!</span>
           <div className="text-sm">
-            <span className="font-bold block text-amber-950">Tanitim Modu Aktif</span>
+            <span className="font-bold block text-amber-950">Tanıtım Modu Aktif</span>
             <span className="text-amber-800 text-xs mt-0.5 block">
               {dbDisabled
                 ? "Sistem veritabani baglantisi olmadan calisiyor. Gorsel grafikler ve analizler simule edilmis verilerle zenginlestirilmistir."
@@ -462,10 +462,10 @@ export default async function DashboardPage({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-            MobiBase Yonetim Paneli
+            MobiBase Yönetim Paneli
           </h2>
           <p className="mt-1 max-w-2xl text-xs sm:text-sm text-slate-500 font-medium leading-6">
-            Subelerinizin genel finansal sagligi, anlik kasa durumu ve operasyonel akislar.
+            Şubelerinizin genel finansal sağlığı, anlık kasa durumu ve operasyonel akışlar.
           </p>
         </div>
         <div className="flex flex-col sm:items-end gap-2.5">
@@ -490,7 +490,7 @@ export default async function DashboardPage({
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Satis Geliri</span>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-50 text-teal-600 border border-teal-100/50 font-bold shadow-inner">
-              
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
           </div>
           <div className="mt-4">
@@ -508,7 +508,7 @@ export default async function DashboardPage({
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Toplam Gider</span>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 text-rose-600 border border-rose-100/50 font-bold shadow-inner">
-              
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
             </div>
           </div>
           <div className="mt-4">
@@ -526,7 +526,7 @@ export default async function DashboardPage({
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Net Kar</span>
             <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${periodNetProfit >= 0 ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-red-50 text-red-600 border-red-100"} shadow-inner font-bold`}>
-              
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
             </div>
           </div>
           <div className="mt-4">
@@ -548,7 +548,7 @@ export default async function DashboardPage({
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Nakit Girisi</span>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100/50 font-bold shadow-inner">
-              
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
             </div>
           </div>
           <div className="mt-4">
@@ -919,7 +919,7 @@ export default async function DashboardPage({
             </Link>
             <Link href="/giderler" className="flex items-center gap-3 w-full p-3 rounded-2xl border border-slate-100 hover:border-amber-200/50 bg-slate-50/50 hover:bg-amber-50/20 text-slate-700 hover:text-amber-800 font-semibold text-xs transition-all duration-200 transform hover:scale-[1.01]">
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600 border border-amber-100/55"></span>
-              Gider Yonetim Paneli
+              Gider Yönetim Paneli
             </Link>
           </div>
 

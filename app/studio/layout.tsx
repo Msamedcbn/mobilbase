@@ -5,20 +5,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-  { href: "/studio/portfolio", tab: "portfolio", label: "Bayi Portföyü", description: "Lisans, CRM ve tenant yönetimi" },
-  { href: "/studio/helpdesk", tab: "helpdesk", label: "Destek Operasyonu", description: "Ticket ve müşteri yanıtları" },
-  { href: "/studio/infrastructure", tab: "infrastructure", label: "Altyapı Analitiği", description: "Şube, API ve kaynak kullanımı" },
-  { href: "/studio/billing", tab: "billing", label: "Finans ve Tahsilat", description: "Cari, vade ve gelir görünümü" },
-  { href: "/studio/pricing", tab: "pricing", label: "Paket ve Fiyatlar", description: "Plan, limit ve sürşarj yönetimi" },
-  { href: "/studio/logs", tab: "logs", label: "Sistem Sağlığı", description: "Loglar ve platform sinyalleri" },
+  { href: "/studio/portfolio", tab: "portfolio", label: "Bayi Portföyü", description: "Lisans, CRM ve tenant yönetimi", icon: "BP" },
+  { href: "/studio/helpdesk", tab: "helpdesk", label: "Destek Operasyonu", description: "Ticket ve müşteri yanıtları", icon: "DT" },
+  { href: "/studio/infrastructure", tab: "infrastructure", label: "Altyapı Analitiği", description: "Şube, API ve kaynak kullanımı", icon: "AA" },
+  { href: "/studio/billing", tab: "billing", label: "Finans ve Tahsilat", description: "Cari, vade ve gelir görünümü", icon: "FT" },
+  { href: "/studio/pricing", tab: "pricing", label: "Paket ve Fiyatlar", description: "Plan, limit ve sürşarj yönetimi", icon: "PF" },
+  { href: "/studio/logs", tab: "logs", label: "Sistem Sağlığı", description: "Loglar ve platform sinyalleri", icon: "SS" },
 ];
 
-function NavIcon({ active }: { active: boolean }) {
+function NavIcon({ active, icon }: { active: boolean; icon: string }) {
   return (
-    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-xs font-black ${
+    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-[11px] font-black ${
       active ? "border-indigo-200 bg-indigo-600 text-white shadow-lg shadow-indigo-900/20" : "border-slate-200 bg-white text-slate-400"
     }`}>
-      ●
+      {icon}
     </span>
   );
 }
@@ -66,7 +66,7 @@ function StudioLayoutContent({ children }: { children: React.ReactNode }) {
                 : "text-slate-400 hover:bg-white/5 hover:text-white"
             }`}
           >
-            <NavIcon active={active} />
+            <NavIcon active={active} icon={item.icon} />
             <span className="min-w-0">
               <span className="block text-sm font-black leading-5">{item.label}</span>
               <span className={`block truncate text-[10px] font-semibold ${active ? "text-slate-500" : "text-slate-500 group-hover:text-slate-300"}`}>
@@ -81,7 +81,7 @@ function StudioLayoutContent({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-[#f4f7fb] text-slate-800 md:flex">
-      <aside className="hidden w-[292px] shrink-0 border-r border-slate-900/10 bg-[#07111f] p-5 text-white md:flex md:min-h-screen md:flex-col">
+      <aside className="hidden w-[292px] shrink-0 border-r border-slate-900/10 bg-[#090d16] p-5 text-white md:flex md:min-h-screen md:flex-col">
         <div className="mb-7 rounded-3xl border border-white/10 bg-white/[0.04] p-4">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500 text-lg font-black shadow-lg shadow-indigo-950/30">M</div>
@@ -107,9 +107,9 @@ function StudioLayoutContent({ children }: { children: React.ReactNode }) {
 
         <div className="mt-5 rounded-3xl border border-white/10 bg-white/[0.04] p-4">
           <div className="mb-4 flex items-center justify-between">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">Canlı Platform</p>
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/10 px-2 py-1 text-[9px] font-black text-emerald-200">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" /> LIVE
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">Platform Özeti</p>
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-400/10 px-2 py-1 text-[9px] font-black text-slate-400">
+              Demo
             </span>
           </div>
           <div className="space-y-3">
