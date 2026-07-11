@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 import { Toaster } from "sonner";
 import { SupportBot } from "@/components/support-bot";
+import { ProductTour } from "@/components/product-tour";
 
 export function AppChrome({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -51,6 +52,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
       <div className={`mobile-backdrop ${mobileOpen ? "open" : ""}`} onClick={() => setMobileOpen(false)} />
       <Sidebar className={`mobile-drawer ${mobileOpen ? "open" : ""}`} onNavigate={() => setMobileOpen(false)} />
       <main className="main-content p-4 md:p-6 mt-14 md:mt-0 overflow-x-hidden w-full">{children}</main>
+      <ProductTour />
       <SupportBot />
       <Toaster richColors position="top-right" closeButton />
     </div>

@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { readLocalStore } from "@/lib/local-store";
+import { TrialSignupForm } from "@/components/trial-signup-form";
 
 type PlanKey = "Lite" | "Service" | "Pro" | "Enterprise";
 
@@ -318,22 +319,8 @@ export default async function LandingPage() {
         </section>
 
         <section id="iletisim" className="px-5 pb-20 pt-10 md:px-8">
-          <div className="cta-panel mx-auto max-w-5xl rounded-[36px] border border-cyan-100/20 p-8 text-center md:p-12">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-200">Demo ve geçiş planı</p>
-            <h2 className="mx-auto mt-4 max-w-3xl text-3xl font-black tracking-[-0.035em] text-white md:text-5xl">
-              Bayinizdeki dağınık süreci birlikte haritalayalım.
-            </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-slate-300 md:text-base">
-              Size uygun paket, veri geçişi, şube yapısı ve kurulum adımlarını aynı gün netleştirelim.
-            </p>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <a href="mailto:satis@mobibase.com?subject=MobiBase%20Teklif%20Talebi" className="rounded-full bg-cyan-200 px-7 py-3 text-sm font-black text-[#06111f] transition hover:bg-white">
-                Teklif Talep Et
-              </a>
-              <a href="tel:+902120000000" className="rounded-full border border-white/25 bg-white/5 px-7 py-3 text-sm font-bold text-white transition hover:bg-white/10">
-                Satış ile Görüş
-              </a>
-            </div>
+          <div className="mx-auto max-w-2xl">
+            <TrialSignupForm className="w-full" />
           </div>
         </section>
       </main>

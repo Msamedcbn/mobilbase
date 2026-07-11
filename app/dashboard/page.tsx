@@ -482,7 +482,7 @@ export default async function DashboardPage({
       </div>
 
       {/* Financial Overview Cards */}
-      <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div id="dashboard-kpi" className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         
         {/* Period Toplam Satis (Income) */}
         <div className="relative group overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">

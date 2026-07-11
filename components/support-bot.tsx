@@ -174,6 +174,7 @@ export function SupportBot() {
       {/* TRIGGER FLOATING BUTTON */}
       {!isOpen && (
         <button
+          id="support-bot-button"
           onClick={() => setIsOpen(true)}
           className="group flex items-center justify-center w-14 h-14 rounded-full bg-slate-950 text-white shadow-[0_8px_30px_rgb(0,0,0,0.5)] hover:shadow-indigo-500/20 border border-slate-800 transition-all duration-300 hover:scale-105 active:scale-95"
           title="Destek Masası"

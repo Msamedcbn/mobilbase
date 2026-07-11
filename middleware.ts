@@ -5,9 +5,12 @@ const PUBLIC_PATHS = [
   "/login",
   "/unauthorized",
   "/studio/login",
+  "/trial-expired",
+  "/yardim",
   "/api/auth/login",
   "/api/auth/logout",
   "/api/auth/me",
+  "/api/trial",
   "/api/health",
   "/api/health/liveness",
   "/api/health/readiness",
@@ -97,6 +100,25 @@ export async function middleware(req: NextRequest) {
     response.headers.set("x-request-id", requestId);
     return response;
   }
+
+  // Trial expiry check — redirect expired trials to /trial-expired
+  try {
+    const user = decodeSessionPayloadFromToken(session);
+    if (user?.isTrial && user?.trialExpiresAt) {
+      const expiresAt = new Date(user.trialExpiresAt).getTime();
+      if (Date.now() > expiresAt) {
+        if (path === "/trial-expired") {
+          const response = NextResponse.next({ request: { headers: requestHeaders } });
+          response.headers.set("x-request-id", requestId);
+          return response;
+        }
+        const url = new URL("/trial-expired", req.url);
+        const response = NextResponse.redirect(url, { headers: { "x-request-id": requestId } });
+        response.headers.set("x-request-id", requestId);
+        return response;
+      }
+    }
+  } catch {}
 
   // Reseller Studio Authorization check
   if (path.startsWith("/studio") || path.startsWith("/api/studio")) {

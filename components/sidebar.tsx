@@ -18,6 +18,7 @@ const navSections: Array<{ title: string; items: NavItem[] }> = [
     items: [
       { href: "/hizli-yonetim", label: "Hızlı Yönetim" },
       { href: "/dashboard", label: "Dashboard" },
+      { href: "/yardim", label: "Yardım" },
     ],
   },
   {
@@ -305,6 +306,7 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
                         key={item.href}
                         href={item.href}
                         onClick={onNavigate}
+                        id={`nav-${item.href.replace(/\//g, "-").replace(/^-/, "")}`}
                         className={`sidebar-nav-link group ${
                           active ? "active" : ""
                         }`}
