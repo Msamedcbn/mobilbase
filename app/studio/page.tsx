@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, Suspense } from "react";
 import { toast } from "sonner";
-import { useSearchParams, useRouter } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { normalizeLedgerEntry } from "@/lib/studio-finance";
 
 interface TicketMessage {
@@ -146,6 +146,19 @@ type StudioReports = {
   auditLogs: Array<any>;
 };
 
+type StudioSection = "portfolio" | "helpdesk" | "infrastructure" | "billing" | "logs" | "pricing";
+
+function getStudioSectionFromPath(pathname: string): StudioSection | null {
+  const section = pathname.split("/")[2];
+  if (section === "helpdesk" || section === "infrastructure" || section === "billing" || section === "logs" || section === "pricing") {
+    return section;
+  }
+  if (section === "portfolio") {
+    return "portfolio";
+  }
+  return null;
+}
+
 const PLAN_PRICES = {
   Lite: 750,
   Service: 990,
@@ -232,7 +245,7 @@ function StudioPageContent() {
   });
 
   // Main tab and Helpdesk States
-  const [mainTab, setMainTab] = useState<"portfolio" | "helpdesk" | "infrastructure" | "billing" | "logs" | "pricing">("portfolio");
+  const [mainTab, setMainTab] = useState<StudioSection>("portfolio");
   const [selectedGlobalTicket, setSelectedGlobalTicket] = useState<{ tenantId: string; ticketId: string } | null>(null);
   const [globalReplyBody, setGlobalReplyBody] = useState("");
 
@@ -245,13 +258,19 @@ function StudioPageContent() {
 
   const searchParams = useSearchParams();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
+    const routeSection = getStudioSectionFromPath(pathname);
+    if (routeSection) {
+      setMainTab(routeSection);
+      return;
+    }
     const tab = searchParams.get("tab");
     if (tab && ["portfolio", "helpdesk", "infrastructure", "billing", "logs", "pricing"].includes(tab)) {
       setMainTab(tab as any);
     }
-  }, [searchParams]);
+  }, [pathname, searchParams]);
 
   const mockLogs = useMemo(() => {
     return [
@@ -1965,31 +1984,39 @@ function StudioPageContent() {
   }, [editBillingLedger]);
 
   return (
-    <div className="space-y-8 pb-16">
+    <div className="space-y-7 pb-16">
+      {mainTab === "portfolio" && (
+        <>
       {/* Page Title & Header */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            SaaS Bayi & Lisans Konsolu
-          </h2>
-          <p className="text-slate-500 text-sm mt-1">
-            TelefoncuPro yazilimini kiralayan bayilerin uyelik planlari, lisans sureleri ve finansal kayitlari.
-          </p>
-        </div>
+      <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
+        <div className="relative px-6 py-7 md:px-8">
+          <div className="absolute inset-y-0 right-0 hidden w-1/2 bg-[radial-gradient(circle_at_70%_20%,rgba(79,70,229,0.16),transparent_38%),linear-gradient(135deg,transparent,rgba(15,23,42,0.04))] md:block" />
+          <div className="relative flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-indigo-600">Platform Operasyon Merkezi</p>
+              <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-950 md:text-4xl">
+                Bayi portföyü, lisans ve gelir kontrolü
+              </h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+                MobiBase kullanan bayilerin lisans durumu, finansal riski, CRM aşaması ve destek yükü tek kurumsal çalışma alanında izlenir.
+              </p>
+            </div>
 
-        <button
-          onClick={() => setIsAddTenantOpen(true)}
-          className="px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl shadow-sm transition-all active:scale-95 flex items-center gap-2"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-          </svg>
-          Yeni Firma Tanimla
-        </button>
+            <button
+              onClick={() => setIsAddTenantOpen(true)}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-indigo-700 active:scale-95"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+              Yeni firma tanımla
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* SaaS Reseller KPIs Grid - White Clean Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-6">
         {/* KPI 1 */}
         <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-10">
@@ -1997,9 +2024,9 @@ function StudioPageContent() {
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
             </svg>
           </div>
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Kayitli Bayi / Firma</span>
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Kayıtlı bayi / firma</span>
           <span className="text-3xl font-extrabold text-slate-900 mt-2 block">{kpis.totalTenants}</span>
-          <span className="text-xs text-indigo-600 mt-2 block font-semibold">S Bulut Altyapisinda Aktif</span>
+          <span className="text-xs text-indigo-600 mt-2 block font-semibold">Bulut altyapısında aktif tenant</span>
         </div>
 
         {/* KPI 2 */}
@@ -2009,11 +2036,11 @@ function StudioPageContent() {
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
             </svg>
           </div>
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Aylik Gelir (MRR)</span>
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Aylık gelir (MRR)</span>
           <span className="text-3xl font-extrabold text-emerald-600 mt-2 block">
             {kpis.totalMRR.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
           </span>
-          <span className="text-xs text-emerald-600 mt-2 block font-semibold">x Yinelenen Aylik Lisans</span>
+          <span className="text-xs text-emerald-600 mt-2 block font-semibold">Yinelenen aylık lisans geliri</span>
         </div>
 
         {/* KPI 3 */}
@@ -2023,11 +2050,11 @@ function StudioPageContent() {
               <path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" />
             </svg>
           </div>
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Bekleyen Lisans Borcu</span>
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Bekleyen lisans borcu</span>
           <span className="text-3xl font-extrabold text-amber-600 mt-2 block">
             {kpis.totalReceivable.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
           </span>
-          <span className="text-xs text-amber-600 mt-2 block font-semibold">a Toplam Alacak Bakiyesi</span>
+          <span className="text-xs text-amber-600 mt-2 block font-semibold">Toplam açık alacak bakiyesi</span>
         </div>
 
         {/* KPI 4 */}
@@ -2037,9 +2064,9 @@ function StudioPageContent() {
               <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z" />
             </svg>
           </div>
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Acik Destek Talepleri</span>
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Açık destek talepleri</span>
           <span className="text-3xl font-extrabold text-rose-600 mt-2 block">{kpis.totalOpenTickets}</span>
-          <span className="text-xs text-rose-600 mt-2 block font-semibold">xa !ozum Bekleyen Destek</span>
+          <span className="text-xs text-rose-600 mt-2 block font-semibold">Çözüm bekleyen destek kayıtları</span>
         </div>
 
         {/* KPI 5: API Request Consumption */}
@@ -2049,7 +2076,7 @@ function StudioPageContent() {
               <path d="M19 13H5v-2h14v2zM19 9H5V7h14v2zM5 15h14v2H5v-2zM3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2zm16 14H5V5h14v14z" />
             </svg>
           </div>
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Aylik API Istek Kotasi</span>
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Aylık API istek kotası</span>
           <span className="text-3xl font-extrabold text-cyan-650 mt-2 block font-mono">
             {apiKpis.totalUsed.toLocaleString()} / {apiKpis.totalQuota.toLocaleString()}
           </span>
@@ -2060,7 +2087,7 @@ function StudioPageContent() {
                 style={{ width: `${Math.min(100, apiKpis.pct)}%` }}
               ></div>
             </div>
-            <span className="text-[10px] text-slate-500 font-semibold block">Tuketim Orani: %{apiKpis.pct}</span>
+            <span className="text-[10px] text-slate-500 font-semibold block">Tüketim oranı: %{apiKpis.pct}</span>
           </div>
         </div>
         <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
@@ -2073,25 +2100,25 @@ function StudioPageContent() {
           <span className="text-3xl font-extrabold text-indigo-600 mt-2 block">
             %{Number(crmInsights?.kpis?.leadToWonConversionPct || 0).toFixed(1)}
           </span>
-          <span className="text-xs text-indigo-600 mt-2 block font-semibold">Ort Win Suresi: {crmInsights?.kpis?.averageTimeToWinDays || 0} gun</span>
+          <span className="text-xs text-indigo-600 mt-2 block font-semibold">Ortalama kazanma süresi: {crmInsights?.kpis?.averageTimeToWinDays || 0} gün</span>
         </div>
       </div>
 
-      {/* Satix Hunisi (Sales Funnel) */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+      {/* Satış Hunisi (Sales Funnel) */}
+      <div className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm">
         <h3 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-          <span>x</span> Satix Hunisi & Muxteri Adayi Takibi (Sales Funnel)
+          Satış hunisi ve müşteri adayı takibi
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
           <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/50 flex flex-col justify-between">
-            <span className="text-xs font-bold text-blue-700">Muxteri Adayi (Lead)</span>
+            <span className="text-xs font-bold text-blue-700">Müşteri adayı</span>
             <div className="flex items-baseline gap-2 mt-2">
               <span className="text-2xl font-black text-blue-900">{leadPipeline.LEAD}</span>
               <span className="text-xs text-blue-650">firma</span>
             </div>
           </div>
           <div className="p-4 rounded-xl border border-violet-200 bg-violet-50/50 flex flex-col justify-between">
-            <span className="text-xs font-bold text-violet-700">Goruxuluyor</span>
+            <span className="text-xs font-bold text-violet-700">Görüşülüyor</span>
             <div className="flex items-baseline gap-2 mt-2">
               <span className="text-2xl font-black text-violet-900">{leadPipeline.NEGOTIATION}</span>
               <span className="text-xs text-violet-650">firma</span>
@@ -2105,14 +2132,14 @@ function StudioPageContent() {
             </div>
           </div>
           <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/50 flex flex-col justify-between">
-            <span className="text-xs font-bold text-emerald-700">Kazanildi (Won)</span>
+            <span className="text-xs font-bold text-emerald-700">Kazanıldı</span>
             <div className="flex items-baseline gap-2 mt-2">
               <span className="text-2xl font-black text-emerald-900">{leadPipeline.WON}</span>
               <span className="text-xs text-emerald-650">aktif bayi</span>
             </div>
           </div>
           <div className="p-4 rounded-xl border border-rose-200 bg-rose-50/50 flex flex-col justify-between col-span-2 sm:col-span-1">
-            <span className="text-xs font-bold text-rose-700">Kaybedildi (Lost)</span>
+            <span className="text-xs font-bold text-rose-700">Kaybedildi</span>
             <div className="flex items-baseline gap-2 mt-2">
               <span className="text-2xl font-black text-rose-900">{leadPipeline.LOST}</span>
               <span className="text-xs text-rose-650">arxiv</span>
@@ -2120,47 +2147,20 @@ function StudioPageContent() {
           </div>
         </div>
       </div>
-
-      {/* Tab Switcher for Portfolio, Helpdesk, Infrastructure, Billing, Logs */}
-      <div className="flex border-b border-slate-200 overflow-x-auto">
-        {[
-          { id: "portfolio" as const, label: "Bayi Portföyü & Lisans Yönetimi" },
-          { id: "helpdesk" as const, label: "Destek Masasi (Helpdesk)", badge: kpis.totalOpenTickets },
-          { id: "infrastructure" as const, label: "Altyapı & Şube Analitiği" },
-          { id: "billing" as const, label: "Muhasebe & Finans" },
-          { id: "pricing" as const, label: "Paket & Fiyat Yönetimi" },
-          { id: "logs" as const, label: "Sistem Sagligi & Loglar" },
-        ].map((tab) => {
-          const isActive = mainTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => {
-                setMainTab(tab.id);
-                router.push(`/studio?tab=${tab.id}`);
-              }}
-              className={`px-6 py-3 text-sm font-bold border-b-2 transition-all whitespace-nowrap flex items-center gap-2 ${
-                isActive
-                  ? "border-indigo-600 text-indigo-650 font-extrabold"
-                  : "border-transparent text-slate-500 hover:text-slate-700 font-semibold"
-              }`}
-            >
-              {tab.label}
-              {tab.badge !== undefined && tab.badge > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-extrabold animate-pulse">
-                  {tab.badge}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+        </>
+      )}
 
       {mainTab === "portfolio" && (
         <>
           {/* Control / Filter Bar - Clean Light Mode */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-        <h4 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider">Arama ve Filtreleme</h4>
+          <div className="space-y-4 rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h4 className="text-sm font-extrabold uppercase tracking-wider text-slate-800">Portföy arama ve filtreleme</h4>
+            <p className="mt-1 text-xs text-slate-500">Lisans, CRM durumu ve operasyon riski üzerinden bayi portföyünü daraltın.</p>
+          </div>
+          <span className="text-xs font-bold text-slate-400">Sonuç: {filteredTenants.length} bayi</span>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Search Input */}
           <div className="relative">
@@ -2185,8 +2185,8 @@ function StudioPageContent() {
               value={planFilter}
               onChange={(e) => setPlanFilter(e.target.value as any)}
             >
-              <option value="ALL">Tüm Lisans Planlari</option>
-              <option value="Lite">Lite Plani ({pricing.Lite} TL/ay)</option>
+              <option value="ALL">Tüm lisans planları</option>
+              <option value="Lite">Lite planı ({pricing.Lite} TL/ay)</option>
               <option value="Service">Servis Planı ({pricing.Service} TL/ay)</option>
               <option value="Pro">Pro Planı ({pricing.Pro} TL/ay)</option>
               <option value="Enterprise">Enterprise Planı ({pricing.Enterprise} TL/ay)</option>
@@ -2200,10 +2200,10 @@ function StudioPageContent() {
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
             >
-              <option value="ALL">Tüm Lisans Durumlari</option>
-              <option value="ACTIVE">xx Lisansi Aktif</option>
-              <option value="NEAR_EXPIRY">xx Son 30 Gunu Kalanlar</option>
-              <option value="EXPIRED">x Lisans Suresi Dolanlar</option>
+              <option value="ALL">Tüm lisans durumları</option>
+              <option value="ACTIVE">Lisansı aktif</option>
+              <option value="NEAR_EXPIRY">Son 30 günü kalanlar</option>
+              <option value="EXPIRED">Lisans süresi dolanlar</option>
             </select>
           </div>
 
@@ -2214,22 +2214,22 @@ function StudioPageContent() {
               value={crmStatusFilter}
               onChange={(e) => setCrmStatusFilter(e.target.value as any)}
             >
-              <option value="ALL">Tüm CRM Durumlari</option>
-              <option value="LEAD">x Muxteri Adayi (Lead)</option>
-              <option value="NEGOTIATION">xx Goruxme Axamasi</option>
-              <option value="OFFER_SENT">xx Teklif Iletildi</option>
-              <option value="WON">xx Kazanildi (Won)</option>
-              <option value="LOST">x Kaybedildi (Lost)</option>
+              <option value="ALL">Tüm CRM durumları</option>
+              <option value="LEAD">Müşteri adayı</option>
+              <option value="NEGOTIATION">Görüşme aşaması</option>
+              <option value="OFFER_SENT">Teklif iletildi</option>
+              <option value="WON">Kazanıldı</option>
+              <option value="LOST">Kaybedildi</option>
             </select>
           </div>
         </div>
       </div>
             {/* Tenants Table Grid - Highly Scannable, Interactive Module Badges & Quick Extension */}
-      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-        <div className="px-6 py-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50">
+      <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm">
+        <div className="flex flex-col items-start justify-between gap-4 border-b border-slate-200 bg-slate-50 px-6 py-5 sm:flex-row sm:items-center">
           <div>
-            <h3 className="text-lg font-bold text-slate-800">SaaS Bayi Portfoyu</h3>
-            <span className="text-xs font-bold text-slate-500">Listelenen: {filteredTenants.length} Bayi</span>
+            <h3 className="text-lg font-black text-slate-900">SaaS bayi portföyü</h3>
+            <span className="text-xs font-bold text-slate-500">Listelenen: {filteredTenants.length} bayi</span>
           </div>
           
           <div className="flex bg-slate-200/60 p-1 rounded-xl">
@@ -2241,7 +2241,7 @@ function StudioPageContent() {
                   : "text-slate-500 hover:text-slate-800"
               }`}
             >
-              x9 Liste Gorunumu
+              Liste görünümü
             </button>
             <button
               onClick={() => setViewMode("kanban")}
@@ -2251,7 +2251,7 @@ function StudioPageContent() {
                   : "text-slate-500 hover:text-slate-800"
               }`}
             >
-              x` Kanban Panosu
+              Kanban panosu
             </button>
           </div>
         </div>
@@ -2260,14 +2260,14 @@ function StudioPageContent() {
           {loading ? (
             <div className="p-12 text-center">
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto"></div>
-              <span className="text-slate-500 text-sm mt-3 block">Muxteri listesi cekiliyor...</span>
+              <span className="text-slate-500 text-sm mt-3 block">Müşteri listesi çekiliyor...</span>
             </div>
           ) : filteredTenants.length === 0 ? (
             <div className="p-12 text-center text-slate-500">
               <svg className="w-12 h-12 mx-auto text-slate-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
-              Aradıxiniz kriterlere uygun bayi bulunamadı.
+              Aradığınız kriterlere uygun bayi bulunamadı.
             </div>
           ) : viewMode === "table" ? (
             <div className="overflow-x-auto -mx-6 -my-6">
@@ -2277,10 +2277,10 @@ function StudioPageContent() {
                     <th className="px-6 py-4">Firma / Bayi Profili</th>
                     <th className="px-6 py-4">CRM / Durum</th>
                     <th className="px-6 py-4">Lisans Planı & Modüller</th>
-                    <th className="px-6 py-4">API & Kaynak Tuketimi</th>
-                    <th className="px-6 py-4">Lisans Bitix / Sure</th>
+                    <th className="px-6 py-4">API & Kaynak Tüketimi</th>
+                    <th className="px-6 py-4">Lisans Bitiş / Süre</th>
                     <th className="px-6 py-4">Cari Bakiye & Destek</th>
-                    <th className="px-6 py-4 text-right">Ixlemler</th>
+                    <th className="px-6 py-4 text-right">İşlemler</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -2307,7 +2307,7 @@ function StudioPageContent() {
                                   className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200 animate-pulse"
                                   title={item.churnReason}
                                 >
-                                  a Churn Riski
+                                  Churn riski
                                 </span>
                               )}
                             </div>
@@ -2321,12 +2321,12 @@ function StudioPageContent() {
                           <div className="flex flex-col gap-1.5 items-start">
                             {item.meta.leadStatus === "LEAD" && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-50 text-blue-700 text-xs font-bold border border-blue-200">
-                                Muxteri Adayi
+                                Müşteri adayı
                               </span>
                             )}
                             {item.meta.leadStatus === "NEGOTIATION" && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-violet-50 text-violet-700 text-xs font-bold border border-violet-200">
-                                Goruxuluyor
+                                Görüşülüyor
                               </span>
                             )}
                             {item.meta.leadStatus === "OFFER_SENT" && (
@@ -2336,7 +2336,7 @@ function StudioPageContent() {
                             )}
                             {item.meta.leadStatus === "WON" && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
-                                Kazanildi
+                                Kazanıldı
                               </span>
                             )}
                             {item.meta.leadStatus === "LOST" && (
@@ -2356,15 +2356,15 @@ function StudioPageContent() {
                             <div>
                               {item.meta.plan === "Enterprise" ? (
                                 <span className="inline-flex px-2.5 py-1 rounded-lg text-xs font-extrabold bg-amber-50 text-amber-700 border border-amber-200">
-                                  Enterprise xRx
+                                  Enterprise
                                 </span>
                               ) : item.meta.plan === "Pro" ? (
                                 <span className="inline-flex px-2.5 py-1 rounded-lg text-xs font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                                  Pro a
+                                  Pro
                                 </span>
                               ) : (
                                 <span className="inline-flex px-2.5 py-1 rounded-lg text-xs font-extrabold bg-slate-100 text-slate-600 border border-slate-200">
-                                  Lite xR
+                                  Lite
                                 </span>
                               )}
                             </div>
@@ -2380,14 +2380,14 @@ function StudioPageContent() {
                                   <button
                                     key={mod.key}
                                     onClick={() => handleQuickToggleModule(item, mod.key)}
-                                    title={`Tiklayarak ${mod.label} modulunu ${isActive ? "kapatin" : "acin"}`}
+                                    title={`Tıklayarak ${mod.label} modülünü ${isActive ? "kapatın" : "açın"}`}
                                     className={`px-1.5 py-0.5 text-[9px] font-bold rounded border transition-all ${
                                       isActive
                                         ? "bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100"
                                         : "bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100"
                                     }`}
                                   >
-                                    {mod.label} {isActive ? "S" : "S"}
+                                    {mod.label} {isActive ? "Açık" : "Kapalı"}
                                   </button>
                                 );
                               })}
@@ -2395,11 +2395,11 @@ function StudioPageContent() {
                           </div>
                         </td>
 
-                        {/* SMS & Kaynak Tuketimi */}
+                        {/* SMS & Kaynak Tüketimi */}
                         <td className="px-6 py-4">
                           <div className="space-y-1.5 max-w-[150px]">
                             <div className="flex justify-between text-[10px] font-semibold text-slate-500">
-                              <span>API Istek:</span>
+                              <span>API istek:</span>
                               <span className="font-mono text-slate-700">{item.meta.smsUsed?.toLocaleString() ?? 0} / {item.meta.smsQuota?.toLocaleString() ?? 5000}</span>
                             </div>
                             {(() => {

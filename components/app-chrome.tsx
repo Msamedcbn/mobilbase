@@ -22,7 +22,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="app-shell min-h-screen md:grid md:grid-cols-[260px_1fr] overflow-x-hidden">
+    <div className="app-shell min-h-screen overflow-x-hidden md:grid md:grid-cols-[260px_1fr]">
       {/* Mobile Top Bar */}
       <header className="md:hidden fixed top-0 left-0 right-0 h-14 bg-[#090d16] border-b border-slate-800/40 z-40 flex items-center justify-between px-4 text-white">
         <div className="flex items-center gap-2.5">
@@ -56,4 +56,3 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-

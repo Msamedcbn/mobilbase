@@ -80,7 +80,7 @@ button, input, select, textarea {
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 50;
   overflow-y: auto;
-  box-shadow: 20px 0 40px -10px rgba(15, 23, 42, 0.15);
+  box-shadow: 20px 0 50px -20px rgba(2, 6, 23, 0.4);
 }
 
 .mobile-drawer.open {
@@ -112,7 +112,7 @@ button, input, select, textarea {
 }
 
 .sidebar-nav-link.active {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, #0d9488 100%);
   color: white;
   box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);
   font-weight: 600;
@@ -122,8 +122,8 @@ button, input, select, textarea {
 .panel {
   border: 1px solid rgba(226, 232, 240, 0.8);
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
   box-shadow: var(--shadow);
   overflow-x: auto;
   max-width: 100%;
@@ -131,7 +131,7 @@ button, input, select, textarea {
 }
 
 .panel:hover {
-  box-shadow: 0 20px 35px -15px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 20px 40px -20px rgba(15, 23, 42, 0.08);
   border-color: rgba(15, 118, 110, 0.15);
 }
 
@@ -241,7 +241,7 @@ button, input, select, textarea {
 .field:focus {
   border-color: var(--accent);
   outline: none;
-  box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.1), 0 2px 4px rgba(15, 23, 42, 0.01) inset;
+  box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.08), 0 2px 4px rgba(15, 23, 42, 0.01) inset;
 }
 
 .field:disabled {
@@ -285,11 +285,15 @@ button, input, select, textarea {
   gap: 1.25rem;
   grid-template-columns: 1fr;
 }
-
 .form-grid-2 {
   display: grid;
   gap: 0.75rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px) {
+  .form-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .form-grid-4 {
@@ -449,5 +453,11 @@ button, input, select, textarea {
 @media (min-width: 1024px) {
   .pos-grid {
     grid-template-columns: 2.1fr 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  input, select, textarea {
+    font-size: 16px !important;
   }
 }

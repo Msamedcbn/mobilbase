@@ -1,0 +1,28 @@
+
+> telefoncupro@0.1.0 dev
+> next dev --port 3001
+
+  ▲ Next.js 14.2.5
+  - Local:        http://localhost:3001
+  - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 2.7s
+ ✓ Compiled /middleware in 161ms (73 modules)
+ ○ Compiling /login ...
+ ✓ Compiled /login in 2.8s (539 modules)
+ GET /login 200 in 2971ms
+ GET / 200 in 2995ms
+ GET / 200 in 81ms
+ GET / 200 in 122ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 940ms (528 modules)
+ GET / 200 in 78ms
+ GET / 200 in 87ms
+ GET / 200 in 126ms
+ GET /globals.css 404 in 55ms
+ GET /globals.css 404 in 68ms
+ GET / 200 in 58ms
+ ✓ Compiled in 479ms (542 modules)
+ ✓ Compiled in 377ms (535 modules)
+[?25h

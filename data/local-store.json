@@ -95,13 +95,13 @@
       "notes": "{\"isSaaS\":true,\"plan\":\"Lite\",\"licenseStart\":\"2026-05-20\",\"licenseEnd\":\"2026-06-20\",\"branchLimit\":13,\"databaseSizeGb\":0.1,\"smsQuota\":1000,\"smsUsed\":20,\"leadStatus\":\"LEAD\",\"leadHistory\":[{\"date\":\"2026-05-20\",\"note\":\"Müşteri adayı olarak eklendi. Test süresi başlatıldı.\",\"author\":\"SuperAdmin\"}],\"modules\":{\"pos\":true,\"repairs\":false,\"stock\":false,\"buyback\":false,\"invoicing\":false},\"tickets\":[],\"billingLedger\":[]}"
     },
     {
+      "creditLimit": 0,
       "id": "cust-5cf78ffe",
       "nationalId": null,
       "fullName": "TelefoncuPro",
       "phone": "5550000000",
       "email": "destek@telefoncupro.local",
-      "notes": "{\"isSaaS\":true,\"plan\":\"Pro\",\"licenseStart\":\"2026-05-22\",\"licenseEnd\":\"2027-05-22\",\"branchLimit\":5,\"databaseSizeGb\":1,\"smsQuota\":5000,\"smsUsed\":0,\"leadStatus\":\"WON\",\"leadHistory\":[{\"date\":\"2026-05-22\",\"note\":\"Sistem aktivasyonu yapıldı.\",\"author\":\"SuperAdmin\"}],\"modules\":{\"pos\":true,\"repairs\":true,\"stock\":true,\"buyback\":false,\"invoicing\":false},\"tickets\":[],\"billingLedger\":[]}",
-      "creditLimit": 0
+      "notes": "{\"isSaaS\":true,\"plan\":\"Pro\",\"licenseStart\":\"2026-05-22\",\"licenseEnd\":\"2027-05-22\",\"branchLimit\":5,\"databaseSizeGb\":1,\"smsQuota\":5000,\"smsUsed\":0,\"leadStatus\":\"WON\",\"leadHistory\":[{\"date\":\"2026-05-22\",\"note\":\"Sistem aktivasyonu yapıldı.\",\"author\":\"SuperAdmin\"}],\"modules\":{\"pos\":true,\"repairs\":true,\"stock\":true,\"buyback\":false,\"invoicing\":false},\"tickets\":[],\"billingLedger\":[]}"
     }
   ],
   "devices": [
@@ -8740,12 +8740,56 @@
       "createdAt": "2026-05-21T22:54:31.067Z"
     }
   ],
+  "stockCostEvents": [],
+  "corporateQuotes": [],
+  "repairPriceItems": [],
   "resellerPricing": {
     "Lite": 750,
+    "Service": 990,
     "Pro": 1500,
     "Enterprise": 3500,
-    "freeBranchLimit": 5,
-    "branchSurchargePrice": 150
+    "freeBranchLimit": 1,
+    "branchSurchargePrice": 2000,
+    "addons": {
+      "apiPackPrice": 150,
+      "dbGbPrice": 200,
+      "customDevHourly": 1200,
+      "annualDiscountPct": 15
+    },
+    "features": {
+      "Lite": {
+        "pos": true,
+        "repairs": true,
+        "stock": false,
+        "invoicing": false,
+        "buyback": false,
+        "supportLevel": "Standart E-Posta Destek"
+      },
+      "Service": {
+        "pos": false,
+        "repairs": true,
+        "stock": true,
+        "invoicing": false,
+        "buyback": false,
+        "supportLevel": "Teknik Servis Odaklı Destek"
+      },
+      "Pro": {
+        "pos": true,
+        "repairs": true,
+        "stock": true,
+        "invoicing": true,
+        "buyback": false,
+        "supportLevel": "Hızlı Destek (Mesai Saatleri)"
+      },
+      "Enterprise": {
+        "pos": true,
+        "repairs": true,
+        "stock": true,
+        "invoicing": true,
+        "buyback": true,
+        "supportLevel": "7/24 Telefon & SLA Desteği"
+      }
+    }
   },
   "resellerExpenses": [
     {
@@ -8782,6 +8826,142 @@
       "description": "Neon Database Postgres Küme Ücreti",
       "amount": 1800,
       "date": "2026-05-18"
+    }
+  ],
+  "resellerPricingHistory": [
+    {
+      "id": "pricing-hst-9e2eb27a",
+      "createdAt": "2026-06-02T11:12:36.512Z",
+      "createdBy": "StudioAdmin",
+      "reason": "Fiyatlandirma guncellemesi",
+      "snapshot": {
+        "Lite": 750,
+        "Service": 990,
+        "Pro": 1500,
+        "Enterprise": 3500,
+        "freeBranchLimit": 1,
+        "branchSurchargePrice": 2000,
+        "addons": {
+          "apiPackPrice": 150,
+          "dbGbPrice": 200,
+          "customDevHourly": 1200,
+          "annualDiscountPct": 15
+        },
+        "features": {
+          "Lite": {
+            "pos": true,
+            "repairs": true,
+            "stock": false,
+            "invoicing": false,
+            "buyback": false,
+            "supportLevel": "Standart E-Posta Destek"
+          },
+          "Service": {
+            "pos": false,
+            "repairs": true,
+            "stock": true,
+            "invoicing": false,
+            "buyback": false,
+            "supportLevel": "Teknik Servis Odaklı Destek"
+          },
+          "Pro": {
+            "pos": true,
+            "repairs": true,
+            "stock": true,
+            "invoicing": true,
+            "buyback": false,
+            "supportLevel": "Hızlı Destek (Mesai Saatleri)"
+          },
+          "Enterprise": {
+            "pos": true,
+            "repairs": true,
+            "stock": true,
+            "invoicing": true,
+            "buyback": true,
+            "supportLevel": "7/24 Telefon & SLA Desteği"
+          }
+        }
+      }
+    },
+    {
+      "id": "pricing-hst-578b0dce",
+      "createdAt": "2026-06-02T11:12:25.351Z",
+      "createdBy": "StudioAdmin",
+      "reason": "Fiyatlandirma guncellemesi",
+      "snapshot": {
+        "Lite": 750,
+        "Service": 990,
+        "Pro": 1500,
+        "Enterprise": 3500,
+        "freeBranchLimit": 1,
+        "branchSurchargePrice": 150,
+        "addons": {
+          "apiPackPrice": 150,
+          "dbGbPrice": 200,
+          "customDevHourly": 1200,
+          "annualDiscountPct": 15
+        },
+        "features": {
+          "Lite": {
+            "pos": true,
+            "repairs": true,
+            "stock": false,
+            "invoicing": false,
+            "buyback": false,
+            "supportLevel": "Standart E-Posta Destek"
+          },
+          "Service": {
+            "pos": false,
+            "repairs": true,
+            "stock": true,
+            "invoicing": false,
+            "buyback": false,
+            "supportLevel": "Teknik Servis Odaklı Destek"
+          },
+          "Pro": {
+            "pos": true,
+            "repairs": true,
+            "stock": true,
+            "invoicing": true,
+            "buyback": false,
+            "supportLevel": "Hızlı Destek (Mesai Saatleri)"
+          },
+          "Enterprise": {
+            "pos": true,
+            "repairs": true,
+            "stock": true,
+            "invoicing": true,
+            "buyback": true,
+            "supportLevel": "7/24 Telefon & SLA Desteği"
+          }
+        }
+      }
+    }
+  ],
+  "studioAuditLogs": [
+    {
+      "id": "audit-9543c7e6",
+      "createdAt": "2026-06-02T11:12:36.512Z",
+      "actor": "StudioAdmin",
+      "action": "PRICING_UPDATE",
+      "targetType": "PRICING",
+      "targetId": "resellerPricing",
+      "detail": "750/990/1500/3500 fiyatlari güncellendi",
+      "context": {
+        "reason": null
+      }
+    },
+    {
+      "id": "audit-b4ea483f",
+      "createdAt": "2026-06-02T11:12:25.351Z",
+      "actor": "StudioAdmin",
+      "action": "PRICING_UPDATE",
+      "targetType": "PRICING",
+      "targetId": "resellerPricing",
+      "detail": "750/990/1500/3500 fiyatlari güncellendi",
+      "context": {
+        "reason": null
+      }
     }
   ]
 }

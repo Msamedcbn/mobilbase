@@ -170,7 +170,7 @@ export function SupportBot() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 font-sans">
+    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 font-sans">
       {/* TRIGGER FLOATING BUTTON */}
       {!isOpen && (
         <button
@@ -205,7 +205,7 @@ export function SupportBot() {
 
       {/* CHAT BOX CONTAINER */}
       {isOpen && (
-        <div className="w-80 sm:w-96 h-[500px] flex flex-col bg-slate-950/90 border border-slate-800 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] overflow-hidden backdrop-blur-xl animate-in slide-in-from-bottom-5 fade-in duration-200">
+        <div className="w-[calc(100vw-32px)] sm:w-96 h-[480px] sm:h-[500px] flex flex-col bg-slate-950/90 border border-slate-800 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] overflow-hidden backdrop-blur-xl animate-in slide-in-from-bottom-5 fade-in duration-200">
           
           {/* HEADER */}
           <div className="p-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between">

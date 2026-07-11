@@ -464,19 +464,19 @@ export default async function DashboardPage({
           <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
             MobiBase Yonetim Paneli
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1.5 font-medium">
+          <p className="mt-1 max-w-2xl text-xs sm:text-sm text-slate-500 font-medium leading-6">
             Subelerinizin genel finansal sagligi, anlik kasa durumu ve operasyonel akislar.
           </p>
         </div>
         <div className="flex flex-col sm:items-end gap-2.5">
-          <div className="inline-flex items-center gap-2 rounded-xl bg-teal-50/50 border border-teal-200/30 px-3 py-1.5 shadow-sm text-[11px] text-teal-800 font-semibold backdrop-blur-sm self-start sm:self-auto">
-            <span className="h-2 w-2 rounded-full bg-teal-500 animate-pulse"></span>
+          <div className="inline-flex items-center gap-2 rounded-2xl bg-teal-50/80 border border-teal-200/60 px-3 py-2 shadow-sm text-[11px] text-teal-900 font-bold backdrop-blur-sm self-start sm:self-auto">
+            <span className="h-2.5 w-2.5 rounded-full bg-teal-500 animate-pulse shadow-[0_0_18px_rgba(20,184,166,0.75)]"></span>
             Canli Sistem Durumu - {new Date().toLocaleDateString("tr-TR", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </div>
-          <div className="inline-flex rounded-xl border border-slate-200 bg-white/70 p-1 text-xs font-semibold shadow-sm backdrop-blur-sm">
-            <Link href="/dashboard?period=day" className={`px-4 py-1.5 rounded-lg transition-all ${selectedPeriod === "day" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100/80"}`}>Gunluk</Link>
-            <Link href="/dashboard?period=week" className={`px-4 py-1.5 rounded-lg transition-all ${selectedPeriod === "week" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100/80"}`}>Haftalik</Link>
-            <Link href="/dashboard?period=month" className={`px-4 py-1.5 rounded-lg transition-all ${selectedPeriod === "month" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100/80"}`}>Aylik</Link>
+          <div className="inline-flex rounded-2xl border border-slate-200 bg-white p-1 text-xs font-bold shadow-sm">
+            <Link href="/dashboard?period=day" className={`px-4 py-2 rounded-xl transition-all ${selectedPeriod === "day" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100"}`}>Gunluk</Link>
+            <Link href="/dashboard?period=week" className={`px-4 py-2 rounded-xl transition-all ${selectedPeriod === "week" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100"}`}>Haftalik</Link>
+            <Link href="/dashboard?period=month" className={`px-4 py-2 rounded-xl transition-all ${selectedPeriod === "month" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100"}`}>Aylik</Link>
           </div>
         </div>
       </div>
