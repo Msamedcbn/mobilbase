@@ -41,7 +41,6 @@ const TOUR_STORAGE_KEY = "mobibase_tour_completed";
 export function ProductTour() {
   const [current, setCurrent] = useState(-1);
   const [visible, setVisible] = useState(false);
-  const [rect, setRect] = useState<DOMRect | null>(null);
 
   useEffect(() => {
     const done = localStorage.getItem(TOUR_STORAGE_KEY);
@@ -57,7 +56,6 @@ export function ProductTour() {
       if (!el) return { top: "40%", left: "50%", transform: "translate(-50%, -50%)" };
 
       const r = el.getBoundingClientRect();
-      setRect(r);
 
       const gap = 16;
       let top = 0;
