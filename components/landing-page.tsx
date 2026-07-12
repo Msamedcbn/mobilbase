@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { SplitText } from "gsap/SplitText";
 import { useGSAP } from "@gsap/react";
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, SplitText, useGSAP);
 
 const NAV_LINKS = [
   { label: "Ozellikler", href: "#features" },
@@ -120,12 +121,42 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
 
   useGSAP(() => {
     if (!heroRef.current) return;
+    const h1 = heroRef.current.querySelector(".hero-heading");
+    if (h1) {
+      const split = SplitText.create(h1, { type: "words, chars", mask: "words", aria: "none" });
+      gsap.from(split.chars, {
+        opacity: 0,
+        y: 20,
+        rotateX: -40,
+        stagger: 0.025,
+        duration: 0.6,
+        ease: "power2.out",
+        delay: 0.15,
+      });
+    }
     gsap.fromTo(
-      heroRef.current.querySelectorAll(".hero-anim"),
+      heroRef.current.querySelectorAll(".hero-anim:not(.hero-heading)"),
       { opacity: 0, y: 40 },
-      { opacity: 1, y: 0, duration: 0.9, stagger: 0.12, ease: "power3.out" }
+      { opacity: 1, y: 0, duration: 0.9, stagger: 0.12, ease: "power3.out", delay: 0.4 }
     );
   }, { scope: heroRef });
+
+  useGSAP(() => {
+    if (!bentoRef.current) return;
+    const cards = bentoRef.current.querySelectorAll(".bento-card");
+    gsap.from(cards, {
+      opacity: 0,
+      y: 60,
+      scale: 0.95,
+      stagger: 0.08,
+      duration: 0.7,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: bentoRef.current,
+        start: "top 80%",
+      },
+    });
+  }, { scope: bentoRef });
 
   useGSAP(() => {
     if (!imageScaleRef.current) return;
@@ -159,22 +190,16 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
 
   useGSAP(() => {
     if (!textRevealRef.current) return;
-    const words = textRevealRef.current.querySelectorAll(".reveal-word");
-    words.forEach((word, i) => {
-      gsap.fromTo(
-        word,
-        { opacity: 0.08 },
-        {
-          opacity: 1,
-          scrollTrigger: {
-            trigger: textRevealRef.current,
-            start: "top 70%",
-            end: "bottom 30%",
-            scrub: 0.8,
-          },
-          delay: i * 0.02,
-        }
-      );
+    const split = SplitText.create(textRevealRef.current, { type: "words", aria: "none" });
+    gsap.from(split.words, {
+      opacity: 0.08,
+      stagger: 1,
+      scrollTrigger: {
+        trigger: textRevealRef.current,
+        start: "top 70%",
+        end: "bottom 30%",
+        scrub: 1,
+      },
     });
   }, { scope: textRevealRef });
 
@@ -212,7 +237,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
                 <span className="h-2 w-2 rounded-full bg-teal-400 animate-pulse" />
                 <span className="text-[11px] font-black uppercase tracking-[0.2em] text-teal-300">Telefon bayileri icin operasyon sistemi</span>
               </div>
-              <h1 className="hero-anim max-w-2xl text-[clamp(2.8rem,5.5vw,5.2rem)] font-black leading-[0.95] tracking-[-0.04em] text-white">
+              <h1 className="hero-heading hero-anim max-w-2xl text-[clamp(2.8rem,5.5vw,5.2rem)] font-black leading-[0.95] tracking-[-0.04em] text-white">
                 Excel ve WhatsApp<br />karmasasini tek bayi<br />sisteminde bitirin
               </h1>
               <p className="hero-anim mt-8 max-w-lg text-[17px] leading-relaxed text-slate-400">
@@ -263,7 +288,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
           </div>
           <div className="mt-14 grid auto-rows-[minmax(180px,auto)] grid-cols-1 gap-4 md:grid-cols-3 md:grid-flow-dense">
             {BENTO_CARDS.map((card, i) => (
-              <div key={i} className={`group relative overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br ${card.gradient || "from-slate-900 to-slate-950"} transition-all duration-500 hover:border-white/20 ${card.span}`}>
+              <div key={i} className={`bento-card group relative overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br ${card.gradient || "from-slate-900 to-slate-950"} transition-all duration-500 hover:border-white/20 ${card.span}`}>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                 <div className="relative flex h-full flex-col justify-end p-6">
                   {card.stat ? <span className="text-5xl font-black tracking-tight">{card.stat}</span> : null}
@@ -315,8 +340,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
       <section className="py-40 md:py-56">
         <div className="mx-auto max-w-5xl px-5 md:px-8">
           <p ref={textRevealRef} className="text-[clamp(1.8rem,3.5vw,3rem)] font-black leading-[1.15] tracking-[-0.03em] text-white md:pl-8 md:border-l md:border-white/10">
-            {"Daginik kayit degil yonetilebilir akis. Amac sadece veri girmek degil bayi sahibine karar verecegi temiz tabloyu vermek."
-              .split(" ").map((word, i) => (<span key={i} className="reveal-word inline">{word}{" "}</span>))}
+            Daginik kayit degil yonetilebilir akis. Amac sadece veri girmek degil bayi sahibine karar verecegi temiz tabloyu vermek.
           </p>
         </div>
       </section>
