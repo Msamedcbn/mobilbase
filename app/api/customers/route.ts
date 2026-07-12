@@ -265,7 +265,7 @@ export async function GET() {
       store.customers.push(...mockTenants);
       await writeLocalStore(store);
     }
-    return ok(store.customers);
+    return ok(store.customers.filter((c) => c.tenantId === tenantId));
   }
 
   try {

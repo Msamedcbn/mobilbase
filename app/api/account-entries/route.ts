@@ -2,35 +2,50 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore, writeLocalStore, localId } from "@/lib/local-store";
+import { requireRole, getSessionUser } from "@/lib/auth";
 
 export async function GET() {
+  const user = getSessionUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const tenantId = user.tenantId;
+
   if (isDbDisabledMode()) {
     const store = await readLocalStore();
-    const entries = (store.accountEntries || []).map((entry) => {
-      const customer = store.customers.find((c) => c.id === entry.customerId);
-      const bankAccount = store.bankAccounts?.find((b) => b.id === entry.bankAccountId);
-      return {
-        ...entry,
-        customer,
-        bankAccount,
-      };
-    });
+    const tenantCustomerIds = store.customers
+      .filter((c) => c.tenantId === tenantId)
+      .map((c) => c.id);
+    const entries = (store.accountEntries || [])
+      .filter((entry) => tenantCustomerIds.includes(entry.customerId))
+      .map((entry) => {
+        const customer = store.customers.find((c) => c.id === entry.customerId);
+        const bankAccount = store.bankAccounts?.find((b) => b.id === entry.bankAccountId);
+        return { ...entry, customer, bankAccount };
+      });
     entries.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return NextResponse.json(entries);
   }
 
-  const items = await prisma.accountEntry.findMany({ 
-    orderBy: { createdAt: "desc" }, 
-    include: { customer: true, bankAccount: true } 
+  const items = await prisma.accountEntry.findMany({
+    where: { customer: { tenantId } },
+    orderBy: { createdAt: "desc" },
+    include: { customer: true, bankAccount: true },
   });
   return NextResponse.json(items);
 }
 
 export async function POST(req: Request) {
+  const auth = requireRole(["ADMIN", "CASHIER", "MANAGER"]);
+  if (auth.error) return auth.error;
+  const tenantId = auth.user.tenantId;
+
   const body = await req.json();
 
   if (isDbDisabledMode()) {
     const store = await readLocalStore();
+
+    const customer = store.customers.find((c) => c.id === body.customerId && c.tenantId === tenantId);
+    if (!customer) return NextResponse.json({ error: "Musteri bulunamadi veya yetkisiz" }, { status: 404 });
+
     const newItem = {
       id: localId("entry"),
       customerId: body.customerId,
@@ -59,33 +74,23 @@ export async function POST(req: Request) {
   }
 
   const { customerId, type, amount, description, bankAccountId } = body;
-  
+
+  const customer = await prisma.customer.findFirst({
+    where: { id: customerId, tenantId },
+  });
+  if (!customer) return NextResponse.json({ error: "Musteri bulunamadi veya yetkisiz" }, { status: 404 });
+
   const result = await prisma.$transaction(async (tx) => {
     const item = await tx.accountEntry.create({
-      data: {
-        customerId,
-        type,
-        amount: Number(amount),
-        description,
-        bankAccountId: bankAccountId || null,
-      },
-      include: {
-        customer: true,
-        bankAccount: true
-      }
+      data: { customerId, type, amount: Number(amount), description, bankAccountId: bankAccountId || null },
+      include: { customer: true, bankAccount: true },
     });
 
     if (bankAccountId) {
       if (type === "CREDIT") {
-        await tx.bankAccount.update({
-          where: { id: bankAccountId },
-          data: { balance: { increment: Number(amount) } }
-        });
+        await tx.bankAccount.update({ where: { id: bankAccountId }, data: { balance: { increment: Number(amount) } } });
       } else if (type === "DEBIT") {
-        await tx.bankAccount.update({
-          where: { id: bankAccountId },
-          data: { balance: { decrement: Number(amount) } }
-        });
+        await tx.bankAccount.update({ where: { id: bankAccountId }, data: { balance: { decrement: Number(amount) } } });
       }
     }
     return item;
