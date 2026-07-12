@@ -93,6 +93,7 @@ button, input, select, textarea {
   color: #e2e8f0;
   padding: 1.5rem;
   border-right: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.03);
 }
 
 .sidebar-nav-link {
@@ -104,7 +105,7 @@ button, input, select, textarea {
   font-size: 0.9rem;
   color: #94a3b8;
   font-weight: 500;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .sidebar-nav-link:hover {
@@ -115,7 +116,7 @@ button, input, select, textarea {
 .sidebar-nav-link.active {
   background: linear-gradient(135deg, var(--accent) 0%, #0d9488 100%);
   color: white;
-  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);
+  box-shadow: 0 4px 16px rgba(15, 118, 110, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   font-weight: 600;
 }
 

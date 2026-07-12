@@ -264,8 +264,8 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
         </div>
 
         {user && (
-          <div className="mb-6 bg-slate-900/40 border border-slate-800/40 rounded-2xl p-3 text-xs text-slate-300 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700/50 flex items-center justify-center font-bold text-white shrink-0">
+          <div className="mb-6 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-xs text-slate-300 flex items-center gap-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center font-black text-white text-sm shrink-0 shadow-lg shadow-teal-900/30">
               {user.fullName.slice(0, 2).toUpperCase()}
             </div>
             <div className="overflow-hidden">
