@@ -199,7 +199,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
         <div
           className={`mx-auto flex max-w-6xl items-center justify-between rounded-full border px-6 py-3 transition-all duration-500 ${
             scrolled
-              ? "border-white/10 bg-white/[0.06] backdrop-blur-2xl shadow-[0_8px_40px_-12px_rgba(0,0,0,0.5)]"
+              ? "border-white/[0.08] bg-white/[0.04] backdrop-blur-3xl shadow-[0_8px_40px_-12px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.06)]"
               : "border-transparent bg-transparent"
           }`}
         >
@@ -229,66 +229,104 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
         </div>
       </nav>
 
-      {/* ──────────── ATTENTION: Cinematic Center Hero ──────────── */}
+      {/* ──────────── ATTENTION: Asymmetric Split Hero (VARIANCE=8) ──────────── */}
       <section
         ref={heroRef}
-        className="relative flex min-h-[100svh] items-center justify-center px-5 pb-20 pt-32"
+        className="relative flex min-h-[100dvh] items-center px-5 pb-20 pt-32 md:px-8"
       >
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_30%,rgba(20,184,166,0.15),transparent_55%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_80%_20%,rgba(6,182,212,0.08),transparent_50%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_20%_70%,rgba(99,102,241,0.06),transparent_50%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_80%_at_30%_40%,rgba(20,184,166,0.18),transparent_50%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_50%_at_80%_60%,rgba(6,182,212,0.06),transparent_45%)]" />
         </div>
 
-        <div className="relative z-10 mx-auto w-full max-w-6xl text-center">
-          <div className="hero-anim mb-8 inline-flex items-center gap-2 rounded-full border border-teal-500/20 bg-teal-500/10 px-4 py-1.5">
-            <span className="h-2 w-2 rounded-full bg-teal-400 animate-pulse" />
-            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-teal-300">
-              Telefon bayileri icin operasyon sistemi
-            </span>
-          </div>
+        <div className="relative z-10 mx-auto w-full max-w-7xl">
+          <div className="grid items-center gap-12 md:grid-cols-[1.1fr_0.9fr] md:gap-16">
+            {/* ── Left: Text Block ── */}
+            <div>
+              <div className="hero-anim mb-8 inline-flex items-center gap-2 rounded-full border border-teal-500/20 bg-teal-500/10 px-4 py-1.5">
+                <span className="h-2 w-2 rounded-full bg-teal-400 animate-pulse" />
+                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-teal-300">
+                  Telefon bayileri icin operasyon sistemi
+                </span>
+              </div>
 
-          <h1 className="hero-anim mx-auto max-w-6xl text-[clamp(2.5rem,5vw,5.5rem)] font-black leading-[0.95] tracking-[-0.04em] text-white">
-            Excel ve WhatsApp karmasasini
-            <br />
-            <span className="bg-gradient-to-r from-teal-400 via-cyan-300 to-sky-400 bg-clip-text text-transparent">
-              tek bayi sisteminde bitirin
-            </span>
-          </h1>
+              <h1 className="hero-anim max-w-2xl text-[clamp(2.8rem,5.5vw,5.2rem)] font-black leading-[0.95] tracking-[-0.04em] text-white">
+                Excel ve WhatsApp
+                <br />
+                karmasasini tek bayi
+                <br />
+                sisteminde bitirin
+              </h1>
 
-          <p className="hero-anim mx-auto mt-8 max-w-2xl text-[17px] leading-relaxed text-slate-400">
-            MobiBase; satis, teknik servis, stok, ikinci el ve tahsilati ayni akista toplayan
-            telefon bayi otomasyonudur. Her islem tek musteri ve cihaz gecmisinde okunur.
-          </p>
+              <p className="hero-anim mt-8 max-w-lg text-[17px] leading-relaxed text-slate-400">
+                MobiBase; satis, teknik servis, stok, ikinci el ve tahsilati ayni akista toplayan
+                telefon bayi otomasyonudur.
+              </p>
 
-          <div className="hero-anim mt-10 flex flex-wrap items-center justify-center gap-4">
-            <a
-              href="#pricing"
-              className="rounded-full bg-gradient-to-r from-teal-500 to-cyan-500 px-8 py-3.5 text-sm font-black text-white shadow-lg shadow-teal-500/25 transition hover:shadow-teal-500/40 hover:scale-105"
-            >
-              Paketleri Gor
-            </a>
-            <a
-              href="/takas-hesapla"
-              className="rounded-full border border-white/20 bg-white/5 px-8 py-3.5 text-sm font-bold text-white transition hover:bg-white/10 hover:border-white/30"
-            >
-              Takas Fiyati Hesapla
-            </a>
+              <div className="hero-anim mt-10 flex flex-wrap gap-4">
+                <a
+                  href="#pricing"
+                  className="rounded-full bg-white px-8 py-3.5 text-sm font-black text-[#030712] shadow-lg shadow-white/10 transition hover:scale-105 active:scale-[0.98]"
+                >
+                  Paketleri Gor
+                </a>
+                <a
+                  href="/takas-hesapla"
+                  className="rounded-full border border-white/20 bg-white/5 px-8 py-3.5 text-sm font-bold text-white transition hover:bg-white/10 hover:border-white/30 active:scale-[0.98]"
+                >
+                  Takas Fiyati Hesapla
+                </a>
+              </div>
+            </div>
+
+            {/* ── Right: Stylized Image Block ── */}
+            <div className="hero-anim relative hidden md:block">
+              <div className="relative overflow-hidden rounded-[40px] border border-white/10 bg-gradient-to-br from-[#0f172a] to-[#020617] shadow-2xl shadow-black/30">
+                <img
+                  src="https://picsum.photos/seed/dashboard-dark/700/800"
+                  alt=""
+                  className="w-full object-cover opacity-80 contrast-110"
+                  style={{ filter: "grayscale(0.5) brightness(0.5)", minHeight: "500px" }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#030712] via-transparent to-transparent" />
+                <div className="absolute bottom-6 left-6 right-6 rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-black uppercase tracking-[0.15em] text-teal-300">Bayi Durumu</span>
+                    <span className="rounded-full bg-teal-500/20 px-2.5 py-0.5 text-[10px] font-black text-teal-300">Canli</span>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    {[
+                      ["Servis", "46"],
+                      ["Satis", "18"],
+                      ["Stok", "1.284"],
+                      ["Tahsilat", "7.2K TL"],
+                    ].map(([label, val]) => (
+                      <div key={label} className="rounded-xl border border-white/5 bg-white/[0.03] p-2.5">
+                        <p className="text-[10px] text-slate-500">{label}</p>
+                        <p className="text-sm font-black text-white">{val}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* ──────────── INTEREST: Gapless Bento Grid ──────────── */}
-      <section id="features" ref={bentoRef} className="py-32 md:py-48">
-        <div className="mx-auto max-w-6xl px-5 md:px-8">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-teal-400">
-            Ozellikler
-          </p>
-          <h2 className="mt-4 max-w-3xl text-[clamp(2rem,4vw,3.5rem)] font-black leading-[1.05] tracking-[-0.03em]">
-            Bayi operasyonunuzu tek
-            <br />
-            <span className="text-slate-500">kontrol panelinde toplayin</span>
-          </h2>
+      <section id="features" ref={bentoRef} className="py-40 md:py-56">
+        <div className="mx-auto max-w-7xl px-5 md:px-8">
+          <div className="md:max-w-xl">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-teal-400">
+              Ozellikler
+            </p>
+            <h2 className="mt-4 text-[clamp(2rem,4vw,3.5rem)] font-black leading-[1.05] tracking-[-0.03em] text-white">
+              Bayi operasyonunuzu tek
+              <br />
+              <span className="text-slate-500">kontrol panelinde toplayin</span>
+            </h2>
+          </div>
 
           <div className="mt-14 grid auto-rows-[minmax(180px,auto)] grid-cols-1 gap-4 md:grid-cols-3 md:grid-flow-dense">
             {BENTO_CARDS.map((card, i) => (
@@ -323,8 +361,8 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
       </section>
 
       {/* ──────────── DESIRE: GSAP Image Scale & Fade ──────────── */}
-      <section ref={imageScaleRef} className="py-32 md:py-48">
-        <div className="mx-auto max-w-6xl px-5 md:px-8">
+      <section ref={imageScaleRef} className="py-40 md:py-56">
+        <div className="mx-auto max-w-7xl px-5 md:px-8">
           <div className="grid gap-6 md:grid-cols-2">
             <div className="scale-image overflow-hidden rounded-[32px] border border-white/10">
               <img
@@ -357,9 +395,9 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
       </section>
 
       {/* ──────────── DESIRE: Scrubbing Text Reveal ──────────── */}
-      <section className="py-32 md:py-48">
-        <div className="mx-auto max-w-5xl px-5 md:px-8 text-center">
-          <p ref={textRevealRef} className="text-[clamp(1.8rem,3.5vw,3rem)] font-black leading-[1.15] tracking-[-0.03em] text-white">
+      <section className="py-40 md:py-56">
+        <div className="mx-auto max-w-5xl px-5 md:px-8">
+          <p ref={textRevealRef} className="text-[clamp(1.8rem,3.5vw,3rem)] font-black leading-[1.15] tracking-[-0.03em] text-white md:pl-8 md:border-l md:border-white/10">
             {"Daginik kayit degil yonetilebilir akis. Amac sadece veri girmek degil bayi sahibine karar verecegi temiz tabloyu vermek."
               .split(" ")
               .map((word, i) => (
@@ -383,7 +421,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
       </section>
 
       {/* ──────────── Testimonial Carousel ──────────── */}
-      <section className="py-32 md:py-48">
+      <section className="py-40 md:py-56">
         <div className="mx-auto max-w-3xl px-5 md:px-8 text-center">
           <div className="relative mx-auto h-16 w-16 overflow-hidden rounded-full border-2 border-white/20">
             <img
@@ -441,11 +479,11 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
       </section>
 
       {/* ──────────── ACTION: Pricing + CTA ──────────── */}
-      <section id="pricing" className="py-32 md:py-48">
-        <div className="mx-auto max-w-6xl px-5 md:px-8">
-          <div className="text-center">
+      <section id="pricing" className="py-40 md:py-56">
+        <div className="mx-auto max-w-5xl px-5 md:px-8">
+          <div className="md:max-w-xl">
             <p className="text-xs font-black uppercase tracking-[0.2em] text-teal-400">Paketler</p>
-            <h2 className="mt-4 text-[clamp(2rem,4vw,3.5rem)] font-black leading-[1.05] tracking-[-0.03em]">
+            <h2 className="mt-4 text-[clamp(2rem,4vw,3.5rem)] font-black leading-[1.05] tracking-[-0.03em] text-white">
               Bayi olcegine gore baslayin
             </h2>
             <p className="mt-3 text-sm text-slate-500">
@@ -453,7 +491,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
             </p>
           </div>
 
-          <div className="mt-14 grid gap-5 md:grid-cols-4">
+          <div className="mt-14 grid gap-5 md:grid-cols-2 md:gap-6">
             {PLANS.map((plan) => {
               const featureConfig = (pricing.features as any)?.[plan.key] || {};
               const amount = Number((pricing as any)[plan.key] || 0);
@@ -461,30 +499,32 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
               return (
                 <article
                   key={plan.key}
-                  className={`rounded-[28px] border p-6 transition-all duration-500 hover:scale-[1.02] ${
+                  className={`rounded-[32px] border p-8 transition-all duration-500 hover:scale-[1.01] ${
                     highlighted
-                      ? "border-teal-500/40 bg-teal-500/[0.08] shadow-[0_20px_60px_-20px_rgba(20,184,166,0.5)]"
-                      : "border-white/10 bg-white/[0.03] hover:border-white/20"
+                      ? "border-teal-500/30 bg-teal-500/[0.06] shadow-[0_20px_60px_-20px_rgba(20,184,166,0.4)]"
+                      : "border-white/[0.08] bg-white/[0.02] hover:border-white/15"
                   }`}
                 >
-                  <div className="flex items-start justify-between">
-                    <h3 className="text-xl font-black">{plan.key}</h3>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="text-2xl font-black">{plan.key}</h3>
+                      <p className="mt-2 text-sm leading-relaxed text-slate-400">{plan.subtitle}</p>
+                    </div>
                     {plan.badge ? (
-                      <span className="rounded-full bg-teal-500/20 px-2.5 py-0.5 text-[10px] font-black uppercase text-teal-300">
+                      <span className="shrink-0 rounded-full bg-teal-500/20 px-3 py-1 text-[10px] font-black uppercase text-teal-300">
                         {plan.badge}
                       </span>
                     ) : null}
                   </div>
-                  <p className="mt-2 text-xs leading-relaxed text-slate-400">{plan.subtitle}</p>
-                  <p className="mt-5 text-3xl font-black tracking-tight">
-                    {amount.toLocaleString("tr-TR")} <span className="text-sm font-medium text-slate-400">TL / ay</span>
+                  <p className="mt-6 text-4xl font-black tracking-tight">
+                    {amount.toLocaleString("tr-TR")} <span className="text-base font-medium text-slate-500">TL / ay</span>
                   </p>
-                  <div className="mt-5 space-y-2 border-t border-white/10 pt-4">
+                  <div className="mt-6 space-y-2.5 border-t border-white/[0.08] pt-5">
                     {FEATURE_NAMES.map((f) => (
-                      <div key={f.key} className="flex items-center justify-between text-xs">
+                      <div key={f.key} className="flex items-center justify-between text-sm">
                         <span className="text-slate-400">{f.label}</span>
                         <span className={featureConfig[f.key] ? "text-teal-400 font-bold" : "text-slate-600"}>
-                          {featureConfig[f.key] ? "Var" : "Yok"}
+                          {featureConfig[f.key] ? "Dahil" : "Yok"}
                         </span>
                       </div>
                     ))}
