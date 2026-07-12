@@ -9,9 +9,13 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError("");
+    if (!email || !email.includes("@")) { setError("Gecerli bir email adresi girin"); return; }
+    if (!password || password.length < 3) { setError("Sifre gerekli"); return; }
     setLoading(true);
     try {
       const res = await fetch("/api/auth/login", {
@@ -20,12 +24,12 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Giris basarisiz");
+      if (!res.ok) { setError(json.error ?? "Giris basarisiz"); setLoading(false); return; }
       toast.success("Oturum acildi");
       router.push("/dashboard");
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Oturum acilamadi");
+      setError("Baglanti hatasi. Lutfen tekrar deneyin.");
     } finally {
       setLoading(false);
     }
@@ -86,6 +90,12 @@ export default function LoginPage() {
                 </div>
               </div>
             </div>
+
+            {error && (
+              <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-xs font-semibold text-red-300">
+                {error}
+              </div>
+            )}
 
             <button
               disabled={loading}

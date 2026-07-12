@@ -1,4 +1,4 @@
-﻿export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic";
 
 import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
@@ -104,7 +104,7 @@ export default async function DashboardPage({
     IN_PROGRESS: "#f59e0b",  // Amber
     WAITING_PART: "#ef4444", // Red
     READY: "#10b981",        // Emerald
-    DELIVERED: "#6366f1",    // Indigo
+    DELIVERED: "#14b8a6",    // Teal
     CANCELED: "#64748b",     // Slate
   };
 
@@ -445,7 +445,7 @@ export default async function DashboardPage({
   const netProfitAreaPath = `M 60,170 L ${pointsNetProfit.map((p) => `${p.x},${p.y}`).join(" L ")} L ${pointsNetProfit[pointsNetProfit.length - 1].x},170 Z`;
 
   return (
-    <section className="space-y-8 animate-fade-in pb-12">
+    <section className="space-y-8 animate-fade-in pb-12 max-w-[1400px] mx-auto px-5 md:px-8">
       
       {/* DB Warning banner */}
       {(dbUnavailable || dbDisabled) && (
@@ -588,7 +588,7 @@ export default async function DashboardPage({
               <span className="text-slate-600">Giderler</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="h-3 w-3 rounded-md bg-indigo-600 shadow-sm shadow-indigo-700/20"></span>
+              <span className="h-3 w-3 rounded-md bg-teal-600 shadow-sm shadow-teal-700/20"></span>
               <span className="text-slate-600">Net Kar</span>
             </div>
           </div>
@@ -601,11 +601,11 @@ export default async function DashboardPage({
             {/* Gradients definitions */}
             <defs>
               <linearGradient id="netProfitGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#6366f1" stopOpacity="0.18" />
-                <stop offset="100%" stopColor="#6366f1" stopOpacity="0.00" />
+                <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.18" />
+                <stop offset="100%" stopColor="#14b8a6" stopOpacity="0.00" />
               </linearGradient>
               <filter id="shadow-line" x="-10%" y="-10%" width="120%" height="120%">
-                <feDropShadow dx="0" dy="4" stdDeviation="3" floodColor="#4f46e5" floodOpacity="0.25" />
+                <feDropShadow dx="0" dy="4" stdDeviation="3" floodColor="#0d9488" floodOpacity="0.25" />
               </filter>
               <filter id="shadow-line-teal" x="-10%" y="-10%" width="120%" height="120%">
                 <feDropShadow dx="0" dy="3" stdDeviation="2" floodColor="#0f766e" floodOpacity="0.18" />
@@ -630,7 +630,7 @@ export default async function DashboardPage({
             {/* Path lines with filters */}
             <path d={incomeLinePath} stroke="#0f766e" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" filter="url(#shadow-line-teal)" />
             <path d={expenseLinePath} stroke="#f43f5e" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d={netProfitLinePath} stroke="#4f46e5" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" filter="url(#shadow-line)" />
+            <path d={netProfitLinePath} stroke="#0d9488" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" filter="url(#shadow-line)" />
 
             {/* Interaction points circles */}
             {monthsList.map((m, idx) => {
@@ -651,7 +651,7 @@ export default async function DashboardPage({
                   <circle cx={pExp.x} cy={pExp.y} r="5" fill="#f43f5e" stroke="#fff" strokeWidth="2" className="transition-all hover:scale-150 cursor-pointer" />
 
                   {/* Net Profit point */}
-                  <circle cx={pNet.x} cy={pNet.y} r="6" fill="#4f46e5" stroke="#fff" strokeWidth="2.5" className="transition-all hover:scale-150 cursor-pointer shadow-sm" />
+                  <circle cx={pNet.x} cy={pNet.y} r="6" fill="#0d9488" stroke="#fff" strokeWidth="2.5" className="transition-all hover:scale-150 cursor-pointer shadow-sm" />
 
                   {/* Tooltip detail block */}
                   <g className="opacity-0 group-hover/node:opacity-100 transition-all duration-200 pointer-events-none transform -translate-y-1">
@@ -681,11 +681,11 @@ export default async function DashboardPage({
             </div>
             <div className="flex items-center gap-4 text-xs font-semibold">
               <div className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded bg-teal-500"></span>
+                <span className="h-2.5 w-2.5 rounded bg-teal-600"></span>
                 <span className="text-slate-600">Satis</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded bg-indigo-500"></span>
+                <span className="h-2.5 w-2.5 rounded bg-cyan-400"></span>
                 <span className="text-slate-600">Nakit Girisi</span>
               </div>
             </div>
@@ -741,8 +741,8 @@ export default async function DashboardPage({
                       width="15"
                       height={Math.max(collH, 1)}
                       rx="3.5"
-                      fill="#6366f1"
-                      className="transition-all duration-300 hover:fill-indigo-600"
+                      fill="#14b8a6"
+                      className="transition-all duration-300 hover:fill-teal-600"
                     />
 
                     {/* Axis Labels */}
@@ -819,7 +819,7 @@ export default async function DashboardPage({
               let badgeColor = "bg-slate-50 text-slate-600 border-slate-200/50";
               if (log.action.includes("CHECKOUT")) badgeColor = "bg-emerald-50 text-emerald-700 border-emerald-100/50";
               else if (log.action.includes("REPAIR")) badgeColor = "bg-blue-50 text-blue-700 border-blue-100/50";
-              else if (log.action.includes("RECONCILIATION")) badgeColor = "bg-indigo-50 text-indigo-700 border-indigo-100/50";
+              else if (log.action.includes("RECONCILIATION")) badgeColor = "bg-teal-50 text-teal-700 border-teal-100/50";
               else if (log.action.includes("CREATE")) badgeColor = "bg-teal-50 text-teal-700 border-teal-100/50";
 
               return (
