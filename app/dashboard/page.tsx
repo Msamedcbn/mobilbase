@@ -462,163 +462,111 @@ export default async function DashboardPage({
         </div>
       )}
 
-      {/* Header section */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-            MobiBase Yönetim Paneli
+      {/* Header section — asymmetric (VAR=8) */}
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div className="sm:max-w-xl">
+          <div className="flex items-center gap-2.5 mb-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-teal-500 animate-pulse"></span>
+            <span className="text-[11px] font-bold text-teal-700">
+              {new Date().toLocaleDateString("tr-TR", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </span>
+          </div>
+          <h2 className="text-[clamp(1.8rem,3vw,2.5rem)] font-black tracking-tight text-slate-900 leading-none">
+            Yonetim Paneli
           </h2>
-          <p className="mt-1 max-w-2xl text-xs sm:text-sm text-slate-500 font-medium leading-6">
-            Şubelerinizin genel finansal sağlığı, anlık kasa durumu ve operasyonel akışlar.
+          <p className="mt-2 text-sm leading-relaxed text-slate-500 max-w-lg">
+            Subelerinizin finansal durumu, anlik kasa ve operasyonel akislar.
           </p>
         </div>
-        <div className="flex flex-col sm:items-end gap-2.5">
-          <div className="inline-flex items-center gap-2 rounded-2xl bg-teal-50/80 border border-teal-200/60 px-3 py-2 shadow-sm text-[11px] text-teal-900 font-bold backdrop-blur-sm self-start sm:self-auto">
-            <span className="h-2.5 w-2.5 rounded-full bg-teal-500 animate-pulse shadow-[0_0_18px_rgba(20,184,166,0.75)]"></span>
-            Canli Sistem Durumu - {new Date().toLocaleDateString("tr-TR", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-          </div>
-          <div className="inline-flex rounded-2xl border border-slate-200 bg-white p-1 text-xs font-bold shadow-sm">
-            <Link href="/dashboard?period=day" className={`px-4 py-2 rounded-xl transition-all ${selectedPeriod === "day" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100"}`}>Gunluk</Link>
-            <Link href="/dashboard?period=week" className={`px-4 py-2 rounded-xl transition-all ${selectedPeriod === "week" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100"}`}>Haftalik</Link>
-            <Link href="/dashboard?period=month" className={`px-4 py-2 rounded-xl transition-all ${selectedPeriod === "month" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100"}`}>Aylik</Link>
-          </div>
+        <div className="inline-flex rounded-2xl border border-slate-200 bg-white p-1 text-xs font-bold shadow-sm">
+          <Link href="/dashboard?period=day" className={`px-4 py-2 rounded-xl transition-all ${selectedPeriod === "day" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100"}`}>Gunluk</Link>
+          <Link href="/dashboard?period=week" className={`px-4 py-2 rounded-xl transition-all ${selectedPeriod === "week" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100"}`}>Haftalik</Link>
+          <Link href="/dashboard?period=month" className={`px-4 py-2 rounded-xl transition-all ${selectedPeriod === "month" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100"}`}>Aylik</Link>
         </div>
       </div>
 
-      {/* Financial Overview Cards */}
-      <div id="dashboard-kpi" className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        
-        {/* Period Toplam Satis (Income) */}
-        <div className="relative group overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+      {/* Financial Overview Cards — asymmetric bento (VAR=8) */}
+      <div id="dashboard-kpi" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:grid-flow-dense">
+
+        <div className="relative group overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md lg:col-span-2">
           <div className="absolute top-0 left-0 w-full h-[3px] bg-teal-600 opacity-80" />
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Satis Geliri</span>
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-50 text-teal-600 border border-teal-100/50 font-bold shadow-inner">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            </div>
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Satis Geliri</p>
+          <div className="mt-3 flex items-baseline gap-3">
+            <h3 className="text-[clamp(1.8rem,2.5vw,2.8rem)] font-black text-slate-800 font-mono tracking-tight">{periodIncome.toLocaleString("tr-TR")} TL</h3>
+            <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-100">+12.4%</span>
           </div>
-          <div className="mt-4">
-            <h3 className="text-2xl font-black text-slate-800 font-mono">{periodIncome.toLocaleString("tr-TR")} TL</h3>
-            <div className="flex items-center gap-1.5 mt-2">
-              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-100"> 12.4%</span>
-              <span className="text-[10px] text-slate-400 font-medium">onceki doneme gore</span>
-            </div>
-          </div>
+          <p className="mt-1 text-xs text-slate-400">onceki doneme gore</p>
         </div>
 
-        {/* Period Toplam Gider (Expenses) */}
-        <div className="relative group overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+        <div className="relative group overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
           <div className="absolute top-0 left-0 w-full h-[3px] bg-rose-500 opacity-85" />
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Toplam Gider</span>
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 text-rose-600 border border-rose-100/50 font-bold shadow-inner">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
-            </div>
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Toplam Gider</p>
+          <div className="mt-3 flex items-baseline gap-3">
+            <h3 className="text-2xl font-black text-rose-600 font-mono tracking-tight">-{periodExpense.toLocaleString("tr-TR")} TL</h3>
+            <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-rose-50 text-rose-600 border border-rose-100">+4.8%</span>
           </div>
-          <div className="mt-4">
-            <h3 className="text-2xl font-black text-rose-600 font-mono">-{periodExpense.toLocaleString("tr-TR")} TL</h3>
-            <div className="flex items-center gap-1.5 mt-2">
-              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-rose-50 text-rose-600 border border-rose-100"> 4.8%</span>
-              <span className="text-[10px] text-slate-400 font-medium">gider tasarrufu</span>
-            </div>
-          </div>
+          <p className="mt-1 text-xs text-slate-400">gider degisimi</p>
         </div>
 
-        {/* Period Net Kar (Net Profit) */}
-        <div className="relative group overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
-          <div className="absolute top-0 left-0 w-full h-[3px] bg-emerald-500 opacity-85" />
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Net Kar</span>
-            <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${periodNetProfit >= 0 ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-red-50 text-red-600 border-red-100"} shadow-inner font-bold`}>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-            </div>
+        <div className="relative group overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-amber-500 opacity-85" />
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Net Kar</p>
+          <div className="mt-3 flex items-baseline gap-3">
+            <h3 className={`text-2xl font-black ${periodNetProfit >= 0 ? "text-emerald-600" : "text-red-600"} font-mono tracking-tight`}>{periodNetProfit.toLocaleString("tr-TR")} TL</h3>
+            <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded ${periodNetProfit >= 0 ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-red-50 text-red-600 border-red-100"}`}>{periodNetProfit >= 0 ? "+18.2%" : "+2.1%"}</span>
           </div>
-          <div className="mt-4">
-            <h3 className={`text-2xl font-black ${periodNetProfit >= 0 ? "text-emerald-600" : "text-red-600"} font-mono`}>
-              {periodNetProfit.toLocaleString("tr-TR")} TL
-            </h3>
-            <div className="flex items-center gap-1.5 mt-2">
-              <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded ${periodNetProfit >= 0 ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-red-50 text-red-600 border-red-100"}`}>
-                {periodNetProfit >= 0 ? " 18.2%" : " 2.1%"}
-              </span>
-              <span className="text-[10px] text-slate-400 font-medium">brut marj orani</span>
-            </div>
-          </div>
+          <p className="mt-1 text-xs text-slate-400">brut marj orani</p>
         </div>
 
-        {/* Donem Tahsilat */}
-        <div className="relative group overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
-          <div className="absolute top-0 left-0 w-full h-[3px] bg-indigo-500 opacity-85" />
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Nakit Girisi</span>
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100/50 font-bold shadow-inner">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-            </div>
+        <div className="relative group overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md lg:col-span-2">
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-teal-500 opacity-85" />
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Nakit Girisi</p>
+          <div className="mt-3 flex items-baseline gap-3">
+            <h3 className="text-[clamp(1.8rem,2.5vw,2.8rem)] font-black text-slate-800 font-mono tracking-tight">{periodTahsilat.toLocaleString("tr-TR")} TL</h3>
+            <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-100">+9.5%</span>
           </div>
-          <div className="mt-4">
-            <h3 className="text-2xl font-black text-slate-800 font-mono">{periodTahsilat.toLocaleString("tr-TR")} TL</h3>
-            <div className="flex items-center gap-1.5 mt-2">
-              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 border border-indigo-100"> 9.5%</span>
-              <span className="text-[10px] text-slate-400 font-medium">alacak tahsilat hizi</span>
-            </div>
-          </div>
+          <p className="mt-1 text-xs text-slate-400">alacak tahsilat hizi</p>
         </div>
 
       </div>
 
-      {/* Stats Cards Grid (Primary Operations) */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-6">
-        
-        {/* Toplam Musteri */}
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4.5 shadow-sm hover:border-slate-300/85 transition duration-200">
+      {/* Stats Cards — glassmorphism */}
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-6">
+
+        <div className="rounded-[16px] border border-slate-200/60 bg-white/90 backdrop-blur-sm p-5 shadow-[0_2px_8px_rgba(0,0,0,0.02),inset_0_1px_0_rgba(255,255,255,0.5)] transition-all duration-200 hover:border-slate-300/80">
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Kayitli Musteri</p>
-          <div className="flex justify-between items-baseline mt-1.5">
-            <h3 className="text-xl font-extrabold text-slate-850 font-mono">{customerCount} kisi</h3>
-            <span className="text-[10px] font-semibold text-slate-500">aktif portfoy</span>
-          </div>
+          <p className="mt-2 text-xl font-black text-slate-800 font-mono">{customerCount}</p>
+          <p className="mt-0.5 text-[10px] text-slate-500">aktif portfoy</p>
         </div>
 
-        {/* Servis Kaydi */}
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4.5 shadow-sm hover:border-slate-300/85 transition duration-200">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Teknik Servis Is Emri</p>
-          <div className="flex justify-between items-baseline mt-1.5">
-            <h3 className="text-xl font-extrabold text-slate-850 font-mono">{repairCount} adet</h3>
-            <span className="text-[10px] font-semibold text-teal-600 font-bold">toplam ariza</span>
-          </div>
+        <div className="rounded-[16px] border border-slate-200/60 bg-white/90 backdrop-blur-sm p-5 shadow-[0_2px_8px_rgba(0,0,0,0.02),inset_0_1px_0_rgba(255,255,255,0.5)] transition-all duration-200 hover:border-slate-300/80">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Teknik Servis</p>
+          <p className="mt-2 text-xl font-black text-slate-800 font-mono">{repairCount}</p>
+          <p className="mt-0.5 text-[10px] text-slate-500">toplam is emri</p>
         </div>
 
-        {/* Bugunku Ciro */}
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4.5 shadow-sm hover:border-slate-300/85 transition duration-200">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Gunluk Perakende Satis</p>
-          <div className="flex justify-between items-baseline mt-1.5">
-            <h3 className="text-xl font-extrabold text-teal-850 font-mono">{dailySales.toLocaleString("tr-TR")} TL</h3>
-            <span className="text-[10px] font-semibold text-slate-500">POS kasasi</span>
-          </div>
+        <div className="rounded-[16px] border border-slate-200/60 bg-white/90 backdrop-blur-sm p-5 shadow-[0_2px_8px_rgba(0,0,0,0.02),inset_0_1px_0_rgba(255,255,255,0.5)] transition-all duration-200 hover:border-slate-300/80">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Gunluk Satis</p>
+          <p className="mt-2 text-xl font-black text-slate-800 font-mono">{dailySales.toLocaleString("tr-TR")} TL</p>
+          <p className="mt-0.5 text-[10px] text-slate-500">POS kasasi</p>
         </div>
 
-        {/* Bugunku Tahsilat */}
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4.5 shadow-sm hover:border-slate-300/85 transition duration-200">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Gunluk Nakit Tahsilat</p>
-          <div className="flex justify-between items-baseline mt-1.5">
-            <h3 className="text-xl font-extrabold text-slate-850 font-mono">{dailyTahsilat.toLocaleString("tr-TR")} TL</h3>
-            <span className="text-[10px] font-semibold text-slate-500">veresiye alacak</span>
-          </div>
+        <div className="rounded-[16px] border border-slate-200/60 bg-white/90 backdrop-blur-sm p-5 shadow-[0_2px_8px_rgba(0,0,0,0.02),inset_0_1px_0_rgba(255,255,255,0.5)] transition-all duration-200 hover:border-slate-300/80">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Gunluk Tahsilat</p>
+          <p className="mt-2 text-xl font-black text-slate-800 font-mono">{dailyTahsilat.toLocaleString("tr-TR")} TL</p>
+          <p className="mt-0.5 text-[10px] text-slate-500">kasa girisi</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4.5 shadow-sm hover:border-slate-300/85 transition duration-200">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tahsilat Orani</p>
-          <div className="flex justify-between items-baseline mt-1.5">
-            <h3 className="text-xl font-extrabold text-indigo-700 font-mono">{collectionRate.toFixed(1)}%</h3>
-            <span className="text-[10px] font-semibold text-slate-500">{periodLabel.toLowerCase()} etki</span>
-          </div>
+        <div className="rounded-[16px] border border-slate-200/60 bg-white/90 backdrop-blur-sm p-5 shadow-[0_2px_8px_rgba(0,0,0,0.02),inset_0_1px_0_rgba(255,255,255,0.5)] transition-all duration-200 hover:border-slate-300/80">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Veresiye Borc</p>
+          <p className="mt-2 text-xl font-black text-slate-800 font-mono">{totalDebit.toLocaleString("tr-TR")} TL</p>
+          <p className="mt-0.5 text-[10px] text-slate-500">toplam tahsil edilecek</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4.5 shadow-sm hover:border-slate-300/85 transition duration-200">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Veresiye Risk Orani</p>
-          <div className="flex justify-between items-baseline mt-1.5">
-            <h3 className={`text-xl font-extrabold font-mono ${veresiyeRiskRate > 65 ? "text-rose-600" : "text-emerald-700"}`}>{veresiyeRiskRate.toFixed(1)}%</h3>
-            <span className="text-[10px] font-semibold text-slate-500">net bakiye / toplam borc</span>
-          </div>
+        <div className="rounded-[16px] border border-slate-200/60 bg-white/90 backdrop-blur-sm p-5 shadow-[0_2px_8px_rgba(0,0,0,0.02),inset_0_1px_0_rgba(255,255,255,0.5)] transition-all duration-200 hover:border-slate-300/80">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Veresiye Tahsilat</p>
+          <p className="mt-2 text-xl font-black text-slate-800 font-mono">{totalCredit.toLocaleString("tr-TR")} TL</p>
+          <p className="mt-0.5 text-[10px] text-slate-500">toplam tahsil edilen</p>
         </div>
 
       </div>
