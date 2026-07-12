@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore } from "@/lib/local-store";
+import { getSessionUser } from "@/lib/auth";
 import Link from "next/link";
 
 type MetricPeriod = "day" | "week" | "month";
@@ -33,6 +34,9 @@ export default async function DashboardPage({
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
   sixMonthsAgo.setDate(1);
   sixMonthsAgo.setHours(0, 0, 0, 0);
+
+  const sessionUser = getSessionUser();
+  const tenantId = sessionUser?.tenantId || null;
 
   let dbUnavailable = false;
   let customerCount = 0;
@@ -118,11 +122,19 @@ export default async function DashboardPage({
       
       // Load live mock data from local-store
       const store = await readLocalStore();
-      customerCount = store.customers.length;
-      repairCount = (store.repairs || []).length;
-
-      const txs = store.transactions || [];
-      const aes = store.accountEntries || [];
+      const txs = (store.transactions || []).filter((t) => t.tenantId === tenantId);
+      const aes = (store.accountEntries || []).filter((ae) => {
+        const c = store.customers.find((c) => c.id === ae.customerId);
+        return c && c.tenantId === tenantId;
+      });
+      customerCount = store.customers.filter((c) => c.tenantId === tenantId).length;
+      const tenantRepairs = (store.repairs || []).filter((r) => {
+        const d = store.devices.find((d) => d.id === r.deviceId);
+        if (!d) return false;
+        const c = store.customers.find((c) => c.id === d.customerId);
+        return c && c.tenantId === tenantId;
+      });
+      repairCount = tenantRepairs.length;
 
       // Daily calculations
       dailySales = txs
@@ -198,7 +210,7 @@ export default async function DashboardPage({
       });
 
       // Repair status groupings
-      const reps = store.repairs || [];
+      const reps = tenantRepairs;
       repairChartData = Object.keys(statusLabels).map((statusKey) => {
         const count = reps.filter((r) => r.status === statusKey).length;
         return {
@@ -229,62 +241,54 @@ export default async function DashboardPage({
         selectedPeriodExpenseAgg,
         selectedPeriodTahsilatAgg,
       ] = await Promise.all([
-        prisma.customer.count(),
-        prisma.repairRecord.count(),
+        prisma.customer.count({ where: { tenantId } }),
+        prisma.repairRecord.count({ where: { device: { customer: { tenantId } } } }),
         prisma.transaction.aggregate({
-          where: { type: "INCOME", createdAt: { gte: startOfDay } },
+          where: { tenantId, type: "INCOME", createdAt: { gte: startOfDay } },
           _sum: { totalAmount: true },
         }),
         prisma.accountEntry.aggregate({
-          where: { type: "CREDIT", createdAt: { gte: startOfDay } },
+          where: { customer: { tenantId }, type: "CREDIT", createdAt: { gte: startOfDay } },
           _sum: { amount: true },
         }),
-        prisma.accountEntry.aggregate({ where: { type: "DEBIT" }, _sum: { amount: true } }),
-        prisma.accountEntry.aggregate({ where: { type: "CREDIT" }, _sum: { amount: true } }),
-        prisma.auditLog.findMany({ orderBy: { createdAt: "desc" }, take: 6 }),
-        // Last 7 days queries
+        prisma.accountEntry.aggregate({ where: { customer: { tenantId }, type: "DEBIT" }, _sum: { amount: true } }),
+        prisma.accountEntry.aggregate({ where: { customer: { tenantId }, type: "CREDIT" }, _sum: { amount: true } }),
+        prisma.auditLog.findMany({ where: { customer: { tenantId } }, orderBy: { createdAt: "desc" }, take: 6 }),
         prisma.transaction.findMany({
-          where: {
-            type: "INCOME",
-            createdAt: { gte: last7DaysData[0].rawDate },
-          },
+          where: { tenantId, type: "INCOME", createdAt: { gte: last7DaysData[0].rawDate } },
           select: { createdAt: true, totalAmount: true },
         }),
         prisma.accountEntry.findMany({
-          where: {
-            type: "CREDIT",
-            createdAt: { gte: last7DaysData[0].rawDate },
-          },
+          where: { customer: { tenantId }, type: "CREDIT", createdAt: { gte: last7DaysData[0].rawDate } },
           select: { createdAt: true, amount: true },
         }),
         prisma.repairRecord.groupBy({
           by: ["status"],
+          where: { device: { customer: { tenantId } } },
           _count: { id: true },
         }),
-        // Monthly summaries
         prisma.transaction.aggregate({
-          where: { type: "INCOME", createdAt: { gte: startOfMonth } },
+          where: { tenantId, type: "INCOME", createdAt: { gte: startOfMonth } },
           _sum: { totalAmount: true },
         }),
         prisma.transaction.aggregate({
-          where: { type: "EXPENSE", createdAt: { gte: startOfMonth } },
+          where: { tenantId, type: "EXPENSE", createdAt: { gte: startOfMonth } },
           _sum: { totalAmount: true },
         }),
-        // 6-Month transactions
         prisma.transaction.findMany({
-          where: { createdAt: { gte: sixMonthsAgo } },
+          where: { tenantId, createdAt: { gte: sixMonthsAgo } },
           select: { type: true, totalAmount: true, createdAt: true },
         }),
         prisma.transaction.aggregate({
-          where: { type: "INCOME", createdAt: { gte: periodStart } },
+          where: { tenantId, type: "INCOME", createdAt: { gte: periodStart } },
           _sum: { totalAmount: true },
         }),
         prisma.transaction.aggregate({
-          where: { type: "EXPENSE", createdAt: { gte: periodStart } },
+          where: { tenantId, type: "EXPENSE", createdAt: { gte: periodStart } },
           _sum: { totalAmount: true },
         }),
         prisma.accountEntry.aggregate({
-          where: { type: "CREDIT", createdAt: { gte: periodStart } },
+          where: { customer: { tenantId }, type: "CREDIT", createdAt: { gte: periodStart } },
           _sum: { amount: true },
         }),
       ]);
