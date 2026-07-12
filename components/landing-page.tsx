@@ -12,7 +12,6 @@ const NAV_LINKS = [
   { label: "Ozellikler", href: "#features" },
   { label: "Cozum", href: "#solution" },
   { label: "Paketler", href: "#pricing" },
-  { label: "Takas Hesapla", href: "/takas-hesapla" },
 ];
 
 const MARQUEE_WORDS = [
@@ -426,7 +425,6 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
           <div className="flex flex-wrap justify-center gap-6 text-xs text-slate-400">
             <a href="#features" className="hover:text-white transition">Ozellikler</a>
             <a href="#pricing" className="hover:text-white transition">Paketler</a>
-            <a href="/takas-hesapla" className="hover:text-white transition">Takas Hesapla</a>
             <a href="/yardim" className="hover:text-white transition">Yardim</a>
             <a href="mailto:satis@mobibase.com" className="hover:text-white transition">Iletisim</a>
           </div>
