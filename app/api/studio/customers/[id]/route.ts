@@ -104,7 +104,7 @@ function parseSaasMetadata(notesStr: string | null) {
 }
 
 export async function GET(_: Request, { params }: { params: { id: string } }) {
-  const auth = requireRole(["ADMIN", "PLATFORM_OWNER"]);
+  const auth = requireRole(["PLATFORM_OWNER"]);
   if (auth.error) return auth.error;
 
   const customerId = params.id;
@@ -221,7 +221,7 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
 }
 
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
-  const auth = requireRole(["ADMIN", "PLATFORM_OWNER"]);
+  const auth = requireRole(["PLATFORM_OWNER"]);
   if (auth.error) return auth.error;
 
   const customerId = params.id;
@@ -271,7 +271,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 }
 
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {
-  const auth = requireRole(["ADMIN", "PLATFORM_OWNER"]);
+  const auth = requireRole(["PLATFORM_OWNER"]);
   if (auth.error) return auth.error;
 
   const customerId = params.id;

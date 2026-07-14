@@ -46,7 +46,7 @@ export const buybackWizardSchema = z.object({
   brand: z.string().min(1),
   model: z.string().min(1),
   storage: z.string().min(1),
-  imei: z.string().min(14).max(16),
+  imei: z.string().trim().min(14).max(16).optional().or(z.literal("")),
   screenCondition: z.enum(["excellent", "good", "bad"]),
   bodyCondition: z.enum(["excellent", "good", "bad"]),
   batteryHealth: z.enum(["above90", "between80_90", "below80"]),

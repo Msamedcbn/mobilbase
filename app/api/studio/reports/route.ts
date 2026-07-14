@@ -16,7 +16,7 @@ function parseMetadata(notes: string | null) {
 }
 
 export async function GET(req: Request) {
-  const auth = requireRole(["ADMIN", "PLATFORM_OWNER"]);
+  const auth = requireRole(["PLATFORM_OWNER"]);
   if (auth.error) return auth.error;
 
   const store = await readLocalStore();

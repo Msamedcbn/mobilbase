@@ -3,24 +3,31 @@ import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore } from "@/lib/local-store";
 import { ok, fail } from "@/lib/api-response";
 import { getErrorMessage } from "@/lib/errors";
+import { getSessionUser } from "@/lib/auth";
 
 export async function GET() {
+  const user = getSessionUser();
+  if (!user) return fail("Oturum bulunamadı", "UNAUTHORIZED", 401);
+  const tenantId = user.tenantId;
+
   try {
     let branches: Array<{ id: string; name: string }> = [];
     let transactions: Array<{ branchId?: string | null; totalAmount: number; type: string }> = [];
 
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
-      branches = store.branches || [];
-      transactions = (store.transactions || []).map(t => ({
-        branchId: t.branchId,
-        totalAmount: Number(t.totalAmount),
-        type: t.type
-      }));
+      branches = (store.branches || []).filter((b) => b.tenantId === tenantId);
+      transactions = (store.transactions || [])
+        .filter((t) => t.tenantId === tenantId)
+        .map(t => ({
+          branchId: t.branchId,
+          totalAmount: Number(t.totalAmount),
+          type: t.type
+        }));
     } else {
-      branches = await prisma.branch.findMany({ select: { id: true, name: true } });
+      branches = await prisma.branch.findMany({ where: { tenantId }, select: { id: true, name: true } });
       const dbTransactions = await prisma.transaction.findMany({
-        where: { type: "INCOME" },
+        where: { type: "INCOME", tenantId },
         select: { branchId: true, totalAmount: true, type: true }
       });
       transactions = dbTransactions.map(t => ({

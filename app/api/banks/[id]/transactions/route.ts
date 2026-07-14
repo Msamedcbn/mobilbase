@@ -8,13 +8,17 @@ import { readLocalStore } from "@/lib/local-store";
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN"]);
   if (auth.error) return auth.error;
+  const tenantId = auth.user?.tenantId ?? null;
+  if (!tenantId) return fail("Tenant baglami bulunamadi", "NOT_FOUND", 404);
 
   const bankId = params.id;
 
   try {
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
-      
+      const bank = (store.bankAccounts || []).find((b) => b.id === bankId && b.tenantId === tenantId);
+      if (!bank) return fail("Banka hesabı bulunamadı", "NOT_FOUND", 404);
+
       const transactions = (store.transactions || [])
         .filter((t) => t.bankAccountId === bankId)
         .map((t) => {
@@ -64,6 +68,9 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
       return ok(logs);
     }
+
+    const bank = await prisma.bankAccount.findFirst({ where: { id: bankId, tenantId } });
+    if (!bank) return fail("Banka hesabı bulunamadı", "NOT_FOUND", 404);
 
     const transactions = await prisma.transaction.findMany({
       where: { bankAccountId: bankId },

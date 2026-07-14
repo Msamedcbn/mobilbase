@@ -10,7 +10,7 @@ export default function StudioLoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(true);
-  const canAccessStudio = (role?: string) => role === "ADMIN" || role === "PLATFORM_OWNER";
+  const canAccessStudio = (role?: string) => role === "PLATFORM_OWNER";
 
   // Check if already logged in as SuperAdmin on page load
   useEffect(() => {
@@ -99,7 +99,7 @@ export default function StudioLoginPage() {
             Sistem Yönetimi
           </h1>
           <p className="text-xs text-slate-400 max-w-[280px]">
-            MobiBase SaaS Platformu üst yönetici konsolu güvenli giriş ekranı.
+            VibeGSM SaaS Platformu üst yönetici konsolu güvenli giriş ekranı.
           </p>
         </div>
 

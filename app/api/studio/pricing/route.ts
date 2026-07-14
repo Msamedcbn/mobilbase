@@ -52,7 +52,7 @@ const DEFAULT_PRICING = {
 };
 
 export async function GET() {
-  const auth = requireRole(["ADMIN", "PLATFORM_OWNER"]);
+  const auth = requireRole(["PLATFORM_OWNER"]);
   if (auth.error) return auth.error;
   try {
     const store = await readLocalStore();
@@ -75,7 +75,7 @@ export async function GET() {
 }
 
 export async function PUT(req: Request) {
-  const auth = requireRole(["ADMIN", "PLATFORM_OWNER"]);
+  const auth = requireRole(["PLATFORM_OWNER"]);
   if (auth.error) return auth.error;
   try {
     const body = await req.json();
@@ -140,7 +140,7 @@ export async function PUT(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  const auth = requireRole(["ADMIN", "PLATFORM_OWNER"]);
+  const auth = requireRole(["PLATFORM_OWNER"]);
   if (auth.error) return auth.error;
   try {
     const body = await req.json();

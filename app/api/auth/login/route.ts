@@ -52,7 +52,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Geçersiz giris verisi" }, { status: 400 });
     }
 
-    // Helper to fetch tenant config - customerId ile belirli tenant'Ä±n konfigÃ¼rasyonunu yÃ¼kler
+    // Helper to fetch tenant config - customerId ile belirli tenant'ın konfigürasyonunu yükler
     const getTenantConfig = async (customerId?: string | null) => {
       let rolePermissions: Record<string, string[]> = {
         PLATFORM_OWNER: ["pos", "repairs", "stock", "invoicing", "buyback"],
@@ -72,7 +72,7 @@ export async function POST(req: Request) {
 
       try {
         if (isDbDisabledMode()) {
-          const tenantName = process.env.TENANT_NAME ?? "TelefoncuPro";
+          const tenantName = process.env.TENANT_NAME ?? "VibeGSM";
           const store = await readLocalStore();
           const customer = store.customers.find((c) => customerId ? c.id === customerId : c.fullName === tenantName);
           if (customer && customer.notes) {
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
         } else {
           const customer = customerId
             ? await prisma.customer.findUnique({ where: { id: customerId } })
-            : await prisma.customer.findFirst({ where: { fullName: process.env.TENANT_NAME ?? "TelefoncuPro" } });
+            : await prisma.customer.findFirst({ where: { fullName: process.env.TENANT_NAME ?? "VibeGSM" } });
           if (customer && customer.notes) {
             const parsedNotes = JSON.parse(customer.notes);
             if (parsedNotes.rolePermissions) rolePermissions = parsedNotes.rolePermissions;
@@ -210,22 +210,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "E-posta veya sifre hatali" }, { status: 401 });
     }
 
-    // Multi-tenant giriÅŸ kontrolÃ¼
-    // Her tenant kendi Customer kaydÄ±na baÄŸlÄ± kullanÄ±cÄ±larÄ±yla giriÅŸ yapabilir.
-    // PLATFORM_OWNER iÃ§in tenant kontrolÃ¼ yoktur.
+    // Multi-tenant giriş kontrolü
+    // Her tenant kendi Customer kaydına bağlı kullanıcılarıyla giriş yapabilir.
+    // PLATFORM_OWNER için tenant kontrolü yoktur.
     let resolvedTenantId: string | null = null;
 
     if (authenticatedUser.role !== "PLATFORM_OWNER") {
       const userTenantId = (authenticatedUser as any).tenantId as string | null | undefined;
 
       if (userTenantId) {
-        // KullanÄ±cÄ±nÄ±n mevcut tenantId'si var - geÃ§erli bir Customer'a iÅŸaret ediyor mu?
+        // Kullanıcının mevcut tenantId'si var - geçerli bir Customer'a işaret ediyor mu?
         const userTenant = await prisma.customer.findUnique({
           where: { id: userTenantId },
           select: { id: true },
         });
         if (!userTenant) {
-          return NextResponse.json({ error: "Kullanicinin tenant kaydÄ± geÃ§ersiz veya silinmiÅŸ." }, { status: 403 });
+          return NextResponse.json({ error: "Kullanicinin tenant kaydı geçersiz veya silinmiş." }, { status: 403 });
         }
         resolvedTenantId = userTenant.id;
       } else {
@@ -236,7 +236,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // KullanÄ±cÄ±nÄ±n kendi tenant config'ini yÃ¼kle
+    // Kullanıcının kendi tenant config'ini yükle
     const finalTenantId = resolvedTenantId ?? (authenticatedUser as any).tenantId ?? null;
     if (finalTenantId && authenticatedUser.role !== "PLATFORM_OWNER") {
       if (isDbDisabledMode()) {

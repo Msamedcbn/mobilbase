@@ -9,9 +9,10 @@ import { localId, readLocalStore, writeLocalStore } from "@/lib/local-store";
 export async function GET() {
   const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN"]);
   if (auth.error) return auth.error;
+  const tenantId = auth.user?.tenantId ?? null;
   if (isDbDisabledMode()) {
     const store = await readLocalStore();
-    return ok(store.pricingRules.map((x) => ({
+    return ok(store.pricingRules.filter((x) => x.tenantId === tenantId).map((x) => ({
       ...x,
       basePrice: x.basePrice.toFixed(2),
       excellentBonusPct: x.excellentBonusPct.toFixed(2),
@@ -23,7 +24,7 @@ export async function GET() {
     })));
   }
   try {
-    const rules = await prisma.offerPricingRule.findMany({ orderBy: { createdAt: "desc" } });
+    const rules = await prisma.offerPricingRule.findMany({ where: { tenantId }, orderBy: { createdAt: "desc" } });
     return ok(rules);
   } catch (error) {
     return fail(getErrorMessage(error), getErrorCode(error), getErrorStatus(error));
@@ -33,16 +34,18 @@ export async function GET() {
 export async function POST(req: Request) {
   const auth = requireRole(["ADMIN"]);
   if (auth.error) return auth.error;
+  const tenantId = auth.user?.tenantId ?? null;
+  if (!tenantId) return fail("Tenant baglami bulunamadi", "NOT_FOUND", 404);
   try {
     const body = await req.json();
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
-      const rule = { id: localId("rule"), ...body };
+      const rule = { id: localId("rule"), ...body, tenantId };
       store.pricingRules.unshift(rule);
       await writeLocalStore(store);
       return ok(rule, 201);
     }
-    const rule = await prisma.offerPricingRule.create({ data: body });
+    const rule = await prisma.offerPricingRule.create({ data: { ...body, tenantId } });
     await writeAuditLog({
       action: "PRICING_RULE_CREATE",
       entityType: "OfferPricingRule",

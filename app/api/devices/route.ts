@@ -57,7 +57,7 @@ export async function POST(req: Request) {
       const store = await readLocalStore();
       const customer = store.customers.find((c) => c.id === deviceData.customerId && c.tenantId === tenantId);
       if (!customer) {
-        return fail("MÃ¼ÅŸteri bulunamadÄ± veya yetkisiz", "NOT_FOUND", 404);
+        return fail("Müşteri bulunamadı veya yetkisiz", "NOT_FOUND", 404);
       }
       const item = { ...deviceData, id: localId("dev"), color: deviceData.color ?? null, conditionNote: deviceData.conditionNote ?? null, isSecondHandStock: deviceData.isSecondHandStock ?? false };
       store.devices.unshift(item);
@@ -70,7 +70,7 @@ export async function POST(req: Request) {
       where: { id: deviceData.customerId, tenantId },
     });
     if (!customer) {
-      return fail("MÃ¼ÅŸteri bulunamadÄ± veya yetkisiz", "NOT_FOUND", 404);
+      return fail("Müşteri bulunamadı veya yetkisiz", "NOT_FOUND", 404);
     }
 
     const item = await prisma.device.create({ data: deviceData });

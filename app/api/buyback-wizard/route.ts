@@ -3,7 +3,7 @@ import { buybackWizardSchema } from "@/lib/validations";
 import { getErrorCode, getErrorMessage } from "@/lib/errors";
 import { requireRole } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
-import { calculateOfferPrice } from "@/lib/pricing";
+import { calculateOfferPriceDetailed } from "@/lib/pricing";
 import { fail, ok } from "@/lib/api-response";
 import { isBuybackOpsEnabled, requireFeature } from "@/lib/feature-flags";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
@@ -21,26 +21,51 @@ export async function POST(req: Request) {
     const parsed = buybackWizardSchema.safeParse(body);
     if (!parsed.success) return fail("Buyback verisi geçersiz", "VALIDATION", 400);
 
-    const serverOffer = isDbDisabledMode()
-      ? (() => {
-          let price = 20000;
-          if (parsed.data.screenCondition === "excellent") price += 2500;
-          if (parsed.data.screenCondition === "bad") price -= 3000;
-          if (parsed.data.bodyCondition === "excellent") price += 1500;
-          if (parsed.data.bodyCondition === "bad") price -= 2000;
-          if (parsed.data.batteryHealth === "above90") price += 1000;
-          if (parsed.data.batteryHealth === "below80") price -= 1500;
-          if (parsed.data.hasBrokenComponent) price -= 3500;
-          return Math.max(1000, Math.round(price / 50) * 50);
-        })()
-      : await calculateOfferPrice({
-          brand: parsed.data.brand,
-          model: parsed.data.model,
-          screenCondition: parsed.data.screenCondition,
-          bodyCondition: parsed.data.bodyCondition,
-          batteryHealth: parsed.data.batteryHealth,
-          hasBrokenComponent: parsed.data.hasBrokenComponent,
-        });
+    const tenantId = auth.user?.tenantId ?? null;
+    let serverOffer: number;
+    let requiresSerial = true;
+
+    if (isDbDisabledMode()) {
+      let price = 20000;
+      if (parsed.data.screenCondition === "excellent") price += 2500;
+      if (parsed.data.screenCondition === "bad") price -= 3000;
+      if (parsed.data.bodyCondition === "excellent") price += 1500;
+      if (parsed.data.bodyCondition === "bad") price -= 2000;
+      if (parsed.data.batteryHealth === "above90") price += 1000;
+      if (parsed.data.batteryHealth === "below80") price -= 1500;
+      if (parsed.data.hasBrokenComponent) price -= 3500;
+      serverOffer = Math.max(1000, Math.round(price / 50) * 50);
+
+      const storeForRule = await readLocalStore();
+      const matchedRule = storeForRule.pricingRules.find(
+        (r) =>
+          r.tenantId === tenantId &&
+          r.brand.toLowerCase() === parsed.data.brand.toLowerCase() &&
+          r.isActive &&
+          (!r.modelPattern || parsed.data.model.toLowerCase().includes(r.modelPattern.toLowerCase()))
+      );
+      requiresSerial = matchedRule ? Boolean(matchedRule.requiresSerialNumber) : true;
+    } else {
+      const detailed = await calculateOfferPriceDetailed({
+        brand: parsed.data.brand,
+        model: parsed.data.model,
+        screenCondition: parsed.data.screenCondition,
+        bodyCondition: parsed.data.bodyCondition,
+        batteryHealth: parsed.data.batteryHealth,
+        hasBrokenComponent: parsed.data.hasBrokenComponent,
+      }, tenantId);
+      serverOffer = detailed.offeredPrice;
+      requiresSerial = detailed.requiresSerialNumber;
+    }
+
+    const trimmedImei = parsed.data.imei ? parsed.data.imei.trim() : "";
+    if (requiresSerial && !trimmedImei) {
+      return fail("Bu marka/model icin IMEI numarasi zorunludur.", "VALIDATION", 400);
+    }
+    if (trimmedImei && (trimmedImei.length < 14 || trimmedImei.length > 16)) {
+      return fail("Gecerli bir IMEI numarasi girin (14-16 haneli).", "VALIDATION", 400);
+    }
+
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
       const customer = store.customers.find((c) => c.id === parsed.data.customerId);
@@ -69,11 +94,15 @@ export async function POST(req: Request) {
       return ok({ wizard: { id: localId("wiz") }, product: { id: localId("prd") }, deal }, 201, "Buyback kaydi tamamlandi");
     }
 
+    const fallbackBarcode = `IKINCI-EL-${parsed.data.brand}-${parsed.data.model}-${Date.now()}`
+      .toUpperCase()
+      .replace(/\s+/g, "-");
+
     const result = await prisma.$transaction(async (tx) => {
       const product = await tx.product.create({
         data: {
           name: `${parsed.data.brand} ${parsed.data.model} ${parsed.data.storage}`,
-          barcode: parsed.data.imei,
+          barcode: trimmedImei || fallbackBarcode,
           category: "SECOND_HAND_DEVICE",
           stock: 1,
           purchasePrice: serverOffer,
@@ -92,7 +121,7 @@ export async function POST(req: Request) {
           brand: parsed.data.brand,
           model: parsed.data.model,
           storage: parsed.data.storage,
-          imei: parsed.data.imei,
+          imei: trimmedImei,
           screenCondition: parsed.data.screenCondition,
           bodyCondition: parsed.data.bodyCondition,
           batteryHealth: parsed.data.batteryHealth,

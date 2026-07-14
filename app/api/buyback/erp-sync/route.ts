@@ -12,6 +12,8 @@ export async function POST(req: Request) {
 
   const auth = requireRole(["ADMIN"]);
   if (auth.error) return auth.error;
+  const tenantId = auth.user?.tenantId ?? null;
+  if (!tenantId) return fail("Tenant baglami bulunamadi", "NOT_FOUND", 404);
 
   try {
     const body = await req.json();
@@ -24,7 +26,7 @@ export async function POST(req: Request) {
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
       for (const rule of parsed.data.pricingRules) {
-        const existing = store.pricingRules.find((r) => r.brand === rule.brand && (r.modelPattern ?? null) === (rule.modelPattern ?? null));
+        const existing = store.pricingRules.find((r) => r.tenantId === tenantId && r.brand === rule.brand && (r.modelPattern ?? null) === (rule.modelPattern ?? null));
         if (existing) {
           existing.basePrice = rule.basePrice;
           existing.excellentBonusPct = rule.excellentBonusPct ?? existing.excellentBonusPct;
@@ -38,6 +40,7 @@ export async function POST(req: Request) {
         } else {
           store.pricingRules.unshift({
             id: localId("rule"),
+            tenantId,
             brand: rule.brand,
             modelPattern: rule.modelPattern ?? null,
             basePrice: rule.basePrice,
@@ -60,6 +63,7 @@ export async function POST(req: Request) {
       try {
         const existing = await prisma.offerPricingRule.findFirst({
           where: {
+            tenantId,
             brand: rule.brand,
             modelPattern: rule.modelPattern ?? null,
           },
@@ -83,6 +87,7 @@ export async function POST(req: Request) {
         } else {
           await prisma.offerPricingRule.create({
             data: {
+              tenantId,
               brand: rule.brand,
               modelPattern: rule.modelPattern ?? null,
               basePrice: rule.basePrice,

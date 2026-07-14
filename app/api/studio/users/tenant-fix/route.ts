@@ -5,11 +5,11 @@ import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore, writeLocalStore } from "@/lib/local-store";
 
 function canManage(role: string) {
-  return role === "PLATFORM_OWNER" || role === "ADMIN";
+  return role === "PLATFORM_OWNER";
 }
 
 export async function GET() {
-  const auth = requireRole(["ADMIN", "PLATFORM_OWNER"]);
+  const auth = requireRole(["PLATFORM_OWNER"]);
   if (auth.error) return auth.error;
   if (!auth.user || !canManage(auth.user.role)) {
     return NextResponse.json({ error: "Bu işlem icin yetkiniz yok." }, { status: 403 });
@@ -38,7 +38,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const auth = requireRole(["ADMIN", "PLATFORM_OWNER"]);
+  const auth = requireRole(["PLATFORM_OWNER"]);
   if (auth.error) return auth.error;
   if (!auth.user || !canManage(auth.user.role)) {
     return NextResponse.json({ error: "Bu işlem icin yetkiniz yok." }, { status: 403 });

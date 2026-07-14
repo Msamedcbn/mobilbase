@@ -13,6 +13,8 @@ export default function WholesalePage() {
   const [movements, setMovements] = useState<Movement[]>([]);
   const [action, setAction] = useState<"EXTERNAL_PURCHASE" | "EXTERNAL_SALE" | "INTERNAL_TRANSFER">("EXTERNAL_PURCHASE");
   const [productId, setProductId] = useState("");
+  const [newProductMode, setNewProductMode] = useState(false);
+  const [newProductName, setNewProductName] = useState("");
   const [sourceBranchId, setSourceBranchId] = useState("");
   const [targetBranchId, setTargetBranchId] = useState("");
   const [quantity, setQuantity] = useState("1");
@@ -40,18 +42,34 @@ export default function WholesalePage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (newProductMode && !newProductName.trim()) {
+      toast.error("Yeni urun adi zorunludur.");
+      return;
+    }
     setSaving(true);
     try {
       const res = await fetch("/api/wholesale", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, productId, sourceBranchId, targetBranchId, quantity: Number(quantity), unitPrice: Number(unitPrice), invoiceNo, note }),
+        body: JSON.stringify({
+          action,
+          productId: newProductMode ? "" : productId,
+          newProductName: newProductMode ? newProductName.trim() : "",
+          sourceBranchId,
+          targetBranchId,
+          quantity: Number(quantity),
+          unitPrice: Number(unitPrice),
+          invoiceNo,
+          note,
+        }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Islem basarisiz");
       toast.success("Toptan islem kaydedildi.");
       setNote("");
       setInvoiceNo("");
+      setNewProductName("");
+      setNewProductMode(false);
       await fetchData();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Islem basarisiz");
@@ -76,8 +94,8 @@ export default function WholesalePage() {
           <p style={{ margin: 0, color: "#64748b", fontSize: 12 }}>Hizli Islem</p>
           <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
             <button type="button" className="field" style={{ width: 88 }} onClick={() => setAction("EXTERNAL_PURCHASE")}>Dis Alis</button>
-            <button type="button" className="field" style={{ width: 88 }} onClick={() => setAction("EXTERNAL_SALE")}>Dis Satis</button>
-            <button type="button" className="field" style={{ width: 88 }} onClick={() => setAction("INTERNAL_TRANSFER")}>Ic Transfer</button>
+            <button type="button" className="field" style={{ width: 88 }} onClick={() => { setAction("EXTERNAL_SALE"); setNewProductMode(false); }}>Dis Satis</button>
+            <button type="button" className="field" style={{ width: 88 }} onClick={() => { setAction("INTERNAL_TRANSFER"); setNewProductMode(false); }}>Ic Transfer</button>
           </div>
         </div>
         <div className="panel" style={{ padding: "0.7rem" }}>
@@ -89,16 +107,44 @@ export default function WholesalePage() {
       </div>
       <form className="panel" style={{ padding: "0.8rem", display: "grid", gap: 8 }} onSubmit={submit}>
         <div className="form-grid-3">
-          <select className="field" value={action} onChange={(e) => setAction(e.target.value as any)}>
+          <select
+            className="field"
+            value={action}
+            onChange={(e) => {
+              const next = e.target.value as typeof action;
+              setAction(next);
+              if (next !== "EXTERNAL_PURCHASE") setNewProductMode(false);
+            }}
+          >
             <option value="EXTERNAL_PURCHASE">Disaridan Toptan Alis</option>
             <option value="EXTERNAL_SALE">Disariya Toptan Satis</option>
             <option value="INTERNAL_TRANSFER">Subeler Arasi Ic Satis/Alis</option>
           </select>
-          <select className="field" value={productId} onChange={(e) => setProductId(e.target.value)}>
-            {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
+          {newProductMode ? (
+            <input
+              className="field"
+              placeholder="Yeni Urun Adi"
+              value={newProductName}
+              onChange={(e) => setNewProductName(e.target.value)}
+            />
+          ) : (
+            <select className="field" value={productId} onChange={(e) => setProductId(e.target.value)}>
+              {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          )}
           <input className="field" placeholder="Fatura / Belge No" value={invoiceNo} onChange={(e) => setInvoiceNo(e.target.value)} />
         </div>
+
+        {action === "EXTERNAL_PURCHASE" && (
+          <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "#475569" }}>
+            <input
+              type="checkbox"
+              checked={newProductMode}
+              onChange={(e) => setNewProductMode(e.target.checked)}
+            />
+            Kataloga kayitli olmayan yeni bir urun alıyorum
+          </label>
+        )}
 
         <div className="form-grid-4">
           <select className="field" value={sourceBranchId} onChange={(e) => setSourceBranchId(e.target.value)}>

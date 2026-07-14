@@ -7,21 +7,27 @@ import { requireRole } from "@/lib/auth";
 export async function GET() {
   const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN", "MANAGER"]);
   if (auth.error) return auth.error;
+  const tenantId = auth.user?.tenantId ?? null;
 
   try {
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
-      const logs = store.stockLogs || [];
+      const tenantStockItemIds = new Set(
+        (store.stockItems || []).filter((s) => s.tenantId === tenantId).map((s) => s.id)
+      );
+      const logs = (store.stockLogs || []).filter((l) => tenantStockItemIds.has(l.entityId));
       // Return sorted by date desc
       const sortedLogs = [...logs].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       return NextResponse.json(sortedLogs);
     }
 
+    const tenantStockItems = await prisma.stockItem.findMany({ where: { tenantId }, select: { id: true } });
     const dbLogs = await prisma.auditLog.findMany({
       where: {
         action: {
           startsWith: "STOCK_",
         },
+        entityId: { in: tenantStockItems.map((s) => s.id) },
       },
       orderBy: {
         createdAt: "desc",

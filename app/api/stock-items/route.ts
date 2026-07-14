@@ -75,7 +75,7 @@ export async function GET() {
       where: tenantId ? { tenantId } : { tenantId: null },
       orderBy: { updatedAt: "desc" },
     });
-    // Legacy uyumluluk: eski veriler Product tablosunda kalmÄ±ÅŸ olabilir.
+    // Legacy uyumluluk: eski veriler Product tablosunda kalmış olabilir.
     const legacyItems = await mapLegacyProducts();
     const knownSkus = new Set(items.map((x) => String(x.sku || "").toLowerCase()));
     const merged = [...items, ...legacyItems.filter((x) => !knownSkus.has(String(x.sku || "").toLowerCase()))];
@@ -120,21 +120,22 @@ export async function POST(req: Request) {
       buybackProcessStatus,
       buybackSaleEnabled,
       buybackDealId,
+      requiresSerialNumber,
     } = body;
-    
+
     if (!sku || !name) {
-      return NextResponse.json({ error: "SKU ve Ã¼rÃ¼n adÄ± zorunludur." }, { status: 400 });
+      return NextResponse.json({ error: "SKU ve ürün adı zorunludur." }, { status: 400 });
     }
 
-    const isSerialized = (category || "").toUpperCase() === "TELEFON" || !!imei;
+    const isSerialized = Boolean(requiresSerialNumber);
     const cleanImei = imei ? imei.trim() : null;
 
     if (isSerialized) {
       if (!cleanImei) {
-        return NextResponse.json({ error: "Telefon kategorisi iÃ§in IMEI zorunludur." }, { status: 400 });
+        return NextResponse.json({ error: "Telefon kategorisi için IMEI zorunludur." }, { status: 400 });
       }
       if (Number(quantity || 0) > 1) {
-        return NextResponse.json({ error: "Seri numaralÄ± Ã¼rÃ¼nler sadece 1 adet olarak eklenebilir." }, { status: 400 });
+        return NextResponse.json({ error: "Seri numaralı ürünler sadece 1 adet olarak eklenebilir." }, { status: 400 });
       }
       // IMEI uniqueness validation
       if (isDbDisabledMode()) {
@@ -143,14 +144,14 @@ export async function POST(req: Request) {
           (x) => x.imei && x.imei.toLowerCase() === cleanImei.toLowerCase() && x.quantity > 0 && x.tenantId === tenantId
         );
         if (imeiExists) {
-          return NextResponse.json({ error: `Bu IMEI numarasÄ± (${cleanImei}) zaten stokta mevcut.` }, { status: 400 });
+          return NextResponse.json({ error: `Bu IMEI numarası (${cleanImei}) zaten stokta mevcut.` }, { status: 400 });
         }
       } else {
         const existingStock = await prisma.stockItem.findFirst({
           where: { imei: { equals: cleanImei, mode: "insensitive" }, quantity: { gte: 1 }, tenantId },
         });
         if (existingStock) {
-          return NextResponse.json({ error: `Bu IMEI numarasÄ± (${cleanImei}) zaten stokta mevcut (SKU: ${existingStock.sku}).` }, { status: 400 });
+          return NextResponse.json({ error: `Bu IMEI numarası (${cleanImei}) zaten stokta mevcut (SKU: ${existingStock.sku}).` }, { status: 400 });
         }
       }
     }
@@ -190,7 +191,7 @@ export async function POST(req: Request) {
             }
           }
 
-          const logDetail = `Stok MiktarÄ± GÃ¼ncellendi (Upsert): ${item.sku} - ${item.name} (+${quantity} Adet, Yeni Toplam: ${item.quantity})`;
+          const logDetail = `Stok Miktarı Güncellendi (Upsert): ${item.sku} - ${item.name} (+${quantity} Adet, Yeni Toplam: ${item.quantity})`;
           store.stockLogs?.unshift({
             id: `stock-log-${Math.random().toString(36).substr(2, 9)}`,
             action: "STOCK_UPDATE",
@@ -270,7 +271,7 @@ export async function POST(req: Request) {
             action: "STOCK_UPDATE",
             entityType: "StockItem",
             entityId: updated.id,
-            detail: `Stok MiktarÄ± GÃ¼ncellendi (Upsert): ${updated.sku} - ${updated.name} (+${quantity} Adet, Yeni Toplam: ${updated.quantity})`,
+            detail: `Stok Miktarı Güncellendi (Upsert): ${updated.sku} - ${updated.name} (+${quantity} Adet, Yeni Toplam: ${updated.quantity})`,
             actorUserId: auth.user?.userId,
           });
 
@@ -289,7 +290,7 @@ export async function POST(req: Request) {
 
       const exists = store.stockItems.some((x) => x.sku.toLowerCase() === stockItemSku.toLowerCase() && !x.isCatalog && x.tenantId === tenantId);
       if (exists) {
-        return NextResponse.json({ error: "Bu SKU zaten kayÄ±tlÄ±." }, { status: 409 });
+        return NextResponse.json({ error: "Bu SKU zaten kayıtlı." }, { status: 409 });
       }
 
       const newItem = {
@@ -333,7 +334,7 @@ export async function POST(req: Request) {
         });
       }
       
-      const logDetail = `Yeni Envanter GiriÅŸi: ${stockItemSku} - ${formattedName} (Adet: ${quantity})`;
+      const logDetail = `Yeni Envanter Girişi: ${stockItemSku} - ${formattedName} (Adet: ${quantity})`;
       store.stockLogs.unshift({
         id: `stock-log-${Math.random().toString(36).substr(2, 9)}`,
         action: "STOCK_ADD",
@@ -553,14 +554,14 @@ export async function POST(req: Request) {
       action: "STOCK_ADD",
       entityType: "StockItem",
       entityId: item.id,
-      detail: `Yeni Envanter GiriÅŸi: ${item.sku} - ${item.name} (Adet: ${item.quantity})`,
+      detail: `Yeni Envanter Girişi: ${item.sku} - ${item.name} (Adet: ${item.quantity})`,
       actorUserId: auth.user?.userId,
     });
 
     return NextResponse.json(item, { status: 201 });
   } catch (error) {
     console.error("Error adding stock item:", error);
-    return NextResponse.json({ error: "KayÄ±t iÅŸlemi baÅŸarÄ±sÄ±z." }, { status: 500 });
+    return NextResponse.json({ error: "Kayıt işlemi başarısız." }, { status: 500 });
   }
 }
 

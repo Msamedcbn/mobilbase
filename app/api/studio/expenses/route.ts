@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { readLocalStore, writeLocalStore, localId } from "@/lib/local-store";
+import { requireRole } from "@/lib/auth";
 
 export async function GET() {
+  const auth = requireRole(["PLATFORM_OWNER"]);
+  if (auth.error) return auth.error;
+
   try {
     const store = await readLocalStore();
     return NextResponse.json(store.resellerExpenses || []);
@@ -11,6 +15,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const auth = requireRole(["PLATFORM_OWNER"]);
+  if (auth.error) return auth.error;
+
   try {
     const body = await req.json();
     const { category, description, amount, date, id } = body;
@@ -52,6 +59,9 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+  const auth = requireRole(["PLATFORM_OWNER"]);
+  if (auth.error) return auth.error;
+
   try {
     const url = new URL(req.url);
     const id = url.searchParams.get("id");

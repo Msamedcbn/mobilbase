@@ -61,6 +61,8 @@ export async function POST(req: Request) {
 
   const auth = requireRole(["ADMIN"]);
   if (auth.error) return auth.error;
+  const tenantId = auth.user?.tenantId ?? null;
+  if (!tenantId) return fail("Tenant baglami bulunamadi", "NOT_FOUND", 404);
 
   try {
     const body = await req.text();
@@ -91,8 +93,9 @@ export async function POST(req: Request) {
             errors.push(`invalid row: ${JSON.stringify(row)}`);
             continue;
           }
-          const existing = store.pricingRules.find((r) => r.brand === brand && (r.modelPattern ?? null) === modelPattern);
+          const existing = store.pricingRules.find((r) => r.tenantId === tenantId && r.brand === brand && (r.modelPattern ?? null) === modelPattern);
           const data = {
+            tenantId,
             brand,
             modelPattern,
             basePrice,
@@ -157,10 +160,11 @@ export async function POST(req: Request) {
         }
 
         const existing = await prisma.offerPricingRule.findFirst({
-          where: { brand, modelPattern },
+          where: { tenantId, brand, modelPattern },
         });
 
         const data = {
+          tenantId,
           brand,
           modelPattern,
           basePrice,

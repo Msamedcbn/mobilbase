@@ -32,12 +32,12 @@ function cleanString(str: string): string {
     .trim()
     .toUpperCase()
     .replace(/Ä/g, "G")
-    .replace(/Ãœ/g, "U")
+    .replace(/Ü/g, "U")
     .replace(/Å/g, "S")
-    .replace(/Ä°/g, "I")
+    .replace(/İ/g, "I")
     .replace(/I/g, "I")
-    .replace(/Ã–/g, "O")
-    .replace(/Ã‡/g, "C")
+    .replace(/Ö/g, "O")
+    .replace(/Ç/g, "C")
     .replace(/[^A-Z0-9-]/g, "")
     .replace(/-+/g, "-");
 }
@@ -118,7 +118,9 @@ export async function POST(req: Request) {
       imei,
       condition,
       serialNumber,
+      requiresSerialNumber,
     } = body;
+    const requiresSerial = Boolean(requiresSerialNumber);
 
     const code = barcode || sku;
     let generatedBarcode = code;
@@ -176,6 +178,20 @@ export async function POST(req: Request) {
         return fail("Bu SKU zaten kayitli.", "VALIDATION", 400);
       }
 
+      const initialQty = Number(stock || 0);
+      if (requiresSerial && initialQty > 0) {
+        const trimmedImei = imei ? String(imei).trim() : "";
+        if (!trimmedImei) {
+          return fail("Stok eklemek icin IMEI numarasi zorunludur.", "VALIDATION", 400);
+        }
+        if (trimmedImei.length < 14 || trimmedImei.length > 16) {
+          return fail("Gecerli bir IMEI numarasi girin (14-16 haneli).", "VALIDATION", 400);
+        }
+        if (initialQty > 1) {
+          return fail("Seri numarali cihazlar icin baslangic stogu en fazla 1 olabilir.", "VALIDATION", 400);
+        }
+      }
+
       const newCatalogItem = {
         id: `stock-item-${Math.random().toString(36).substr(2, 9)}`,
         sku: generatedBarcode,
@@ -194,6 +210,7 @@ export async function POST(req: Request) {
         purchaseDocNo: null,
         minThreshold: 0,
         isCatalog: true,
+        requiresSerialNumber: requiresSerial,
         condition: null,
         purchaseDate: new Date().toISOString(),
         createdAt: new Date().toISOString(),
@@ -253,6 +270,20 @@ export async function POST(req: Request) {
       return ok(newCatalogItem, 201, "Ürün kaydi basarili");
     }
 
+    const initialQty = Number(stock || 0);
+    if (requiresSerial && initialQty > 0) {
+      const trimmedImei = imei ? String(imei).trim() : "";
+      if (!trimmedImei) {
+        return fail("Stok eklemek icin IMEI numarasi zorunludur.", "VALIDATION", 400);
+      }
+      if (trimmedImei.length < 14 || trimmedImei.length > 16) {
+        return fail("Gecerli bir IMEI numarasi girin (14-16 haneli).", "VALIDATION", 400);
+      }
+      if (initialQty > 1) {
+        return fail("Seri numarali cihazlar icin baslangic stogu en fazla 1 olabilir.", "VALIDATION", 400);
+      }
+    }
+
     const product = await prisma.product.create({
       data: {
         name: name || `${brand || ""} ${model || ""} ${variantStorage || ""} ${variantColor || ""}`.trim(),
@@ -265,6 +296,7 @@ export async function POST(req: Request) {
         purchasePrice: Number(purchasePrice || 0),
         salePrice: Number(salePrice || 0),
         isCatalog: catalog,
+        requiresSerialNumber: requiresSerial,
         tenantId,
       },
     });

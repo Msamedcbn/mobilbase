@@ -11,13 +11,14 @@ type OfferInput = {
   hasBrokenComponent: boolean;
 };
 
-export async function calculateOfferPriceDetailed(input: OfferInput) {
+export async function calculateOfferPriceDetailed(input: OfferInput, tenantId?: string | null) {
   let rule: any = null;
 
   if (isDbDisabledMode()) {
     const store = await readLocalStore();
     rule = store.pricingRules.find(
       (r) =>
+        r.tenantId === tenantId &&
         r.brand.toLowerCase() === input.brand.toLowerCase() &&
         r.isActive &&
         (!r.modelPattern || input.model.toLowerCase().includes(r.modelPattern.toLowerCase()))
@@ -25,6 +26,7 @@ export async function calculateOfferPriceDetailed(input: OfferInput) {
   } else {
     rule = await prisma.offerPricingRule.findFirst({
       where: {
+        tenantId,
         brand: input.brand,
         isActive: true,
         OR: [{ modelPattern: null }, { modelPattern: { contains: input.model, mode: "insensitive" } }],
@@ -103,11 +105,12 @@ export async function calculateOfferPriceDetailed(input: OfferInput) {
     minPrice: minPrice || null,
     maxPrice: maxPrice || null,
     ruleId: rule?.id ?? null,
+    requiresSerialNumber: rule ? Boolean(rule.requiresSerialNumber) : true,
     lines,
   };
 }
 
-export async function calculateOfferPrice(input: OfferInput) {
-  const result = await calculateOfferPriceDetailed(input);
+export async function calculateOfferPrice(input: OfferInput, tenantId?: string | null) {
+  const result = await calculateOfferPriceDetailed(input, tenantId);
   return result.offeredPrice;
 }

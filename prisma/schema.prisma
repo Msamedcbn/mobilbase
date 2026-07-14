@@ -125,6 +125,7 @@ model Customer {
   tenantInvoices  Invoice[]       @relation("TenantToInvoices")
   tenantCorporateQuotes CorporateQuote[]
   tenantRepairPriceItems RepairPriceItem[]
+  tenantOfferPricingRules OfferPricingRule[]
 
   @@unique([phone, tenantId])
   @@unique([nationalId, tenantId])
@@ -356,6 +357,7 @@ model Product {
   purchaseDocType String?
   purchaseDocNo   String?
   isCatalog       Boolean           @default(false)
+  requiresSerialNumber Boolean      @default(false)
   condition       String?
   purchaseDate    DateTime          @default(now())
   createdAt       DateTime          @default(now())
@@ -418,8 +420,14 @@ model OfferPricingRule {
   batteryLowPenalty  Decimal  @default(0.18) @db.Decimal(5, 2)
   brokenPenaltyPct   Decimal  @default(0.30) @db.Decimal(5, 2)
   isActive           Boolean  @default(true)
+  requiresSerialNumber Boolean @default(true)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+
+  tenantId           String?
+  tenant             Customer? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, brand])
 }
 
 model AppUser {

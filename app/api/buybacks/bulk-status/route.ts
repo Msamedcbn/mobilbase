@@ -19,6 +19,8 @@ export async function POST(req: Request) {
 
   const auth = requireRole(["ADMIN", "CASHIER"]);
   if (auth.error) return auth.error;
+  const tenantId = auth.user?.tenantId ?? null;
+  if (!tenantId) return fail("Tenant baglami bulunamadi", "NOT_FOUND", 404);
 
   try {
     const body = await req.json();
@@ -26,9 +28,14 @@ export async function POST(req: Request) {
     if (!parsed.success) return fail("Toplu guncelleme verisi geçersiz", "VALIDATION", 400);
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
+      const ownedIds = new Set(
+        store.buybacks
+          .filter((b) => store.customers.find((c) => c.id === b.customerId)?.tenantId === tenantId)
+          .map((b) => b.id)
+      );
       let updatedCount = 0;
       for (const item of store.buybacks) {
-        if (parsed.data.ids.includes(item.id)) {
+        if (parsed.data.ids.includes(item.id) && ownedIds.has(item.id)) {
           item.status = parsed.data.status;
           updatedCount++;
         }
@@ -38,7 +45,7 @@ export async function POST(req: Request) {
     }
 
     const result = await prisma.buybackDeal.updateMany({
-      where: { id: { in: parsed.data.ids } },
+      where: { id: { in: parsed.data.ids }, customer: { tenantId } },
       data: { status: parsed.data.status },
     });
 

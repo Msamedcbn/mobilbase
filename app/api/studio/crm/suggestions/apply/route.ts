@@ -23,7 +23,7 @@ function parseMeta(notes: string | null) {
 }
 
 export async function POST(req: Request) {
-  const auth = requireRole(["ADMIN", "PLATFORM_OWNER", "MANAGER"]);
+  const auth = requireRole(["PLATFORM_OWNER"]);
   if (auth.error) return auth.error;
 
   const body = await req.json();

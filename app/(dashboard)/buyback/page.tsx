@@ -17,6 +17,7 @@ type WizardData = {
   bodyCondition: "excellent" | "good" | "bad";
   batteryHealth: "above90" | "between80_90" | "below80";
   hasBrokenComponent: "no" | "yes";
+  requiresSerialNumber?: boolean;
 };
 
 type BuybackDeal = {
@@ -48,6 +49,7 @@ type PricingRule = {
   batteryLowPenalty: number;
   brokenPenaltyPct: number;
   isActive: boolean;
+  requiresSerialNumber: boolean;
 };
 
 type PricingAuditLog = {
@@ -65,6 +67,7 @@ type CatalogItem = {
   basePrice: number;
   minPrice: number;
   questionSetJson: string;
+  requiresSerialNumber?: boolean;
 };
 type ContactForm = {
   firstName: string;
@@ -101,6 +104,7 @@ const initialData: WizardData = {
   bodyCondition: "good",
   batteryHealth: "between80_90",
   hasBrokenComponent: "no",
+  requiresSerialNumber: true,
 };
 
 function inferStorageFromModel(model: string) {
@@ -120,6 +124,7 @@ const initialRule = {
   batteryHighPct: 0.08,
   batteryLowPenalty: 0.18,
   brokenPenaltyPct: 0.3,
+  requiresSerialNumber: true,
 };
 
 export default function BuybackOperationsPage() {
@@ -295,6 +300,7 @@ export default function BuybackOperationsPage() {
     setOfferedPrice(computed);
     const lines = Object.entries(questionAnswers).map(([label, value]) => ({ note: `${label}: ${value.toLocaleString("tr-TR")} TL`, multiplier: 1 }));
     setSimulationBreakdown({ basePrice: base, lines, offeredPrice: computed });
+    setData((p) => ({ ...p, requiresSerialNumber: selected.requiresSerialNumber ?? true }));
   }, [catalogItems, data.brand, data.model, questionAnswers]);
 
   const brandOptions = useMemo(() => Array.from(new Set(catalogItems.map((x) => x.brand))).sort((a, b) => a.localeCompare(b, "tr")), [catalogItems]);
@@ -393,6 +399,7 @@ export default function BuybackOperationsPage() {
       batteryLowPenalty: Number(r.batteryLowPenalty),
       brokenPenaltyPct: Number(r.brokenPenaltyPct),
       isActive: Boolean(r.isActive),
+      requiresSerialNumber: r.requiresSerialNumber === undefined ? true : Boolean(r.requiresSerialNumber),
     };
   }
 
@@ -729,7 +736,7 @@ export default function BuybackOperationsPage() {
       {buybackOpsEnabled && (
         <div className="panel" style={{ padding: "0.65rem" }}>
           <div className="toolbar-wrap">
-            <button className={`field`} style={{ width: 170, background: activePanel === "opspro" ? "#0f766e" : "#fff", color: activePanel === "opspro" ? "#fff" : "#0f172a", borderColor: activePanel === "opspro" ? "#0f766e" : "var(--border)" }} onClick={() => setActivePanel("opspro")}>Operasyon Pro</button>
+            <button className={`field`} style={{ width: 170, background: activePanel === "opspro" ? "#1d4ed8" : "#fff", color: activePanel === "opspro" ? "#fff" : "#0f172a", borderColor: activePanel === "opspro" ? "#1d4ed8" : "var(--border)" }} onClick={() => setActivePanel("opspro")}>Operasyon Pro</button>
             <button className={`field`} style={{ width: 170, background: activePanel === "pool" ? "#e6fffb" : "#fff" }} onClick={() => setActivePanel("pool")}>Teklif Havuzu</button>
             <button className={`field`} style={{ width: 170, background: activePanel === "wizard" ? "#e6fffb" : "#fff" }} onClick={() => setActivePanel("wizard")}>Sihirbaz</button>
             <button className={`field`} style={{ width: 170, background: activePanel === "pricing" ? "#e6fffb" : "#fff" }} onClick={() => setActivePanel("pricing")}>Fiyat Motoru</button>
@@ -798,7 +805,7 @@ export default function BuybackOperationsPage() {
         <div className="wizard-steps-grid" style={{ marginBottom: 14 }}>
           {steps.map((s, idx) => {
             const active = step === idx + 1;
-            return <div key={s} className="panel" style={{ padding: "0.5rem", textAlign: "center", background: active ? "#0f766e" : "#fff", color: active ? "#fff" : "#334155", borderColor: active ? "#0f766e" : "var(--border)" }}>{idx + 1}. {s}</div>;
+            return <div key={s} className="panel" style={{ padding: "0.5rem", textAlign: "center", background: active ? "#1d4ed8" : "#fff", color: active ? "#fff" : "#334155", borderColor: active ? "#1d4ed8" : "var(--border)" }}>{idx + 1}. {s}</div>;
           })}
         </div>
 
@@ -1083,6 +1090,14 @@ export default function BuybackOperationsPage() {
             <input className="field" type="number" placeholder="Base Price" value={ruleForm.basePrice} onChange={(e) => setRuleForm((p) => ({ ...p, basePrice: Number(e.target.value) }))} />
             <button className="primary-btn" disabled={creatingRule} onClick={() => void createRule()}>{creatingRule ? "Olusturuluyor..." : "Kural Ekle"}</button>
           </div>
+          <label style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8, fontSize: 13, fontWeight: 700 }}>
+            <input
+              type="checkbox"
+              checked={ruleForm.requiresSerialNumber}
+              onChange={(e) => setRuleForm((p) => ({ ...p, requiresSerialNumber: e.target.checked }))}
+            />
+            Seri No (IMEI) Gerekli
+          </label>
         </div>
 
         <div className="panel panel-scroll">
@@ -1104,6 +1119,7 @@ export default function BuybackOperationsPage() {
                   <th>Pil-</th>
                   <th>Ariza-</th>
                   <th>Aktif</th>
+                  <th>Seri No</th>
                   <th>Aksiyon</th>
                 </tr>
               </thead>
@@ -1120,6 +1136,7 @@ export default function BuybackOperationsPage() {
                     <td><input className="field" type="number" step="0.01" value={rule.batteryLowPenalty} onChange={(e) => setRules((prev) => prev.map((r) => (r.id === rule.id ? { ...r, batteryLowPenalty: Number(e.target.value) } : r)))} /></td>
                     <td><input className="field" type="number" step="0.01" value={rule.brokenPenaltyPct} onChange={(e) => setRules((prev) => prev.map((r) => (r.id === rule.id ? { ...r, brokenPenaltyPct: Number(e.target.value) } : r)))} /></td>
                     <td><input type="checkbox" checked={rule.isActive} onChange={(e) => setRules((prev) => prev.map((r) => (r.id === rule.id ? { ...r, isActive: e.target.checked } : r)))} /></td>
+                    <td><input type="checkbox" checked={rule.requiresSerialNumber} onChange={(e) => setRules((prev) => prev.map((r) => (r.id === rule.id ? { ...r, requiresSerialNumber: e.target.checked } : r)))} /></td>
                     <td style={{ display: "flex", gap: 6 }}>
                       <button className="primary-btn" onClick={() => void saveRule(rule)}>Kaydet</button>
                       <button className="field" style={{ width: 90 }} onClick={() => void deleteRule(rule.id)}>Sil</button>
@@ -1348,7 +1365,7 @@ function StepOne({
           const active = selectedDeviceType === type;
           const disabled = type !== "telefon";
           return (
-            <button key={type} disabled={disabled} onClick={() => onDeviceTypeChange(type)} className="field" style={{ padding: "0.85rem", borderColor: active ? "#0f766e" : undefined, color: active ? "#0f766e" : undefined, opacity: disabled ? 0.55 : 1 }}>
+            <button key={type} disabled={disabled} onClick={() => onDeviceTypeChange(type)} className="field" style={{ padding: "0.85rem", borderColor: active ? "#1d4ed8" : undefined, color: active ? "#1d4ed8" : undefined, opacity: disabled ? 0.55 : 1 }}>
               {type.toUpperCase()}
             </button>
           );
@@ -1379,7 +1396,7 @@ function StepTwo({ questions, answers, setAnswer }: { questions: CatalogQuestion
         <p style={{ margin: "0 0 8px", fontSize: 16, color: "#0f172a", fontWeight: 700 }}>{q.label} <span style={{ color: "#ef4444" }}>*</span></p>
         <div style={{ display: "grid", gap: 8, gridTemplateColumns: "repeat(2,minmax(0,1fr))" }}>
           {q.options.map((opt, idx) => (
-            <label key={`${q.label}-${opt.text}`} className="panel" style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "0.65rem", cursor: "pointer", borderColor: answers[q.label] === opt.value ? "#0f766e" : undefined, background: answers[q.label] === opt.value ? "#ecfdf5" : "#fff" }}>
+            <label key={`${q.label}-${opt.text}`} className="panel" style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "0.65rem", cursor: "pointer", borderColor: answers[q.label] === opt.value ? "#1d4ed8" : undefined, background: answers[q.label] === opt.value ? "#ecfdf5" : "#fff" }}>
               <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span style={{ width: 18, height: 18, borderRadius: 99, background: "#e2e8f0", fontSize: 11, display: "grid", placeItems: "center", color: "#334155", fontWeight: 700 }}>{String.fromCharCode(65 + idx)}</span>
                 {opt.text}
@@ -1437,7 +1454,8 @@ function StepThree({
   tradeInQuote: { grossAmount: number; differenceAmount: number; buybackCredit: number } | null;
   onSubmit: () => void;
 }) {
-  const requiredMissing = !contact.firstName.trim() || !contact.lastName.trim() || !data.phone.trim() || !contact.email.trim() || !data.nationalId.trim() || !data.imei.trim() || !contact.consentChecked;
+  const imeiRequired = data.requiresSerialNumber !== false;
+  const requiredMissing = !contact.firstName.trim() || !contact.lastName.trim() || !data.phone.trim() || !contact.email.trim() || !data.nationalId.trim() || (imeiRequired && !data.imei.trim()) || !contact.consentChecked;
   const imageLabels: Array<{ key: ImageSlotKey; title: string }> = [
     { key: "front", title: "On Goruntu" },
     { key: "back", title: "Arka Goruntu" },
@@ -1453,7 +1471,7 @@ function StepThree({
       <Field label="Telefon *"><input className="field" value={data.phone} onChange={(e) => setData((p) => ({ ...p, phone: e.target.value }))} /></Field>
       <Field label="E-posta *"><input className="field" type="email" value={contact.email} onChange={(e) => setContact((p) => ({ ...p, email: e.target.value }))} /></Field>
       <Field label="T.C. Kimlik No *"><input className="field" value={data.nationalId} maxLength={11} onBlur={autoFillCustomer} onChange={(e) => setData((p) => ({ ...p, nationalId: e.target.value.replace(/\D/g, "") }))} /></Field>
-      <Field label="IMEI *"><input className="field" value={data.imei} onChange={(e) => setData((p) => ({ ...p, imei: e.target.value.replace(/\D/g, "") }))} /></Field>
+      <Field label={imeiRequired ? "IMEI *" : "IMEI (opsiyonel)"}><input className="field" value={data.imei} onChange={(e) => setData((p) => ({ ...p, imei: e.target.value.replace(/\D/g, "") }))} /></Field>
       <Field label="Sehir"><input className="field" value={contact.city} onChange={(e) => setContact((p) => ({ ...p, city: e.target.value }))} /></Field>
       <Field label="Ilce"><input className="field" value={contact.district} onChange={(e) => setContact((p) => ({ ...p, district: e.target.value }))} /></Field>
       <Field label="IBAN"><input className="field" value={contact.iban} onChange={(e) => setContact((p) => ({ ...p, iban: e.target.value.toUpperCase() }))} /></Field>

@@ -80,7 +80,7 @@ export async function POST(req: Request) {
       const store = await readLocalStore();
       const customer = store.customers.find((c) => c.id === parsed.data.customerId && c.tenantId === auth.user.tenantId);
       if (!customer) {
-        return fail("MÃ¼ÅŸteri bulunamadÄ± veya yetkisiz", "NOT_FOUND", 404);
+        return fail("Müşteri bulunamadı veya yetkisiz", "NOT_FOUND", 404);
       }
       const item = {
         id: localId("buy"),
@@ -101,7 +101,7 @@ export async function POST(req: Request) {
       where: { id: parsed.data.customerId, tenantId: auth.user.tenantId },
     });
     if (!customer) {
-      return fail("MÃ¼ÅŸteri bulunamadÄ± veya yetkisiz", "NOT_FOUND", 404);
+      return fail("Müşteri bulunamadı veya yetkisiz", "NOT_FOUND", 404);
     }
 
     const item = await prisma.buybackDeal.create({ data: parsed.data });

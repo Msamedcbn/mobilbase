@@ -47,7 +47,8 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const action = String(body.action || "") as ActionType;
-    const productId = String(body.productId || "");
+    let productId = String(body.productId || "");
+    const newProductName = body.newProductName ? String(body.newProductName).trim() : "";
     const quantity = Number(body.quantity || 0);
     const unitPrice = Number(body.unitPrice || 0);
     const totalAmount = Number((quantity * unitPrice).toFixed(2));
@@ -56,7 +57,13 @@ export async function POST(req: Request) {
     const targetBranchId = body.targetBranchId ? String(body.targetBranchId) : "";
     const note = body.note ? String(body.note) : "";
 
-    if (!productId || quantity <= 0 || unitPrice < 0) {
+    if (newProductName && action !== "EXTERNAL_PURCHASE") {
+      return NextResponse.json({ error: "Yeni urun sadece disaridan alista eklenebilir." }, { status: 400 });
+    }
+    if (!productId && !newProductName) {
+      return NextResponse.json({ error: "Ürün, adet ve birim fiyat zorunludur." }, { status: 400 });
+    }
+    if (quantity <= 0 || unitPrice < 0) {
       return NextResponse.json({ error: "Ürün, adet ve birim fiyat zorunludur." }, { status: 400 });
     }
 
@@ -64,6 +71,26 @@ export async function POST(req: Request) {
       const store = await readLocalStore();
       if (!store.productBranchStocks) store.productBranchStocks = [];
       if (!store.transactions) store.transactions = [];
+      if (!store.stockItems) store.stockItems = [];
+
+      if (newProductName) {
+        const newProduct = {
+          id: localId("stock-item"),
+          tenantId,
+          sku: `WS-${Date.now()}`,
+          name: newProductName,
+          category: "Genel",
+          quantity: 0,
+          purchasePrice: unitPrice,
+          salePrice: unitPrice,
+          minThreshold: 0,
+          isCatalog: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        store.stockItems.push(newProduct);
+        productId = newProduct.id;
+      }
 
       const applyBranch = (branchId: string, delta: number) => {
         const idx = store.productBranchStocks!.findIndex((s) => s.productId === productId && s.branchId === branchId);
@@ -105,6 +132,21 @@ export async function POST(req: Request) {
     }
 
     await prisma.$transaction(async (tx) => {
+      if (newProductName) {
+        const newProduct = await tx.product.create({
+          data: {
+            tenantId,
+            barcode: `WS-${Date.now()}`,
+            name: newProductName,
+            category: "Genel",
+            purchasePrice: unitPrice,
+            salePrice: unitPrice,
+            isCatalog: true,
+          },
+        });
+        productId = newProduct.id;
+      }
+
       const adjustBranchStock = async (branchId: string, delta: number) => {
         const current = await tx.productBranchStock.findUnique({ where: { productId_branchId: { productId, branchId } } });
         if (!current) {

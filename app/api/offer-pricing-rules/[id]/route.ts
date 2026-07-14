@@ -9,19 +9,22 @@ import { readLocalStore, writeLocalStore } from "@/lib/local-store";
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   const auth = requireRole(["ADMIN"]);
   if (auth.error) return auth.error;
+  const tenantId = auth.user?.tenantId ?? null;
 
   try {
     const body = await req.json();
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
-      const existing = store.pricingRules.find((r) => r.id === params.id);
+      const existing = store.pricingRules.find((r) => r.id === params.id && r.tenantId === tenantId);
       if (!existing) return fail("Kural bulunamadi", "NOT_FOUND", 404);
-      Object.assign(existing, body);
+      Object.assign(existing, body, { tenantId });
       await writeLocalStore(store);
       return ok(existing);
     }
-    const before = await prisma.offerPricingRule.findUnique({ where: { id: params.id } });
-    const rule = await prisma.offerPricingRule.update({ where: { id: params.id }, data: body });
+    const before = await prisma.offerPricingRule.findFirst({ where: { id: params.id, tenantId } });
+    if (!before) return fail("Kural bulunamadi", "NOT_FOUND", 404);
+    const { tenantId: _ignored, ...updateBody } = body ?? {};
+    const rule = await prisma.offerPricingRule.update({ where: { id: params.id }, data: updateBody });
     await writeAuditLog({
       action: "PRICING_RULE_UPDATE",
       entityType: "OfferPricingRule",
@@ -38,17 +41,19 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {
   const auth = requireRole(["ADMIN"]);
   if (auth.error) return auth.error;
+  const tenantId = auth.user?.tenantId ?? null;
 
   try {
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
-      const idx = store.pricingRules.findIndex((r) => r.id === params.id);
+      const idx = store.pricingRules.findIndex((r) => r.id === params.id && r.tenantId === tenantId);
       if (idx === -1) return fail("Kural bulunamadi", "NOT_FOUND", 404);
       store.pricingRules.splice(idx, 1);
       await writeLocalStore(store);
       return ok({ ok: true });
     }
-    const existing = await prisma.offerPricingRule.findUnique({ where: { id: params.id } });
+    const existing = await prisma.offerPricingRule.findFirst({ where: { id: params.id, tenantId } });
+    if (!existing) return fail("Kural bulunamadi", "NOT_FOUND", 404);
     await prisma.offerPricingRule.delete({ where: { id: params.id } });
     await writeAuditLog({
       action: "PRICING_RULE_DELETE",

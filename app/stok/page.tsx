@@ -45,6 +45,7 @@ type Product = {
   isCatalog?: boolean;
   condition?: string | null;
   imei?: string | null;
+  requiresSerialNumber?: boolean;
 };
 
 type StockCostEvent = {
@@ -76,6 +77,7 @@ const emptyCatalogForm = {
   stock: "0",
   imei: "",
   condition: "1. Sıfır",
+  requiresSerialNumber: true,
 };
 
 const emptyStockForm = {
@@ -96,6 +98,7 @@ const emptyStockForm = {
   minThreshold: "0",
   condition: "1. Sıfır",
   purchaseDate: new Date().toISOString().split("T")[0],
+  requiresSerialNumber: false,
 };
 
 function cleanString(str: string): string {
@@ -297,6 +300,7 @@ export default function StockPage() {
       variantStorage: card.variantStorage || "",
       salePrice: String(Number(card.salePrice || 0)),
       quantity: card.category === "Telefon" ? "1" : "1",
+      requiresSerialNumber: card.requiresSerialNumber ?? false,
     }));
     setCatalogSearchTerm("");
   };
@@ -459,6 +463,7 @@ export default function StockPage() {
       minThreshold: String(item.minThreshold),
       condition: item.condition || "1. Sıfır",
       purchaseDate: item.purchaseDate ? item.purchaseDate.split("T")[0] : new Date().toISOString().split("T")[0],
+      requiresSerialNumber: !!item.imei,
     });
     setSelectedCardId("editing");
     handleTabChange("entry");
@@ -487,7 +492,7 @@ export default function StockPage() {
       return toast.error("SKU/Barkod ve Ürün Adı zorunludur.");
     }
 
-    const isSerialized = catalogForm.category === "Telefon";
+    const isSerialized = catalogForm.requiresSerialNumber;
     const cleanImei = (catalogForm as any).imei ? (catalogForm as any).imei.trim() : "";
     const qty = Number((catalogForm as any).stock || 0);
 
@@ -524,6 +529,7 @@ export default function StockPage() {
           condition: (catalogForm as any).condition || null,
           serialNumber: (catalogForm as any).serialNumber || null,
           isCatalog: true,
+          requiresSerialNumber: catalogForm.requiresSerialNumber,
         }),
       });
 
@@ -566,11 +572,11 @@ export default function StockPage() {
       return toast.error("Lütfen bir Ürün Kartı seçin.");
     }
 
-    const isSerialized = stockForm.category === "Telefon" || !!stockForm.imei;
+    const isSerialized = stockForm.requiresSerialNumber;
 
     if (isSerialized) {
       if (!stockForm.imei.trim()) {
-        return toast.error("Telefon kategorisi için IMEI numarası zorunludur.");
+        return toast.error("Bu ürün için IMEI numarası zorunludur.");
       }
       if (stockForm.imei.trim().length < 14 || stockForm.imei.trim().length > 16) {
         return toast.error("Lütfen geçerli bir IMEI numarası girin (14-16 haneli).");
@@ -595,6 +601,7 @@ export default function StockPage() {
       minThreshold: Number(stockForm.minThreshold || 0),
       condition: stockForm.condition || null,
       purchaseDate: stockForm.purchaseDate,
+      requiresSerialNumber: stockForm.requiresSerialNumber,
     };
 
     setSaving(true);
@@ -769,7 +776,7 @@ export default function StockPage() {
           </style>
         </head>
         <body>
-          <div class="header">SaaSTel Iletisim</div>
+          <div class="header">VibeGSM Iletisim</div>
           <div class="title">${item.name}</div>
           <div class="barcode-container">
             <div class="barcode-lines">
@@ -829,7 +836,7 @@ export default function StockPage() {
           onClick={() => handleTabChange("inventory")}
           className={`px-4 py-3 text-sm font-semibold border-b-2 transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-2 ${
             activeTab === "inventory"
-              ? "border-teal-700 text-teal-700 font-bold"
+              ? "border-blue-700 text-blue-700 font-bold"
               : "border-transparent text-slate-500 hover:text-slate-800"
           }`}
         >
@@ -840,7 +847,7 @@ export default function StockPage() {
           onClick={() => handleTabChange("buyback")}
           className={`px-4 py-3 text-sm font-semibold border-b-2 transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-2 ${
             activeTab === "buyback"
-              ? "border-teal-700 text-teal-700 font-bold"
+              ? "border-blue-700 text-blue-700 font-bold"
               : "border-transparent text-slate-500 hover:text-slate-800"
           }`}
         >
@@ -851,7 +858,7 @@ export default function StockPage() {
           onClick={() => handleTabChange("entry")}
           className={`px-4 py-3 text-sm font-semibold border-b-2 transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-2 ${
             activeTab === "entry"
-              ? "border-teal-700 text-teal-700 font-bold"
+              ? "border-blue-700 text-blue-700 font-bold"
               : "border-transparent text-slate-500 hover:text-slate-800"
           }`}
         >
@@ -862,7 +869,7 @@ export default function StockPage() {
           onClick={() => handleTabChange("catalog")}
           className={`px-4 py-3 text-sm font-semibold border-b-2 transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-2 ${
             activeTab === "catalog"
-              ? "border-teal-700 text-teal-700 font-bold"
+              ? "border-blue-700 text-blue-700 font-bold"
               : "border-transparent text-slate-500 hover:text-slate-800"
           }`}
         >
@@ -873,7 +880,7 @@ export default function StockPage() {
           onClick={() => handleTabChange("report")}
           className={`px-4 py-3 text-sm font-semibold border-b-2 transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-2 ${
             activeTab === "report"
-              ? "border-teal-700 text-teal-700 font-bold"
+              ? "border-blue-700 text-blue-700 font-bold"
               : "border-transparent text-slate-500 hover:text-slate-800"
           }`}
         >
@@ -895,7 +902,7 @@ export default function StockPage() {
             <div className="panel p-4 flex items-center justify-between bg-white relative overflow-hidden group">
               <div>
                 <p className="m-0 text-2xs font-bold text-slate-400 uppercase tracking-wider">Kritik Stok Seviyesi</p>
-                <h3 className={`m-0 mt-1.5 text-2xl font-extrabold ${lowStockCount > 0 ? "text-amber-600" : "text-teal-700"}`}>{lowStockCount}</h3>
+                <h3 className={`m-0 mt-1.5 text-2xl font-extrabold ${lowStockCount > 0 ? "text-amber-600" : "text-blue-700"}`}>{lowStockCount}</h3>
               </div>
             </div>
             <div className="panel p-4 flex items-center justify-between bg-white relative overflow-hidden group">
@@ -935,7 +942,7 @@ export default function StockPage() {
                       onClick={() => setCategoryFilter(c)}
                       className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all duration-200 shrink-0 cursor-pointer ${
                         active 
-                          ? "bg-teal-700 border-teal-700 text-white shadow-sm" 
+                          ? "bg-blue-700 border-blue-700 text-white shadow-sm" 
                           : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-800"
                       }`}
                     >
@@ -1011,7 +1018,7 @@ export default function StockPage() {
                           </td>
                           <td>
                             <span className={`inline-flex items-center gap-1 text-xs font-bold ${
-                              low ? "text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-100" : "text-teal-700"
+                              low ? "text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-100" : "text-blue-700"
                             }`}>
                               {item.quantity} adet
                             </span>
@@ -1026,7 +1033,7 @@ export default function StockPage() {
                           <td>
                             <div className="flex flex-col text-2xs">
                               <span className="text-slate-500">Alış: <strong className="text-slate-700">{Number(item.purchasePrice).toLocaleString("tr-TR")} TL</strong></span>
-                              <span className="text-teal-700 font-bold">Satış: <strong>{Number(item.salePrice).toLocaleString("tr-TR")} TL</strong></span>
+                              <span className="text-blue-700 font-bold">Satış: <strong>{Number(item.salePrice).toLocaleString("tr-TR")} TL</strong></span>
                             </div>
                           </td>
                           <td className="text-right">
@@ -1034,7 +1041,7 @@ export default function StockPage() {
                               <button type="button" className="px-2.5 py-1 text-xs border border-slate-200 hover:border-slate-300 rounded-lg text-slate-600 hover:text-slate-800 bg-white transition-colors cursor-pointer font-bold" onClick={() => startEdit(item)}>Düzenle</button>
                               <button
                                 type="button"
-                                className="px-2.5 py-1 text-xs border border-teal-200/50 hover:border-teal-300 rounded-lg bg-teal-50 text-teal-700 hover:bg-teal-100 transition-colors cursor-pointer font-bold"
+                                className="px-2.5 py-1 text-xs border border-blue-200/50 hover:border-blue-300 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors cursor-pointer font-bold"
                                 onClick={() => {
                                   setSelectedItem(item);
                                   setShowBarcodeModal(true);
@@ -1110,7 +1117,7 @@ export default function StockPage() {
                           </span>
                         </td>
                         <td>
-                          <span className={`text-xs font-semibold ${item.buybackSaleEnabled ? "text-teal-700" : "text-rose-600"}`}>
+                          <span className={`text-xs font-semibold ${item.buybackSaleEnabled ? "text-blue-700" : "text-rose-600"}`}>
                             {item.buybackSaleEnabled ? "Satisa Acik" : "Satisa Kapali"}
                           </span>
                         </td>
@@ -1137,7 +1144,7 @@ export default function StockPage() {
                             </button>
                             <button
                               type="button"
-                              className={`px-2.5 py-1 text-xs rounded-lg border ${item.buybackSaleEnabled ? "bg-rose-50 border-rose-200 text-rose-700" : "bg-teal-50 border-teal-200 text-teal-700"}`}
+                              className={`px-2.5 py-1 text-xs rounded-lg border ${item.buybackSaleEnabled ? "bg-rose-50 border-rose-200 text-rose-700" : "bg-blue-50 border-blue-200 text-blue-700"}`}
                               disabled={buybackUpdatingId === item.id}
                               onClick={() => void updateBuybackState(item.id, { buybackSaleEnabled: !item.buybackSaleEnabled })}
                             >
@@ -1201,7 +1208,7 @@ export default function StockPage() {
                             <strong className="text-slate-800">{card.name}</strong>
                             <span className="text-slate-450 block text-[10px]">SKU/Barkod: {card.barcode} | Kategori: {card.category}</span>
                           </div>
-                          <span className="text-teal-700 font-bold bg-teal-50 border border-teal-100 px-2 py-0.5 rounded text-[10px]">Kartı Seç</span>
+                          <span className="text-blue-700 font-bold bg-blue-50 border border-blue-100 px-2 py-0.5 rounded text-[10px]">Kartı Seç</span>
                         </div>
                       ))}
                     </div>
@@ -1214,7 +1221,7 @@ export default function StockPage() {
                 <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
                   <div className="flex justify-between items-start">
                     <div>
-                      <span className="text-2xs font-extrabold uppercase tracking-wider text-teal-700 bg-teal-50 border border-teal-100 px-2 py-0.5 rounded">
+                      <span className="text-2xs font-extrabold uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded">
                         {stockForm.category} Kartı
                       </span>
                       <h4 className="text-sm font-extrabold text-slate-800 mt-2">{stockForm.name}</h4>
@@ -1254,7 +1261,7 @@ export default function StockPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Phone Category Mandatory Inputs */}
-                    {(stockForm.category === "Telefon" || !!stockForm.imei) ? (
+                    {stockForm.requiresSerialNumber ? (
                       <>
                         <div className="flex flex-col gap-1">
                           <label className="text-2xs font-bold text-slate-600">IMEI Numarası (Zorunlu) *</label>
@@ -1330,7 +1337,7 @@ export default function StockPage() {
                       <div className="flex flex-col gap-1">
                         <label className="text-2xs font-bold text-slate-600">Satış Fiyatı (KDV Hariç) *</label>
                         <input
-                          className="field w-full text-sm font-bold text-teal-800"
+                          className="field w-full text-sm font-bold text-blue-800"
                           type="number"
                           min={0}
                           step="0.01"
@@ -1411,8 +1418,8 @@ export default function StockPage() {
                       <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
                         Alış (KDV Dahil): <strong className="text-slate-800 font-bold">{purchaseWithVatPreview.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL</strong>
                       </div>
-                      <div className="rounded-lg border border-teal-200 bg-teal-50/60 px-2.5 py-2">
-                        Satış (KDV Dahil): <strong className="text-teal-850 font-bold">{saleWithVatPreview.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL</strong>
+                      <div className="rounded-lg border border-blue-200 bg-blue-50/60 px-2.5 py-2">
+                        Satış (KDV Dahil): <strong className="text-blue-850 font-bold">{saleWithVatPreview.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL</strong>
                       </div>
                     </div>
                   </div>
@@ -1420,7 +1427,7 @@ export default function StockPage() {
                   <div className="flex gap-2.5 mt-2">
                     <button
                       type="submit"
-                      className="primary-btn flex-1 py-2.5 font-bold text-sm cursor-pointer shadow-md shadow-teal-700/10 hover:shadow-teal-700/20"
+                      className="primary-btn flex-1 py-2.5 font-bold text-sm cursor-pointer shadow-md shadow-blue-700/10 hover:shadow-blue-700/20"
                       disabled={saving}
                     >
                       {saving ? "Kaydediliyor..." : editingId ? "Envanter Kaydını Güncelle" : "Envantere Ekle"}
@@ -1515,13 +1522,25 @@ export default function StockPage() {
                 <select
                   className="field w-full text-xs font-bold"
                   value={catalogForm.category}
-                  onChange={(e) => setCatalogForm((p) => ({ ...p, category: e.target.value, brand: "", model: "" }))}
+                  onChange={(e) => setCatalogForm((p) => ({ ...p, category: e.target.value, brand: "", model: "", requiresSerialNumber: e.target.value === "Telefon" }))}
                 >
                   <option value="Telefon">Telefon</option>
                   <option value="Aksesuar">Aksesuar</option>
                   <option value="Yedek Parça">Yedek Parça</option>
                   <option value="Diğer">Diğer</option>
                 </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="requiresSerialNumber"
+                  checked={catalogForm.requiresSerialNumber}
+                  onChange={(e) => setCatalogForm((p) => ({ ...p, requiresSerialNumber: e.target.checked }))}
+                />
+                <label htmlFor="requiresSerialNumber" className="text-2xs font-bold text-slate-600">
+                  Seri Numarası (IMEI) Takibi Gerekli
+                </label>
               </div>
 
               {/* Brand Suggestion input */}
@@ -1634,7 +1653,7 @@ export default function StockPage() {
                 <div className="flex flex-col gap-1">
                   <label className="text-2xs font-bold text-slate-600">Varsayılan Satış Fiyatı (KDV Hariç)</label>
                   <input
-                    className="field w-full text-sm font-bold text-teal-800"
+                    className="field w-full text-sm font-bold text-blue-800"
                     type="number"
                     min={0}
                     step="0.01"
@@ -1668,7 +1687,7 @@ export default function StockPage() {
                 </div>
               </div>
 
-              {catalogForm.category === "Telefon" ? (
+              {catalogForm.requiresSerialNumber ? (
                 <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 border border-slate-200/80 rounded-xl animate-fade-in">
                   <div className="flex flex-col gap-1">
                     <label className="text-2xs font-bold text-slate-600">
@@ -1712,7 +1731,7 @@ export default function StockPage() {
               <div className="flex gap-2.5 mt-2">
                 <button
                   type="submit"
-                  className="primary-btn flex-1 py-2.5 font-bold text-sm cursor-pointer shadow-md shadow-teal-700/10 hover:shadow-teal-700/20"
+                  className="primary-btn flex-1 py-2.5 font-bold text-sm cursor-pointer shadow-md shadow-blue-700/10 hover:shadow-blue-700/20"
                   disabled={saving}
                 >
                   {saving ? "Kart Oluşturuluyor..." : "Ürün Kartı Oluştur"}
@@ -1777,7 +1796,7 @@ export default function StockPage() {
                           </span>
                         </td>
                         <td className="font-semibold text-slate-700">{Number(card.purchasePrice || 0).toLocaleString("tr-TR")} TL</td>
-                        <td className="font-bold text-teal-800">{Number(card.salePrice || 0).toLocaleString("tr-TR")} TL</td>
+                        <td className="font-bold text-blue-800">{Number(card.salePrice || 0).toLocaleString("tr-TR")} TL</td>
                         <td className="font-bold text-slate-900">{card.stock || 0} Adet</td>
                       </tr>
                     ))}
@@ -1812,7 +1831,7 @@ export default function StockPage() {
               </div>
               <div className="panel p-4 bg-slate-50/50 border-slate-200/50">
                 <p className="m-0 text-2xs font-bold text-slate-400 uppercase tracking-wider">Tahmini Brüt Kâr Potansiyeli</p>
-                <p className={`m-0 mt-1 text-xl font-extrabold ${totalInventoryRetail - totalInventoryCost >= 0 ? "text-teal-700" : "text-rose-600"}`}>
+                <p className={`m-0 mt-1 text-xl font-extrabold ${totalInventoryRetail - totalInventoryCost >= 0 ? "text-blue-700" : "text-rose-600"}`}>
                   {(totalInventoryRetail - totalInventoryCost).toLocaleString("tr-TR")} TL
                 </p>
               </div>
@@ -1839,7 +1858,7 @@ export default function StockPage() {
                         <td className="text-slate-600 font-semibold">{row.quantity.toLocaleString("tr-TR")}</td>
                         <td className="text-slate-600">{row.cost.toLocaleString("tr-TR")} TL</td>
                         <td className="text-slate-600">{row.retail.toLocaleString("tr-TR")} TL</td>
-                        <td className={`font-bold ${row.profit >= 0 ? "text-teal-700" : "text-rose-600"}`}>{row.profit.toLocaleString("tr-TR")} TL</td>
+                        <td className={`font-bold ${row.profit >= 0 ? "text-blue-700" : "text-rose-600"}`}>{row.profit.toLocaleString("tr-TR")} TL</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1904,7 +1923,7 @@ export default function StockPage() {
               
               <div className="w-[200px] h-[120px] bg-white text-black rounded p-2 flex flex-col justify-between shadow-md box-border select-none relative z-10 border border-slate-200">
                 <div className="text-[7px] font-black text-slate-850 uppercase tracking-wider border-b border-black pb-0.5 mb-0.5 font-mono">
-                  SaaSTel İletişim
+                  VibeGSM İletişim
                 </div>
                 <div className="text-[8px] leading-tight font-bold text-slate-900 line-clamp-2 overflow-hidden h-[18px] font-sans">
                   {selectedItem.name}
@@ -1942,7 +1961,7 @@ export default function StockPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => handlePrintSticker(selectedItem)}
-                className="primary-btn flex-1 py-2 flex items-center justify-center gap-2 font-bold text-xs cursor-pointer shadow-md shadow-teal-700/10 hover:shadow-teal-700/20"
+                className="primary-btn flex-1 py-2 flex items-center justify-center gap-2 font-bold text-xs cursor-pointer shadow-md shadow-blue-700/10 hover:shadow-blue-700/20"
               >
                 Yazdır
               </button>

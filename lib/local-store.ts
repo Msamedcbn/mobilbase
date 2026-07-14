@@ -30,8 +30,8 @@ export type LocalStore = {
   customers: Array<{ id: string; tenantId?: string | null; nationalId: string | null; fullName: string; phone: string; email: string | null; notes: string | null; creditLimit?: number }>;
   devices: Array<{ id: string; customerId: string; brand: string; model: string; storage: string; imei: string | null; serialNumber?: string | null; color: string | null; conditionNote: string | null; isSecondHandStock: boolean }>;
   buybacks: Array<{ id: string; customerId: string; deviceId: string; offeredPrice: number; agreedPrice: number | null; status: "DRAFT" | "APPROVED" | "REJECTED" | "COMPLETED"; reconciliationStatus: "NONE" | "SENT" | "VIEWED" | "APPROVED" | "REJECTED" | "EXPIRED"; evaluationNote: string | null; bankAccountId?: string | null; createdAt?: string; updatedAt?: string }>;
-  pricingRules: Array<{ id: string; brand: string; modelPattern: string | null; basePrice: number; minPrice?: number | null; maxPrice?: number | null; excellentBonusPct: number; goodBonusPct: number; badPenaltyPct: number; batteryHighPct: number; batteryLowPenalty: number; brokenPenaltyPct: number; isActive: boolean }>;
-  buybackCatalog?: Array<{ id: string; category: string; brand: string; model: string; basePrice: number; minPrice: number; questionSetJson: string }>;
+  pricingRules: Array<{ id: string; tenantId?: string | null; brand: string; modelPattern: string | null; basePrice: number; minPrice?: number | null; maxPrice?: number | null; excellentBonusPct: number; goodBonusPct: number; badPenaltyPct: number; batteryHighPct: number; batteryLowPenalty: number; brokenPenaltyPct: number; isActive: boolean; requiresSerialNumber?: boolean }>;
+  buybackCatalog?: Array<{ id: string; category: string; brand: string; model: string; basePrice: number; minPrice: number; questionSetJson: string; requiresSerialNumber?: boolean }>;
   reconciliations: Array<{ id: string; token: string; buybackDealId: string; customerPrice: number; companyPrice: number; differenceAmount: number; status: "SENT" | "VIEWED" | "APPROVED" | "REJECTED" | "EXPIRED"; tokenExpiresAt: string; customerNote: string | null }>;
   notifications?: Array<{ id: string; buybackDealId: string; eventType: string; recipient: string; subject: string; bodyHtml: string; status: "QUEUED" | "SENT" | "FAILED"; errorMessage: string | null; contextJson: string | null; createdAt: string; sentAt: string | null }>;
   accountEntries?: Array<{ id: string; customerId: string; type: "DEBIT" | "CREDIT"; amount: number; description: string | null; createdAt: string; bankAccountId?: string | null }>;
@@ -90,6 +90,7 @@ export type LocalStore = {
     purchaseDocNo?: string | null;
     minThreshold: number;
     isCatalog?: boolean;
+    requiresSerialNumber?: boolean;
     condition?: string | null;
     isBuybackItem?: boolean;
     buybackProcessStatus?: "SERVICE_TRANSFERRED" | "READY_FOR_SALE" | null;
@@ -264,7 +265,7 @@ const seedStore: LocalStore = {
     {
       id: "demo-user-admin",
       fullName: "Sistem Yoneticisi",
-      email: "admin@telefoncupro.local",
+      email: "admin@vibegsm.local",
       role: "ADMIN",
       passwordHash: "$2a$10$XUa5B09N/qf9pE4a1hGZxe/zUu9r.b91YyP9fL6gU8Z4R8yTz6H0G",
       isActive: true,
@@ -301,6 +302,7 @@ const seedStore: LocalStore = {
     batteryLowPenalty: 0.18,
     brokenPenaltyPct: 0.3,
     isActive: true,
+    requiresSerialNumber: true,
   }],
   buybackCatalog: [],
   reconciliations: [],

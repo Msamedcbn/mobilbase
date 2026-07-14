@@ -8,15 +8,20 @@ import { getErrorCode, getErrorMessage, getErrorStatus } from "@/lib/errors";
 export async function GET() {
   const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN"]);
   if (auth.error) return auth.error;
+  const tenantId = auth.user?.tenantId ?? null;
 
   try {
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
-      return ok({ items: (store.buybackCatalog || []).filter((x) => x.category === "telefon") });
+      return ok({
+        items: (store.buybackCatalog || [])
+          .filter((x) => x.category === "telefon")
+          .map((x) => ({ ...x, requiresSerialNumber: x.requiresSerialNumber ?? true })),
+      });
     }
 
     const rules = await prisma.offerPricingRule.findMany({
-      where: { isActive: true },
+      where: { isActive: true, tenantId },
       orderBy: [{ brand: "asc" }, { modelPattern: "asc" }],
     });
     return ok({
@@ -28,6 +33,7 @@ export async function GET() {
         basePrice: Number(r.basePrice),
         minPrice: r.minPrice == null ? 0 : Number(r.minPrice),
         questionSetJson: "",
+        requiresSerialNumber: Boolean(r.requiresSerialNumber),
       })),
     });
   } catch (error) {

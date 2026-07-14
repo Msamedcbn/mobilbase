@@ -69,7 +69,7 @@ export async function POST(req: Request) {
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
       const existing = (store.users || []).find((u) => u.email.toLowerCase() === payloadEmail);
-      if (existing) return fail("Bu e-posta adresiyle zaten bir kullanÄ±cÄ± kayÄ±tlÄ±", "CONFLICT", 409);
+      if (existing) return fail("Bu e-posta adresiyle zaten bir kullanıcı kayıtlı", "CONFLICT", 409);
 
       const created = {
         id: localId("usr"),
@@ -91,7 +91,7 @@ export async function POST(req: Request) {
     }
 
     const existingDb = await prisma.appUser.findUnique({ where: { email: payloadEmail } });
-    if (existingDb) return fail("Bu e-posta adresiyle zaten bir kullanÄ±cÄ± kayÄ±tlÄ±", "CONFLICT", 409);
+    if (existingDb) return fail("Bu e-posta adresiyle zaten bir kullanıcı kayıtlı", "CONFLICT", 409);
 
     const user = await prisma.appUser.create({
       data: {

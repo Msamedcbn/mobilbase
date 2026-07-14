@@ -17,7 +17,7 @@ function resolvePrimaryLocalUser(store: Awaited<ReturnType<typeof readLocalStore
 }
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
-  const auth = requireRole(["PLATFORM_OWNER", "ADMIN"]);
+  const auth = requireRole(["PLATFORM_OWNER"]);
   if (auth.error) return auth.error;
 
   const tenantId = params.id;

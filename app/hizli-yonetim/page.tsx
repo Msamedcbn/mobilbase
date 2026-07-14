@@ -4,11 +4,12 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore } from "@/lib/local-store";
+import { getSessionUser } from "@/lib/auth";
 
-type StatCard = { label: string; value: string; sub: string; href: string; tone: "slate" | "teal" | "amber" | "rose" };
+type StatCard = { label: string; value: string; sub: string; href: string; tone: "slate" | "blue" | "amber" | "rose" };
 
 function toneClass(tone: StatCard["tone"]) {
-  if (tone === "teal") return "border-teal-200 bg-teal-50";
+  if (tone === "blue") return "border-blue-200 bg-blue-50";
   if (tone === "amber") return "border-amber-200 bg-amber-50";
   if (tone === "rose") return "border-rose-200 bg-rose-50";
   return "border-slate-200 bg-white";
@@ -23,23 +24,36 @@ export default async function QuickManagementPage() {
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
 
+  const tenantId = getSessionUser()?.tenantId ?? null;
+
   if (isDbDisabledMode()) {
     const store = await readLocalStore();
-    stockCount = (store.stockItems || []).reduce((s, x) => s + Number(x.quantity || 0), 0);
-    openRepairs = (store.repairs || []).filter((r) => r.status !== "DELIVERED" && r.status !== "CANCELED").length;
-    const debit = (store.accountEntries || []).filter((e) => e.type === "DEBIT").reduce((s, e) => s + Number(e.amount || 0), 0);
-    const credit = (store.accountEntries || []).filter((e) => e.type === "CREDIT").reduce((s, e) => s + Number(e.amount || 0), 0);
+    stockCount = (store.stockItems || [])
+      .filter((x) => x.tenantId === tenantId)
+      .reduce((s, x) => s + Number(x.quantity || 0), 0);
+    openRepairs = (store.repairs || []).filter((r) => {
+      if (r.status === "DELIVERED" || r.status === "CANCELED") return false;
+      const device = store.devices.find((d) => d.id === r.deviceId);
+      const customer = device ? store.customers.find((c) => c.id === device.customerId) : null;
+      return customer?.tenantId === tenantId;
+    }).length;
+    const tenantEntries = (store.accountEntries || []).filter((e) => {
+      const customer = store.customers.find((c) => c.id === e.customerId);
+      return customer?.tenantId === tenantId;
+    });
+    const debit = tenantEntries.filter((e) => e.type === "DEBIT").reduce((s, e) => s + Number(e.amount || 0), 0);
+    const credit = tenantEntries.filter((e) => e.type === "CREDIT").reduce((s, e) => s + Number(e.amount || 0), 0);
     receivable = debit - credit;
     todayIncome = (store.transactions || [])
-      .filter((t) => t.type === "INCOME" && new Date(t.createdAt) >= startOfDay)
+      .filter((t) => t.tenantId === tenantId && t.type === "INCOME" && new Date(t.createdAt) >= startOfDay)
       .reduce((s, t) => s + Number(t.totalAmount || 0), 0);
   } else {
     const [stockItems, repairAgg, debitAgg, creditAgg, incomeAgg] = await Promise.all([
-      prisma.stockItem.aggregate({ _sum: { quantity: true } }),
-      prisma.repairRecord.count({ where: { status: { notIn: ["DELIVERED", "CANCELED"] } } }),
-      prisma.accountEntry.aggregate({ where: { type: "DEBIT" }, _sum: { amount: true } }),
-      prisma.accountEntry.aggregate({ where: { type: "CREDIT" }, _sum: { amount: true } }),
-      prisma.transaction.aggregate({ where: { type: "INCOME", createdAt: { gte: startOfDay } }, _sum: { totalAmount: true } }),
+      prisma.stockItem.aggregate({ where: { tenantId }, _sum: { quantity: true } }),
+      prisma.repairRecord.count({ where: { status: { notIn: ["DELIVERED", "CANCELED"] }, device: { customer: { tenantId } } } }),
+      prisma.accountEntry.aggregate({ where: { type: "DEBIT", customer: { tenantId } }, _sum: { amount: true } }),
+      prisma.accountEntry.aggregate({ where: { type: "CREDIT", customer: { tenantId } }, _sum: { amount: true } }),
+      prisma.transaction.aggregate({ where: { tenantId, type: "INCOME", createdAt: { gte: startOfDay } }, _sum: { totalAmount: true } }),
     ]);
 
     stockCount = Number(stockItems._sum.quantity ?? 0);
@@ -52,7 +66,7 @@ export default async function QuickManagementPage() {
     { label: "Anlik Stok", value: stockCount.toLocaleString("tr-TR"), sub: "Toplam adet", href: "/stok", tone: "slate" },
     { label: "Acik Servis", value: openRepairs.toLocaleString("tr-TR"), sub: "Bekleyen is", href: "/tamir-takip", tone: "amber" },
     { label: "Veresiye Bakiye", value: `${receivable.toLocaleString("tr-TR")} TL`, sub: "Net alacak", href: "/musteriler-veresiye", tone: "rose" },
-    { label: "Bugunku Gelir", value: `${todayIncome.toLocaleString("tr-TR")} TL`, sub: "Nakit akis", href: "/dashboard?period=day", tone: "teal" },
+    { label: "Bugunku Gelir", value: `${todayIncome.toLocaleString("tr-TR")} TL`, sub: "Nakit akis", href: "/dashboard?period=day", tone: "blue" },
   ];
 
   const quickActions = [
