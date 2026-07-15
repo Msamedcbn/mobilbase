@@ -15,10 +15,8 @@ export async function GET(req: Request) {
   const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN"]);
   if (auth.error) return auth.error;
   const pinBranch = req.headers.get("x-branch-id");
-  const pinFirm = req.headers.get("x-firm-id");
   const passPin = (item: any) => {
     if (pinBranch && item.branchId && item.branchId !== pinBranch) return false;
-    if (pinFirm && item.firmId && item.firmId !== pinFirm) return false;
     return true;
   };
   if (isDbDisabledMode()) {
@@ -35,7 +33,6 @@ export async function GET(req: Request) {
         customerId: b.customerId,
         createdAt: b.createdAt ?? new Date().toISOString(),
         branchId: b.branchId ?? null,
-        firmId: b.firmId ?? null,
         customer: customer ? { fullName: customer.fullName } : null,
         device: device ? { brand: device.brand, model: device.model, imei: device.imei ?? null } : null,
       };
@@ -57,7 +54,6 @@ export async function GET(req: Request) {
       ...item,
       customerId: item.customerId,
       branchId: null,
-      firmId: null,
       device: item.device ? { ...item.device, imei: item.device.imei ?? null } : null,
     })).filter(passPin));
   } catch (error) {

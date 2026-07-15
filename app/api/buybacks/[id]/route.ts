@@ -66,7 +66,6 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN"]);
   if (auth.error) return auth.error;
   const pinBranch = req.headers.get("x-branch-id");
-  const pinFirm = req.headers.get("x-firm-id");
   if (isDbDisabledMode()) {
     const store = await readLocalStore();
     const item = store.buybacks.find((b) => b.id === params.id);
@@ -77,7 +76,6 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     const payload = {
       ...item,
       branchId: (item as any).branchId ?? null,
-      firmId: (item as any).firmId ?? null,
       customer,
       device,
       documents: mapDocuments(item, customer, device),
@@ -85,7 +83,6 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       timeline: mapTimeline(item),
     };
     if (pinBranch && payload.branchId && payload.branchId !== pinBranch) return fail("Kayit bulunamadi", "NOT_FOUND", 404);
-    if (pinFirm && payload.firmId && payload.firmId !== pinFirm) return fail("Kayit bulunamadi", "NOT_FOUND", 404);
     return ok(payload);
   }
 
@@ -102,13 +99,11 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   const payload = {
     ...item,
     branchId: null,
-    firmId: null,
     documents: mapDocuments(item, item.customer, item.device),
     qa: mapQa(item.device),
     timeline: mapTimeline(item),
   };
   if (pinBranch && payload.branchId && payload.branchId !== pinBranch) return fail("Kayit bulunamadi", "NOT_FOUND", 404);
-  if (pinFirm && payload.firmId && payload.firmId !== pinFirm) return fail("Kayit bulunamadi", "NOT_FOUND", 404);
   return ok(payload);
 }
 

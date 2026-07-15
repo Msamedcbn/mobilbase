@@ -15,7 +15,6 @@ type BuybackListItem = {
   createdAt?: string;
   customerId?: string;
   branchId?: string | null;
-  firmId?: string | null;
   customer?: { fullName?: string } | null;
   device?: { brand?: string; model?: string; imei?: string | null } | null;
 };
@@ -33,14 +32,7 @@ type CartItem = { productId: string; name: string; unitPrice: number; quantity: 
 type PricingRule = { id: string; brand: string; modelPattern: string | null; basePrice: number; excellentBonusPct: number; goodBonusPct: number; badPenaltyPct: number; isActive: boolean };
 type CatalogItem = { id: string; category: string; brand: string; model: string; basePrice: number; minPrice: number; questionSetJson: string };
 
-const branchOptions = [
-  { id: "branch-kadikoy", name: "Kadikoy Subesi" },
-  { id: "branch-besiktas", name: "Besiktas Subesi" },
-];
-const firmOptions = [
-  { id: "firma-1", name: "Firma 1" },
-  { id: "firma-2", name: "Firma 2" },
-];
+type BranchOption = { id: string; name: string };
 
 export default function BuybackBackofficePage() {
   const enabled = (process.env.NEXT_PUBLIC_BUYBACK_BACKOFFICE_ENABLED ?? "true").toLowerCase() === "true";
@@ -60,8 +52,8 @@ export default function BuybackBackofficePage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [onlyActionPending, setOnlyActionPending] = useState(false);
-  const [branchId, setBranchId] = useState("branch-kadikoy");
-  const [firmId, setFirmId] = useState("firma-1");
+  const [branches, setBranches] = useState<BranchOption[]>([]);
+  const [branchId, setBranchId] = useState("");
 
   const [products, setProducts] = useState<Product[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -109,14 +101,22 @@ export default function BuybackBackofficePage() {
 
   useEffect(() => {
     const b = sessionStorage.getItem("buyback_backoffice_branch");
-    const f = sessionStorage.getItem("buyback_backoffice_firm");
     if (b) setBranchId(b);
-    if (f) setFirmId(f);
   }, []);
   useEffect(() => {
-    sessionStorage.setItem("buyback_backoffice_branch", branchId);
-    sessionStorage.setItem("buyback_backoffice_firm", firmId);
-  }, [branchId, firmId]);
+    if (branchId) sessionStorage.setItem("buyback_backoffice_branch", branchId);
+  }, [branchId]);
+
+  useEffect(() => {
+    fetch("/api/branches")
+      .then((r) => r.json())
+      .then((json) => {
+        const list: BranchOption[] = Array.isArray(json) ? json : (json?.data ?? []);
+        setBranches(list);
+        setBranchId((current) => (current && list.some((b) => b.id === current)) ? current : (list[0]?.id ?? ""));
+      })
+      .catch(() => setBranches([]));
+  }, []);
 
   useEffect(() => {
     fetch("/api/auth/me").then((r) => r.json()).then((json: MeResponse) => setMe(json.user ?? null)).finally(() => setLoading(false));
@@ -142,20 +142,20 @@ export default function BuybackBackofficePage() {
   }, [products, tradeinProductId]);
 
   const loadList = useCallback(async () => {
-    const res = await fetch("/api/buybacks", { headers: { "x-branch-id": branchId, "x-firm-id": firmId } });
+    const res = await fetch("/api/buybacks", { headers: { "x-branch-id": branchId } });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error ?? "Liste yuklenemedi");
     const list = (Array.isArray(json) ? json : []) as BuybackListItem[];
     setItems(list);
     if (!selectedId && list.length > 0) setSelectedId(list[0].id);
-  }, [branchId, firmId, selectedId]);
+  }, [branchId, selectedId]);
 
   const loadDetail = useCallback(async (id: string) => {
-    const res = await fetch(`/api/buybacks/${id}`, { headers: { "x-branch-id": branchId, "x-firm-id": firmId } });
+    const res = await fetch(`/api/buybacks/${id}`, { headers: { "x-branch-id": branchId } });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error ?? "Detay yuklenemedi");
     setDetail(json as BuybackDetail);
-  }, [branchId, firmId]);
+  }, [branchId]);
 
   useEffect(() => {
     if (!enabled || loading || !me) return;
@@ -229,7 +229,7 @@ export default function BuybackBackofficePage() {
   }
 
   function exportBackofficeCsv() {
-    const rows = [["buybackId", "sube", "durum", "tarih", "musteri", "marka", "model", "seriNo", "teklif"], ...filtered.map((it) => [it.id, branchOptions.find((b) => b.id === (it.branchId ?? branchId))?.name ?? "Atanmamis", statusLabel(it.status), it.createdAt ? new Date(it.createdAt).toLocaleDateString("tr-TR") : "-", it.customer?.fullName ?? "-", it.device?.brand ?? "-", it.device?.model ?? "-", it.device?.imei ?? "-", String(Number(it.agreedPrice ?? it.offeredPrice))])];
+    const rows = [["buybackId", "sube", "durum", "tarih", "musteri", "marka", "model", "seriNo", "teklif"], ...filtered.map((it) => [it.id, branches.find((b) => b.id === (it.branchId ?? branchId))?.name ?? "Atanmamis", statusLabel(it.status), it.createdAt ? new Date(it.createdAt).toLocaleDateString("tr-TR") : "-", it.customer?.fullName ?? "-", it.device?.brand ?? "-", it.device?.model ?? "-", it.device?.imei ?? "-", String(Number(it.agreedPrice ?? it.offeredPrice))])];
     const csv = rows.map((r) => r.map((v) => `"${String(v).replaceAll("\"", "\"\"")}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -454,8 +454,7 @@ export default function BuybackBackofficePage() {
         <div><h2 style={{ margin: 0 }}>Buyback Operasyon</h2><p style={{ margin: "4px 0 0", color: "#64748b" }}>Kuyruk oncelikli cok katmanli backoffice</p></div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button className="primary-btn" style={{ width: 150 }} onClick={() => setActiveModule("intake")}>Yeni Islem Baslat</button>
-          <select className="field" value={branchId} onChange={(e) => setBranchId(e.target.value)} style={{ width: 180 }}>{branchOptions.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</select>
-          <select className="field" value={firmId} onChange={(e) => setFirmId(e.target.value)} style={{ width: 150 }}>{firmOptions.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}</select>
+          <select className="field" value={branchId} onChange={(e) => setBranchId(e.target.value)} style={{ width: 180 }}>{branches.length === 0 ? <option value="">Sube yok</option> : branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</select>
           <button className="field" style={{ width: 110 }} onClick={() => void loadList()}>Yenile</button>
           <button className="field" style={{ width: 130 }} onClick={exportBackofficeCsv}>Excel&apos;e Aktar</button>
         </div>
@@ -490,8 +489,7 @@ export default function BuybackBackofficePage() {
         <StatCard label="Rol" valueText={me.role} />
         <StatCard label="Bugun Islem" value={todayBuybacks} />
         <StatCard label="Ortalama Teklif" valueText={`${avgOffer.toLocaleString("tr-TR")} TL`} />
-        <StatCard label="Pinli Sube" valueText={branchOptions.find((x) => x.id === branchId)?.name ?? "-"} />
-        <StatCard label="Pinli Firma" valueText={firmOptions.find((x) => x.id === firmId)?.name ?? "-"} />
+        <StatCard label="Pinli Sube" valueText={branches.find((x) => x.id === branchId)?.name ?? "-"} />
       </div>
 
       <div style={{ display: "grid", gap: 12, gridTemplateColumns: "250px 1fr" }}>
@@ -715,11 +713,11 @@ export default function BuybackBackofficePage() {
           {activeModule === "list" && (
             <>
               <div className="panel" style={{ padding: "0.7rem", display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}><select className="field" style={{ width: 180 }} value={bulkStatus} onChange={(e) => setBulkStatus(e.target.value as BuybackListItem["status"])}><option value="DRAFT">DRAFT</option><option value="APPROVED">APPROVED</option><option value="REJECTED">REJECTED</option><option value="COMPLETED">COMPLETED</option></select><button className="primary-btn" onClick={() => void runBulkStatus()}>Toplu Durum Guncelle</button></div>
-              <div className="panel panel-scroll"><table className="data-table"><thead><tr><th><input type="checkbox" checked={selectedIds.length > 0 && selectedIds.length === filtered.length} onChange={(e) => setSelectedIds(e.target.checked ? filtered.map((x) => x.id) : [])} /></th><th>Buyback ID</th><th>Sube</th><th>Durum</th><th>Tarih</th><th>Musteri</th><th>Cihaz</th><th>Model</th><th>Seri No</th><th>Teklif</th><th></th></tr></thead><tbody>{filtered.map((it) => <tr key={it.id}><td><input type="checkbox" checked={selectedIds.includes(it.id)} onChange={(e) => setSelectedIds((p) => e.target.checked ? [...p, it.id] : p.filter((id) => id !== it.id))} /></td><td>#{it.id.slice(-7)}</td><td>{branchOptions.find((b) => b.id === (it.branchId ?? branchId))?.name ?? "Atanmamis"}</td><td><StatusBadge status={it.status} /></td><td>{it.createdAt ? new Date(it.createdAt).toLocaleDateString("tr-TR") : "-"}</td><td>{it.customer?.fullName ?? "-"}</td><td>{it.device?.brand ?? "-"}</td><td>{it.device?.model ?? "-"}</td><td>{it.device?.imei ?? "-"}</td><td style={{ fontWeight: 700, color: "#15803d" }}>{Number(it.agreedPrice ?? it.offeredPrice).toLocaleString("tr-TR")} TL</td><td><button className="field" style={{ width: 80 }} onClick={() => goDetail(it.id)}>Detay</button></td></tr>)}</tbody></table></div>
+              <div className="panel panel-scroll"><table className="data-table"><thead><tr><th><input type="checkbox" checked={selectedIds.length > 0 && selectedIds.length === filtered.length} onChange={(e) => setSelectedIds(e.target.checked ? filtered.map((x) => x.id) : [])} /></th><th>Buyback ID</th><th>Sube</th><th>Durum</th><th>Tarih</th><th>Musteri</th><th>Cihaz</th><th>Model</th><th>Seri No</th><th>Teklif</th><th></th></tr></thead><tbody>{filtered.map((it) => <tr key={it.id}><td><input type="checkbox" checked={selectedIds.includes(it.id)} onChange={(e) => setSelectedIds((p) => e.target.checked ? [...p, it.id] : p.filter((id) => id !== it.id))} /></td><td>#{it.id.slice(-7)}</td><td>{branches.find((b) => b.id === (it.branchId ?? branchId))?.name ?? "Atanmamis"}</td><td><StatusBadge status={it.status} /></td><td>{it.createdAt ? new Date(it.createdAt).toLocaleDateString("tr-TR") : "-"}</td><td>{it.customer?.fullName ?? "-"}</td><td>{it.device?.brand ?? "-"}</td><td>{it.device?.model ?? "-"}</td><td>{it.device?.imei ?? "-"}</td><td style={{ fontWeight: 700, color: "#15803d" }}>{Number(it.agreedPrice ?? it.offeredPrice).toLocaleString("tr-TR")} TL</td><td><button className="field" style={{ width: 80 }} onClick={() => goDetail(it.id)}>Detay</button></td></tr>)}</tbody></table></div>
             </>
           )}
 
-          {activeModule === "detail" && (detail ? <DetailPanel detail={detail} firmName={firmOptions.find((f) => f.id === firmId)?.name ?? "-"} /> : <div className="empty-box">Once bir islem secin.</div>)}
+          {activeModule === "detail" && (detail ? <DetailPanel detail={detail} /> : <div className="empty-box">Once bir islem secin.</div>)}
           {activeModule === "documents" && (detail ? <div style={{ display: "grid", gap: 10 }}><DocumentSection title={`Gorseller (${images.length})`} items={images} /><DocumentSection title={`PDFler (${pdfs.length})`} items={pdfs} /><DocumentSection title={`Kimlik (${identities.length})`} items={identities} /></div> : <div className="empty-box">Belgeler icin once kayit secin.</div>)}
           {activeModule === "qa" && (detail ? <div className="panel" style={{ padding: "0.8rem" }}><table className="data-table"><thead><tr><th>Soru</th><th>Musteri Yaniti</th><th>Vendor Degerlendirmesi</th></tr></thead><tbody>{qaDraft.length === 0 ? <tr><td colSpan={3}>Soru kaydi yok.</td></tr> : qaDraft.map((q, i) => <tr key={`${q.soru}-${i}`}><td>{q.soru}</td><td><input className="field" value={q.musteriYaniti ?? ""} onChange={(e) => setQaDraft((p) => p.map((x, idx) => idx === i ? { ...x, musteriYaniti: e.target.value } : x))} /></td><td><input className="field" value={q.vendorDegerlendirmesi ?? ""} onChange={(e) => setQaDraft((p) => p.map((x, idx) => idx === i ? { ...x, vendorDegerlendirmesi: e.target.value } : x))} /></td></tr>)}</tbody></table><div style={{ marginTop: 10, display: "flex", gap: 8, justifyContent: "flex-end" }}><button className="field" style={{ width: 100 }} onClick={saveQaDraft}>Kaydet</button><button className="primary-btn" style={{ width: 100 }} onClick={runQaScore}>Hesapla</button></div></div> : <div className="empty-box">Soru-cevap icin once kayit secin.</div>)}
           {activeModule === "timeline" && (detail ? <div style={{ display: "grid", gap: 8 }}>{(detail.timeline ?? []).length === 0 ? <div className="empty-box">Timeline kaydi bulunamadi.</div> : (detail.timeline ?? []).map((t, i) => <div key={`${t.eventType}-${i}`} className="panel" style={{ padding: "0.65rem", display: "flex", justifyContent: "space-between", gap: 10 }}><div><strong>{t.eventType}</strong> <span style={{ color: "#64748b" }}>({t.actor})</span></div><div>{new Date(t.at).toLocaleString("tr-TR")} {t.status ? `- ${t.status}` : ""}</div></div>)}</div> : <div className="empty-box">Timeline icin once kayit secin.</div>)}
@@ -771,7 +769,7 @@ export default function BuybackBackofficePage() {
           {activeModule === "pos" && <div className="panel" style={{ padding: "0.9rem" }}><h3 style={{ marginTop: 0 }}>POS Satis Modulu</h3><div className="form-grid-4" style={{ marginBottom: 10 }}><input className="field" placeholder="Urun ara / barkod..." value={posQuery} onChange={(e) => setPosQuery(e.target.value)} /><select className="field" value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value as "CASH" | "CREDIT_CARD" | "ON_ACCOUNT")}><option value="CASH">Nakit</option><option value="CREDIT_CARD">Kredi Karti</option><option value="ON_ACCOUNT">Veresiye</option></select><select className="field" value={posCustomerId} onChange={(e) => setPosCustomerId(e.target.value)} disabled={paymentMethod !== "ON_ACCOUNT"}><option value="">Musteri sec</option>{customers.map((c) => <option key={c.id} value={c.id}>{c.fullName}</option>)}</select><button className="primary-btn" onClick={() => void runPosCheckout()} disabled={posLoading || cart.length === 0}>{posLoading ? "Isleniyor..." : "Satisi Tamamla"}</button></div><div style={{ display: "grid", gap: 10, gridTemplateColumns: "1.2fr 1fr" }}><div className="panel panel-scroll"><table className="data-table"><thead><tr><th>Urun</th><th>Stok</th><th>Fiyat</th><th></th></tr></thead><tbody>{filteredProducts.map((p) => <tr key={p.id}><td>{p.name}</td><td>{stockForBranch(p)}</td><td>{Number(p.salePrice).toLocaleString("tr-TR")} TL</td><td><button className="field" style={{ width: 70 }} onClick={() => addToCart(p)}>Ekle</button></td></tr>)}</tbody></table></div><div className="panel" style={{ padding: "0.8rem" }}><h4 style={{ marginTop: 0 }}>Sepet</h4><div style={{ display: "grid", gap: 8 }}>{cart.length === 0 ? <div className="empty-box">Sepet bos.</div> : cart.map((c) => <div key={c.productId} className="panel" style={{ padding: "0.6rem", display: "flex", justifyContent: "space-between", gap: 8 }}><span>{c.name} x{c.quantity}</span><strong>{(c.unitPrice * c.quantity).toLocaleString("tr-TR")} TL</strong></div>)}</div><p style={{ margin: "10px 0 0", fontSize: 20, fontWeight: 800 }}>Toplam: {posTotal.toLocaleString("tr-TR")} TL</p>{lastPosTxn && <p style={{ margin: "6px 0 0", color: "#1d4ed8", fontWeight: 700 }}>Son Islem: {lastPosTxn.no} / {lastPosTxn.total.toLocaleString("tr-TR")} TL</p>}</div></div></div>}
           {activeModule === "notification" && <div className="panel" style={{ padding: "0.85rem" }}><h3 style={{ marginTop: 0 }}>Bildirim Kuyrugu</h3><button className="primary-btn" onClick={() => void runNotificationQueue()}>Kuyrugu Isle</button></div>}
           {activeModule === "erp" && <div style={{ display: "grid", gap: 10 }}><div className="panel" style={{ padding: "0.8rem" }}><h3 style={{ marginTop: 0 }}>ERP Sync (JSON)</h3><textarea className="field" rows={6} value={erpJson} onChange={(e) => setErpJson(e.target.value)} /><div style={{ marginTop: 8 }}><button className="primary-btn" onClick={() => void runErpSync()}>ERP Sync Calistir</button></div></div><div className="panel" style={{ padding: "0.8rem" }}><h3 style={{ marginTop: 0 }}>CSV Import (Pricing Rules)</h3><textarea className="field" rows={6} value={csvData} onChange={(e) => setCsvData(e.target.value)} /><div style={{ marginTop: 8 }}><button className="primary-btn" onClick={() => void runCsvImport()}>CSV Import Calistir</button></div></div></div>}
-          {activeModule === "settings" && <div className="panel" style={{ padding: "0.85rem" }}><h3 style={{ marginTop: 0 }}>Backoffice Ayarlari</h3><div className="form-grid-3"><div className="panel" style={{ padding: "0.6rem" }}><strong>Rol:</strong> {me.role}</div><div className="panel" style={{ padding: "0.6rem" }}><strong>Pinli Sube:</strong> {branchOptions.find((x) => x.id === branchId)?.name ?? "-"}</div><div className="panel" style={{ padding: "0.6rem" }}><strong>Pinli Firma:</strong> {firmOptions.find((x) => x.id === firmId)?.name ?? "-"}</div></div></div>}
+          {activeModule === "settings" && <div className="panel" style={{ padding: "0.85rem" }}><h3 style={{ marginTop: 0 }}>Backoffice Ayarlari</h3><div className="form-grid-3"><div className="panel" style={{ padding: "0.6rem" }}><strong>Rol:</strong> {me.role}</div><div className="panel" style={{ padding: "0.6rem" }}><strong>Pinli Sube:</strong> {branches.find((x) => x.id === branchId)?.name ?? "-"}</div></div></div>}
         </div>
       </div>
     </section>
@@ -853,8 +851,8 @@ function QuestionBlock({ title, options, selected, onPick }: { title: string; op
 function InfoCard({ title, lines }: { title: string; lines: string[] }) {
   return <div className="panel" style={{ padding: "0.75rem" }}><p style={{ margin: "0 0 8px", fontWeight: 700 }}>{title}</p><div style={{ display: "grid", gap: 5 }}>{lines.map((line, i) => <p key={`${title}-${i}`} style={{ margin: 0, color: "#334155", fontSize: 13 }}>{line}</p>)}</div></div>;
 }
-function DetailPanel({ detail, firmName }: { detail: BuybackDetail; firmName: string }) {
-  return <div className="panel" style={{ padding: "0.8rem" }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, flexWrap: "wrap", gap: 8 }}><div style={{ display: "flex", alignItems: "center", gap: 10 }}><h3 style={{ margin: 0 }}>Buyback ID: {detail.id.slice(-8)}</h3><StatusBadge status={detail.status} /></div><div style={{ display: "flex", gap: 8 }}><button className="field" disabled={detail.status === "COMPLETED"} style={{ width: 110 }}>Kargo Durumu</button><button className="field" style={{ width: 90 }}>Yazdir</button><button className="primary-btn" disabled={detail.status === "REJECTED"} style={{ width: 130 }}>Barkod Yazdir</button></div></div><div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(3,minmax(0,1fr))" }}><InfoCard title="Cihaz Bilgileri" lines={["Kategori: Cep Telefonu", `Marka: ${detail.device?.brand ?? "-"}`, `Model: ${detail.device?.model ?? "-"}`, `Seri No: ${detail.device?.imei ?? "-"}`, `Durum: ${detail.status}`]} /><InfoCard title="Musteri Bilgileri" lines={[`Ad Soyad: ${detail.customer?.fullName ?? "-"}`, `Telefon: ${detail.customer?.phone ?? "-"}`, `TC: ${detail.customer?.nationalId ?? "-"}`, `Eposta: ${detail.customer?.email ?? "-"}`, `Adres/Not: ${detail.customer?.notes ?? "-"}`]} /><InfoCard title="Islem Detayi" lines={[`On Teklif: ${Number(detail.offeredPrice).toLocaleString("tr-TR")} TL`, `Final Teklif: ${Number(detail.agreedPrice ?? detail.offeredPrice).toLocaleString("tr-TR")} TL`, "Takas Ozeti: Aktif", `Firma: ${firmName}`]} /></div></div>;
+function DetailPanel({ detail }: { detail: BuybackDetail }) {
+  return <div className="panel" style={{ padding: "0.8rem" }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, flexWrap: "wrap", gap: 8 }}><div style={{ display: "flex", alignItems: "center", gap: 10 }}><h3 style={{ margin: 0 }}>Buyback ID: {detail.id.slice(-8)}</h3><StatusBadge status={detail.status} /></div><div style={{ display: "flex", gap: 8 }}><button className="field" disabled={detail.status === "COMPLETED"} style={{ width: 110 }}>Kargo Durumu</button><button className="field" style={{ width: 90 }}>Yazdir</button><button className="primary-btn" disabled={detail.status === "REJECTED"} style={{ width: 130 }}>Barkod Yazdir</button></div></div><div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(3,minmax(0,1fr))" }}><InfoCard title="Cihaz Bilgileri" lines={["Kategori: Cep Telefonu", `Marka: ${detail.device?.brand ?? "-"}`, `Model: ${detail.device?.model ?? "-"}`, `Seri No: ${detail.device?.imei ?? "-"}`, `Durum: ${detail.status}`]} /><InfoCard title="Musteri Bilgileri" lines={[`Ad Soyad: ${detail.customer?.fullName ?? "-"}`, `Telefon: ${detail.customer?.phone ?? "-"}`, `TC: ${detail.customer?.nationalId ?? "-"}`, `Eposta: ${detail.customer?.email ?? "-"}`, `Adres/Not: ${detail.customer?.notes ?? "-"}`]} /><InfoCard title="Islem Detayi" lines={[`On Teklif: ${Number(detail.offeredPrice).toLocaleString("tr-TR")} TL`, `Final Teklif: ${Number(detail.agreedPrice ?? detail.offeredPrice).toLocaleString("tr-TR")} TL`, "Takas Ozeti: Aktif"]} /></div></div>;
 }
 function DocumentSection({ title, items }: { title: string; items: Array<{ name: string; fileType: string; url: string | null }> }) {
   return <div className="panel" style={{ padding: "0.75rem" }}><p style={{ margin: "0 0 8px", fontWeight: 700 }}>{title}</p>{items.length === 0 ? <div className="empty-box">Kayit yok.</div> : <div style={{ display: "grid", gap: 8, gridTemplateColumns: "repeat(5,minmax(0,1fr))" }}>{items.map((doc, i) => <a key={`${doc.name}-${i}`} className="panel" style={{ padding: "0.7rem", textAlign: "center" }} href={doc.url ?? "#"} target="_blank" rel="noreferrer"><div style={{ fontWeight: 700 }}>{doc.name}</div><div style={{ color: "#64748b", fontSize: 12 }}>{doc.fileType}</div></a>)}</div>}</div>;
