@@ -36,7 +36,7 @@ const TOUR_STEPS: TourStep[] = [
   },
 ];
 
-const TOUR_STORAGE_KEY = "mobibase_tour_completed";
+const TOUR_STORAGE_KEY = "vibegsm_tour_completed";
 
 export function ProductTour() {
   const [current, setCurrent] = useState(-1);
@@ -142,7 +142,7 @@ export function ProductTour() {
       >
         <div className="rounded-2xl border border-white/20 bg-[#0f172a] p-5 shadow-2xl shadow-black/40">
           <div className="flex items-center justify-between gap-3">
-            <span className="rounded-full bg-cyan-200/15 px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-cyan-200">
+            <span className="rounded-full bg-blue-200/15 px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-blue-200">
               {current + 1} / {TOUR_STEPS.length}
             </span>
             <button onClick={finish} className="text-xs font-bold text-slate-400 hover:text-white transition">
@@ -163,7 +163,7 @@ export function ProductTour() {
             </button>
             <button
               onClick={next}
-              className="rounded-full bg-cyan-200 px-5 py-2 text-xs font-black text-[#06111f] transition hover:bg-white"
+              className="rounded-full bg-blue-200 px-5 py-2 text-xs font-black text-[#06111f] transition hover:bg-white"
             >
               {current + 1 === TOUR_STEPS.length ? "Bitir" : "Sonraki"}
             </button>

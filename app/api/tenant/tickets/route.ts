@@ -46,7 +46,7 @@ async function getOrCreateTenantCustomer(tenantName: string) {
         nationalId: null,
         fullName: tenantName,
         phone: "5550000000",
-        email: "destek@telefoncupro.local",
+        email: "destek@vibegsm.local",
         notes: JSON.stringify(DEFAULT_TENANT_METADATA),
         creditLimit: 0,
       };
@@ -63,7 +63,7 @@ async function getOrCreateTenantCustomer(tenantName: string) {
         data: {
           fullName: tenantName,
           phone: "5550000000",
-          email: "destek@telefoncupro.local",
+          email: "destek@vibegsm.local",
           notes: JSON.stringify(DEFAULT_TENANT_METADATA),
           creditLimit: 0,
         }
@@ -110,7 +110,7 @@ function parseMetadata(notes: string | null) {
 
 export async function GET() {
   try {
-    const tenantName = process.env.TENANT_NAME ?? "TelefoncuPro";
+    const tenantName = process.env.TENANT_NAME ?? "VibeGSM";
     const customer = await getOrCreateTenantCustomer(tenantName);
     const metadata = parseMetadata(customer.notes);
     return NextResponse.json({ tickets: metadata.tickets || [] });
@@ -121,7 +121,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const tenantName = process.env.TENANT_NAME ?? "TelefoncuPro";
+    const tenantName = process.env.TENANT_NAME ?? "VibeGSM";
     const body = await req.json();
     const { title, category, message } = body;
 
@@ -155,7 +155,7 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
-    const tenantName = process.env.TENANT_NAME ?? "TelefoncuPro";
+    const tenantName = process.env.TENANT_NAME ?? "VibeGSM";
     const body = await req.json();
     const { ticketId, message } = body;
 

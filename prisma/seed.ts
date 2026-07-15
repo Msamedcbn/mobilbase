@@ -12,9 +12,9 @@ async function main() {
     update: {},
     create: {
       id: "cust-tenant-seed",
-      fullName: "TelefoncuPro",
+      fullName: "VibeGSM",
       phone: "5550000001",
-      email: "admin@telefoncupro.local",
+      email: "admin@vibegsm.local",
       notes: JSON.stringify({
         isSaaS: true,
         plan: "Pro",
@@ -72,7 +72,7 @@ async function main() {
 
   // 4. Seed admin user
   await prisma.appUser.upsert({
-    where: { email: "admin@telefoncupro.local" },
+    where: { email: "admin@vibegsm.local" },
     update: {
       fullName: "Sistem Yoneticisi",
       role: "ADMIN",
@@ -80,7 +80,7 @@ async function main() {
     },
     create: {
       fullName: "Sistem Yoneticisi",
-      email: "admin@telefoncupro.local",
+      email: "admin@vibegsm.local",
       role: "ADMIN",
       isActive: true,
       passwordHash: hashSync(defaultAdminPassword, 10),

@@ -3,7 +3,7 @@
     {
       "id": "demo-user-admin",
       "fullName": "Sistem Yoneticisi",
-      "email": "admin@telefoncupro.local",
+      "email": "admin@vibegsm.local",
       "role": "ADMIN",
       "passwordHash": "$2a$10$XUa5B09N/qf9pE4a1hGZxe/zUu9r.b91YyP9fL6gU8Z4R8yTz6H0G",
       "isActive": true,
@@ -98,9 +98,9 @@
       "creditLimit": 0,
       "id": "cust-5cf78ffe",
       "nationalId": null,
-      "fullName": "TelefoncuPro",
+      "fullName": "VibeGSM",
       "phone": "5550000000",
-      "email": "destek@telefoncupro.local",
+      "email": "destek@vibegsm.local",
       "notes": "{\"isSaaS\":true,\"plan\":\"Pro\",\"licenseStart\":\"2026-05-22\",\"licenseEnd\":\"2027-05-22\",\"branchLimit\":5,\"databaseSizeGb\":1,\"smsQuota\":5000,\"smsUsed\":0,\"leadStatus\":\"WON\",\"leadHistory\":[{\"date\":\"2026-05-22\",\"note\":\"Sistem aktivasyonu yapıldı.\",\"author\":\"SuperAdmin\"}],\"modules\":{\"pos\":true,\"repairs\":true,\"stock\":true,\"buyback\":false,\"invoicing\":false},\"tickets\":[],\"billingLedger\":[]}"
     }
   ],

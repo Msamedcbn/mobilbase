@@ -120,7 +120,7 @@ export default function ReconciliationTokenPage({ params }: { params: { token: s
     return (
       <main className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
         <div className="text-center space-y-4">
-          <div className="h-12 w-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div className="h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
           <p className="text-sm text-slate-500 font-medium">Mutabakat detayları yükleniyor...</p>
         </div>
       </main>
@@ -140,8 +140,8 @@ export default function ReconciliationTokenPage({ params }: { params: { token: s
         {/* Brand Header */}
         <div className="flex flex-col items-center text-center space-y-2">
           <div className="flex items-center gap-2">
-            <span className="h-7 w-7 rounded-lg bg-teal-700 flex items-center justify-center text-white text-sm font-bold">P</span>
-            <span className="text-lg font-bold tracking-tight text-slate-800">TelefoncuPro Partner</span>
+            <span className="h-7 w-7 rounded-lg bg-blue-700 flex items-center justify-center text-white text-sm font-bold">P</span>
+            <span className="text-lg font-bold tracking-tight text-slate-800">VibeGSM Partner</span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 mt-1">Cihaz Mutabakat Onayı</h1>
           <p className="text-sm text-slate-500 max-w-sm">
@@ -185,11 +185,11 @@ export default function ReconciliationTokenPage({ params }: { params: { token: s
             {/* Steps Timeline for Customer */}
             <div className="flex items-center gap-3">
               <div className="flex items-center">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-teal-50 text-[11px] font-bold text-teal-700 border border-teal-200">1</span>
-                <span className="w-6 h-0.5 bg-teal-200"></span>
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-teal-50 text-[11px] font-bold text-teal-700 border border-teal-200">2</span>
-                <span className="w-6 h-0.5 bg-teal-200"></span>
-                <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold border ${isCompleted ? "bg-teal-50 text-teal-700 border-teal-200" : "bg-teal-600 text-white border-teal-600"}`}>3</span>
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-50 text-[11px] font-bold text-blue-700 border border-blue-200">1</span>
+                <span className="w-6 h-0.5 bg-blue-200"></span>
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-50 text-[11px] font-bold text-blue-700 border border-blue-200">2</span>
+                <span className="w-6 h-0.5 bg-blue-200"></span>
+                <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold border ${isCompleted ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-blue-600 text-white border-blue-600"}`}>3</span>
               </div>
               <span className="text-xs font-semibold text-slate-500">Onay Adımı</span>
             </div>
@@ -251,15 +251,15 @@ export default function ReconciliationTokenPage({ params }: { params: { token: s
         </div>
 
         {/* Pricing Comparison Card */}
-        <div className="rounded-3xl border border-teal-100 bg-gradient-to-br from-teal-50/40 to-emerald-50/20 p-6 shadow-sm border-2">
-          <h2 className="text-lg font-bold text-teal-900 mb-1 flex items-center gap-2">
+        <div className="rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50/40 to-emerald-50/20 p-6 shadow-sm border-2">
+          <h2 className="text-lg font-bold text-blue-900 mb-1 flex items-center gap-2">
             <span>💰</span> Fiyat ve Değerleme Özeti
           </h2>
-          <p className="text-xs text-teal-700/80 mb-6">Müşteri beyanı ile uzman incelemesi fark analizi</p>
+          <p className="text-xs text-blue-700/80 mb-6">Müşteri beyanı ile uzman incelemesi fark analizi</p>
 
           <div className="grid gap-4 sm:grid-cols-3">
             {/* Customer expected price */}
-            <div className="bg-white rounded-2xl p-4 border border-teal-100/50 shadow-xs">
+            <div className="bg-white rounded-2xl p-4 border border-blue-100/50 shadow-xs">
               <span className="text-xs text-slate-400 font-medium block">Müşteri Beyan Fiyatı</span>
               <span className="text-xl font-bold text-slate-700 block mt-1">
                 {data.customerPrice.toLocaleString("tr-TR")} TL
@@ -267,15 +267,15 @@ export default function ReconciliationTokenPage({ params }: { params: { token: s
             </div>
 
             {/* Expert company evaluation price */}
-            <div className="bg-white rounded-2xl p-4 border border-teal-100/50 shadow-xs ring-2 ring-teal-600 ring-offset-2">
-              <span className="text-xs text-teal-600 font-semibold block">Nihai Fiyat Teklifi</span>
-              <span className="text-2xl font-extrabold text-teal-800 block mt-1">
+            <div className="bg-white rounded-2xl p-4 border border-blue-100/50 shadow-xs ring-2 ring-blue-600 ring-offset-2">
+              <span className="text-xs text-blue-600 font-semibold block">Nihai Fiyat Teklifi</span>
+              <span className="text-2xl font-extrabold text-blue-800 block mt-1">
                 {data.companyPrice.toLocaleString("tr-TR")} TL
               </span>
             </div>
 
             {/* Price difference */}
-            <div className="bg-white rounded-2xl p-4 border border-teal-100/50 shadow-xs">
+            <div className="bg-white rounded-2xl p-4 border border-blue-100/50 shadow-xs">
               <span className="text-xs text-slate-400 font-medium block">Revizyon Farkı</span>
               <span className={`text-xl font-bold block mt-1 ${data.differenceAmount > 0 ? "text-amber-600" : "text-slate-700"}`}>
                 {data.differenceAmount > 0 ? `-${data.differenceAmount.toLocaleString("tr-TR")} TL` : "0 TL"}
@@ -283,7 +283,7 @@ export default function ReconciliationTokenPage({ params }: { params: { token: s
             </div>
           </div>
 
-          <div className="mt-5 text-xs text-teal-700/80 leading-relaxed bg-white/50 rounded-xl p-3 border border-teal-100/20">
+          <div className="mt-5 text-xs text-blue-700/80 leading-relaxed bg-white/50 rounded-xl p-3 border border-blue-100/20">
             <strong>* Not:</strong> Nihai fiyat teklifi, cihazın fiziki ekspertizi esnasında tespit edilen kozmetik/donanımsal detaylar doğrultusunda revize edilmiştir.
           </div>
         </div>
@@ -302,7 +302,7 @@ export default function ReconciliationTokenPage({ params }: { params: { token: s
                 type="checkbox"
                 checked={termsAccepted}
                 onChange={(e) => setTermsAccepted(e.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer"
+                className="mt-1 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
               />
               <span className="text-xs text-slate-500 leading-relaxed">
                 Cihazın beyan ettiğim seri numarası/IMEI ile eşleştiğini doğrular; satışı onaylamam halinde dükkan tarafından hazırlanan <strong>İkinci El Cihaz Devir Sözleşmesi</strong> şartlarını ve cihaz mülkiyetinin yasal olarak dükkana devredilmesini kabul ederim.
@@ -325,7 +325,7 @@ export default function ReconciliationTokenPage({ params }: { params: { token: s
             {/* Action Buttons */}
             <div className="grid gap-3 sm:grid-cols-2 pt-2">
               <button
-                className="primary-btn py-3.5 font-bold shadow-md hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all bg-teal-700 hover:bg-teal-800"
+                className="primary-btn py-3.5 font-bold shadow-md hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all bg-blue-700 hover:bg-blue-800"
                 disabled={loading || !termsAccepted}
                 onClick={() => void decide("APPROVED")}
               >
@@ -363,7 +363,7 @@ export default function ReconciliationTokenPage({ params }: { params: { token: s
               </div>
             )}
             <div className="text-xs text-slate-400 pt-4 border-t border-slate-100">
-              TelefoncuPro Mutabakat Altyapısı Güvencesiyle
+              VibeGSM Mutabakat Altyapısı Güvencesiyle
             </div>
           </div>
         )}

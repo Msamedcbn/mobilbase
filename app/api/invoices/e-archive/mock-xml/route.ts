@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
   <cac:AccountingSupplierParty>
     <cac:Party>
       <cac:PartyName>
-        <cbc:Name>TelefoncuPro Iletisim Ltd. Sti.</cbc:Name>
+        <cbc:Name>VibeGSM Iletisim Ltd. Sti.</cbc:Name>
       </cac:PartyName>
       <cac:PostalAddress>
         <cbc:StreetName>Cafaraga Mah. Muvakkithane Cad. No:12/A</cbc:StreetName>

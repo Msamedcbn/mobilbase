@@ -102,7 +102,7 @@ export default function SerialNumberTrackingPage() {
       case "READY":
         return <span className="px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">Hazir</span>;
       case "DELIVERED":
-        return <span className="px-2 py-0.5 rounded text-xs font-semibold bg-teal-100 text-teal-800 border border-teal-200">Teslim</span>;
+        return <span className="px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">Teslim</span>;
       default:
         return <span className="px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200">{status}</span>;
     }

@@ -11,7 +11,7 @@ type AllowedUserRole = (typeof ALLOWED_USER_ROLES)[number];
 const DEFAULT_ROLE_PERMISSIONS = {
   PLATFORM_OWNER: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
   ADMIN: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
-  MANAGER: ["pos", "repairs", "stock", "invoicing", "branches"],
+  MANAGER: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
   CASHIER: ["pos"],
   TECHNICIAN: ["repairs"],
   ACCOUNTANT: ["invoicing"],
@@ -107,6 +107,7 @@ export async function POST(req: Request) {
         users[existingUserIndex].isActive = true;
         users[existingUserIndex].fullName = authorizedPerson || users[existingUserIndex].fullName;
         users[existingUserIndex].role = localRole;
+        users[existingUserIndex].tenantId = created.id;
       } else {
         users.push({
           id: localId("user"),
@@ -116,6 +117,7 @@ export async function POST(req: Request) {
           passwordHash,
           isActive: true,
           branchId: null,
+          tenantId: created.id,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         });

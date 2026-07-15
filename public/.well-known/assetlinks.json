@@ -5,7 +5,7 @@
     ],
     "target": {
       "namespace": "android_app",
-      "package_name": "com.mobibase.twa",
+      "package_name": "com.vibegsm.twa",
       "sha256_cert_fingerprints": [
         "YOUR_SHA256_FINGERPRINT_HERE_AFTER_KEYSTORE_CREATION"
       ]

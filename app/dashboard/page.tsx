@@ -104,7 +104,7 @@ export default async function DashboardPage({
     IN_PROGRESS: "#f59e0b",  // Amber
     WAITING_PART: "#ef4444", // Red
     READY: "#10b981",        // Emerald
-    DELIVERED: "#14b8a6",    // Teal
+    DELIVERED: "#3b82f6",    // Blue
     CANCELED: "#64748b",     // Slate
   };
 
@@ -466,8 +466,8 @@ export default async function DashboardPage({
       <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div className="sm:max-w-xl">
           <div className="flex items-center gap-2.5 mb-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-teal-500 animate-pulse"></span>
-            <span className="text-[11px] font-bold text-teal-700">
+            <span className="h-2.5 w-2.5 rounded-full bg-blue-500 animate-pulse"></span>
+            <span className="text-[11px] font-bold text-blue-700">
               {new Date().toLocaleDateString("tr-TR", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </span>
           </div>
@@ -489,7 +489,7 @@ export default async function DashboardPage({
       <div id="dashboard-kpi" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:grid-flow-dense">
 
         <div className="relative group overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md lg:col-span-2">
-          <div className="absolute top-0 left-0 w-full h-[3px] bg-teal-600 opacity-80" />
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-blue-600 opacity-80" />
           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Satis Geliri</p>
           <div className="mt-3 flex items-baseline gap-3">
             <h3 className="text-[clamp(1.8rem,2.5vw,2.8rem)] font-black text-slate-800 font-mono tracking-tight">{periodIncome.toLocaleString("tr-TR")} TL</h3>
@@ -519,7 +519,7 @@ export default async function DashboardPage({
         </div>
 
         <div className="relative group overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md lg:col-span-2">
-          <div className="absolute top-0 left-0 w-full h-[3px] bg-teal-500 opacity-85" />
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-blue-500 opacity-85" />
           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Nakit Girisi</p>
           <div className="mt-3 flex items-baseline gap-3">
             <h3 className="text-[clamp(1.8rem,2.5vw,2.8rem)] font-black text-slate-800 font-mono tracking-tight">{periodTahsilat.toLocaleString("tr-TR")} TL</h3>
@@ -580,7 +580,7 @@ export default async function DashboardPage({
           </div>
           <div className="flex flex-wrap items-center gap-4 text-xs font-semibold">
             <div className="flex items-center gap-1.5">
-              <span className="h-3 w-3 rounded-md bg-teal-600 shadow-sm shadow-teal-700/20"></span>
+              <span className="h-3 w-3 rounded-md bg-blue-600 shadow-sm shadow-blue-700/20"></span>
               <span className="text-slate-600">Satis / Gelir</span>
             </div>
             <div className="flex items-center gap-1.5">
@@ -588,7 +588,7 @@ export default async function DashboardPage({
               <span className="text-slate-600">Giderler</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="h-3 w-3 rounded-md bg-teal-600 shadow-sm shadow-teal-700/20"></span>
+              <span className="h-3 w-3 rounded-md bg-blue-600 shadow-sm shadow-blue-700/20"></span>
               <span className="text-slate-600">Net Kar</span>
             </div>
           </div>
@@ -601,14 +601,14 @@ export default async function DashboardPage({
             {/* Gradients definitions */}
             <defs>
               <linearGradient id="netProfitGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.18" />
-                <stop offset="100%" stopColor="#14b8a6" stopOpacity="0.00" />
+                <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.18" />
+                <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.00" />
               </linearGradient>
               <filter id="shadow-line" x="-10%" y="-10%" width="120%" height="120%">
-                <feDropShadow dx="0" dy="4" stdDeviation="3" floodColor="#0d9488" floodOpacity="0.25" />
+                <feDropShadow dx="0" dy="4" stdDeviation="3" floodColor="#2563eb" floodOpacity="0.25" />
               </filter>
-              <filter id="shadow-line-teal" x="-10%" y="-10%" width="120%" height="120%">
-                <feDropShadow dx="0" dy="3" stdDeviation="2" floodColor="#0f766e" floodOpacity="0.18" />
+              <filter id="shadow-line-blue" x="-10%" y="-10%" width="120%" height="120%">
+                <feDropShadow dx="0" dy="3" stdDeviation="2" floodColor="#1d4ed8" floodOpacity="0.18" />
               </filter>
             </defs>
 
@@ -628,9 +628,9 @@ export default async function DashboardPage({
             <path d={netProfitAreaPath} fill="url(#netProfitGrad)" />
 
             {/* Path lines with filters */}
-            <path d={incomeLinePath} stroke="#0f766e" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" filter="url(#shadow-line-teal)" />
+            <path d={incomeLinePath} stroke="#1d4ed8" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" filter="url(#shadow-line-blue)" />
             <path d={expenseLinePath} stroke="#f43f5e" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d={netProfitLinePath} stroke="#0d9488" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" filter="url(#shadow-line)" />
+            <path d={netProfitLinePath} stroke="#2563eb" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" filter="url(#shadow-line)" />
 
             {/* Interaction points circles */}
             {monthsList.map((m, idx) => {
@@ -645,13 +645,13 @@ export default async function DashboardPage({
                   <line x1={pInc.x} y1="30" x2={pInc.x} y2="170" stroke="#e2e8f0" strokeDasharray="3 3" className="opacity-0 group-hover/node:opacity-100 transition-opacity" />
 
                   {/* Income point */}
-                  <circle cx={pInc.x} cy={pInc.y} r="5" fill="#0f766e" stroke="#fff" strokeWidth="2" className="transition-all hover:scale-150 cursor-pointer" />
+                  <circle cx={pInc.x} cy={pInc.y} r="5" fill="#1d4ed8" stroke="#fff" strokeWidth="2" className="transition-all hover:scale-150 cursor-pointer" />
                   
                   {/* Expense point */}
                   <circle cx={pExp.x} cy={pExp.y} r="5" fill="#f43f5e" stroke="#fff" strokeWidth="2" className="transition-all hover:scale-150 cursor-pointer" />
 
                   {/* Net Profit point */}
-                  <circle cx={pNet.x} cy={pNet.y} r="6" fill="#0d9488" stroke="#fff" strokeWidth="2.5" className="transition-all hover:scale-150 cursor-pointer shadow-sm" />
+                  <circle cx={pNet.x} cy={pNet.y} r="6" fill="#2563eb" stroke="#fff" strokeWidth="2.5" className="transition-all hover:scale-150 cursor-pointer shadow-sm" />
 
                   {/* Tooltip detail block */}
                   <g className="opacity-0 group-hover/node:opacity-100 transition-all duration-200 pointer-events-none transform -translate-y-1">
@@ -681,11 +681,11 @@ export default async function DashboardPage({
             </div>
             <div className="flex items-center gap-4 text-xs font-semibold">
               <div className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded bg-teal-600"></span>
+                <span className="h-2.5 w-2.5 rounded bg-blue-600"></span>
                 <span className="text-slate-600">Satis</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded bg-cyan-400"></span>
+                <span className="h-2.5 w-2.5 rounded bg-blue-400"></span>
                 <span className="text-slate-600">Nakit Girisi</span>
               </div>
             </div>
@@ -731,8 +731,8 @@ export default async function DashboardPage({
                       width="15"
                       height={Math.max(salesH, 1)}
                       rx="3.5"
-                      fill="#0f766e"
-                      className="transition-all duration-300 hover:fill-teal-600"
+                      fill="#1d4ed8"
+                      className="transition-all duration-300 hover:fill-blue-600"
                     />
                     {/* Collections Bar */}
                     <rect
@@ -741,8 +741,8 @@ export default async function DashboardPage({
                       width="15"
                       height={Math.max(collH, 1)}
                       rx="3.5"
-                      fill="#14b8a6"
-                      className="transition-all duration-300 hover:fill-teal-600"
+                      fill="#3b82f6"
+                      className="transition-all duration-300 hover:fill-blue-600"
                     />
 
                     {/* Axis Labels */}
@@ -811,7 +811,7 @@ export default async function DashboardPage({
               <h3 className="text-lg font-bold text-slate-900">Sistem Islem Gunlugu</h3>
               <p className="text-xs text-slate-400 mt-1 font-medium">Uygulama genelinde gerceklestirilen son hareketler</p>
             </div>
-            <span className="text-xs text-teal-650 font-bold hover:text-teal-700 hover:underline cursor-pointer transition">Gunlugu Filtrele</span>
+            <span className="text-xs text-blue-650 font-bold hover:text-blue-700 hover:underline cursor-pointer transition">Gunlugu Filtrele</span>
           </div>
 
           <div className="relative border-l-2 border-slate-100/70 ml-3 pl-6 space-y-6">
@@ -819,13 +819,13 @@ export default async function DashboardPage({
               let badgeColor = "bg-slate-50 text-slate-600 border-slate-200/50";
               if (log.action.includes("CHECKOUT")) badgeColor = "bg-emerald-50 text-emerald-700 border-emerald-100/50";
               else if (log.action.includes("REPAIR")) badgeColor = "bg-blue-50 text-blue-700 border-blue-100/50";
-              else if (log.action.includes("RECONCILIATION")) badgeColor = "bg-teal-50 text-teal-700 border-teal-100/50";
-              else if (log.action.includes("CREATE")) badgeColor = "bg-teal-50 text-teal-700 border-teal-100/50";
+              else if (log.action.includes("RECONCILIATION")) badgeColor = "bg-blue-50 text-blue-700 border-blue-100/50";
+              else if (log.action.includes("CREATE")) badgeColor = "bg-blue-50 text-blue-700 border-blue-100/50";
 
               return (
                 <div key={log.id} className="relative group">
                   {/* Glowing Node */}
-                  <span className="absolute -left-[32px] top-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full border-2 border-white bg-slate-300 ring-4 ring-white group-hover:bg-teal-500 group-hover:ring-teal-100 transition-all duration-200"></span>
+                  <span className="absolute -left-[32px] top-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full border-2 border-white bg-slate-300 ring-4 ring-white group-hover:bg-blue-500 group-hover:ring-blue-100 transition-all duration-200"></span>
                   
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -857,8 +857,8 @@ export default async function DashboardPage({
           </div>
 
           <div className="space-y-3">
-            <Link href="/pos" className="flex items-center gap-3 w-full p-3 rounded-2xl border border-slate-100 hover:border-teal-200/50 bg-slate-50/50 hover:bg-teal-50/20 text-slate-700 hover:text-teal-800 font-semibold text-xs transition-all duration-200 transform hover:scale-[1.01]">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-50 text-teal-600 border border-teal-100/55"></span>
+            <Link href="/pos" className="flex items-center gap-3 w-full p-3 rounded-2xl border border-slate-100 hover:border-blue-200/50 bg-slate-50/50 hover:bg-blue-50/20 text-slate-700 hover:text-blue-800 font-semibold text-xs transition-all duration-200 transform hover:scale-[1.01]">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600 border border-blue-100/55"></span>
               Yeni POS Satis Yap
             </Link>
             <Link href="/tamir-takip" className="flex items-center gap-3 w-full p-3 rounded-2xl border border-slate-100 hover:border-blue-200/50 bg-slate-50/50 hover:bg-blue-50/20 text-slate-700 hover:text-blue-800 font-semibold text-xs transition-all duration-200 transform hover:scale-[1.01]">
@@ -876,7 +876,7 @@ export default async function DashboardPage({
           </div>
 
           <div className="mt-6 pt-4 border-t border-slate-100 text-center text-[10px] text-slate-400 font-bold">
-            Versiyon 1.1.0 - MobiBase Cloud
+            Versiyon 1.1.0 - VibeGSM Cloud
           </div>
         </div>
       </div>

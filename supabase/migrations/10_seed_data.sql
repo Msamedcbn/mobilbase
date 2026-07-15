@@ -5,9 +5,9 @@
 INSERT INTO "Customer" ("id", "fullName", "phone", "email", "notes", "creditLimit", "createdAt", "updatedAt")
 VALUES (
   'cust-tenant-seed',
-  'TelefoncuPro',
+  'VibeGSM',
   '5550000001',
-  'admin@telefoncupro.local',
+  'admin@vibegsm.local',
   '{"isSaaS":true,"plan":"Pro","branchLimit":5,"databaseSizeGb":1.0,"smsQuota":5000,"smsUsed":0,"leadStatus":"WON","modules":{"pos":true,"repairs":true,"stock":true,"buyback":false,"invoicing":true},"rolePermissions":{"PLATFORM_OWNER":["pos","repairs","stock","invoicing","buyback"],"ADMIN":["pos","repairs","stock","invoicing","buyback"],"MANAGER":["pos","repairs","stock","invoicing"],"CASHIER":["pos"],"TECHNICIAN":["repairs"],"ACCOUNTANT":["invoicing"]},"tickets":[],"billingLedger":[]}',
   0.00,
   NOW(),
@@ -21,7 +21,7 @@ INSERT INTO "AppUser" ("id", "fullName", "email", "role", "passwordHash", "isAct
 SELECT
   'user-admin-seed',
   'Sistem Yoneticisi',
-  'admin@telefoncupro.local',
+  'admin@vibegsm.local',
   'ADMIN',
   '$2b$10$MBPYrQNaaQ82HEh0vQYCQ.LZViy9m1eyICKnKu2Qj7afukvtVDqQe',
   true,
@@ -29,7 +29,7 @@ SELECT
   NOW(),
   NOW()
 FROM "Customer" c
-WHERE c."fullName" = 'TelefoncuPro'
+WHERE c."fullName" = 'VibeGSM'
 LIMIT 1
 ON CONFLICT ("email") DO UPDATE SET "tenantId" = EXCLUDED."tenantId";
 

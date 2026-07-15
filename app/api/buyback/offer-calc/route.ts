@@ -35,7 +35,7 @@ export async function POST(req: Request) {
       return ok({ offeredPrice: Math.max(1000, Math.round(price / 50) * 50), mode: "db_disabled" });
     }
 
-    const detailed = await calculateOfferPriceDetailed(parsed.data);
+    const detailed = await calculateOfferPriceDetailed(parsed.data, auth.user?.tenantId ?? null);
     return ok({ offeredPrice: detailed.offeredPrice, breakdown: detailed });
   } catch (error) {
     return fail(getErrorMessage(error), getErrorCode(error), getErrorStatus(error));

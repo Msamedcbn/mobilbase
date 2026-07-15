@@ -73,13 +73,13 @@ export function PwaRegister() {
 
   return (
     <div className="fixed bottom-20 left-4 right-4 z-50 md:left-auto md:right-6 md:w-80 animate-fade-in">
-      <div className="rounded-2xl border border-teal-200 bg-white p-4 shadow-lg shadow-teal-100/50">
+      <div className="rounded-2xl border border-blue-200 bg-white p-4 shadow-lg shadow-blue-100/50">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-600 text-white text-lg font-black">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white text-lg font-black">
             M
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-black text-slate-900">MobiBase&apos;i telefonunuza ekleyin</p>
+            <p className="text-sm font-black text-slate-900">VibeGSM&apos;i telefonunuza ekleyin</p>
             <p className="mt-1 text-xs leading-5 text-slate-500">
               Bayi panelinize uygulama simgesinden tek dokunuşla ulaşın.
             </p>
@@ -99,7 +99,7 @@ export function PwaRegister() {
           </button>
           <button
             onClick={handleInstall}
-            className="flex-1 rounded-xl bg-teal-600 px-3 py-2 text-xs font-bold text-white hover:bg-teal-700 transition shadow-sm"
+            className="flex-1 rounded-xl bg-blue-600 px-3 py-2 text-xs font-bold text-white hover:bg-blue-700 transition shadow-sm"
           >
             Yükle
           </button>

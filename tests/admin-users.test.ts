@@ -6,7 +6,7 @@ describe("AppUser Schema Validations", () => {
     it("accepts a valid user payload", () => {
       const payload = {
         fullName: "Ahmet Yılmaz",
-        email: "ahmet@telefoncupro.com",
+        email: "ahmet@vibegsm.com",
         role: "CASHIER",
         password: "securepassword123",
         isActive: true,
@@ -29,7 +29,7 @@ describe("AppUser Schema Validations", () => {
     it("rejects password shorter than 8 characters", () => {
       const payload = {
         fullName: "Ahmet Yılmaz",
-        email: "ahmet@telefoncupro.com",
+        email: "ahmet@vibegsm.com",
         role: "TECHNICIAN",
         password: "123",
       };
@@ -40,7 +40,7 @@ describe("AppUser Schema Validations", () => {
     it("rejects name shorter than 3 characters", () => {
       const payload = {
         fullName: "Al",
-        email: "ahmet@telefoncupro.com",
+        email: "ahmet@vibegsm.com",
         role: "ADMIN",
         password: "securepassword123",
       };

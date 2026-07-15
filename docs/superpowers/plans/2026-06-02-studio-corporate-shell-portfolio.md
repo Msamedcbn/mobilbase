@@ -4,7 +4,7 @@
 
 **Goal:** Upgrade `/studio` with a more corporate shell and clearer bayi portfolio first screen while preserving existing behavior.
 
-**Architecture:** Replace the Studio layout shell markup in `app/studio/layout.tsx` with a polished MobiBase Studio sidebar and mobile drawer. Patch the visible first workspace sections in `app/studio/page.tsx`: header, KPI cards, funnel, tab labels, portfolio filters, portfolio table wrapper, and table headers. Do not change APIs, state shape, or tenant mutation logic.
+**Architecture:** Replace the Studio layout shell markup in `app/studio/layout.tsx` with a polished VibeGSM Studio sidebar and mobile drawer. Patch the visible first workspace sections in `app/studio/page.tsx`: header, KPI cards, funnel, tab labels, portfolio filters, portfolio table wrapper, and table headers. Do not change APIs, state shape, or tenant mutation logic.
 
 **Tech Stack:** Next.js 14 App Router, React 18, Tailwind CSS, TypeScript.
 
@@ -26,7 +26,7 @@ Keep `pathname === "/studio/login"` returning children, `currentTab` from search
 
 - [ ] **Step 2: Update branding and nav labels**
 
-Use `MobiBase Studio`, `Platform Yönetimi`, and professional Turkish labels.
+Use `VibeGSM Studio`, `Platform Yönetimi`, and professional Turkish labels.
 
 - [ ] **Step 3: Improve telemetry card**
 

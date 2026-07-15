@@ -1,11 +1,11 @@
 {
-  "name": "MobiBase Cloud Platform",
-  "short_name": "MobiBase",
+  "name": "VibeGSM Cloud Platform",
+  "short_name": "VibeGSM",
   "description": "Telefon bayileri için hepsi bir arada bulut otomasyonu",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#090d16",
-  "theme_color": "#0f766e",
+  "theme_color": "#3B82F6",
   "orientation": "portrait-primary",
   "scope": "/",
   "icons": [

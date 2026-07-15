@@ -84,9 +84,9 @@ function StudioLayoutContent({ children }: { children: React.ReactNode }) {
       <aside className="hidden w-[292px] shrink-0 border-r border-slate-900/10 bg-[#090d16] p-5 text-white md:flex md:min-h-screen md:flex-col">
         <div className="mb-7 rounded-3xl border border-white/10 bg-white/[0.04] p-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500 text-lg font-black shadow-lg shadow-indigo-950/30">M</div>
+            <img src="/icon-square.png" alt="VibeGSM" className="h-11 w-11 rounded-2xl shadow-lg shadow-indigo-950/30 object-cover" />
             <div>
-              <h1 className="text-lg font-black tracking-tight">MobiBase Studio</h1>
+              <h1 className="text-lg font-black tracking-tight">VibeGSM Studio</h1>
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-indigo-200">Platform Yönetimi</p>
             </div>
           </div>
@@ -95,7 +95,7 @@ function StudioLayoutContent({ children }: { children: React.ReactNode }) {
         <div className="mb-5 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
           <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">Oturum</p>
           <div className="mt-3 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-500 to-cyan-400 text-sm font-black">SA</div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-500 to-blue-400 text-sm font-black">SA</div>
             <div>
               <p className="text-sm font-black">SuperAdmin</p>
               <p className="text-xs text-slate-400">Reseller operasyon yetkilisi</p>
@@ -151,7 +151,7 @@ function StudioLayoutContent({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 px-5 py-4 backdrop-blur md:hidden">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-black text-slate-950">MobiBase Studio</p>
+            <p className="text-sm font-black text-slate-950">VibeGSM Studio</p>
             <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-indigo-600">Platform Yönetimi</p>
           </div>
           <button

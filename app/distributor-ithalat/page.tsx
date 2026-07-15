@@ -159,7 +159,7 @@ export default function DistributorImportPage() {
     <section style={{ maxWidth: 1200, margin: "0 auto", padding: "1.5rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
         <h2 className="page-title" style={{ margin: 0 }}>Distribütör Entegrasyonu</h2>
-        <button onClick={handleDownloadTemplate} className="primary-btn" style={{ backgroundColor: "#0f766e" }}>
+        <button onClick={handleDownloadTemplate} className="primary-btn" style={{ backgroundColor: "#1d4ed8" }}>
           📥 Örnek Şablon İndir ({distributor})
         </button>
       </div>
@@ -240,7 +240,7 @@ export default function DistributorImportPage() {
                   style={{ 
                     height: "100%", 
                     width: `${progress}%`, 
-                    background: "linear-gradient(90deg, #0f766e, #2dd4bf)", 
+                    background: "linear-gradient(90deg, #1d4ed8, #60a5fa)", 
                     transition: "width 0.2s ease-out" 
                   }} 
                 />
@@ -360,7 +360,7 @@ export default function DistributorImportPage() {
                     <td><span style={{ fontSize: 11, padding: "2px 6px", background: "rgba(255,255,255,0.05)", borderRadius: 4 }}>{prod.category}</span></td>
                     <td style={{ textAlign: "right" }}>{prod.purchasePrice.toFixed(2)} TL</td>
                     <td style={{ textAlign: "right", fontWeight: 600 }}>{prod.salePrice.toFixed(2)} TL</td>
-                    <td style={{ textAlign: "right", fontWeight: 700, color: "#0f766e" }}>+{prod.stock} adet</td>
+                    <td style={{ textAlign: "right", fontWeight: 700, color: "#1d4ed8" }}>+{prod.stock} adet</td>
                   </tr>
                 ))}
               </tbody>

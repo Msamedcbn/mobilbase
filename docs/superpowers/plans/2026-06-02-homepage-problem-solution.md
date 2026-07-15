@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Replace the current homepage with a premium problem-solution landing page that convinces phone bayis MobiBase solves their daily operational chaos.
+**Goal:** Replace the current homepage with a premium problem-solution landing page that convinces phone bayis VibeGSM solves their daily operational chaos.
 
 **Architecture:** Keep the implementation in `app/page.tsx` and preserve the existing dynamic pricing flow from `readLocalStore()`. Use typed local arrays for pain points, modules, workflow steps, and plan metadata. Keep CSS scoped through JSX style tags to avoid disturbing app screens.
 
@@ -40,11 +40,11 @@ Ensure `PlanKey`, plan metadata, and feature keys match the existing pricing obj
 
 Hero headline: `Excel, WhatsApp ve defter karmaşasını tek bayi sisteminde bitirin.`
 
-Hero body: `MobiBase; satış, teknik servis, stok, ikinci el ve tahsilatı aynı akışta toplayan telefon bayi otomasyonudur.`
+Hero body: `VibeGSM; satış, teknik servis, stok, ikinci el ve tahsilatı aynı akışta toplayan telefon bayi otomasyonudur.`
 
 - [ ] **Step 2: Add a before-after hero visual**
 
-Create a visual showing scattered channels on the left and MobiBase control flow on the right without using external images.
+Create a visual showing scattered channels on the left and VibeGSM control flow on the right without using external images.
 
 - [ ] **Step 3: Add proof strip**
 

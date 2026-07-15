@@ -24,6 +24,7 @@ export type LocalStore = {
     isActive: boolean;
     branchId: string | null;
     tenantId?: string | null;
+    moduleOverrides?: Record<string, boolean> | null;
     createdAt?: string;
     updatedAt?: string;
   }>;

@@ -42,21 +42,21 @@ const PLANS: LsPlan[] = ["Lite", "Service", "Pro", "Enterprise"];
 
 const PLAN_COLORS: Record<LsPlan, string> = {
   Lite: "from-slate-500 to-slate-700",
-  Service: "from-teal-500 to-teal-700",
+  Service: "from-blue-500 to-blue-700",
   Pro: "from-indigo-500 to-indigo-700",
   Enterprise: "from-violet-500 to-violet-700",
 };
 
 const PLAN_BORDER: Record<LsPlan, string> = {
   Lite: "border-slate-200",
-  Service: "border-teal-200",
+  Service: "border-blue-200",
   Pro: "border-indigo-200",
   Enterprise: "border-violet-200",
 };
 
 const PLAN_RING: Record<LsPlan, string> = {
   Lite: "ring-slate-500",
-  Service: "ring-teal-500",
+  Service: "ring-blue-500",
   Pro: "ring-indigo-500",
   Enterprise: "ring-violet-500",
 };

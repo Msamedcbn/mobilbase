@@ -77,7 +77,7 @@ type HeldCart = {
 const getBrandStyle = (brandId: string) => {
   switch (brandId) {
     case "bonus":
-      return { bg: "from-emerald-500 to-teal-600", text: "text-emerald-700", border: "border-emerald-200" };
+      return { bg: "from-emerald-500 to-blue-600", text: "text-emerald-700", border: "border-emerald-200" };
     case "world":
       return { bg: "from-indigo-500 to-purple-600", text: "text-indigo-700", border: "border-indigo-200" };
     case "maximum":
@@ -87,7 +87,7 @@ const getBrandStyle = (brandId: string) => {
     case "paraf":
       return { bg: "from-slate-700 to-slate-900", text: "text-slate-800", border: "border-slate-300" };
     case "cardfinans":
-      return { bg: "from-blue-500 to-cyan-600", text: "text-blue-700", border: "border-blue-200" };
+      return { bg: "from-blue-500 to-blue-600", text: "text-blue-700", border: "border-blue-200" };
     case "bankkart":
       return { bg: "from-red-500 to-orange-600", text: "text-red-700", border: "border-red-200" };
     default:
@@ -129,7 +129,7 @@ export default function PosPage() {
   const [receivedCash, setReceivedCash] = useState<string>("");
 
   useEffect(() => {
-    const saved = localStorage.getItem("saastel_held_carts");
+    const saved = localStorage.getItem("vibegsm_held_carts");
     if (saved) {
       try {
         setHeldCarts(JSON.parse(saved));
@@ -141,7 +141,7 @@ export default function PosPage() {
 
   const saveHeldCarts = (newCarts: HeldCart[]) => {
     setHeldCarts(newCarts);
-    localStorage.setItem("saastel_held_carts", JSON.stringify(newCarts));
+    localStorage.setItem("vibegsm_held_carts", JSON.stringify(newCarts));
   };
 
   const handleHoldCart = () => {
@@ -532,7 +532,7 @@ export default function PosPage() {
       </head>
       <body>
         <div class="header text-center">
-          <div class="title">TELEFONCUPRO</div>
+          <div class="title">VIBEGSM</div>
           <div>${branchName}</div>
           <div style="font-size: 10px; margin-top: 4px;">Tel: +90 555 123 4567</div>
         </div>
@@ -599,7 +599,7 @@ export default function PosPage() {
       {/* Top Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/80 backdrop-blur-md p-6 rounded-3xl border border-slate-200/50 shadow-sm">
         <div>
-          <h2 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-teal-900 to-indigo-900 bg-clip-text text-transparent">
+          <h2 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
             Bulut POS Satış Terminali
           </h2>
           <p className="text-slate-500 text-xs mt-1.5 font-medium">Hızlı perakende satışı, barkodlu sepet yönetimi ve cari veresiye işlemlerini anlık yönetin.</p>
@@ -607,7 +607,7 @@ export default function PosPage() {
         
         {/* Branch Selector Dropdown */}
         <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 p-2 px-3 rounded-2xl shadow-inner shrink-0 transition hover:border-slate-350">
-          <div className="flex items-center gap-2 text-teal-600 pl-0.5">
+          <div className="flex items-center gap-2 text-blue-600 pl-0.5">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
@@ -671,19 +671,19 @@ export default function PosPage() {
         </div>
 
         {/* Card 4: Toplam Tutar */}
-        <div className="bg-gradient-to-r from-teal-900 to-teal-950 border border-teal-950 p-5 rounded-2xl shadow-md flex items-center gap-4 relative overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-900 to-blue-950 border border-blue-950 p-5 rounded-2xl shadow-md flex items-center gap-4 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-3 opacity-[0.03]">
-            <svg className="w-20 h-20 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-20 h-20 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M12 16V5" />
             </svg>
           </div>
-          <div className="w-11 h-11 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center shrink-0 border border-teal-500/20 shadow-inner">
+          <div className="w-11 h-11 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/20 shadow-inner">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M12 16V5" />
             </svg>
           </div>
           <div>
-            <p className="text-[10px] font-bold text-teal-400 uppercase tracking-wider">Toplam Tutar</p>
+            <p className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Toplam Tutar</p>
             <p className="text-2xl font-black text-white font-mono mt-0.5">{total.toLocaleString("tr-TR")} TL</p>
           </div>
         </div>
@@ -742,7 +742,7 @@ export default function PosPage() {
           {/* Search Box */}
           <div className="relative mb-6">
             <input
-              className="w-full pl-12 pr-10 py-3.5 bg-white border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all shadow-inner text-sm font-semibold"
+              className="w-full pl-12 pr-10 py-3.5 bg-white border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all shadow-inner text-sm font-semibold"
               placeholder="Ürün barkodunu okutun veya isim araması yapın..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -789,7 +789,7 @@ export default function PosPage() {
                   className={`group relative flex flex-col justify-between p-4.5 bg-white border rounded-2xl transition-all duration-300 select-none ${
                     isOutOfStock
                       ? "border-slate-100 opacity-60 cursor-not-allowed bg-slate-50/50"
-                      : "border-slate-200/80 hover:border-teal-500/50 hover:shadow-md hover:scale-[1.01] hover:-translate-y-0.5 cursor-pointer active:scale-[0.99]"
+                      : "border-slate-200/80 hover:border-blue-500/50 hover:shadow-md hover:scale-[1.01] hover:-translate-y-0.5 cursor-pointer active:scale-[0.99]"
                   }`}
                 >
                   <div>
@@ -812,7 +812,7 @@ export default function PosPage() {
                       )}
                     </div>
                     
-                    <h4 className="font-extrabold text-slate-800 text-xs sm:text-sm line-clamp-2 min-h-[40px] group-hover:text-teal-700 transition-colors leading-snug">
+                    <h4 className="font-extrabold text-slate-800 text-xs sm:text-sm line-clamp-2 min-h-[40px] group-hover:text-blue-700 transition-colors leading-snug">
                       {product.name}
                     </h4>
                   </div>
@@ -836,7 +836,7 @@ export default function PosPage() {
           <div>
             <div className="flex justify-between items-center pb-4 border-b border-slate-100 mb-4">
               <h3 className="font-bold text-slate-900 text-lg">Aktif Sepet</h3>
-              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-teal-50 text-teal-700 border border-teal-100">
+              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">
                 {cartLineCount} Kalem
               </span>
             </div>
@@ -847,7 +847,7 @@ export default function PosPage() {
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Bekleyen Sepetler</p>
                 <div className="space-y-2 max-h-[15vh] overflow-y-auto pr-1">
                   {heldCarts.map((hc) => (
-                    <div key={hc.id} className="flex justify-between items-center bg-white border border-slate-200/50 p-2 rounded-xl text-xs shadow-sm hover:border-teal-200 transition">
+                    <div key={hc.id} className="flex justify-between items-center bg-white border border-slate-200/50 p-2 rounded-xl text-xs shadow-sm hover:border-blue-200 transition">
                       <div className="flex-1 min-w-0 pr-2">
                         <p className="font-bold text-slate-800 truncate">{hc.label}</p>
                         <p className="text-[9px] text-slate-400 font-mono">{hc.createdAt} • {hc.items.reduce((sum, i) => sum + i.quantity, 0)} Ürün</p>
@@ -884,7 +884,7 @@ export default function PosPage() {
                             saveHeldCarts(heldCarts.filter((c) => c.id !== hc.id));
                             toast.success("Sepet geri yüklendi.");
                           }}
-                          className="px-2 py-1 bg-teal-50 text-teal-700 hover:bg-teal-100 rounded-lg font-bold text-[10px] border border-teal-100"
+                          className="px-2 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg font-bold text-[10px] border border-blue-100"
                         >
                           Yükle
                         </button>
@@ -1008,7 +1008,7 @@ export default function PosPage() {
           <div className="border-t border-slate-100 pt-4 mt-4 space-y-4">
             <div className="flex justify-between items-baseline">
               <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Genel Toplam</span>
-              <span className="text-3xl font-black font-mono text-teal-600">
+              <span className="text-3xl font-black font-mono text-blue-600">
                 {total.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
               </span>
             </div>
@@ -1020,7 +1020,7 @@ export default function PosPage() {
                 onClick={() => { setPaymentMethod("CASH"); setReceivedCash(""); }}
                 className={`py-2 text-[10px] font-bold rounded-lg transition-all ${
                   paymentMethod === "CASH"
-                    ? "bg-white text-teal-700 shadow-sm border border-slate-200/50"
+                    ? "bg-white text-blue-700 shadow-sm border border-slate-200/50"
                     : "text-slate-500 hover:text-slate-800"
                 }`}
               >
@@ -1031,7 +1031,7 @@ export default function PosPage() {
                 onClick={() => { setPaymentMethod("CREDIT_CARD"); setReceivedCash(""); }}
                 className={`py-2 text-[10px] font-bold rounded-lg transition-all ${
                   paymentMethod === "CREDIT_CARD"
-                    ? "bg-white text-teal-700 shadow-sm border border-slate-200/50"
+                    ? "bg-white text-blue-700 shadow-sm border border-slate-200/50"
                     : "text-slate-500 hover:text-slate-800"
                 }`}
               >
@@ -1042,7 +1042,7 @@ export default function PosPage() {
                 onClick={() => { setPaymentMethod("ON_ACCOUNT"); setReceivedCash(""); }}
                 className={`py-2 text-[10px] font-bold rounded-lg transition-all ${
                   paymentMethod === "ON_ACCOUNT"
-                    ? "bg-white text-teal-700 shadow-sm border border-slate-200/50"
+                    ? "bg-white text-blue-700 shadow-sm border border-slate-200/50"
                     : "text-slate-500 hover:text-slate-800"
                 }`}
               >
@@ -1053,7 +1053,7 @@ export default function PosPage() {
                 onClick={() => { setPaymentMethod("INSTALLMENT"); setReceivedCash(""); }}
                 className={`py-2 text-[10px] font-bold rounded-lg transition-all ${
                   paymentMethod === "INSTALLMENT"
-                    ? "bg-white text-teal-700 shadow-sm border border-slate-200/50"
+                    ? "bg-white text-blue-700 shadow-sm border border-slate-200/50"
                     : "text-slate-500 hover:text-slate-800"
                 }`}
               >
@@ -1075,7 +1075,7 @@ export default function PosPage() {
                     }
                     setShowInstallmentModal(true);
                   }}
-                  className="w-full py-2.5 px-4 bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                  className="w-full py-2.5 px-4 bg-gradient-to-r from-blue-500 to-emerald-600 hover:from-blue-600 hover:to-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                 >
                   💳 Taksit Seçeneklerini Göster
                 </button>
@@ -1086,7 +1086,7 @@ export default function PosPage() {
                       <span className={`w-3 h-3 rounded-full bg-gradient-to-r ${getBrandStyle(selectedCardBrand.id).bg}`} />
                       <span className="font-bold text-slate-800">{selectedCardBrand.name}</span>
                     </div>
-                    <span className="font-mono font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-lg border border-teal-100">
+                    <span className="font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100">
                       {installmentCount} Taksit (%{interestRate})
                     </span>
                   </div>
@@ -1098,7 +1098,7 @@ export default function PosPage() {
                       Taksit Sayısı
                     </label>
                     <select
-                      className="w-full px-2.5 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 font-semibold"
+                      className="w-full px-2.5 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 font-semibold"
                       value={installmentCount}
                       onChange={(e) => {
                         setInstallmentCount(Number(e.target.value));
@@ -1120,7 +1120,7 @@ export default function PosPage() {
                       type="number"
                       min={0}
                       max={100}
-                      className="w-full px-2.5 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 font-semibold font-mono"
+                      className="w-full px-2.5 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 font-semibold font-mono"
                       value={interestRate}
                       onChange={(e) => {
                         setInterestRate(Math.max(0, Number(e.target.value)));
@@ -1163,7 +1163,7 @@ export default function PosPage() {
                 </label>
                 <div className="relative">
                   <select
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all appearance-none cursor-pointer font-semibold"
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none cursor-pointer font-semibold"
                     value={bankAccountId}
                     onChange={(e) => setBankAccountId(e.target.value)}
                   >
@@ -1201,7 +1201,7 @@ export default function PosPage() {
                     type="number"
                     min={0}
                     placeholder="0.00"
-                    className="w-full pl-3 pr-10 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold font-mono focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className="w-full pl-3 pr-10 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={receivedCash}
                     onChange={(e) => setReceivedCash(e.target.value)}
                   />
@@ -1228,7 +1228,7 @@ export default function PosPage() {
                   <button
                     type="button"
                     onClick={() => setReceivedCash(total.toString())}
-                    className="py-1 px-2 bg-teal-50 border border-teal-100 hover:bg-teal-100/50 rounded-lg text-[10px] font-extrabold transition text-teal-700 active:scale-95"
+                    className="py-1 px-2 bg-blue-50 border border-blue-100 hover:bg-blue-100/50 rounded-lg text-[10px] font-extrabold transition text-blue-700 active:scale-95"
                   >
                     Tam Tutar
                   </button>
@@ -1266,7 +1266,7 @@ export default function PosPage() {
                 </label>
                 <div className="relative">
                   <select
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all appearance-none cursor-pointer font-semibold"
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none cursor-pointer font-semibold"
                     value={customerId}
                     onChange={(e) => setCustomerId(e.target.value)}
                   >
@@ -1291,7 +1291,7 @@ export default function PosPage() {
             <button
               onClick={checkout}
               disabled={loading}
-              className="w-full py-3.5 bg-teal-600 hover:bg-teal-500 disabled:bg-teal-300 text-white font-bold rounded-2xl shadow-lg shadow-teal-600/20 active:scale-[0.99] transition duration-200 text-sm"
+              className="w-full py-3.5 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-300 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/20 active:scale-[0.99] transition duration-200 text-sm"
             >
               {loading ? "Tamamlanıyor..." : "Satışı Tamamla"}
             </button>
@@ -1362,7 +1362,7 @@ export default function PosPage() {
             
             <p className="font-extrabold text-slate-900 text-base sm:text-lg my-4 flex justify-between items-center border-b pb-3 mb-4">
               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">GENEL TOPLAM</span>
-              <span className="font-mono text-teal-600 text-xl">{receipt.totalAmount.toLocaleString("tr-TR")} TL</span>
+              <span className="font-mono text-blue-600 text-xl">{receipt.totalAmount.toLocaleString("tr-TR")} TL</span>
             </p>
             
             <div className="flex flex-col gap-2">
@@ -1374,7 +1374,7 @@ export default function PosPage() {
                   🖨️ Fiş Yazdır
                 </button>
                 <button 
-                  className="py-3 bg-teal-700 hover:bg-teal-650 text-white text-xs font-bold rounded-2xl shadow-sm hover:shadow active:scale-95 transition flex items-center justify-center gap-1.5 disabled:opacity-50" 
+                  className="py-3 bg-blue-700 hover:bg-blue-650 text-white text-xs font-bold rounded-2xl shadow-sm hover:shadow active:scale-95 transition flex items-center justify-center gap-1.5 disabled:opacity-50" 
                   onClick={generateEArchiveInvoice}
                   disabled={isSigningInvoice}
                 >
@@ -1396,11 +1396,11 @@ export default function PosPage() {
       {isSigningInvoice && (
         <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-md z-50 p-4 flex flex-col justify-center items-center">
           <div className="text-center space-y-4 max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl animate-scale-in">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-teal-500 border-t-transparent shadow-md"></div>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent shadow-md"></div>
             <h3 className="text-white font-extrabold text-base">Gelir İdaresi Başkanlığı</h3>
             <p className="text-slate-400 text-xs leading-relaxed">Fatura verileri şifreleniyor, GİB portalı imza onayı bekleniyor...</p>
             <div className="w-48 h-1 bg-slate-850 rounded-full mx-auto overflow-hidden">
-              <div className="h-full bg-teal-400 rounded-full animate-pulse" style={{ width: "70%" }} />
+              <div className="h-full bg-blue-400 rounded-full animate-pulse" style={{ width: "70%" }} />
             </div>
           </div>
         </div>
@@ -1434,7 +1434,7 @@ export default function PosPage() {
                 <p><strong>İmza Tarihi:</strong> <span className="text-slate-800">{new Date(invoice.signedAt).toLocaleString("tr-TR")}</span></p>
               </div>
               <div className="space-y-1.5 text-right">
-                <p><strong>Gönderici:</strong> <span className="text-slate-800 font-bold">TelefoncuPro A.Ş.</span></p>
+                <p><strong>Gönderici:</strong> <span className="text-slate-800 font-bold">VibeGSM A.Ş.</span></p>
                 <p><strong>Vergi Dairesi:</strong> <span className="text-slate-800">Kadıköy V.D.</span></p>
                 <p><strong>VKN:</strong> <span className="font-mono text-slate-800">8760054321</span></p>
               </div>
@@ -1454,7 +1454,7 @@ export default function PosPage() {
                 href={invoice.pdfUrl} 
                 target="_blank" 
                 rel="noreferrer"
-                className="py-3 bg-teal-700 hover:bg-teal-600 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95 text-center" 
+                className="py-3 bg-blue-700 hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 active:scale-95 text-center" 
               >
                 📄 PDF İndir
               </a>
@@ -1480,7 +1480,7 @@ export default function PosPage() {
               </div>
               <div className="flex justify-between text-slate-900 font-extrabold text-sm border-t border-slate-200/50 pt-2.5">
                 <span>Fatura Genel Toplamı:</span>
-                <span className="font-mono text-teal-600 text-base">{receipt.totalAmount.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TL</span>
+                <span className="font-mono text-blue-600 text-base">{receipt.totalAmount.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TL</span>
               </div>
             </div>
 
@@ -1524,10 +1524,10 @@ export default function PosPage() {
             </div>
 
             {/* Total Sale Info Banner */}
-            <div className="my-4 bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-100 rounded-2xl p-4 flex justify-between items-center shrink-0">
+            <div className="my-4 bg-gradient-to-r from-blue-50 to-emerald-50 border border-blue-100 rounded-2xl p-4 flex justify-between items-center shrink-0">
               <div>
-                <span className="text-[10px] font-bold text-teal-800 uppercase tracking-wider">Sepet Tutarı</span>
-                <h4 className="text-xl font-black text-teal-900 font-mono">
+                <span className="text-[10px] font-bold text-blue-800 uppercase tracking-wider">Sepet Tutarı</span>
+                <h4 className="text-xl font-black text-blue-900 font-mono">
                   {total.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
                 </h4>
               </div>
@@ -1643,7 +1643,7 @@ export default function PosPage() {
                                   `${activeConfig.brandName} - ${inst.count} Taksit başarıyla uygulandı.`
                                 );
                               }}
-                              className="w-full text-left p-3.5 bg-slate-50 hover:bg-teal-50/50 border border-slate-100 hover:border-teal-200 rounded-2xl transition-all duration-200 grid grid-cols-1 sm:grid-cols-4 items-center gap-2 group shadow-sm hover:shadow"
+                              className="w-full text-left p-3.5 bg-slate-50 hover:bg-blue-50/50 border border-slate-100 hover:border-blue-200 rounded-2xl transition-all duration-200 grid grid-cols-1 sm:grid-cols-4 items-center gap-2 group shadow-sm hover:shadow"
                             >
                               {/* Count & Info */}
                               <div className="flex items-center gap-2">
@@ -1683,11 +1683,11 @@ export default function PosPage() {
                               <div className="text-left sm:text-right flex items-center justify-between sm:justify-end gap-2">
                                 <div>
                                   <span className="text-[10px] sm:hidden text-slate-400 font-bold mr-1">Toplam:</span>
-                                  <span className="font-black text-teal-600 text-sm sm:text-xs font-mono group-hover:text-teal-700">
+                                  <span className="font-black text-blue-600 text-sm sm:text-xs font-mono group-hover:text-blue-700">
                                     {finalTotal.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TL
                                   </span>
                                 </div>
-                                <span className="hidden sm:inline-flex w-6 h-6 rounded-full bg-slate-200 group-hover:bg-teal-500 group-hover:text-white items-center justify-center text-xs font-bold text-slate-600 transition-all">
+                                <span className="hidden sm:inline-flex w-6 h-6 rounded-full bg-slate-200 group-hover:bg-blue-500 group-hover:text-white items-center justify-center text-xs font-bold text-slate-600 transition-all">
                                   →
                                 </span>
                               </div>

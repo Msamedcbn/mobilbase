@@ -1042,9 +1042,9 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
                                 let bg = "#f8fafc";
                                 let text = "#334155";
                                 if (opt.type === "original") {
-                                  badgeColor = "#14b8a6"; // Original (teal)
-                                  bg = "#f0fdfa";
-                                  text = "#0f766e";
+                                  badgeColor = "#3b82f6"; // Original (blue)
+                                  bg = "#eff6ff";
+                                  text = "#1d4ed8";
                                 } else if (opt.type === "revision") {
                                   badgeColor = "#3b82f6"; // Revision (blue)
                                   bg = "#eff6ff";

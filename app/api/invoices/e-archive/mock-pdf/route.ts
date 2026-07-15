@@ -145,7 +145,7 @@ export async function GET(req: NextRequest) {
         <table class="header-table">
           <tr>
             <td class="header-logo">
-              <div style="font-weight: 800; font-size: 16px; color: #1e3a8a;">TELEFONCUPRO</div>
+              <div style="font-weight: 800; font-size: 16px; color: #1e3a8a;">VIBEGSM</div>
               <div style="font-size: 9px; color: #666;">Mobil İletişim &amp; Teknik Servis</div>
             </td>
             <td style="text-align: center; vertical-align: middle;">
@@ -165,12 +165,12 @@ export async function GET(req: NextRequest) {
           <tr>
             <td style="width: 50%;">
               <strong>MÜKELLEF BİLGİLERİ (SATICI)</strong><br/><br/>
-              <strong>Unvan:</strong> TelefoncuPro İletişim Tic. Ltd. Şti.<br/>
+              <strong>Unvan:</strong> VibeGSM İletişim Tic. Ltd. Şti.<br/>
               <strong>Adres:</strong> Caferağa Mah. Muvakkithane Cad. No:12/A Kadıköy/İstanbul<br/>
               <strong>Vergi Dairesi:</strong> Kadıköy V.D.<br/>
               <strong>VKN:</strong> 8760054321<br/>
-              <strong>E-Posta:</strong> iletisim@telefoncupro.com<br/>
-              <strong>Web Site:</strong> www.telefoncupro.com
+              <strong>E-Posta:</strong> iletisim@vibegsm.com<br/>
+              <strong>Web Site:</strong> www.vibegsm.com
             </td>
             <td style="width: 50%;">
               <strong>ALICI BİLGİLERİ (MÜŞTERİ)</strong><br/><br/>

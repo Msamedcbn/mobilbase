@@ -245,27 +245,23 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
       <div>
         <div className="mb-6 border-b border-slate-800/40 pb-5">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-teal-600 flex items-center justify-center shadow-lg shadow-teal-900/35 border border-teal-500/20">
-              <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
-              </svg>
-            </div>
+            <img src="/icon-square.png" alt="VibeGSM" className="w-8 h-8 rounded-xl shadow-lg shadow-blue-900/35 border border-blue-500/20 object-cover" />
             <div>
-              <h1 className="text-lg font-black tracking-tight text-white leading-none">MobiBase</h1>
+              <h1 className="text-lg font-black tracking-tight text-white leading-none">VibeGSM</h1>
               <span className="text-[9px] font-bold text-slate-500 tracking-widest uppercase">Cloud Platform</span>
             </div>
           </div>
           {tenantName && (
             <div className="mt-4 pt-3.5 border-t border-slate-800/30">
-              <div className="text-[8px] font-bold tracking-widest text-teal-400 uppercase mb-0.5 opacity-90">DUKKAN</div>
-              <div className="text-sm font-black tracking-tight text-teal-300 uppercase break-words leading-tight">{tenantName}</div>
+              <div className="text-[8px] font-bold tracking-widest text-blue-400 uppercase mb-0.5 opacity-90">DUKKAN</div>
+              <div className="text-sm font-black tracking-tight text-blue-300 uppercase break-words leading-tight">{tenantName}</div>
             </div>
           )}
         </div>
 
         {user && (
           <div className="mb-6 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-xs text-slate-300 flex items-center gap-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center font-black text-white text-sm shrink-0 shadow-lg shadow-teal-900/30">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center font-black text-white text-sm shrink-0 shadow-lg shadow-blue-900/30">
               {user.fullName.slice(0, 2).toUpperCase()}
             </div>
             <div className="overflow-hidden">

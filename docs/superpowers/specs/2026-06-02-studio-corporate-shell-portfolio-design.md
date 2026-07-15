@@ -1,7 +1,7 @@
 # Studio Corporate Shell and Portfolio Design
 
 ## Goal
-Improve `/studio` so it feels like a corporate SaaS control room for MobiBase platform administrators, with a stronger first impression and a clearer bayi portfolio workspace.
+Improve `/studio` so it feels like a corporate SaaS control room for VibeGSM platform administrators, with a stronger first impression and a clearer bayi portfolio workspace.
 
 ## Scope
 - Improve `app/studio/layout.tsx` shell/sidebar branding, navigation, telemetry, and mobile drawer.
@@ -13,7 +13,7 @@ Improve `/studio` so it feels like a corporate SaaS control room for MobiBase pl
 A calm enterprise control room: light workspace, dark/navy sidebar, indigo accent, dense but readable operational data.
 
 ## Content Plan
-- Shell: MobiBase Studio brand, operator identity, live infrastructure summary, clear module navigation.
+- Shell: VibeGSM Studio brand, operator identity, live infrastructure summary, clear module navigation.
 - Header: SaaS operating center title, concise explanation, primary action for new firm/tenant.
 - KPI Area: registered tenants, MRR, receivables, open tickets, API quota, lead conversion.
 - Funnel: clean CRM pipeline labels.

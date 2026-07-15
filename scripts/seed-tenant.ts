@@ -3,8 +3,8 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const TENANT_NAME = process.env.TENANT_NAME ?? 'TelefoncuPro';
-const ADMIN_EMAIL = process.env.DEMO_LOGIN_EMAIL ?? 'admin@telefoncupro.local';
+const TENANT_NAME = process.env.TENANT_NAME ?? 'VibeGSM';
+const ADMIN_EMAIL = process.env.DEMO_LOGIN_EMAIL ?? 'admin@vibegsm.local';
 
 const TENANT_META = {
   isSaaS: true,

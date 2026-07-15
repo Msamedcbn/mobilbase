@@ -12,8 +12,8 @@
   --surface-soft: #f1f5f9;
   --text: #0f172a;
   --muted: #64748b;
-  --accent: #0f766e;
-  --accent-dark: #115e59;
+  --accent: #3b82f6;
+  --accent-dark: #1d4ed8;
   --border: #e2e8f0;
   --radius: 16px;
   --shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.02);
@@ -24,7 +24,7 @@
 html, body { margin: 0; padding: 0; }
 
 body {
-  background: radial-gradient(circle at top right, #f0fdfa 0%, var(--bg) 40%);
+  background: radial-gradient(circle at top right, #eff6ff 0%, var(--bg) 40%);
   color: var(--text);
   font-family: "Plus Jakarta Sans", "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -114,9 +114,9 @@ button, input, select, textarea {
 }
 
 .sidebar-nav-link.active {
-  background: linear-gradient(135deg, var(--accent) 0%, #0d9488 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, #2563eb 100%);
   color: white;
-  box-shadow: 0 4px 16px rgba(15, 118, 110, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   font-weight: 600;
 }
 
@@ -134,7 +134,7 @@ button, input, select, textarea {
 
 .panel:hover {
   box-shadow: 0 20px 40px -20px rgba(15, 23, 42, 0.08);
-  border-color: rgba(15, 118, 110, 0.15);
+  border-color: rgba(59, 130, 246, 0.15);
 }
 
 .page-title {
@@ -188,7 +188,7 @@ button, input, select, textarea {
 }
 
 .data-table tbody tr:hover td {
-  background-color: rgba(15, 118, 110, 0.02);
+  background-color: rgba(59, 130, 246, 0.02);
 }
 
 .data-table tbody tr:last-child td {
@@ -204,7 +204,7 @@ button, input, select, textarea {
   padding: 0.65rem 1.2rem;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.2);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   display: inline-flex;
   align-items: center;
@@ -213,13 +213,13 @@ button, input, select, textarea {
 }
 
 .primary-btn:hover {
-  box-shadow: 0 6px 16px rgba(15, 118, 110, 0.35);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
   transform: translateY(-1px);
 }
 
 .primary-btn:active {
   transform: translateY(1px);
-  box-shadow: 0 2px 6px rgba(15, 118, 110, 0.15);
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.15);
 }
 
 .primary-btn:disabled {
@@ -243,7 +243,7 @@ button, input, select, textarea {
 .field:focus {
   border-color: var(--accent);
   outline: none;
-  box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.08), 0 2px 4px rgba(15, 23, 42, 0.01) inset;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08), 0 2px 4px rgba(15, 23, 42, 0.01) inset;
 }
 
 .field:disabled {

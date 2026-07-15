@@ -1,7 +1,7 @@
 # Task Plan: Landing Page UI Refresh
 
 ## Goal
-Improve the SaaS homepage so it represents MobiBase clearly, feels premium, and explains the product value for phone retail/service operations.
+Improve the SaaS homepage so it represents VibeGSM clearly, feels premium, and explains the product value for phone retail/service operations.
 
 ## Phases
 - [x] Explore project context

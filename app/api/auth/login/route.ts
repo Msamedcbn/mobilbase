@@ -258,6 +258,17 @@ export async function POST(req: Request) {
       const managerPerms = tenantConf.rolePermissions.MANAGER || [];
       tenantConf.rolePermissions.MANAGER = Array.from(new Set([...adminPerms, ...managerPerms, "branches"]));
     }
+
+    // Kullanıcı bazlı modül override — role listesinin bu kullanıcıya özel kopyası
+    const userModuleOverrides = (authenticatedUser as any).moduleOverrides as Record<string, boolean> | null | undefined;
+    if (userModuleOverrides && typeof userModuleOverrides === "object") {
+      const effective = new Set(tenantConf.rolePermissions[authenticatedUser.role] || []);
+      for (const [mod, allowed] of Object.entries(userModuleOverrides)) {
+        if (allowed) effective.add(mod); else effective.delete(mod);
+      }
+      tenantConf.rolePermissions = { ...tenantConf.rolePermissions, [authenticatedUser.role]: Array.from(effective) };
+    }
+
     const expiresAt = Date.now() + 1000 * 60 * 60 * 8;
     const payload = {
       userId: authenticatedUser.id,

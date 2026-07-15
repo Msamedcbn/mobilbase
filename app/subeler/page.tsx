@@ -382,7 +382,7 @@ export default function BranchesPage() {
     <section className="max-w-[1400px] mx-auto p-4 md:p-6 space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center shadow-sm">
+          <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-sm">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
@@ -400,7 +400,7 @@ export default function BranchesPage() {
           onClick={() => setActiveTab("branches")}
           className={`flex items-center gap-2 py-3 px-4 text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
             activeTab === "branches"
-              ? "border-teal-600 text-teal-600 dark:border-teal-400 dark:text-teal-400"
+              ? "border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400"
               : "border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
           }`}
         >
@@ -415,7 +415,7 @@ export default function BranchesPage() {
             onClick={() => setActiveTab("users")}
             className={`flex items-center gap-2 py-3 px-4 text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
               activeTab === "users"
-                ? "border-teal-600 text-teal-600 dark:border-teal-400 dark:text-teal-400"
+                ? "border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400"
                 : "border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
             }`}
           >
@@ -430,7 +430,7 @@ export default function BranchesPage() {
           onClick={() => setActiveTab("transfers")}
           className={`flex items-center gap-2 py-3 px-4 text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
             activeTab === "transfers"
-              ? "border-teal-600 text-teal-600 dark:border-teal-400 dark:text-teal-400"
+              ? "border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400"
               : "border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
           }`}
         >
@@ -477,17 +477,17 @@ export default function BranchesPage() {
                   const staffCount = branchUsers.length;
                   
                   return (
-                    <div key={b.id} className="panel group relative overflow-hidden flex flex-col justify-between p-5 transition-all duration-300 hover:shadow-lg hover:border-teal-500/30">
-                      <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-teal-500/5 to-transparent rounded-bl-full pointer-events-none" />
+                    <div key={b.id} className="panel group relative overflow-hidden flex flex-col justify-between p-5 transition-all duration-300 hover:shadow-lg hover:border-blue-500/30">
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-blue-500/5 to-transparent rounded-bl-full pointer-events-none" />
                       
                       <div className="space-y-3">
                         <div className="flex justify-between items-start">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold text-base shadow-inner shrink-0">
+                            <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-base shadow-inner shrink-0">
                               {b.name.substring(0, 2).toUpperCase()}
                             </div>
                             <div>
-                              <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-teal-600 transition-colors duration-200">{b.name}</h4>
+                              <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors duration-200">{b.name}</h4>
                               <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 rounded-md mt-1 select-none">
                                 <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -524,7 +524,7 @@ export default function BranchesPage() {
                             setBranchPhone(b.phone || "");
                             setShowAddModal(true);
                           }}
-                          className="flex-1 field py-2 text-xs font-semibold hover:border-teal-500 hover:text-teal-600 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                          className="flex-1 field py-2 text-xs font-semibold hover:border-blue-500 hover:text-blue-600 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -592,17 +592,17 @@ export default function BranchesPage() {
             
             <div className="panel p-5 space-y-6">
               {/* Financial Box */}
-              <div className="bg-gradient-to-br from-teal-900 to-slate-900 text-white rounded-2xl p-5 relative overflow-hidden shadow-md">
-                <div className="absolute -bottom-8 -right-8 w-24 h-24 bg-teal-500/20 rounded-full blur-xl pointer-events-none" />
+              <div className="bg-gradient-to-br from-blue-900 to-slate-900 text-white rounded-2xl p-5 relative overflow-hidden shadow-md">
+                <div className="absolute -bottom-8 -right-8 w-24 h-24 bg-blue-500/20 rounded-full blur-xl pointer-events-none" />
                 <div className="flex justify-between items-start">
                   <div>
-                    <span className="text-xs font-semibold text-teal-200/80 uppercase tracking-wider">Toplam Konsolide Ciro</span>
+                    <span className="text-xs font-semibold text-blue-200/80 uppercase tracking-wider">Toplam Konsolide Ciro</span>
                     <h2 className="text-2xl md:text-3xl font-extrabold mt-1 tracking-tight">
-                      {Number(totalRevenue).toLocaleString("tr-TR")} <span className="text-lg font-semibold text-teal-300">TL</span>
+                      {Number(totalRevenue).toLocaleString("tr-TR")} <span className="text-lg font-semibold text-blue-300">TL</span>
                     </h2>
                   </div>
-                  <div className="w-10 h-10 rounded-xl bg-teal-500/20 flex items-center justify-center backdrop-blur-sm">
-                    <svg className="w-5 h-5 text-teal-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center backdrop-blur-sm">
+                    <svg className="w-5 h-5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
@@ -626,7 +626,7 @@ export default function BranchesPage() {
                   <div className="space-y-3.5">
                     {performance.map((p, idx) => {
                       const colors = [
-                        "from-teal-500 to-emerald-500",
+                        "from-blue-500 to-emerald-500",
                         "from-blue-500 to-indigo-500",
                         "from-purple-500 to-pink-500",
                         "from-amber-500 to-orange-500",
@@ -654,10 +654,10 @@ export default function BranchesPage() {
               </div>
 
               {/* Smart recommendation card */}
-              <div className="p-4 bg-teal-500/5 border border-teal-500/10 rounded-2xl flex gap-3 items-start">
+              <div className="p-4 bg-blue-500/5 border border-blue-500/10 rounded-2xl flex gap-3 items-start">
                 <span className="text-xl shrink-0 mt-0.5">💡</span>
                 <div className="space-y-1">
-                  <h5 className="text-xs font-bold text-teal-800 dark:text-teal-300">Stok Optimizasyonu Önerisi</h5>
+                  <h5 className="text-xs font-bold text-blue-800 dark:text-blue-300">Stok Optimizasyonu Önerisi</h5>
                   <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                     Düşük stok seviyeli ürünleri, cirosu yüksek olan şubeler arasında transfer ederek stok devir hızını ve genel satış oranlarını optimize edebilirsiniz.
                   </p>
@@ -732,7 +732,7 @@ export default function BranchesPage() {
                         <tr key={u.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
                           <td>
                             <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-teal-500 to-indigo-500 text-white font-bold text-xs flex items-center justify-center shadow-sm shrink-0 select-none">
+                              <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 text-white font-bold text-xs flex items-center justify-center shadow-sm shrink-0 select-none">
                                 {initials}
                               </div>
                               <div className="flex flex-col">
@@ -749,7 +749,7 @@ export default function BranchesPage() {
                           <td>
                             {branch ? (
                               <span className="inline-flex items-center gap-1.5 text-sm text-slate-700 dark:text-slate-300 font-medium">
-                                <svg className="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
                                 {branch.name}
@@ -766,7 +766,7 @@ export default function BranchesPage() {
                             ) : (
                               <button
                                 onClick={() => handleCreateUserCari(u)}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 border border-teal-500/20 hover:border-teal-500/30 rounded-lg cursor-pointer transition-all duration-200"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 hover:border-blue-500/30 rounded-lg cursor-pointer transition-all duration-200"
                                 title="Personel için otomatik cari hesap kartı açar"
                               >
                                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -797,7 +797,7 @@ export default function BranchesPage() {
                                   setUserIsActive(u.isActive);
                                   setShowUserModal(true);
                                 }}
-                                className="field py-1.5 px-3 text-xs font-semibold hover:border-teal-500 hover:text-teal-600 transition-colors flex items-center gap-1 cursor-pointer"
+                                className="field py-1.5 px-3 text-xs font-semibold hover:border-blue-500 hover:text-blue-600 transition-colors flex items-center gap-1 cursor-pointer"
                               >
                                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -943,7 +943,7 @@ export default function BranchesPage() {
                       </svg>
                     </div>
                     <div className="space-y-0.5">
-                      <span className="text-xs text-teal-600 dark:text-teal-400 font-bold uppercase tracking-wider">{selectedProduct.category || "Genel"}</span>
+                      <span className="text-xs text-blue-600 dark:text-blue-400 font-bold uppercase tracking-wider">{selectedProduct.category || "Genel"}</span>
                       <h4 className="font-bold text-slate-800 dark:text-white text-base">{selectedProduct.name}</h4>
                     </div>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400 font-medium">
@@ -1027,7 +1027,7 @@ export default function BranchesPage() {
                             {h.targetBranchName || "Bilinmeyen Şube"}
                           </span>
                         </td>
-                        <td style={{ textAlign: "right" }} className="font-extrabold text-teal-600 dark:text-teal-400 text-sm">
+                        <td style={{ textAlign: "right" }} className="font-extrabold text-blue-600 dark:text-blue-400 text-sm">
                           {h.quantity} adet
                         </td>
                       </tr>
@@ -1148,7 +1148,7 @@ export default function BranchesPage() {
                   className="field"
                   value={userEmail}
                   onChange={(e) => setUserEmail(e.target.value)}
-                  placeholder="örn. mehmet@telefoncupro.com"
+                  placeholder="örn. mehmet@vibegsm.com"
                   disabled={!!editingUser}
                   required
                 />
@@ -1209,7 +1209,7 @@ export default function BranchesPage() {
                   id="userIsActiveCheckbox"
                   checked={userIsActive}
                   onChange={(e) => setUserIsActive(e.target.checked)}
-                  className="w-4 h-4 text-teal-600 border-slate-300 rounded focus:ring-teal-500 cursor-pointer"
+                  className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
                 />
                 <label htmlFor="userIsActiveCheckbox" className="text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer select-none">
                   Kullanıcı Aktif mi? (Sisteme giriş yapabilir)

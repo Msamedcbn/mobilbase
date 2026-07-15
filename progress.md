@@ -40,7 +40,7 @@
 - User approved Studio shell + bayi portfolio first phase and allowed browser validation.
 
 - Added Studio corporate shell/portfolio spec and implementation plan.
-- Replaced studio layout shell with MobiBase Studio corporate navigation and telemetry.
+- Replaced studio layout shell with VibeGSM Studio corporate navigation and telemetry.
 - Patched studio portfolio first screen header, KPI labels, funnel, tabs, filters, and table shell copy.
 
 - Ran npm run lint after Studio changes; no new errors, existing hook warnings remain.

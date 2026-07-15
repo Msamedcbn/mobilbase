@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useMemo, useCallback, Suspense } from "react";
 import { toast } from "sonner";
@@ -239,7 +239,7 @@ function StudioPageContent() {
   }>({
     PLATFORM_OWNER: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
     ADMIN: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
-    MANAGER: ["pos", "repairs", "stock", "invoicing", "branches"],
+    MANAGER: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
     CASHIER: ["pos"],
     TECHNICIAN: ["repairs"],
     ACCOUNTANT: ["invoicing"],
@@ -282,7 +282,7 @@ function StudioPageContent() {
       { time: "2026-05-23 01:05:18", level: "WARNING", module: "LICENSE", text: "Mavi Cep Noktasi (mock-tenant-7) lisans suresi 30 gunden az kaldi. Uyari e-postasi siraya alindi." },
       { time: "2026-05-23 00:55:12", level: "INFO", module: "API", text: "Apex İletişim Grubu (mock-tenant-2) 150 şube için POS işlemlerini senkronize etti." },
       { time: "2026-05-23 00:45:00", level: "INFO", module: "SYSTEM", text: "Sunucu disk alani kontrolu: %34.2 dolu (128GB box alan kullanilabilir)" },
-      { time: "2026-05-22 23:59:00", level: "INFO", module: "SYSTEM", text: "Günlük veritabanı yedekleme işlemi (SaaSTel_Backup_20260522.sql) başarıyla AWS S3'e yedeklendi." },
+      { time: "2026-05-22 23:59:00", level: "INFO", module: "SYSTEM", text: "Günlük veritabanı yedekleme işlemi (VibeGSM_Backup_20260522.sql) başarıyla AWS S3'e yedeklendi." },
       { time: "2026-05-22 23:45:22", level: "INFO", module: "API", text: "Mega Cep Dunyasi (mock-tenant-4) 54 şubenin stok sayim güncellemelerini ERP sunucusuna aktardi." },
       { time: "2026-05-22 23:22:15", level: "ERROR", module: "SMS", text: "Alo Mobil Şubeleri (mock-tenant-5) SMS kotası yetersizliği nedeniyle kampanya SMS gönderim denemesi başarısız oldu." },
       { time: "2026-05-22 23:10:05", level: "INFO", module: "TICKET", text: "Genclik GSM Franchising (mock-tenant-3) yeni bir destek talebi (t4) oluşturdu." },
@@ -304,7 +304,20 @@ function StudioPageContent() {
   }, [mockLogs, logLevelFilter, logSearch]);
 
   // Console active tab state
-  const [activeConsoleTab, setActiveConsoleTab] = useState<"GENERAL" | "CRM" | "TICKETS" | "ERP" | "ROLES">("GENERAL");
+  const [activeConsoleTab, setActiveConsoleTab] = useState<"GENERAL" | "CRM" | "TICKETS" | "ERP" | "ROLES" | "USERS">("GENERAL");
+
+  // Tenant Users (kullanıcı bazlı modül override) state
+  type TenantUser = {
+    id: string;
+    fullName: string;
+    email: string;
+    role: "PLATFORM_OWNER" | "ADMIN" | "MANAGER" | "CASHIER" | "TECHNICIAN" | "ACCOUNTANT";
+    isActive: boolean;
+    moduleOverrides: Record<string, boolean> | null;
+  };
+  const [tenantUsers, setTenantUsers] = useState<TenantUser[]>([]);
+  const [tenantUsersLoading, setTenantUsersLoading] = useState(false);
+  const [savingUserId, setSavingUserId] = useState<string | null>(null);
 
   // Add Ticket State
   const [newTicketTitle, setNewTicketTitle] = useState("");
@@ -785,7 +798,7 @@ function StudioPageContent() {
         setEditRolePermissions({
           PLATFORM_OWNER: rolePermissions?.PLATFORM_OWNER ?? ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
           ADMIN: rolePermissions?.ADMIN ?? ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
-          MANAGER: rolePermissions?.MANAGER ?? ["pos", "repairs", "stock", "invoicing", "branches"],
+          MANAGER: rolePermissions?.MANAGER ?? ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
           CASHIER: rolePermissions?.CASHIER ?? ["pos"],
           TECHNICIAN: rolePermissions?.TECHNICIAN ?? ["repairs"],
           ACCOUNTANT: rolePermissions?.ACCOUNTANT ?? ["invoicing"],
@@ -810,15 +823,61 @@ function StudioPageContent() {
     }
   };
 
+  const fetchTenantUsers = async (id: string) => {
+    setTenantUsersLoading(true);
+    try {
+      const res = await fetch(`/api/studio/customers/${id}/users`);
+      if (res.ok) {
+        const data = await res.json();
+        setTenantUsers(data.users || []);
+      } else {
+        toast.error("Kullanıcı listesi alınamadı.");
+      }
+    } catch {
+      toast.error("Kullanıcı listesi yüklenirken hata oluştu.");
+    } finally {
+      setTenantUsersLoading(false);
+    }
+  };
+
+  const updateUserModuleOverride = async (user: TenantUser, moduleKey: string, allowed: boolean | null) => {
+    const nextOverrides = { ...(user.moduleOverrides || {}) };
+    if (allowed === null) {
+      delete nextOverrides[moduleKey];
+    } else {
+      nextOverrides[moduleKey] = allowed;
+    }
+    setSavingUserId(user.id);
+    try {
+      const res = await fetch(`/api/studio/users/${user.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ moduleOverrides: nextOverrides }),
+      });
+      if (res.ok) {
+        setTenantUsers((prev) => prev.map((u) => (u.id === user.id ? { ...u, moduleOverrides: nextOverrides } : u)));
+        toast.success("Kullanıcı yetkisi güncellendi.");
+      } else {
+        toast.error("Kullanıcı yetkisi güncellenemedi.");
+      }
+    } catch {
+      toast.error("Sunucu bağlantısı kurulamadı.");
+    } finally {
+      setSavingUserId(null);
+    }
+  };
+
   useEffect(() => {
     if (selectedTenantId) {
       fetchTenantDetails(selectedTenantId);
       fetchCrmSuggestions(selectedTenantId);
+      fetchTenantUsers(selectedTenantId);
       setActiveConsoleTab("GENERAL");
       setSelectedTicketIdInsideModal(null);
       setReplyBody("");
     } else {
       setDetailData(null);
+      setTenantUsers([]);
     }
   }, [selectedTenantId]);
 
@@ -847,7 +906,7 @@ function StudioPageContent() {
       rolePermissions: {
         PLATFORM_OWNER: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
         ADMIN: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
-        MANAGER: ["pos", "repairs", "stock", "invoicing", "branches"],
+        MANAGER: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
         CASHIER: ["pos"],
         TECHNICIAN: ["repairs"],
         ACCOUNTANT: ["invoicing"],
@@ -1634,7 +1693,7 @@ function StudioPageContent() {
     }
     
     const invoiceNo = `FT-${entry.id.replace(/\D/g, "").slice(-6) || "001234"}`;
-    const logoHtml = `<h1 style="color: #1c1917; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">MobiBase</h1>`;
+    const logoHtml = `<h1 style="color: #1c1917; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">VibeGSM</h1>`;
     const title = entry.type === "CHARGE" ? "FATURA" : "TAHSILAT MAKBUZU";
     
     w.document.write(`
@@ -1669,7 +1728,7 @@ function StudioPageContent() {
           <div class="header">
             <div>
               ${logoHtml}
-              <p style="font-size: 12px; color: #78716c; margin: 5px 0 0 0;">MobiBase Bilixim Teknolojileri A.S.</p>
+              <p style="font-size: 12px; color: #78716c; margin: 5px 0 0 0;">VibeGSM Bilixim Teknolojileri A.S.</p>
             </div>
             <div style="text-align: right;">
               <h2 style="margin: 0; font-size: 20px; color: #1c1917; font-weight: 700;">${title}</h2>
@@ -1679,10 +1738,10 @@ function StudioPageContent() {
           <div class="details">
             <div>
               <h3>Gonderen Firma</h3>
-              <p><strong>MobiBase Bilixim A.S.</strong></p>
+              <p><strong>VibeGSM Bilixim A.S.</strong></p>
               <p>Teknokent Plaza No: 45/A</p>
               <p>Kadıkoy / Istanbul</p>
-              <p>destek@mobibase.com</p>
+              <p>destek@vibegsm.com</p>
             </div>
             <div>
               <h3>Alici Bayi</h3>
@@ -1736,7 +1795,7 @@ function StudioPageContent() {
             </table>
           </div>
           <div class="footer">
-            Bu belge MobiBase Studio simulasyon sisteminde oluxturulmuxtur. Elektronik arxiv veya resmi fatura nitelixi taximamaktadır.
+            Bu belge VibeGSM Studio simulasyon sisteminde oluxturulmuxtur. Elektronik arxiv veya resmi fatura nitelixi taximamaktadır.
           </div>
         </body>
       </html>
@@ -1999,7 +2058,7 @@ function StudioPageContent() {
                 Bayi portföyü, lisans ve gelir kontrolü
               </h2>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
-                MobiBase kullanan bayilerin lisans durumu, finansal riski, CRM aşaması ve destek yükü tek kurumsal çalışma alanında izlenir.
+                VibeGSM kullanan bayilerin lisans durumu, finansal riski, CRM aşaması ve destek yükü tek kurumsal çalışma alanında izlenir.
               </p>
             </div>
 
@@ -2073,18 +2132,18 @@ function StudioPageContent() {
         {/* KPI 5: API Request Consumption */}
         <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-10">
-            <svg className="w-16 h-16 text-cyan-600" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="w-16 h-16 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
               <path d="M19 13H5v-2h14v2zM19 9H5V7h14v2zM5 15h14v2H5v-2zM3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2zm16 14H5V5h14v14z" />
             </svg>
           </div>
           <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Aylık API istek kotası</span>
-          <span className="text-3xl font-extrabold text-cyan-650 mt-2 block font-mono">
+          <span className="text-3xl font-extrabold text-blue-650 mt-2 block font-mono">
             {apiKpis.totalUsed.toLocaleString()} / {apiKpis.totalQuota.toLocaleString()}
           </span>
           <div className="mt-2 space-y-1">
             <div className="w-full bg-slate-100 rounded-full h-1.5 border border-slate-200">
               <div
-                className="bg-cyan-500 h-1.5 rounded-full"
+                className="bg-blue-500 h-1.5 rounded-full"
                 style={{ width: `${Math.min(100, apiKpis.pct)}%` }}
               ></div>
             </div>
@@ -2415,7 +2474,7 @@ function StudioPageContent() {
                                 <div className="w-full bg-slate-100 rounded-full h-1.5 border border-slate-200">
                                   <div
                                     className={`h-1.5 rounded-full transition-all ${
-                                      pct > 90 ? "bg-rose-500" : pct > 75 ? "bg-amber-500" : "bg-cyan-500"
+                                      pct > 90 ? "bg-rose-500" : pct > 75 ? "bg-amber-500" : "bg-blue-500"
                                     }`}
                                     style={{ width: `${pct}%` }}
                                   ></div>
@@ -2601,7 +2660,7 @@ function StudioPageContent() {
                                   <span className="font-mono text-slate-700">%{smsPct}</span>
                                 </div>
                                 <div className="w-full bg-slate-200 rounded-full h-1">
-                                  <div className="bg-cyan-505 bg-cyan-500 h-1 rounded-full" style={{ width: `${Math.min(100, smsPct)}%` }}></div>
+                                  <div className="bg-blue-505 bg-blue-500 h-1 rounded-full" style={{ width: `${Math.min(100, smsPct)}%` }}></div>
                                 </div>
                               </div>
 
@@ -3006,8 +3065,8 @@ function StudioPageContent() {
                       const pct = maxVal > 0 ? (item.meta.databaseSizeGb / maxVal) * 100 : 0;
                       const colors = [
                         "from-emerald-500 to-emerald-600",
-                        "from-teal-500 to-teal-600",
-                        "from-cyan-500 to-cyan-600",
+                        "from-blue-500 to-blue-600",
+                        "from-blue-500 to-blue-600",
                         "from-sky-500 to-sky-600",
                         "from-blue-500 to-blue-600",
                         "from-indigo-500 to-indigo-600",
@@ -3213,7 +3272,7 @@ function StudioPageContent() {
                   const maxVal = Math.max(1, totals.Lite, totals.Service, totals.Pro, totals.Enterprise);
                   const bars = [
                     { key: "Lite", val: totals.Lite, color: "bg-slate-500" },
-                    { key: "Service", val: totals.Service, color: "bg-cyan-600" },
+                    { key: "Service", val: totals.Service, color: "bg-blue-600" },
                     { key: "Pro", val: totals.Pro, color: "bg-indigo-600" },
                     { key: "Enterprise", val: totals.Enterprise, color: "bg-amber-600" },
                   ];
@@ -3328,7 +3387,7 @@ function StudioPageContent() {
                                 {e.category === "LICENSE" && <span className="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 text-[8px] font-bold border border-indigo-150">LISANS</span>}
                                 {e.category === "SUPPORT" && <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[8px] font-bold border border-emerald-150">DESTEK</span>}
                                 {e.category === "CUSTOM_DEV" && <span className="px-1.5 py-0.5 rounded bg-violet-50 text-violet-700 text-[8px] font-bold border border-violet-150">GELISTIRME</span>}
-                                {e.category === "SMS_PACK" && <span className="px-1.5 py-0.5 rounded bg-cyan-50 text-cyan-700 text-[8px] font-bold border border-cyan-150">SMS/API</span>}
+                                {e.category === "SMS_PACK" && <span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 text-[8px] font-bold border border-blue-150">SMS/API</span>}
                               </td>
                               <td className="py-3 text-slate-600 font-medium">{e.description}</td>
                               <td className="py-3 font-mono text-slate-500">{e.dueDate || e.date}</td>
@@ -3395,7 +3454,7 @@ function StudioPageContent() {
                                 {e.category === "LICENSE" && <span className="px-1 py-0.2 rounded bg-indigo-50 text-indigo-700 text-[7px] font-bold border border-indigo-150">LISANS</span>}
                                 {e.category === "SUPPORT" && <span className="px-1 py-0.2 rounded bg-emerald-50 text-emerald-700 text-[7px] font-bold border border-emerald-150">DESTEK</span>}
                                 {e.category === "CUSTOM_DEV" && <span className="px-1 py-0.2 rounded bg-violet-50 text-violet-700 text-[7px] font-bold border border-violet-150">GELISTIRME</span>}
-                                {e.category === "SMS_PACK" && <span className="px-1 py-0.2 rounded bg-cyan-50 text-cyan-700 text-[7px] font-bold border border-cyan-150">API</span>}
+                                {e.category === "SMS_PACK" && <span className="px-1 py-0.2 rounded bg-blue-50 text-blue-700 text-[7px] font-bold border border-blue-150">API</span>}
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
@@ -3431,7 +3490,7 @@ function StudioPageContent() {
                                 {e.category === "LICENSE" && <span className="px-1 py-0.2 rounded bg-indigo-50 text-indigo-700 text-[7px] font-bold border border-indigo-150">LISANS</span>}
                                 {e.category === "SUPPORT" && <span className="px-1 py-0.2 rounded bg-emerald-50 text-emerald-700 text-[7px] font-bold border border-emerald-150">DESTEK</span>}
                                 {e.category === "CUSTOM_DEV" && <span className="px-1 py-0.2 rounded bg-violet-50 text-violet-700 text-[7px] font-bold border border-violet-150">GELISTIRME</span>}
-                                {e.category === "SMS_PACK" && <span className="px-1 py-0.2 rounded bg-cyan-50 text-cyan-700 text-[7px] font-bold border border-cyan-150">API</span>}
+                                {e.category === "SMS_PACK" && <span className="px-1 py-0.2 rounded bg-blue-50 text-blue-700 text-[7px] font-bold border border-blue-150">API</span>}
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
@@ -3731,7 +3790,7 @@ function StudioPageContent() {
                 <span>x</span> SaaS Paket & Lisans Fiyatlandirma Paneli
               </h3>
               <p className="text-xs text-slate-500 mt-1">
-                TelefoncuPro SaaS modelinde bayilerinize sunacağınız paketlerin aylık taban ücretlerini, şube sınır politikalarını, ek paket eklentilerini ve tier özellik matrislerini yönetin.
+                VibeGSM SaaS modelinde bayilerinize sunacağınız paketlerin aylık taban ücretlerini, şube sınır politikalarını, ek paket eklentilerini ve tier özellik matrislerini yönetin.
               </p>
             </div>
 
@@ -4334,6 +4393,7 @@ function StudioPageContent() {
                 { id: "TICKETS" as const, label: "Destek & Talepler", icon: "T" },
                 { id: "ERP" as const, label: "Finans & ERP", icon: "E" },
                 { id: "ROLES" as const, label: "Rol & Yetki Yönetimi", icon: "R" },
+                { id: "USERS" as const, label: "Kullanıcılar", icon: "U" },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -5080,7 +5140,7 @@ function StudioPageContent() {
                           </div>
                           <div className="w-full bg-slate-100 rounded-full h-2 border border-slate-200">
                             <div
-                              className="bg-cyan-550 h-2 rounded-full bg-cyan-500"
+                              className="bg-blue-550 h-2 rounded-full bg-blue-500"
                               style={{ width: `${Math.min(100, editSmsQuota > 0 ? (editSmsUsed / editSmsQuota) * 100 : 0)}%` }}
                             ></div>
                           </div>
@@ -5202,7 +5262,7 @@ function StudioPageContent() {
                               LICENSE: "bg-indigo-500 text-indigo-700",
                               SUPPORT: "bg-emerald-500 text-emerald-700",
                               CUSTOM_DEV: "bg-purple-500 text-purple-700",
-                              SMS_PACK: "bg-cyan-500 text-cyan-700"
+                              SMS_PACK: "bg-blue-500 text-blue-700"
                             };
                             return (
                               <div key={cat} className="p-2.5 bg-slate-50 border border-slate-150 rounded-lg flex flex-col justify-between">
@@ -5249,7 +5309,7 @@ function StudioPageContent() {
                                         <span className="px-1.5 py-0.5 rounded bg-violet-50 text-violet-700 text-[8px] font-extrabold border border-violet-150">GELISTIRME</span>
                                       )}
                                       {e.category === "SMS_PACK" && (
-                                        <span className="px-1.5 py-0.5 rounded bg-cyan-50 text-cyan-700 text-[8px] font-extrabold border border-cyan-150 font-bold">API PAKETI</span>
+                                        <span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 text-[8px] font-extrabold border border-blue-150 font-bold">API PAKETI</span>
                                       )}
                                     </div>
                                     <div className="text-slate-700 text-[11px] font-bold mt-1 truncate max-w-[250px]" title={e.description}>
@@ -5314,6 +5374,7 @@ function StudioPageContent() {
                               <th className="py-3 text-center">Teknik Servis</th>
                               <th className="py-3 text-center">Stok Yönetimi</th>
                               <th className="py-3 text-center">E-Fatura Entegrasyonu</th>
+                              <th className="py-3 text-center">Cihaz Alımı (Buyback)</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100">
@@ -5330,6 +5391,7 @@ function StudioPageContent() {
                                 { key: "repairs", label: "Teknik Servis" },
                                 { key: "stock", label: "Stok" },
                                 { key: "invoicing", label: "Faturalama" },
+                                { key: "buyback", label: "Cihaz Alımı (Buyback)" },
                               ];
 
                               return roles.map((role) => {
@@ -5375,6 +5437,82 @@ function StudioPageContent() {
                       <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-500 font-semibold space-y-1">
                         <p> **Yönetici (ADMIN)** rolu ana sistem yoneticisi olup, güvenlik gereği tüm modüllere sınırsız erişim yetkisine sahiptir ve bu tablodan kısıtlanamaz.</p>
                         <p> Bu alanda yapacağınız yetki değişiklikleri, bayinin veritabanında güncellenecek olup bayi kullanıcılarının oturumlarında anında aktif olacaktır.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* USERS TAB */}
+                {activeConsoleTab === "USERS" && (
+                  <div className="p-6 space-y-6">
+                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+                      <div className="border-b border-slate-100 pb-3">
+                        <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                          <span>U</span> Kullanıcı Bazlı Modül İstisnaları
+                        </h3>
+                        <p className="text-[11px] text-slate-400">
+                          Rol yetkisi bu firmadaki tüm rol üyelerine uygulanır. Buradan tek bir kullanıcıya, rolünden bağımsız olarak ek modül açabilirsiniz
+                          (örn. rolü CASHIER olan ama buyback'e erişmesi gereken bir kullanıcı).
+                        </p>
+                      </div>
+
+                      {tenantUsersLoading ? (
+                        <div className="text-xs text-slate-400 py-6 text-center">Kullanıcılar yükleniyor...</div>
+                      ) : tenantUsers.length === 0 ? (
+                        <div className="text-xs text-slate-400 py-6 text-center">Bu firmaya bağlı kullanıcı bulunamadı.</div>
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left border-collapse text-xs">
+                            <thead>
+                              <tr className="border-b border-slate-200 text-slate-450 font-bold uppercase tracking-wider text-[10px]">
+                                <th className="py-3">Kullanıcı</th>
+                                <th className="py-3">Rol</th>
+                                {["pos", "repairs", "stock", "invoicing", "buyback"].map((modKey) => (
+                                  <th key={modKey} className="py-3 text-center">
+                                    {{
+                                      pos: "POS",
+                                      repairs: "Teknik Servis",
+                                      stock: "Stok",
+                                      invoicing: "Faturalama",
+                                      buyback: "Buyback",
+                                    }[modKey]}
+                                  </th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                              {tenantUsers.map((u) => (
+                                <tr key={u.id} className="hover:bg-slate-50/50">
+                                  <td className="py-4 pr-4">
+                                    <div className="font-bold text-slate-700">{u.fullName}</div>
+                                    <div className="text-[10px] text-slate-400 mt-0.5">{u.email}</div>
+                                  </td>
+                                  <td className="py-4 pr-4 text-slate-500 font-semibold">{u.role}</td>
+                                  {["pos", "repairs", "stock", "invoicing", "buyback"].map((modKey) => {
+                                    const isOverridden = u.moduleOverrides?.[modKey] === true;
+                                    return (
+                                      <td key={modKey} className="py-4 text-center">
+                                        <input
+                                          type="checkbox"
+                                          className="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4 cursor-pointer disabled:opacity-40"
+                                          checked={isOverridden}
+                                          disabled={savingUserId === u.id}
+                                          title="İşaretlenirse bu kullanıcı rolünden bağımsız bu modüle erişir."
+                                          onChange={(e) => updateUserModuleOverride(u, modKey, e.target.checked ? true : null)}
+                                        />
+                                      </td>
+                                    );
+                                  })}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+
+                      <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-500 font-semibold space-y-1">
+                        <p> Kutucuk işaretli: bu kullanıcı o modüle rolünden bağımsız erişir. Boş: modül erişimi rolün yetkisine göre belirlenir (bkz. Rol & Yetki Yönetimi sekmesi).</p>
+                        <p> Değişiklik, kullanıcının sonraki girişinde veya sayfa yenilemesinde aktif olur.</p>
                       </div>
                     </div>
                   </div>

@@ -4,7 +4,7 @@ import { Metadata } from "next";
 import { PartsPriceClient } from "./parts-price-client";
 
 export const metadata: Metadata = {
-  title: "Yedek Parça & Onarım Ücretleri | TelefoncuPro",
+  title: "Yedek Parça & Onarım Ücretleri | VibeGSM",
   description: "Apple grubu teknik servis yedek parça ve onarım ücretleri listesi.",
 };
 

@@ -6,18 +6,18 @@ import { AppChrome } from "@/components/app-chrome";
 import { PwaRegister } from "@/components/pwa-register";
 
 export const metadata: Metadata = {
-  title: "MobiBase | Telefon Bayi Otomasyonu",
+  title: "VibeGSM | Telefon Bayi Otomasyonu",
   description: "Telefon bayileri için hepsi bir arada bulut otomasyonu",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    title: "MobiBase",
+    title: "VibeGSM",
     statusBarStyle: "default",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0f766e",
+  themeColor: "#3B82F6",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,

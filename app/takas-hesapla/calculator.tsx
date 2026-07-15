@@ -67,7 +67,7 @@ export function BuybackCalculator({ brands, models }: { brands: string[]; models
   return (
     <div className="mx-auto max-w-2xl px-5 py-16 md:py-24">
       <div className="text-center">
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-200">İkinci El Cihaz Alımı</p>
+        <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-200">İkinci El Cihaz Alımı</p>
         <h1 className="mt-4 text-3xl font-black tracking-[-0.035em] text-white md:text-5xl">Takas Fiyatı Hesapla</h1>
         <p className="mt-4 text-sm leading-7 text-slate-300">
           Cihaz modelini ve durumunu seçin, yaklaşık alım fiyatını görün. Kesin fiyat bayi değerlendirmesi sonrası belirlenir.
@@ -83,7 +83,7 @@ export function BuybackCalculator({ brands, models }: { brands: string[]; models
                 <button
                   key={brand}
                   onClick={() => { setSelectedBrand(brand); setStep("model"); }}
-                  className="rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-bold text-white transition hover:border-cyan-200/40 hover:bg-white/10"
+                  className="rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-bold text-white transition hover:border-blue-200/40 hover:bg-white/10"
                 >
                   {brand}
                 </button>
@@ -103,7 +103,7 @@ export function BuybackCalculator({ brands, models }: { brands: string[]; models
                 <button
                   key={m.model}
                   onClick={() => { setSelectedModel(m.model); setStep("condition"); }}
-                  className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-left text-sm font-semibold text-white transition hover:border-cyan-200/40 hover:bg-white/10"
+                  className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-left text-sm font-semibold text-white transition hover:border-blue-200/40 hover:bg-white/10"
                 >
                   {m.model}
                 </button>
@@ -125,8 +125,8 @@ export function BuybackCalculator({ brands, models }: { brands: string[]; models
                   onClick={() => { setCondition(c.key); setStep("result"); }}
                   className={`w-full rounded-xl border px-4 py-3 text-left transition ${
                     condition === c.key
-                      ? "border-cyan-200/50 bg-cyan-200/10"
-                      : "border-white/10 bg-white/[0.04] hover:border-cyan-200/40"
+                      ? "border-blue-200/50 bg-blue-200/10"
+                      : "border-white/10 bg-white/[0.04] hover:border-blue-200/40"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -146,8 +146,8 @@ export function BuybackCalculator({ brands, models }: { brands: string[]; models
 
         {step === "result" && (
           <div className="text-center">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-cyan-200/10 border border-cyan-200/20">
-              <span className="text-2xl font-black text-cyan-200">₺</span>
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-blue-200/10 border border-blue-200/20">
+              <span className="text-2xl font-black text-blue-200">₺</span>
             </div>
 
             <h2 className="mt-5 text-4xl font-black tracking-tight text-white md:text-5xl">
@@ -170,18 +170,18 @@ export function BuybackCalculator({ brands, models }: { brands: string[]; models
                   placeholder="Email adresi"
                   type="email"
                   required
-                  className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white placeholder-slate-500 focus:border-cyan-200/50 focus:outline-none"
+                  className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white placeholder-slate-500 focus:border-blue-200/50 focus:outline-none"
                 />
                 <input
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="Telefon (opsiyonel)"
                   type="tel"
-                  className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white placeholder-slate-500 focus:border-cyan-200/50 focus:outline-none"
+                  className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white placeholder-slate-500 focus:border-blue-200/50 focus:outline-none"
                 />
                 <button
                   type="submit"
-                  className="w-full rounded-full bg-cyan-200 px-6 py-3 text-sm font-black text-[#06111f] transition hover:bg-white"
+                  className="w-full rounded-full bg-blue-200 px-6 py-3 text-sm font-black text-[#06111f] transition hover:bg-white"
                 >
                   Teklif Al
                 </button>
@@ -204,7 +204,7 @@ export function BuybackCalculator({ brands, models }: { brands: string[]; models
       </div>
 
       <p className="mt-8 text-center text-xs text-slate-600">
-        MobiBase — Telefon bayileri için tek operasyon sistemi
+        VibeGSM — Telefon bayileri için tek operasyon sistemi
       </p>
     </div>
   );

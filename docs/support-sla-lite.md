@@ -1,4 +1,4 @@
-# SaaSTel Destek SLA-Lite (Mesai Ici)
+# VibeGSM Destek SLA-Lite (Mesai Ici)
 
 ## Hizmet Penceresi
 

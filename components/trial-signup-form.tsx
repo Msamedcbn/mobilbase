@@ -61,8 +61,8 @@ export function TrialSignupForm({ className }: { className?: string }) {
     return (
       <div className={className}>
         <div className="flex flex-col items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-cyan-200/20 border border-cyan-200/30">
-            <svg className="w-8 h-8 text-cyan-200" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-200/20 border border-blue-200/30">
+            <svg className="w-8 h-8 text-blue-200" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
             </svg>
           </div>
@@ -86,13 +86,13 @@ export function TrialSignupForm({ className }: { className?: string }) {
           onChange={(e) => setShopName(e.target.value)}
           placeholder="Bayi adı (zorunlu)"
           required
-          className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white placeholder-slate-500 focus:border-cyan-200/50 focus:outline-none focus:ring-2 focus:ring-cyan-200/20 transition"
+          className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white placeholder-slate-500 focus:border-blue-200/50 focus:outline-none focus:ring-2 focus:ring-blue-200/20 transition"
         />
         <input
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
           placeholder="Adınız soyadınız"
-          className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white placeholder-slate-500 focus:border-cyan-200/50 focus:outline-none focus:ring-2 focus:ring-cyan-200/20 transition"
+          className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white placeholder-slate-500 focus:border-blue-200/50 focus:outline-none focus:ring-2 focus:ring-blue-200/20 transition"
         />
         <input
           value={email}
@@ -100,21 +100,21 @@ export function TrialSignupForm({ className }: { className?: string }) {
           placeholder="Email adresi (zorunlu)"
           type="email"
           required
-          className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white placeholder-slate-500 focus:border-cyan-200/50 focus:outline-none focus:ring-2 focus:ring-cyan-200/20 transition"
+          className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white placeholder-slate-500 focus:border-blue-200/50 focus:outline-none focus:ring-2 focus:ring-blue-200/20 transition"
         />
         <input
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           placeholder="Telefon (opsiyonel)"
           type="tel"
-          className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white placeholder-slate-500 focus:border-cyan-200/50 focus:outline-none focus:ring-2 focus:ring-cyan-200/20 transition"
+          className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white placeholder-slate-500 focus:border-blue-200/50 focus:outline-none focus:ring-2 focus:ring-blue-200/20 transition"
         />
       </div>
 
       <button
         type="submit"
         disabled={loading}
-        className="mt-5 w-full rounded-full bg-cyan-200 px-8 py-3.5 text-sm font-black text-[#06111f] transition hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+        className="mt-5 w-full rounded-full bg-blue-200 px-8 py-3.5 text-sm font-black text-[#06111f] transition hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? "Hazırlanıyor..." : "Ücretsiz Denemeyi Başlat"}
       </button>

@@ -37,16 +37,14 @@ export default function LoginPage() {
 
   return (
     <section className="relative flex min-h-[100dvh] items-center justify-center overflow-hidden bg-[#030712] px-4" style={{ fontFamily: "'Satoshi', 'Plus Jakarta Sans', sans-serif" }}>
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_30%,rgba(20,184,166,0.12),transparent_50%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_80%_80%,rgba(6,182,212,0.06),transparent_45%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_30%,rgba(59, 130, 246,0.12),transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_80%_80%,rgba(59, 130, 246,0.06),transparent_45%)]" />
 
       <div className="relative w-full max-w-md">
         <div className="rounded-[32px] border border-white/10 bg-white/[0.03] backdrop-blur-2xl p-8 md:p-10 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.06)]">
           <div className="flex flex-col items-center text-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-400 to-cyan-600 shadow-lg shadow-teal-500/25">
-              <span className="text-lg font-black text-white">M</span>
-            </div>
-            <h1 className="text-2xl font-black tracking-tight text-white">MobiBase</h1>
+            <img src="/icon-square.png" alt="VibeGSM" className="h-12 w-12 rounded-2xl shadow-lg shadow-blue-500/25 object-cover" />
+            <h1 className="text-2xl font-black tracking-tight text-white">VibeGSM</h1>
             <p className="text-sm leading-relaxed text-slate-400 max-w-xs">
               Telefon bayiniz icin bulut otomasyon sistemine giris yapin.
             </p>
@@ -57,11 +55,11 @@ export default function LoginPage() {
               <label className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 pl-1">E-Posta</label>
               <div className="relative">
                 <input
-                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3.5 pl-11 text-sm font-semibold text-white placeholder-slate-500 transition focus:border-teal-500/40 focus:outline-none focus:ring-2 focus:ring-teal-500/10"
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3.5 pl-11 text-sm font-semibold text-white placeholder-slate-500 transition focus:border-blue-500/40 focus:outline-none focus:ring-2 focus:ring-blue-500/10"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="adiniz@mobibase.com"
+                  placeholder="adiniz@vibegsm.com"
                   required
                 />
                 <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-500">
@@ -76,7 +74,7 @@ export default function LoginPage() {
               <label className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 pl-1">Sifre</label>
               <div className="relative">
                 <input
-                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3.5 pl-11 text-sm font-semibold text-white placeholder-slate-500 transition focus:border-teal-500/40 focus:outline-none focus:ring-2 focus:ring-teal-500/10"
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3.5 pl-11 text-sm font-semibold text-white placeholder-slate-500 transition focus:border-blue-500/40 focus:outline-none focus:ring-2 focus:ring-blue-500/10"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -106,7 +104,7 @@ export default function LoginPage() {
           </form>
 
           <p className="mt-6 text-[10px] text-slate-600 text-center font-semibold">
-            (c) 2026 MobiBase Cloud Technologies
+            (c) 2026 VibeGSM Cloud Technologies
           </p>
         </div>
       </div>

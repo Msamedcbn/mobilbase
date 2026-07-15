@@ -8,7 +8,7 @@
 
 ## Auth
 
-1. Login with `admin@telefoncupro.local`
+1. Login with `admin@vibegsm.local`
 2. `GET /api/auth/me` -> `200`
 3. Logout -> protected page redirects to `/login`
 

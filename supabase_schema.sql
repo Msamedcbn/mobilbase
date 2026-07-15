@@ -521,7 +521,7 @@ INSERT INTO "AppUser" ("id", "fullName", "email", "role", "passwordHash", "isAct
 VALUES (
   'user-admin-seed',
   'Sistem Yoneticisi',
-  'admin@telefoncupro.local',
+  'admin@vibegsm.local',
   'ADMIN',
   '$2b$10$MBPYrQNaaQ82HEh0vQYCQ.LZViy9m1eyICKnKu2Qj7afukvtVDqQe',
   true,

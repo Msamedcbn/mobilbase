@@ -26,11 +26,9 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
     <div className="app-shell min-h-screen overflow-x-hidden md:grid md:grid-cols-[260px_1fr]" style={{ fontFamily: "'Satoshi', 'Plus Jakarta Sans', sans-serif" }}>
       <header className="md:hidden fixed top-0 left-0 right-0 h-14 bg-[#090d16] border-b border-white/[0.06] z-40 flex items-center justify-between px-4 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-teal-400 to-cyan-600 flex items-center justify-center shadow-lg shadow-teal-900/30">
-            <span className="text-xs font-black text-white">M</span>
-          </div>
+          <img src="/icon-square.png" alt="VibeGSM" className="w-8 h-8 rounded-xl shadow-lg shadow-blue-900/30 object-cover" />
           <div>
-            <span className="font-black tracking-tight text-sm block">MobiBase</span>
+            <span className="font-black tracking-tight text-sm block">VibeGSM</span>
             <span className="text-[8px] font-bold text-slate-500 tracking-wider uppercase block">Bayi Platformu</span>
           </div>
         </div>

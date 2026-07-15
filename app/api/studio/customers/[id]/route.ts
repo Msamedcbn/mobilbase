@@ -30,7 +30,7 @@ const DEFAULT_SAAS_METADATA = {
   rolePermissions: {
     PLATFORM_OWNER: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
     ADMIN: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
-    MANAGER: ["pos", "repairs", "stock", "invoicing", "branches"],
+    MANAGER: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
     CASHIER: ["pos"],
     TECHNICIAN: ["repairs"],
     ACCOUNTANT: ["invoicing"],

@@ -1,4 +1,4 @@
-# SaaSTel Pilot Basari Raporu (Sablon)
+# VibeGSM Pilot Basari Raporu (Sablon)
 
 ## Genel Bilgi
 

@@ -44,7 +44,7 @@ export default function UnauthorizedPage() {
       </div>
       
       <p className="text-[10px] text-slate-400 font-medium tracking-wider uppercase mt-8 relative z-10">
-        MobiBase Cloud • Güvenlik Sistemi
+        VibeGSM Cloud • Güvenlik Sistemi
       </p>
     </div>
   );

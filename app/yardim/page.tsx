@@ -12,11 +12,11 @@ interface KbArticle {
 const KB_ARTICLES: KbArticle[] = [
   {
     slug: "baslangic",
-    title: "MobiBase'e Başlangıç",
+    title: "VibeGSM'e Başlangıç",
     description: "İlk girişten bayi ayarlarına kadar temel adımlar.",
     body: `## Hoş Geldiniz
 
-MobiBase, telefon bayileri için tasarlanmış bir işletim sistemidir. Satış, servis, stok, finans ve ikinci el işlemlerini tek platformda birleştirir.
+VibeGSM, telefon bayileri için tasarlanmış bir işletim sistemidir. Satış, servis, stok, finans ve ikinci el işlemlerini tek platformda birleştirir.
 
 ### İlk Adımlar
 
@@ -111,10 +111,10 @@ Alımı yapılan cihazlar otomatik olarak stokta görünür. Servis işlemi tama
   {
     slug: "fiyatlandirma",
     title: "Fiyatlandırma ve Paketler",
-    description: "MobiBase abonelik paketleri, limitler ve ek hizmetler.",
-    body: `## MobiBase Paketleri
+    description: "VibeGSM abonelik paketleri, limitler ve ek hizmetler.",
+    body: `## VibeGSM Paketleri
 
-MobiBase dört farklı paket sunar. Her paket bayi ölçeğine göre farklı modül ve limitler içerir.
+VibeGSM dört farklı paket sunar. Her paket bayi ölçeğine göre farklı modül ve limitler içerir.
 
 | Paket | POS | Servis | Stok | Fatura | İkinci El | Destek |
 |-------|-----|--------|------|--------|-----------|--------|
@@ -155,7 +155,7 @@ export default function KnowledgeBasePage() {
           <div>
             <button
               onClick={() => setActiveArticle(null)}
-              className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-teal-600 hover:text-teal-700 transition"
+              className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 transition"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
@@ -192,7 +192,7 @@ export default function KnowledgeBasePage() {
           <div>
             <h1 className="text-3xl font-black text-slate-900 md:text-4xl">Yardım Merkezi</h1>
             <p className="mt-3 text-base text-slate-500">
-              MobiBase hakkında sık sorulan sorular ve kullanım kılavuzları.
+              VibeGSM hakkında sık sorulan sorular ve kullanım kılavuzları.
             </p>
 
             <div className="mt-6">
@@ -200,7 +200,7 @@ export default function KnowledgeBasePage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Bir şey ara... (örn: stok, tamir, fiyatlandırma)"
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-100 transition shadow-sm"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition shadow-sm"
               />
             </div>
 
@@ -209,7 +209,7 @@ export default function KnowledgeBasePage() {
                 <button
                   key={article.slug}
                   onClick={() => setActiveArticle(article)}
-                  className="rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:shadow-md hover:border-teal-300"
+                  className="rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:shadow-md hover:border-blue-300"
                 >
                   <h3 className="text-base font-black text-slate-900">{article.title}</h3>
                   <p className="mt-2 text-sm leading-6 text-slate-500">{article.description}</p>

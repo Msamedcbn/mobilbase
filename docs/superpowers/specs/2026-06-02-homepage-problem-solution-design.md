@@ -1,7 +1,7 @@
 # Homepage Problem-Solution Design
 
 ## Goal
-Refresh the public MobiBase homepage so phone bayi owners quickly understand the product, recognize their operational pain, and feel that MobiBase is the system they need.
+Refresh the public VibeGSM homepage so phone bayi owners quickly understand the product, recognize their operational pain, and feel that VibeGSM is the system they need.
 
 ## Audience
 The primary audience is phone bayi owners and managers. They are likely dealing with mixed workflows across Excel, WhatsApp, notebooks, POS records, service forms, stock tracking, and delayed collections.
@@ -11,8 +11,8 @@ A premium dark SaaS landing page that starts with messy real-world bayi operatio
 
 ## Content Plan
 - Hero: Name the pain directly: Excel, WhatsApp, notebook, service, stock, and collection chaos.
-- Proof Strip: Show concrete pain points that MobiBase centralizes.
-- Solution: Present MobiBase as one operating system for sales, service, stock, finance, buyback, and branches.
+- Proof Strip: Show concrete pain points that VibeGSM centralizes.
+- Solution: Present VibeGSM as one operating system for sales, service, stock, finance, buyback, and branches.
 - Workflow: Show the before-to-after transformation from scattered records to controlled operations.
 - Packages: Preserve the current dynamic package/pricing data.
 - Final CTA: Ask users to request a demo and transition plan.

@@ -101,8 +101,8 @@ const PLAN_FEATURES: Record<LsPlan, { label: string; color: string; gradient: st
   },
   Service: {
     label: "Service",
-    color: "text-teal-700",
-    gradient: "from-teal-400 to-teal-700",
+    color: "text-blue-700",
+    gradient: "from-blue-400 to-blue-700",
     description: "Teknik servis odaklı işletmeler için",
   },
   Pro: {
@@ -431,7 +431,7 @@ export default function AbonelikPage() {
                   </div>
                   <div className="h-2 rounded-full bg-slate-100">
                     <div
-                      className="h-2 rounded-full bg-gradient-to-r from-teal-500 to-emerald-500"
+                      className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-emerald-500"
                       style={{ width: `${Math.min(100, (info.smsUsed / info.smsQuota) * 100)}%` }}
                     />
                   </div>

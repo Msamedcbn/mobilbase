@@ -26,8 +26,8 @@ for (const line of envContent.split('\n')) {
 
 const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY;
-const tenantName = env.TENANT_NAME || 'TelefoncuPro';
-const adminEmail = env.DEMO_LOGIN_EMAIL || 'admin@telefoncupro.local';
+const tenantName = env.TENANT_NAME || 'VibeGSM';
+const adminEmail = env.DEMO_LOGIN_EMAIL || 'admin@vibegsm.local';
 
 if (!supabaseUrl || !supabaseServiceKey) {
   console.error('NEXT_PUBLIC_SUPABASE_URL veya SUPABASE_SERVICE_ROLE_KEY eksik!');

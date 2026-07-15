@@ -220,7 +220,7 @@ export default function CorporateQuotesPage() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: "2px solid #0f172a", paddingBottom: 10 }}>
             <div>
               <strong style={{ fontSize: 18, letterSpacing: 0.3 }}>KURUMSAL TEKLIF</strong>
-              <p style={{ margin: "4px 0 0", fontSize: 12, color: "#64748b" }}>TelefoncuPro Teknik ve Magazacilik Hizmetleri</p>
+              <p style={{ margin: "4px 0 0", fontSize: 12, color: "#64748b" }}>VibeGSM Teknik ve Magazacilik Hizmetleri</p>
             </div>
             <div style={{ textAlign: "right", fontSize: 12 }}>
               <div><strong>No:</strong> {previewQuoteNo}</div>

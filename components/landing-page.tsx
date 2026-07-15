@@ -309,7 +309,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
             : "border-transparent bg-transparent"
         }`}>
           <a href="/" className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 text-sm font-black text-white shadow-lg shadow-blue-500/25">V</div>
+            <img src="/icon-square.png" alt="VibeGSM" className="h-9 w-9 rounded-xl shadow-lg shadow-blue-500/25 object-cover" />
             <span className="text-base font-black tracking-tight">VibeGSM</span>
           </a>
           <div className="hidden items-center gap-8 md:flex">
@@ -623,7 +623,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
       <footer className="relative z-10 border-t border-white/10 px-5 py-12 md:px-8">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 text-center">
           <a href="/" className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 text-sm font-black text-white">V</div>
+            <img src="/icon-square.png" alt="VibeGSM" className="h-9 w-9 rounded-xl object-cover" />
             <span className="text-base font-black">VibeGSM</span>
           </a>
           <div className="flex flex-wrap justify-center gap-6 text-xs text-slate-400">

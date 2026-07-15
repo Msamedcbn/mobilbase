@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mobibase-cache-v1';
+const CACHE_NAME = 'vibegsm-cache-v1';
 const ASSETS_TO_CACHE = [
   '/',
   '/login',

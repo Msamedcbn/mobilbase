@@ -146,7 +146,7 @@ function PhoneVisualExpertise({ value, onChange }: PhoneVisualExpertiseProps) {
   return (
     <div className="relative mx-auto mb-6 w-full max-w-[920px] overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 p-3 shadow-xl md:p-4">
       {/* Visual background scanning lines */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(20,184,166,0.10),transparent_35%),radial-gradient(circle_at_80%_15%,rgba(99,102,241,0.10),transparent_35%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,0.10),transparent_35%),radial-gradient(circle_at_80%_15%,rgba(99,102,241,0.10),transparent_35%)]" />
       <style>{`
         .pulse-bad {
           animation: visualPulse 1.8s infinite ease-in-out;
@@ -166,7 +166,7 @@ function PhoneVisualExpertise({ value, onChange }: PhoneVisualExpertiseProps) {
         {/* Front View */}
         <div className="rounded-xl border border-slate-800/60 bg-slate-900/45 p-2 text-center md:p-3">
           <div className="mb-3 flex items-center justify-center gap-1.5 rounded-lg border border-slate-700/60 bg-slate-950/50 px-3 py-1.5 font-mono text-2xs font-bold uppercase tracking-widest text-slate-300">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
             ÖN YÜZ (FRONT SIDE)
           </div>
           <svg width="128" height="224" viewBox="0 0 160 280" className="overflow-visible select-none">
@@ -246,7 +246,7 @@ function PhoneVisualExpertise({ value, onChange }: PhoneVisualExpertiseProps) {
       <div className="relative z-10 mx-auto mt-2 min-h-[48px] max-w-[840px] rounded-xl border border-slate-700/70 bg-slate-950/60 px-3 py-2 text-center shadow-inner">
         {hoveredPart ? (
           <div className="flex flex-wrap items-center justify-center gap-1.5 font-mono text-2xs text-slate-200 md:text-xs">
-            <span className="text-cyan-400">⚡ DIAGNOSTIC:</span>
+            <span className="text-blue-400">⚡ DIAGNOSTIC:</span>
             <strong>{CHECKLIST_KEYS.find(k => k.key === hoveredPart)?.label}</strong>
             <span>➜</span>
             <span className={
@@ -257,7 +257,7 @@ function PhoneVisualExpertise({ value, onChange }: PhoneVisualExpertiseProps) {
           </div>
         ) : (
           <div className="flex items-center justify-center gap-1.5 font-mono text-[10px] text-slate-400 md:text-2xs">
-            <span className="inline-block w-2 h-2 rounded-full bg-cyan-400/80 animate-ping"></span>
+            <span className="inline-block w-2 h-2 rounded-full bg-blue-400/80 animate-ping"></span>
             <span>Durumu değiştirmek için görseldeki parçalara tıklayın (NA ➜ OK ➜ BAD)</span>
           </div>
         )}
@@ -981,7 +981,7 @@ export default function RepairPage() {
 
       {/* Premium Stats Grid */}
       <div className="stats-grid mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="panel overflow-hidden relative group p-5 bg-gradient-to-br from-teal-700 to-teal-800 text-white border-0 shadow-lg">
+        <div className="panel overflow-hidden relative group p-5 bg-gradient-to-br from-blue-700 to-blue-800 text-white border-0 shadow-lg">
           <div className="absolute right-3 bottom-3 opacity-10 group-hover:scale-110 transition-transform duration-300">
             <svg className="w-16 h-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
@@ -1037,7 +1037,7 @@ export default function RepairPage() {
                 onClick={() => setStatusFilter(st)}
                 className={`px-4 py-2 text-xs md:text-sm font-semibold rounded-xl border transition-all duration-200 shadow-sm ${
                   active 
-                    ? "bg-teal-700 border-teal-700 text-white shadow-teal-700/10" 
+                    ? "bg-blue-700 border-blue-700 text-white shadow-blue-700/10" 
                     : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800"
                 }`}
               >
@@ -1239,13 +1239,13 @@ export default function RepairPage() {
                   <div
                     key={step.label}
                     className={`flex-1 text-center py-3.5 px-2 text-xs md:text-sm font-semibold transition-all duration-300 relative ${
-                      active ? "text-teal-700 bg-white" : done ? "text-emerald-600 bg-emerald-50/30" : "text-slate-400"
+                      active ? "text-blue-700 bg-white" : done ? "text-emerald-600 bg-emerald-50/30" : "text-slate-400"
                     }`}
                   >
                     <div className="flex items-center justify-center gap-1.5 flex-col sm:flex-row">
                       <span className={`w-5.5 h-5.5 rounded-full flex items-center justify-center text-[10px] md:text-xs font-bold transition-all duration-300 border ${
                         active 
-                          ? "bg-teal-700 border-teal-700 text-white shadow-sm" 
+                          ? "bg-blue-700 border-blue-700 text-white shadow-sm" 
                           : done 
                           ? "bg-emerald-600 border-emerald-600 text-white" 
                           : "bg-slate-100 border-slate-200 text-slate-400"
@@ -1255,7 +1255,7 @@ export default function RepairPage() {
                       <span className="hidden sm:inline">{step.label}</span>
                       <span className="sm:hidden">{step.icon}</span>
                     </div>
-                    {active && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-700" />}
+                    {active && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-700" />}
                     {done && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600" />}
                   </div>
                 );
@@ -1553,7 +1553,7 @@ export default function RepairPage() {
                             type="button"
                             onClick={handleAiRecommendation}
                             disabled={aiLoading || !issueDescription}
-                            className="primary-btn shrink-0 flex items-center gap-1.5 bg-gradient-to-r from-teal-600 to-indigo-600 text-white font-medium hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none px-4 py-2 text-xs md:text-sm cursor-pointer"
+                            className="primary-btn shrink-0 flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none px-4 py-2 text-xs md:text-sm cursor-pointer"
                           >
                             {aiLoading ? "Analiz..." : "✨ AI Asistanı"}
                           </button>
@@ -1561,21 +1561,21 @@ export default function RepairPage() {
                       </div>
 
                       {aiResult && (
-                        <div className="p-4 rounded-xl border border-teal-200 bg-teal-50/50 text-teal-900 shadow-sm relative overflow-hidden animate-fade-in">
+                        <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/50 text-blue-900 shadow-sm relative overflow-hidden animate-fade-in">
                           {/* Background decoration */}
-                          <div className="absolute top-0 right-0 w-24 h-24 bg-teal-400/10 rounded-full blur-xl pointer-events-none" />
-                          <div className="flex items-center justify-between font-bold text-xs md:text-sm text-teal-800 mb-2 border-b border-teal-100 pb-1.5">
+                          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-400/10 rounded-full blur-xl pointer-events-none" />
+                          <div className="flex items-center justify-between font-bold text-xs md:text-sm text-blue-800 mb-2 border-b border-blue-100 pb-1.5">
                             <span className="flex items-center gap-1.5">
                               <span className="animate-pulse">✨</span> Yapay Zeka Teşhisi ve Fiyatlandırma
                             </span>
-                            <span className="bg-teal-100 text-teal-800 text-xs px-2 py-0.5 rounded-full">
+                            <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full">
                               ⏱️ {aiResult.predictedTime}
                             </span>
                           </div>
-                          <p className="text-xs md:text-sm text-teal-700 leading-relaxed m-0 mb-3">{aiResult.reasoning}</p>
-                          <div className="text-xs text-teal-800 font-semibold bg-white/80 border border-teal-100/50 rounded-lg p-2.5">
-                            <strong className="text-teal-900">Önerilen Parçalar:</strong>{" "}
-                            <span className="text-teal-700 font-normal">{aiResult.possibleParts.join(", ") || "Yok"}</span>
+                          <p className="text-xs md:text-sm text-blue-700 leading-relaxed m-0 mb-3">{aiResult.reasoning}</p>
+                          <div className="text-xs text-blue-800 font-semibold bg-white/80 border border-blue-100/50 rounded-lg p-2.5">
+                            <strong className="text-blue-900">Önerilen Parçalar:</strong>{" "}
+                            <span className="text-blue-700 font-normal">{aiResult.possibleParts.join(", ") || "Yok"}</span>
                           </div>
                         </div>
                       )}
@@ -1593,7 +1593,7 @@ export default function RepairPage() {
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center border-t border-slate-200 pt-4 mt-2">
                         <div className="text-base md:text-lg font-extrabold text-slate-900">
-                          Öngörülen Toplam: <span className="text-teal-700">{(Number(laborCost) + Number(partCost)).toLocaleString("tr-TR")} TL</span>
+                          Öngörülen Toplam: <span className="text-blue-700">{(Number(laborCost) + Number(partCost)).toLocaleString("tr-TR")} TL</span>
                         </div>
                         <div>
                           <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">Cihaz Giriş Durumu</label>
@@ -1787,7 +1787,7 @@ export default function RepairPage() {
                   </div>
 
                   {editStatus === "DELIVERED" && selectedRepair?.status !== "DELIVERED" && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-teal-200/50 bg-teal-50/20 p-4.5 rounded-2xl animate-fade-in col-span-full">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-blue-200/50 bg-blue-50/20 p-4.5 rounded-2xl animate-fade-in col-span-full">
                       <div>
                         <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">Ödeme Yöntemi</label>
                         <select 
@@ -1818,7 +1818,7 @@ export default function RepairPage() {
                     </div>
                   )}
                   <div className="text-sm md:text-base font-extrabold mt-2 flex justify-between items-center border-t border-slate-200 pt-4">
-                    <span>Toplam Hizmet Bedeli: <span className="text-teal-700">{(Number(editLabor) + Number(editPart)).toLocaleString("tr-TR")} TL</span></span>
+                    <span>Toplam Hizmet Bedeli: <span className="text-blue-700">{(Number(editLabor) + Number(editPart)).toLocaleString("tr-TR")} TL</span></span>
                   </div>
                 </div>
               </div>

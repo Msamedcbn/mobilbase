@@ -16,7 +16,7 @@ export function getDemoAuthUser(): DemoAuthUser {
     ? (roleRaw as DemoAuthUser["role"])
     : "ADMIN";
   return {
-    email: (process.env.DEMO_LOGIN_EMAIL ?? "admin@telefoncupro.local").toLowerCase(),
+    email: (process.env.DEMO_LOGIN_EMAIL ?? "admin@vibegsm.local").toLowerCase(),
     password: process.env.DEMO_LOGIN_PASSWORD ?? "Admin123!",
     fullName: process.env.DEMO_LOGIN_NAME ?? "Sistem Yoneticisi",
     role,

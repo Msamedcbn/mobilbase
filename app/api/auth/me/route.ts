@@ -40,7 +40,7 @@ export async function GET() {
     }
   }
   
-  let tenantName = "TelefoncuPro";
+  let tenantName = "VibeGSM";
   let rolePermissions = DEFAULT_ROLE_PERMISSIONS;
   let activeModules = DEFAULT_ACTIVE_MODULES;
 
@@ -49,7 +49,7 @@ export async function GET() {
       const store = await readLocalStore();
       const customer = user.tenantId
         ? store.customers.find((c) => c.id === user.tenantId)
-        : store.customers.find((c) => c.fullName === (process.env.TENANT_NAME ?? "TelefoncuPro"));
+        : store.customers.find((c) => c.fullName === (process.env.TENANT_NAME ?? "VibeGSM"));
       if (customer) {
         tenantName = customer.fullName;
         if (customer.notes) {
@@ -61,7 +61,7 @@ export async function GET() {
     } else {
       const customer = user.tenantId
         ? await prisma.customer.findUnique({ where: { id: user.tenantId } })
-        : await prisma.customer.findFirst({ where: { fullName: process.env.TENANT_NAME ?? "TelefoncuPro" } });
+        : await prisma.customer.findFirst({ where: { fullName: process.env.TENANT_NAME ?? "VibeGSM" } });
       if (customer) {
         tenantName = customer.fullName;
         if (customer.notes) {
@@ -75,8 +75,29 @@ export async function GET() {
     console.error("Failed to load tenant metadata for auth me:", err);
   }
 
-  return NextResponse.json({ 
-    user, 
+  // Kullanıcı bazlı modül override — login route'taki mantıkla aynı, sayfa yenilemesinde de güncel kalsın diye
+  try {
+    let userModuleOverrides: Record<string, boolean> | null | undefined;
+    if (isDbDisabledMode()) {
+      const store = await readLocalStore();
+      userModuleOverrides = store.users.find((u) => u.id === user.userId)?.moduleOverrides ?? null;
+    } else {
+      const appUser = await prisma.appUser.findUnique({ where: { id: user.userId }, select: { moduleOverrides: true } });
+      userModuleOverrides = (appUser?.moduleOverrides as Record<string, boolean> | null) ?? null;
+    }
+    if (userModuleOverrides && typeof userModuleOverrides === "object") {
+      const effective = new Set(rolePermissions[user.role] || []);
+      for (const [mod, allowed] of Object.entries(userModuleOverrides)) {
+        if (allowed) effective.add(mod); else effective.delete(mod);
+      }
+      rolePermissions = { ...rolePermissions, [user.role]: Array.from(effective) };
+    }
+  } catch (err) {
+    console.error("Failed to load user module overrides for auth me:", err);
+  }
+
+  return NextResponse.json({
+    user,
     tenantName,
     rolePermissions,
     activeModules

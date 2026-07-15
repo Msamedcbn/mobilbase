@@ -446,6 +446,7 @@ model AppUser {
   branch       Branch?  @relation(fields: [branchId], references: [id])
   tenantId     String?
   tenant       Customer? @relation(fields: [tenantId], references: [id])
+  moduleOverrides Json?
 }
 
 model AuditLog {

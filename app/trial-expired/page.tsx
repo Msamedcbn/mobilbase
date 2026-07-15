@@ -28,14 +28,14 @@ export default function TrialExpiredPage() {
         </p>
 
         <div className="mt-8 rounded-2xl border border-white/10 bg-white/[0.04] p-6">
-          <p className="text-sm font-bold text-white">MobiBase ile devam etmek için</p>
+          <p className="text-sm font-bold text-white">VibeGSM ile devam etmek için</p>
           <p className="mt-2 text-sm leading-6 text-slate-400">
             Size uygun paket, şube yapısı ve veri geçişi için bizimle iletişime geçin. Aynı gün kuruluma başlayalım.
           </p>
           <div className="mt-5 flex flex-wrap justify-center gap-3">
             <a
-              href="mailto:satis@mobibase.com?subject=MobiBase%20Abonelik%20Talebi%20-%20Deneme%20Suresi%20Doldu"
-              className="rounded-full bg-cyan-200 px-6 py-3 text-sm font-black text-[#06111f] transition hover:bg-white"
+              href="mailto:satis@vibegsm.com?subject=VibeGSM%20Abonelik%20Talebi%20-%20Deneme%20Suresi%20Doldu"
+              className="rounded-full bg-blue-200 px-6 py-3 text-sm font-black text-[#06111f] transition hover:bg-white"
             >
               Abonelik için Ulaşın
             </a>
@@ -49,7 +49,7 @@ export default function TrialExpiredPage() {
         </div>
 
         <p className="mt-6 text-xs text-slate-500">
-          Hesabınızla ilgili sorularınız için: <a href="mailto:destek@mobibase.com" className="text-cyan-200 hover:underline">destek@mobibase.com</a>
+          Hesabınızla ilgili sorularınız için: <a href="mailto:destek@vibegsm.com" className="text-blue-200 hover:underline">destek@vibegsm.com</a>
         </p>
       </div>
     </div>

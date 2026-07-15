@@ -16,12 +16,12 @@ DECLARE
   default_tenant_id TEXT;
 BEGIN
   -- Get ID of default tenant
-  SELECT id INTO default_tenant_id FROM "Customer" WHERE "fullName" = 'TelefoncuPro' LIMIT 1;
+  SELECT id INTO default_tenant_id FROM "Customer" WHERE "fullName" = 'VibeGSM' LIMIT 1;
   
   -- Create default tenant if it doesn't exist
   IF default_tenant_id IS NULL THEN
     INSERT INTO "Customer" ("id", "fullName", "phone", "notes", "createdAt", "updatedAt")
-    VALUES ('cust-tenant-seed', 'TelefoncuPro', '5550000001', '{"isSaaS":true}', NOW(), NOW())
+    VALUES ('cust-tenant-seed', 'VibeGSM', '5550000001', '{"isSaaS":true}', NOW(), NOW())
     RETURNING id INTO default_tenant_id;
   END IF;
 
@@ -36,7 +36,7 @@ BEGIN
   UPDATE "Invoice" SET "tenantId" = default_tenant_id WHERE "tenantId" IS NULL;
   
   -- Also ensure default admin is mapped to this tenant
-  UPDATE "AppUser" SET "tenantId" = default_tenant_id WHERE email = 'admin@telefoncupro.local' AND "tenantId" IS NULL;
+  UPDATE "AppUser" SET "tenantId" = default_tenant_id WHERE email = 'admin@vibegsm.local' AND "tenantId" IS NULL;
 END $$;
 
 -- 3. Add Foreign Key constraints

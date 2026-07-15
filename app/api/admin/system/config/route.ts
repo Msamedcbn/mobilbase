@@ -16,7 +16,7 @@ export async function GET() {
 
   return ok({
     tenant: {
-      name: process.env.TENANT_NAME ?? "TelefoncuPro",
+      name: process.env.TENANT_NAME ?? "VibeGSM",
       appBaseUrl: process.env.APP_BASE_URL ?? null,
     },
     bootstrap: getBootstrapStatus(),

@@ -216,13 +216,13 @@ export function SupportBot() {
                   TP
                 </div>
                 <span className="absolute bottom-0 right-0 flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-teal-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500"></span>
                 </span>
               </div>
               <div>
                 <h3 className="font-extrabold text-sm text-slate-100 leading-tight">Müşteri Destek Masası</h3>
-                <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">TelefoncuPro Merkez Yönetimi</span>
+                <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">VibeGSM Merkez Yönetimi</span>
               </div>
             </div>
             
@@ -448,7 +448,7 @@ export function SupportBot() {
                     </button>
                   </form>
                 ) : (
-                  <div className="p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-center text-xs font-bold text-teal-400">
+                  <div className="p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-center text-xs font-bold text-blue-400">
                     Bu talep çözüldü olarak işaretlenmiştir. Yeniden mesaj yazarak talebi açabilirsiniz.
                     <form onSubmit={handleSendReply} className="flex gap-2 pt-2.5 border-t border-slate-800/30 mt-2">
                       <input

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -332,7 +332,7 @@ export default function InternalServiceFlowPage() {
       case "INTERNAL_SELL_TO_SERVICE": return "bg-blue-50 border border-blue-100 text-blue-700";
       case "SERVICE_COST_LABOR": return "bg-amber-50 border border-amber-100 text-amber-700";
       case "SERVICE_COST_PART": return "bg-orange-50 border border-orange-100 text-orange-700";
-      case "INTERNAL_BUYBACK_FROM_SERVICE": return "bg-teal-50 border border-teal-100 text-teal-700 font-bold";
+      case "INTERNAL_BUYBACK_FROM_SERVICE": return "bg-blue-50 border border-blue-100 text-blue-700 font-bold";
       case "MANUAL_ADJUSTMENT": return "bg-slate-50 border border-slate-100 text-slate-700";
       default: return "bg-slate-50 border border-slate-100 text-slate-700";
     }
@@ -384,7 +384,7 @@ export default function InternalServiceFlowPage() {
 
           <div className="panel p-5 bg-white flex flex-col gap-3">
             <h3 className="m-0 text-sm font-bold text-slate-800 flex items-center gap-2">
-              <svg className="w-4 h-4 text-teal-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-4 h-4 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               Cihaz Arama & Seçim
@@ -412,7 +412,7 @@ export default function InternalServiceFlowPage() {
                       onClick={() => setSelectedItemId(item.id)}
                       className={`flex flex-col gap-1.5 p-3 rounded-xl border text-left transition-all duration-200 cursor-pointer ${
                         isSelected
-                          ? "bg-teal-50/50 border-teal-500 shadow-sm"
+                          ? "bg-blue-50/50 border-blue-500 shadow-sm"
                           : "bg-white border-slate-200/60 hover:bg-slate-50 hover:border-slate-350"
                       }`}
                     >
@@ -433,7 +433,7 @@ export default function InternalServiceFlowPage() {
 
                       <div className="flex justify-between items-center text-[10px] pt-1.5 border-t border-slate-100/60 w-full mt-0.5">
                         <span className="text-slate-500">Maliyet: <strong className="text-slate-700">{Number(item.purchasePrice).toLocaleString("tr-TR")} TL</strong></span>
-                        <span className="text-teal-700 font-semibold">Satış: {Number(item.salePrice).toLocaleString("tr-TR")} TL</span>
+                        <span className="text-blue-700 font-semibold">Satış: {Number(item.salePrice).toLocaleString("tr-TR")} TL</span>
                       </div>
                     </button>
                   );
@@ -473,7 +473,7 @@ export default function InternalServiceFlowPage() {
 
                 {/* Visual Flowchart Stepper */}
                 <div className="panel p-6 bg-slate-50/50 border-slate-200/50 rounded-2xl flex justify-between items-center gap-4 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-radial-gradient(circle_at_top_right,rgba(15,118,110,0.05),transparent) pointer-events-none" />
+                  <div className="absolute inset-0 bg-radial-gradient(circle_at_top_right,rgba(29,78,216,0.05),transparent) pointer-events-none" />
                   
                   {[
                     { label: "İç Servise Sevk", desc: "Servise Gönderme/Satış", status: flowStepsStatus.step1 },
@@ -486,9 +486,9 @@ export default function InternalServiceFlowPage() {
                       <div key={idx} className="flex-1 flex flex-col items-center text-center relative z-10 w-full">
                         <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300 border ${
                           isCompleted 
-                            ? "bg-teal-50 border-teal-500 text-teal-700 shadow-md shadow-teal-500/10" 
+                            ? "bg-blue-50 border-blue-500 text-blue-700 shadow-md shadow-blue-500/10" 
                             : isActive 
-                            ? "bg-teal-700 border-teal-700 text-white shadow-lg shadow-teal-700/20 animate-pulse font-bold" 
+                            ? "bg-blue-700 border-blue-700 text-white shadow-lg shadow-blue-700/20 animate-pulse font-bold" 
                             : "bg-slate-100 border-slate-200 text-slate-400"
                         }`}>
                           {isCompleted ? (
@@ -500,13 +500,13 @@ export default function InternalServiceFlowPage() {
                           )}
                         </div>
                         <div className="mt-2.5">
-                          <p className={`m-0 text-[11px] font-bold ${isActive ? "text-teal-700" : isCompleted ? "text-slate-800" : "text-slate-400"}`}>{step.label}</p>
+                          <p className={`m-0 text-[11px] font-bold ${isActive ? "text-blue-700" : isCompleted ? "text-slate-800" : "text-slate-400"}`}>{step.label}</p>
                           <p className="m-0 text-[9px] text-slate-400 mt-0.5">{step.desc}</p>
                         </div>
                         {idx < 2 && (
                           <div className="hidden md:block absolute top-[18px] left-[calc(50%+18px)] right-[calc(-50%+18px)] h-[1.5px] bg-slate-200 -z-10">
                             <div className={`h-full transition-all duration-500 ${
-                              isCompleted ? "bg-teal-500 w-full" : "bg-transparent w-0"
+                              isCompleted ? "bg-blue-500 w-full" : "bg-transparent w-0"
                             }`} />
                           </div>
                         )}
@@ -521,13 +521,13 @@ export default function InternalServiceFlowPage() {
                   <div className={`panel p-5 bg-white border transition-all duration-300 relative ${
                     flowStepsStatus.step1 === "completed" 
                       ? "border-slate-200 bg-slate-50/20" 
-                      : "border-teal-700/40 shadow-sm shadow-teal-500/5 bg-white"
+                      : "border-blue-700/40 shadow-sm shadow-blue-500/5 bg-white"
                   }`}>
                     <div className="flex gap-3 items-start">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
                         flowStepsStatus.step1 === "completed" 
-                          ? "bg-teal-50 text-teal-700 border border-teal-100" 
-                          : "bg-teal-700 text-white animate-pulse"
+                          ? "bg-blue-50 text-blue-700 border border-blue-100" 
+                          : "bg-blue-700 text-white animate-pulse"
                       }`}>1</div>
                       
                       <div className="flex-1">
@@ -536,11 +536,11 @@ export default function InternalServiceFlowPage() {
                             1. Adım: Cihazı İç Servise Sevk Et (Sat)
                           </h4>
                           {flowStepsStatus.step1 === "completed" ? (
-                            <span className="text-teal-700 bg-teal-50 border border-teal-200 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                            <span className="text-blue-700 bg-blue-50 border border-blue-200 text-[10px] font-semibold px-2 py-0.5 rounded-full">
                               ✓ Sevk Edildi
                             </span>
                           ) : (
-                            <span className="text-teal-700 bg-teal-50 border border-teal-200 text-[10px] font-semibold px-2 py-0.5 rounded-full animate-pulse">
+                            <span className="text-blue-700 bg-blue-50 border border-blue-200 text-[10px] font-semibold px-2 py-0.5 rounded-full animate-pulse">
                               ● Gönderim Bekliyor
                             </span>
                           )}
@@ -559,7 +559,7 @@ export default function InternalServiceFlowPage() {
                               type="button"
                               onClick={handleSendToService}
                               disabled={flowStatusLoading}
-                              className="primary-btn px-4 py-2 text-xs font-semibold cursor-pointer shadow-md shadow-teal-700/10"
+                              className="primary-btn px-4 py-2 text-xs font-semibold cursor-pointer shadow-md shadow-blue-700/10"
                             >
                               {flowStatusLoading ? "Sevk Ediliyor..." : "Cihazı İç Servise Sat (Sevk Et)"}
                             </button>
@@ -579,15 +579,15 @@ export default function InternalServiceFlowPage() {
                     flowStepsStatus.step2 === "completed" 
                       ? "border-slate-200 bg-slate-50/20" 
                       : flowStepsStatus.step2 === "active" 
-                      ? "border-teal-700/40 shadow-sm shadow-teal-500/5 bg-white" 
+                      ? "border-blue-700/40 shadow-sm shadow-blue-500/5 bg-white" 
                       : "opacity-60 bg-slate-50/50"
                   }`}>
                     <div className="flex gap-3 items-start">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
                         flowStepsStatus.step2 === "completed" 
-                          ? "bg-teal-50 text-teal-700 border border-teal-100" 
+                          ? "bg-blue-50 text-blue-700 border border-blue-100" 
                           : flowStepsStatus.step2 === "active" 
-                          ? "bg-teal-700 text-white animate-pulse" 
+                          ? "bg-blue-700 text-white animate-pulse" 
                           : "bg-slate-100 text-slate-400"
                       }`}>2</div>
 
@@ -597,11 +597,11 @@ export default function InternalServiceFlowPage() {
                             2. Adım: Cihazı Teknik Servisten Geri Satın Al
                           </h4>
                           {flowStepsStatus.step2 === "completed" ? (
-                            <span className="text-teal-700 bg-teal-50 border border-teal-200 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                            <span className="text-blue-700 bg-blue-50 border border-blue-200 text-[10px] font-semibold px-2 py-0.5 rounded-full">
                               ✓ Geri Alındı
                             </span>
                           ) : flowStepsStatus.step2 === "active" ? (
-                            <span className="text-teal-700 bg-teal-50 border border-teal-200 text-[10px] font-semibold px-2 py-0.5 rounded-full animate-pulse">
+                            <span className="text-blue-700 bg-blue-50 border border-blue-200 text-[10px] font-semibold px-2 py-0.5 rounded-full animate-pulse">
                               ● Geri Alım Bekliyor
                             </span>
                           ) : (
@@ -688,15 +688,15 @@ export default function InternalServiceFlowPage() {
                     flowStepsStatus.step3 === "completed" 
                       ? "border-slate-200 bg-slate-50/20" 
                       : flowStepsStatus.step3 === "active" 
-                      ? "border-teal-700/40 shadow-sm shadow-teal-500/5 bg-white" 
+                      ? "border-blue-700/40 shadow-sm shadow-blue-500/5 bg-white" 
                       : "opacity-60 bg-slate-50/50"
                   }`}>
                     <div className="flex gap-3 items-start">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
                         flowStepsStatus.step3 === "completed" 
-                          ? "bg-teal-50 text-teal-700 border border-teal-100" 
+                          ? "bg-blue-50 text-blue-700 border border-blue-100" 
                           : flowStepsStatus.step3 === "active" 
-                          ? "bg-teal-700 text-white animate-pulse" 
+                          ? "bg-blue-700 text-white animate-pulse" 
                           : "bg-slate-100 text-slate-400"
                       }`}>3</div>
 
@@ -710,7 +710,7 @@ export default function InternalServiceFlowPage() {
                               Fiyat Belirleme Aktif
                             </span>
                           ) : flowStepsStatus.step3 === "completed" ? (
-                            <span className="text-teal-700 bg-teal-50 border border-teal-200 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                            <span className="text-blue-700 bg-blue-50 border border-blue-200 text-[10px] font-semibold px-2 py-0.5 rounded-full">
                               ✓ Satışta / Vitrinde
                             </span>
                           ) : (
@@ -757,7 +757,7 @@ export default function InternalServiceFlowPage() {
                               </div>
                               <div className="col-span-2 border-t border-slate-200 pt-2">
                                 <span className="text-slate-400">Net Kâr Potansiyeli:</span>
-                                <p className={`m-0 font-extrabold mt-0.5 ${flowTotals.profit >= 0 ? "text-teal-700" : "text-rose-600"}`}>
+                                <p className={`m-0 font-extrabold mt-0.5 ${flowTotals.profit >= 0 ? "text-blue-700" : "text-rose-600"}`}>
                                   {flowTotals.profit.toLocaleString("tr-TR")} TL (%{flowTotals.margin.toFixed(1)})
                                 </p>
                               </div>
@@ -774,12 +774,12 @@ export default function InternalServiceFlowPage() {
               <div className="md:col-span-5 flex flex-col gap-6">
                 {/* Cost Breakdown Card */}
                 <div className="panel bg-gradient-to-tr from-slate-900 to-indigo-950 text-white border-0 shadow-xl overflow-hidden relative group">
-                  <div className="absolute inset-0 bg-radial-gradient(circle_at_top_right,rgba(15,118,110,0.15),transparent) pointer-events-none" />
+                  <div className="absolute inset-0 bg-radial-gradient(circle_at_top_right,rgba(29,78,216,0.15),transparent) pointer-events-none" />
                   <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-white/5 rounded-full blur-xl group-hover:scale-125 transition-transform duration-500" />
                   
                   <div className="p-5 flex flex-col gap-4">
                     <div className="border-b border-white/10 pb-3">
-                      <span className="text-[10px] text-teal-300 font-black uppercase tracking-wider">{selectedItem.category || "Cihaz"}</span>
+                      <span className="text-[10px] text-blue-300 font-black uppercase tracking-wider">{selectedItem.category || "Cihaz"}</span>
                       <h3 className="m-0 text-base font-black text-white mt-0.5 line-clamp-1">{selectedItem.name}</h3>
                       <p className="m-0 text-[10px] text-slate-400 font-mono mt-0.5">SKU: {selectedItem.sku}</p>
                     </div>
@@ -800,7 +800,7 @@ export default function InternalServiceFlowPage() {
                       </div>
                       <div className="flex justify-between text-xs text-slate-200">
                         <span className="font-semibold">Etiket Satış Fiyatı:</span>
-                        <span className="font-extrabold text-teal-300 text-sm">{flowTotals.sale.toLocaleString("tr-TR")} TL</span>
+                        <span className="font-extrabold text-blue-300 text-sm">{flowTotals.sale.toLocaleString("tr-TR")} TL</span>
                       </div>
                     </div>
 
@@ -808,13 +808,13 @@ export default function InternalServiceFlowPage() {
                       <div className="flex justify-between items-center">
                         <div>
                           <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Potansiyel Net Kâr</span>
-                          <h4 className={`m-0 text-lg font-black ${flowTotals.profit >= 0 ? "text-teal-400" : "text-rose-400"}`}>
+                          <h4 className={`m-0 text-lg font-black ${flowTotals.profit >= 0 ? "text-blue-400" : "text-rose-400"}`}>
                             {flowTotals.profit.toLocaleString("tr-TR")} TL
                           </h4>
                         </div>
                         <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${
                           flowTotals.profit >= 0 
-                            ? "bg-teal-500/20 text-teal-300 border border-teal-500/30" 
+                            ? "bg-blue-500/20 text-blue-300 border border-blue-500/30" 
                             : "bg-rose-500/20 text-rose-300 border border-rose-500/30"
                         }`}>
                           %{flowTotals.margin.toFixed(1)} Marj
@@ -870,10 +870,10 @@ export default function InternalServiceFlowPage() {
           ) : (
             /* Dashboard Welcome / Info State */
             <div className="panel p-8 bg-white border border-slate-200/80 rounded-2xl flex flex-col gap-6 relative overflow-hidden">
-              <div className="absolute inset-0 bg-radial-gradient(circle_at_top_right,rgba(15,118,110,0.03),transparent) pointer-events-none" />
+              <div className="absolute inset-0 bg-radial-gradient(circle_at_top_right,rgba(29,78,216,0.03),transparent) pointer-events-none" />
               
               <div className="flex flex-col md:flex-row items-center gap-6 border-b border-slate-100 pb-6">
-                <div className="w-16 h-16 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-700 shrink-0 shadow-inner">
+                <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-700 shrink-0 shadow-inner">
                   <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.656 48.656 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3l-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7c.017-.22.032-.441.046-.662M7.5 12l3 3m-3-3l-3 3" />
                   </svg>
@@ -891,8 +891,8 @@ export default function InternalServiceFlowPage() {
               {/* Visual Flow Guide */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="border border-slate-100 p-4 rounded-xl bg-slate-50/50">
-                  <div className="text-xs font-bold text-teal-800 mb-1 flex items-center gap-1.5">
-                    <span className="w-5 h-5 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-[10px]">1</span>
+                  <div className="text-xs font-bold text-blue-800 mb-1 flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px]">1</span>
                     İç Servise Sevk (Satış)
                   </div>
                   <p className="m-0 text-2xs text-slate-500 leading-normal">
@@ -901,8 +901,8 @@ export default function InternalServiceFlowPage() {
                 </div>
 
                 <div className="border border-slate-100 p-4 rounded-xl bg-slate-50/50">
-                  <div className="text-xs font-bold text-teal-800 mb-1 flex items-center gap-1.5">
-                    <span className="w-5 h-5 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-[10px]">2</span>
+                  <div className="text-xs font-bold text-blue-800 mb-1 flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px]">2</span>
                     Geri Satın Alma (Maliyet)
                   </div>
                   <p className="m-0 text-2xs text-slate-500 leading-normal">
@@ -911,8 +911,8 @@ export default function InternalServiceFlowPage() {
                 </div>
 
                 <div className="border border-slate-100 p-4 rounded-xl bg-slate-50/50">
-                  <div className="text-xs font-bold text-teal-800 mb-1 flex items-center gap-1.5">
-                    <span className="w-5 h-5 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-[10px]">3</span>
+                  <div className="text-xs font-bold text-blue-800 mb-1 flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px]">3</span>
                     Nihai Satış (Vitrin)
                   </div>
                   <p className="m-0 text-2xs text-slate-500 leading-normal">

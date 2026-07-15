@@ -1,4 +1,4 @@
-# SaaSTel Pilot Onboarding Checklist
+# VibeGSM Pilot Onboarding Checklist
 
 ## 1) Kurulum Oncesi
 

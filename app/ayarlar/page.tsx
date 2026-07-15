@@ -14,7 +14,7 @@ type SettingsState = {
 const DEFAULT_SETTINGS: SettingsState = {
   whatsappEnabled: false,
   whatsappNumber: "",
-  repairTemplate: "Merhaba {ad_soyad}, {cihaz_marka} {cihaz_model} cihazınızın teknik servis durumu güncellendi. Durum: {durum}. Toplam Tutar: {tutar} TL. Bilgi almak için bizi arayabilirsiniz. İyi günler dileriz. - TelefoncuPro",
+  repairTemplate: "Merhaba {ad_soyad}, {cihaz_marka} {cihaz_model} cihazınızın teknik servis durumu güncellendi. Durum: {durum}. Toplam Tutar: {tutar} TL. Bilgi almak için bizi arayabilirsiniz. İyi günler dileriz. - VibeGSM",
   veresiyeTemplate: "Sayın {ad_soyad}, cari hesabınızdaki güncel borç bakiyeniz {bakiye} TL'dir. Ödemenizi en kısa sürede yapmanızı rica ederiz. İyi çalışmalar.",
   installmentTemplate: "Merhaba {ad_soyad}, {islem_no} numaralı alışverişinize ait {taksit_no}. taksit ödemeniz ({tutar} TL) vadesi ({vade}) gelmiştir. Ödemenizi en kısa sürede tamamlamanızı rica ederiz. İyi günler dileriz.",
 };
@@ -115,7 +115,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
     );
   }
@@ -179,7 +179,7 @@ export default function SettingsPage() {
                   </label>
                   <input
                     type="text"
-                    className="field border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-900"
+                    className="field border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
                     placeholder="Örn: 905551234567"
                     value={settings.whatsappNumber}
                     onChange={(e) => setSettings({ ...settings, whatsappNumber: e.target.value })}
@@ -210,7 +210,7 @@ export default function SettingsPage() {
 
               <div className="space-y-3">
                 <p className="text-xs text-slate-500 leading-relaxed">
-                  TelefoncuPro altyapısı tenant işletmeler için doğrudan SMS entegrasyonu sunmamaktadır.
+                  VibeGSM altyapısı tenant işletmeler için doğrudan SMS entegrasyonu sunmamaktadır.
                 </p>
                 <div className="p-3 bg-rose-50/50 border border-rose-100 rounded-xl text-rose-800 text-[11px] leading-normal font-medium">
                   WhatsApp üzerinden bilgi iletimi tamamen ücretsiz, sınırsız ve daha yüksek erişim oranına sahip olduğu için bu kanalı kullanmanız önerilir.
@@ -238,21 +238,21 @@ export default function SettingsPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("repair")}
-                  className={`flex-1 py-4 text-center text-sm font-semibold border-b-2 transition ${activeTab === "repair" ? "border-teal-600 text-teal-600 bg-white" : "border-transparent text-slate-600 hover:text-slate-900"}`}
+                  className={`flex-1 py-4 text-center text-sm font-semibold border-b-2 transition ${activeTab === "repair" ? "border-blue-600 text-blue-600 bg-white" : "border-transparent text-slate-600 hover:text-slate-900"}`}
                 >
                   Teknik Servis Bildirimi
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTab("veresiye")}
-                  className={`flex-1 py-4 text-center text-sm font-semibold border-b-2 transition ${activeTab === "veresiye" ? "border-teal-600 text-teal-600 bg-white" : "border-transparent text-slate-600 hover:text-slate-900"}`}
+                  className={`flex-1 py-4 text-center text-sm font-semibold border-b-2 transition ${activeTab === "veresiye" ? "border-blue-600 text-blue-600 bg-white" : "border-transparent text-slate-600 hover:text-slate-900"}`}
                 >
                   Veresiye Hatırlatması
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTab("installment")}
-                  className={`flex-1 py-4 text-center text-sm font-semibold border-b-2 transition ${activeTab === "installment" ? "border-teal-600 text-teal-600 bg-white" : "border-transparent text-slate-600 hover:text-slate-900"}`}
+                  className={`flex-1 py-4 text-center text-sm font-semibold border-b-2 transition ${activeTab === "installment" ? "border-blue-600 text-blue-600 bg-white" : "border-transparent text-slate-600 hover:text-slate-900"}`}
                 >
                   Taksit Hatırlatması
                 </button>
@@ -268,7 +268,7 @@ export default function SettingsPage() {
                     </div>
                     <textarea
                       rows={5}
-                      className="field font-sans border-slate-200 focus:ring-2 focus:ring-teal-500 focus:outline-none resize-none text-slate-900 leading-relaxed"
+                      className="field font-sans border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none text-slate-900 leading-relaxed"
                       value={settings.repairTemplate}
                       onChange={(e) => setSettings({ ...settings, repairTemplate: e.target.value })}
                       placeholder="Teknik servis şablonu..."
@@ -295,7 +295,7 @@ export default function SettingsPage() {
                     </div>
                     <textarea
                       rows={5}
-                      className="field font-sans border-slate-200 focus:ring-2 focus:ring-teal-500 focus:outline-none resize-none text-slate-900 leading-relaxed"
+                      className="field font-sans border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none text-slate-900 leading-relaxed"
                       value={settings.veresiyeTemplate}
                       onChange={(e) => setSettings({ ...settings, veresiyeTemplate: e.target.value })}
                       placeholder="Veresiye şablonu..."
@@ -322,7 +322,7 @@ export default function SettingsPage() {
                     </div>
                     <textarea
                       rows={5}
-                      className="field font-sans border-slate-200 focus:ring-2 focus:ring-teal-500 focus:outline-none resize-none text-slate-900 leading-relaxed"
+                      className="field font-sans border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none text-slate-900 leading-relaxed"
                       value={settings.installmentTemplate}
                       onChange={(e) => setSettings({ ...settings, installmentTemplate: e.target.value })}
                       placeholder="Taksit şablonu..."
@@ -366,7 +366,7 @@ export default function SettingsPage() {
             <button
               type="submit"
               disabled={saving}
-              className="px-6 py-3 bg-teal-600 hover:bg-teal-500 text-white font-semibold rounded-xl shadow-lg shadow-teal-600/10 active:scale-95 transition flex items-center gap-2"
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-lg shadow-blue-600/10 active:scale-95 transition flex items-center gap-2"
             >
               {saving ? (
                 <>
