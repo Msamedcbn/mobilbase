@@ -5452,7 +5452,7 @@ function StudioPageContent() {
                         </h3>
                         <p className="text-[11px] text-slate-400">
                           Rol yetkisi bu firmadaki tüm rol üyelerine uygulanır. Buradan tek bir kullanıcıya, rolünden bağımsız olarak ek modül açabilirsiniz
-                          (örn. rolü CASHIER olan ama buyback'e erişmesi gereken bir kullanıcı).
+                          (örn. rolü CASHIER olan ama buyback&apos;e erişmesi gereken bir kullanıcı).
                         </p>
                       </div>
 
