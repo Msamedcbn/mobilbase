@@ -4,6 +4,7 @@ import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore, writeLocalStore } from "@/lib/local-store";
 import { requireRole } from "@/lib/auth";
 import { normalizeLedgerEntry, summarizeLedger } from "@/lib/studio-finance";
+import { logStudioAction } from "@/lib/studio-audit";
 
 // SaaS Metadata Defaults & Helper
 const DEFAULT_SAAS_METADATA = {
@@ -104,7 +105,7 @@ function parseSaasMetadata(notesStr: string | null) {
 }
 
 export async function GET(_: Request, { params }: { params: { id: string } }) {
-  const auth = requireRole(["PLATFORM_OWNER"]);
+  const auth = requireRole(["PLATFORM_OWNER", "STUDIO_OPERATOR"]);
   if (auth.error) return auth.error;
 
   const customerId = params.id;
@@ -227,9 +228,15 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   const customerId = params.id;
   try {
     const body = await req.json();
-    const { saasMetadata } = body;
+    const { saasMetadata, actionType, reason } = body;
     if (!saasMetadata) {
       return NextResponse.json({ error: "SaaS metadata eksik" }, { status: 400 });
+    }
+
+    if (actionType === "QUICK_EXTEND") {
+      if (typeof reason !== "string" || reason.trim().length < 5) {
+        return NextResponse.json({ error: "Lisans uzatma icin en az 5 karakterlik bir gerekce zorunludur." }, { status: 400 });
+      }
     }
 
     const notesJsonStr = JSON.stringify({
@@ -251,12 +258,21 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       if (body.phone) store.customers[idx].phone = body.phone;
       
       await writeLocalStore(store);
+      if (actionType === "QUICK_EXTEND") {
+        await logStudioAction({
+          actor: auth.user.fullName || auth.user.email,
+          action: "LICENSE_EXTENDED",
+          targetType: "TENANT",
+          targetId: customerId,
+          detail: reason,
+        });
+      }
       return NextResponse.json({ success: true, notes: notesJsonStr, customer: store.customers[idx] });
     }
 
     const updatedCustomer = await prisma.customer.update({
       where: { id: customerId },
-      data: { 
+      data: {
         notes: notesJsonStr,
         fullName: body.fullName,
         email: body.email,
@@ -264,22 +280,38 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       }
     });
 
+    if (actionType === "QUICK_EXTEND") {
+      await logStudioAction({
+        actor: auth.user.fullName || auth.user.email,
+        action: "LICENSE_EXTENDED",
+        targetType: "TENANT",
+        targetId: customerId,
+        detail: reason,
+      });
+    }
+
     return NextResponse.json({ success: true, customer: updatedCustomer });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Güncelleme sırasında hata oluştu" }, { status: 500 });
   }
 }
 
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   const auth = requireRole(["PLATFORM_OWNER"]);
   if (auth.error) return auth.error;
 
   const customerId = params.id;
+  const body = await req.json().catch(() => ({}));
+  const reason = typeof body.reason === "string" ? body.reason.trim() : "";
+  if (reason.length < 5) {
+    return NextResponse.json({ error: "Firma silme icin en az 5 karakterlik bir gerekce zorunludur." }, { status: 400 });
+  }
 
   try {
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
-      
+      const targetCustomer = store.customers.find((c) => c.id === customerId);
+
       // 1. Remove users belonging to this tenant
       store.users = (store.users || []).filter((u) => u.tenantId !== customerId);
       
@@ -330,6 +362,14 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
       }
 
       await writeLocalStore(store);
+      await logStudioAction({
+        actor: auth.user.fullName || auth.user.email,
+        action: "TENANT_DELETED",
+        targetType: "TENANT",
+        targetId: customerId,
+        detail: reason,
+        context: { tenantName: targetCustomer?.fullName ?? null },
+      });
       return NextResponse.json({ success: true, message: "Firma ve tüm verileri silindi." });
     }
 
@@ -375,6 +415,15 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
       
       // 11. Delete the tenant Customer record itself
       await tx.customer.delete({ where: { id: customerId } });
+    });
+
+    await logStudioAction({
+      actor: auth.user.fullName || auth.user.email,
+      action: "TENANT_DELETED",
+      targetType: "TENANT",
+      targetId: customerId,
+      detail: reason,
+      context: { tenantName: customer.fullName },
     });
 
     return NextResponse.json({ success: true, message: "Firma ve tüm verileri başarıyla silindi." });

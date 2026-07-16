@@ -54,6 +54,7 @@ const navSections: Array<{ title: string; items: NavItem[] }> = [
       { href: "/banka", label: "Banka Yönetimi", module: "invoicing" },
       { href: "/taksit-yonetimi", label: "Taksit Yönetimi", module: "invoicing" },
       { href: "/giderler", label: "Gider Yönetimi", module: "invoicing" },
+      { href: "/veri-analizi", label: "Veri Analizi", module: "invoicing" },
     ],
   },
   {
@@ -160,6 +161,13 @@ const getIcon = (href: string) => {
       return (
         <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+      );
+    case "/veri-analizi":
+      return (
+        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l7 6-7 6zM4 4v16" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 20V10m5 10V4m-10 16v-6" />
         </svg>
       );
     case "/subeler":
@@ -275,7 +283,7 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
           {navSections.map((section) => {
             const visibleItems = section.items.filter((item) => {
               if (!user) return false;
-              if (user.role === "ADMIN" || user.role === "PLATFORM_OWNER") return true;
+              if (user.role === "ADMIN" || user.role === "PLATFORM_OWNER" || user.role === "MANAGER") return true;
               if (item.adminOnly) return false;
               if (item.module) {
                 const isModuleActive = activeModules[item.module] !== false;

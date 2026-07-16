@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore, writeLocalStore, localId } from "@/lib/local-store";
 import { requireRole } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
+import { getErrorMessage, getErrorStatus } from "@/lib/errors";
 
 let stockItemBuybackColumnsCache: boolean | null = null;
 async function supportsStockItemBuybackColumns() {
@@ -134,7 +136,13 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     const updated = await prisma.stockItem.update({
       where: { id: params.id },
       data: {
-        ...body,
+        sku: sku !== undefined ? sku.trim() : undefined,
+        name: name !== undefined ? name.trim() : undefined,
+        category: category !== undefined ? category.trim() : undefined,
+        quantity: quantity !== undefined ? Number(quantity) : undefined,
+        purchasePrice: purchasePrice !== undefined ? Number(purchasePrice) : undefined,
+        salePrice: salePrice !== undefined ? Number(salePrice) : undefined,
+        minThreshold: minThreshold !== undefined ? Number(minThreshold) : undefined,
         brand: brand !== undefined ? (brand?.trim() || null) : undefined,
         model: model !== undefined ? (model?.trim() || null) : undefined,
         variantColor: variantColor !== undefined ? (variantColor?.trim() || null) : undefined,
@@ -152,7 +160,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
               buybackDealId: buybackDealId !== undefined ? (buybackDealId || null) : undefined,
             }
           : {}),
-        purchaseDate: purchaseDate !== undefined ? (purchaseDate ? new Date(purchaseDate) : null) : undefined,
+        purchaseDate: purchaseDate ? new Date(purchaseDate) : undefined,
       },
     });
 
@@ -286,24 +294,53 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       return NextResponse.json({ error: "Urun bulunamadi." }, { status: 404 });
     }
 
-    await prisma.stockItem.delete({ where: { id: params.id } });
-    await prisma.product.deleteMany({
-      where: {
-        barcode: item.sku,
-        tenantId: auth.user.tenantId,
-      },
-    });
+    try {
+      await prisma.$transaction([
+        prisma.stockItem.delete({ where: { id: params.id } }),
+        prisma.product.deleteMany({
+          where: {
+            barcode: item.sku,
+            tenantId: auth.user.tenantId,
+          },
+        }),
+      ]);
 
-    await writeAuditLog({
-      action: "STOCK_DELETE",
-      entityType: "StockItem",
-      entityId: params.id,
-      detail: `Stok Karti Silindi: ${item.sku} - ${item.name}`,
-      actorUserId: auth.user?.userId,
-    });
+      await writeAuditLog({
+        action: "STOCK_DELETE",
+        entityType: "StockItem",
+        entityId: params.id,
+        detail: `Stok Karti Silindi: ${item.sku} - ${item.name}`,
+        actorUserId: auth.user?.userId,
+      });
 
-    return NextResponse.json({ success: true });
+      return NextResponse.json({ success: true });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2003") {
+        await prisma.$transaction([
+          prisma.stockItem.update({ where: { id: params.id }, data: { isActive: false } }),
+          prisma.product.updateMany({
+            where: { barcode: item.sku, tenantId: auth.user.tenantId },
+            data: { isActive: false },
+          }),
+        ]);
+
+        await writeAuditLog({
+          action: "STOCK_ARCHIVE",
+          entityType: "StockItem",
+          entityId: params.id,
+          detail: `Stok Karti Arsivlendi (satis gecmisi oldugu icin tam silinemedi): ${item.sku} - ${item.name}`,
+          actorUserId: auth.user?.userId,
+        });
+
+        return NextResponse.json({
+          success: true,
+          archived: true,
+          message: "Bu urun satis gecmisinde kullanildigi icin tamamen silinemedi; envanterden kaldirildi (arsivlendi).",
+        });
+      }
+      throw error;
+    }
   } catch (error) {
-    return NextResponse.json({ error: "Silme islemi basarisiz." }, { status: 500 });
+    return NextResponse.json({ error: getErrorMessage(error, "Silme islemi basarisiz.") }, { status: getErrorStatus(error) });
   }
 }

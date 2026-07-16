@@ -5,7 +5,7 @@ import { verifySignedSessionToken } from "@/lib/session";
 export type SessionUser = {
   userId: string;
   email: string;
-  role: "PLATFORM_OWNER" | "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT";
+  role: "PLATFORM_OWNER" | "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT" | "STUDIO_OPERATOR";
   fullName: string;
   tenantId?: string | null;
   expiresAt: number;
@@ -26,7 +26,7 @@ export function requireRole(allowed: SessionUser["role"][]) {
     return { error: fail("Oturum bulunamadi", "UNAUTHORIZED", 401), user: null };
   }
 
-  if (user.role !== "PLATFORM_OWNER" && !user.tenantId) {
+  if (user.role !== "PLATFORM_OWNER" && user.role !== "STUDIO_OPERATOR" && !user.tenantId) {
     return {
       error: fail("Kullanici tenant atamasi olmadan bu islemi yapamaz", "FORBIDDEN", 403),
       user: null,

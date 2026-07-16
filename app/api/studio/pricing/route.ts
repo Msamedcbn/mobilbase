@@ -1,6 +1,7 @@
 ﻿import { NextResponse } from "next/server";
 import { localId, readLocalStore, writeLocalStore } from "@/lib/local-store";
 import { requireRole } from "@/lib/auth";
+import { logStudioAction } from "@/lib/studio-audit";
 
 const DEFAULT_PRICING = {
   Lite: 750,
@@ -120,10 +121,7 @@ export async function PUT(req: Request) {
       snapshot: nextPricing,
     });
 
-    store.studioAuditLogs = store.studioAuditLogs || [];
-    store.studioAuditLogs.unshift({
-      id: localId("audit"),
-      createdAt: new Date().toISOString(),
+    await logStudioAction({
       actor: typeof actor === "string" && actor.trim() ? actor.trim() : "StudioAdmin",
       action: "PRICING_UPDATE",
       targetType: "PRICING",
@@ -173,10 +171,7 @@ export async function PATCH(req: Request) {
       snapshot: store.resellerPricing,
     });
 
-    store.studioAuditLogs = store.studioAuditLogs || [];
-    store.studioAuditLogs.unshift({
-      id: localId("audit"),
-      createdAt: new Date().toISOString(),
+    await logStudioAction({
       actor,
       action: "PRICING_REVERT",
       targetType: "PRICING",

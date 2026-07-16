@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/auth";
 import { readLocalStore } from "@/lib/local-store";
+import { isDbDisabledMode } from "@/lib/runtime-mode";
+import { prisma } from "@/lib/prisma";
 import { makeRenewalSuggestion, summarizeLedger } from "@/lib/studio-finance";
 import PDFDocument from "pdfkit";
 
@@ -16,14 +18,22 @@ function parseMetadata(notes: string | null) {
 }
 
 export async function GET(req: Request) {
-  const auth = requireRole(["PLATFORM_OWNER"]);
+  const auth = requireRole(["PLATFORM_OWNER", "STUDIO_OPERATOR"]);
   if (auth.error) return auth.error;
 
+  // NOT: resellerPricing/resellerPricingHistory hala sadece local-store'da tutuluyor
+  // (ayrı flag'lenmiş bug — pricing route'un tamami DB-mode kontrolsuz). Tenant/audit
+  // verisi asagida gercek moda gore dallaniyor, pricing config'i degil.
   const store = await readLocalStore();
   const pricing = store.resellerPricing;
-  const tenants = store.customers
-    .map((c) => ({ customer: c, meta: parseMetadata(c.notes) }))
-    .filter((x) => !!x.meta) as Array<{ customer: any; meta: any }>;
+
+  const tenants = isDbDisabledMode()
+    ? (store.customers
+        .map((c) => ({ customer: c, meta: parseMetadata(c.notes) }))
+        .filter((x) => !!x.meta) as Array<{ customer: any; meta: any }>)
+    : ((await prisma.customer.findMany())
+        .map((c) => ({ customer: c, meta: parseMetadata(c.notes) }))
+        .filter((x) => !!x.meta) as Array<{ customer: any; meta: any }>);
 
   const rows = tenants.map((t) => {
     const ledger = Array.isArray(t.meta.billingLedger) ? t.meta.billingLedger : [];
@@ -122,6 +132,13 @@ export async function GET(req: Request) {
     }
   }
 
+  const auditLogs = isDbDisabledMode()
+    ? (store.studioAuditLogs || []).slice(0, 40)
+    : (await prisma.studioAuditLog.findMany({ orderBy: { createdAt: "desc" }, take: 40 })).map((l) => ({
+        ...l,
+        createdAt: l.createdAt.toISOString(),
+      }));
+
   const payload = {
     asOf: new Date().toISOString(),
     kpis,
@@ -130,7 +147,7 @@ export async function GET(req: Request) {
     renewalSuggestions,
     monthly,
     pricingHistory: (store.resellerPricingHistory || []).slice(0, 20),
-    auditLogs: (store.studioAuditLogs || []).slice(0, 40),
+    auditLogs,
   };
 
   const { searchParams } = new URL(req.url);

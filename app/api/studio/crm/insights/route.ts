@@ -25,7 +25,7 @@ function parseMeta(notes: string | null) {
 }
 
 export async function GET() {
-  const auth = requireRole(["PLATFORM_OWNER"]);
+  const auth = requireRole(["PLATFORM_OWNER", "STUDIO_OPERATOR"]);
   if (auth.error) return auth.error;
 
   const customers = isDbDisabledMode()

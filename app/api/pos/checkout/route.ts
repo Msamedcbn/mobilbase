@@ -63,6 +63,10 @@ export async function POST(req: Request) {
           if (bStockIndex !== -1) {
             store.productBranchStocks[bStockIndex].stock -= item.quantity;
           }
+          const sItemIndex = store.stockItems.findIndex((s) => s.id === item.productId);
+          if (sItemIndex !== -1) {
+            store.stockItems[sItemIndex].quantity -= item.quantity;
+          }
         }
       } else {
         if (!store.stockItems) store.stockItems = [];
@@ -278,6 +282,13 @@ export async function POST(req: Request) {
             },
             data: { stock: { decrement: item.quantity } },
           });
+          const product = productMap.get(item.productId);
+          if (product) {
+            await tx.stockItem.updateMany({
+              where: { sku: product.barcode, tenantId },
+              data: { quantity: { decrement: item.quantity } },
+            });
+          }
         }
       } else {
         const products = await tx.product.findMany({ where: { id: { in: items.map((i) => i.productId) }, tenantId } });
@@ -299,6 +310,13 @@ export async function POST(req: Request) {
 
         for (const item of items) {
           await tx.product.update({ where: { id: item.productId }, data: { stock: { decrement: item.quantity } } });
+          const product = map.get(item.productId);
+          if (product) {
+            await tx.stockItem.updateMany({
+              where: { sku: product.barcode, tenantId },
+              data: { quantity: { decrement: item.quantity } },
+            });
+          }
         }
       }
 

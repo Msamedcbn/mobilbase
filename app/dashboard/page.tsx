@@ -502,7 +502,7 @@ export default async function DashboardPage({
           <div className="absolute top-0 left-0 w-full h-[3px] bg-rose-500 opacity-85" />
           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Toplam Gider</p>
           <div className="mt-3 flex items-baseline gap-3">
-            <h3 className="text-2xl font-black text-rose-600 font-mono tracking-tight">-{periodExpense.toLocaleString("tr-TR")} TL</h3>
+            <h3 className="text-2xl font-black text-rose-600 font-mono tracking-tight">{periodExpense > 0 ? "-" : ""}{periodExpense.toLocaleString("tr-TR")} TL</h3>
             <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-rose-50 text-rose-600 border border-rose-100">+4.8%</span>
           </div>
           <p className="mt-1 text-xs text-slate-400">gider degisimi</p>

@@ -68,6 +68,9 @@ export async function GET(req: Request) {
         stock: item.quantity,
         purchasePrice: Number(item.purchasePrice).toFixed(2),
         salePrice: Number(item.salePrice).toFixed(2),
+        dealerPrice: item.dealerPrice != null ? Number(item.dealerPrice).toFixed(2) : null,
+        wholesalePrice: item.wholesalePrice != null ? Number(item.wholesalePrice).toFixed(2) : null,
+        images: item.images || [],
         isCatalog: item.isCatalog || false,
         condition: item.condition || null,
         purchaseDate: item.purchaseDate || item.createdAt || new Date().toISOString(),
@@ -84,7 +87,7 @@ export async function GET(req: Request) {
 
   try {
     const products = await prisma.product.findMany({
-      where: { tenantId, isCatalog: catalog },
+      where: { tenantId, isCatalog: catalog, isActive: true },
       orderBy: { updatedAt: "desc" },
       include: { branchStocks: { include: { branch: true } } },
     });

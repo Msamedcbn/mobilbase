@@ -83,6 +83,7 @@ enum UserRole {
   TECHNICIAN
   MANAGER
   ACCOUNTANT
+  STUDIO_OPERATOR
 }
 
 enum CorporateQuoteStatus {
@@ -292,6 +293,7 @@ model StockItem {
   purchaseDocNo   String?
   minThreshold    Int             @default(0)
   isCatalog       Boolean         @default(false)
+  isActive        Boolean         @default(true)
   condition       String?
   isBuybackItem   Boolean         @default(false)
   buybackProcessStatus BuybackProcessStatus?
@@ -358,13 +360,18 @@ model Product {
   purchaseDocNo   String?
   isCatalog       Boolean           @default(false)
   requiresSerialNumber Boolean      @default(false)
+  isActive        Boolean           @default(true)
   condition       String?
+  dealerPrice     Decimal?          @db.Decimal(10, 2)
+  wholesalePrice  Decimal?          @db.Decimal(10, 2)
+  images          Json?
   purchaseDate    DateTime          @default(now())
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
   transactionItems TransactionItem[]
   wizardRecords   BuybackWizardData[]
   branchStocks    ProductBranchStock[]
+  variants        ProductVariant[]
 
   tenantId        String?
   tenant          Customer?         @relation("TenantToProducts", fields: [tenantId], references: [id])
@@ -462,6 +469,17 @@ model AuditLog {
   customer    Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
 }
 
+model StudioAuditLog {
+  id         String   @id @default(cuid())
+  actor      String
+  action     String
+  targetType String
+  targetId   String?
+  detail     String?
+  context    Json?
+  createdAt  DateTime @default(now())
+}
+
 model BuybackReconciliation {
   id                String               @id @default(cuid())
   buybackDealId     String
@@ -543,6 +561,23 @@ model ProductBranchStock {
   updatedAt DateTime @updatedAt
 
   @@unique([productId, branchId])
+}
+
+model ProductVariant {
+  id            String   @id @default(cuid())
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  tenantId      String?
+  size          String?
+  color         String?
+  barcode       String
+  stock         Int      @default(0)
+  purchasePrice Decimal? @db.Decimal(10, 2)
+  salePrice     Decimal? @db.Decimal(10, 2)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([barcode, tenantId])
 }
 
 model BankAccount {

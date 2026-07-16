@@ -126,7 +126,7 @@ export async function middleware(req: NextRequest) {
     try {
       const user = decodeSessionPayloadFromToken(session);
       if (!user) throw new Error("Invalid session token");
-      if (user.role !== "PLATFORM_OWNER") {
+      if (user.role !== "PLATFORM_OWNER" && user.role !== "STUDIO_OPERATOR") {
         if (path.startsWith("/api/")) {
           return NextResponse.json(
             { error: "Bu islem icin yetkiniz yok" },

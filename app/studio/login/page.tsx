@@ -10,7 +10,7 @@ export default function StudioLoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(true);
-  const canAccessStudio = (role?: string) => role === "PLATFORM_OWNER";
+  const canAccessStudio = (role?: string) => role === "PLATFORM_OWNER" || role === "STUDIO_OPERATOR";
 
   // Check if already logged in as SuperAdmin on page load
   useEffect(() => {

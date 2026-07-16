@@ -10,6 +10,18 @@
       "branchId": "branch-kadikoy",
       "createdAt": "2026-05-22T22:54:31.067Z",
       "updatedAt": "2026-05-22T22:54:31.067Z"
+    },
+    {
+      "id": "studio-op-e99ba58d",
+      "fullName": "Test Operator",
+      "email": "operator@vibegsm.local",
+      "role": "STUDIO_OPERATOR",
+      "passwordHash": "$2b$10$9L5FDJLe16j0/4.rRCfIS.8jc4Eugp/o5QUkK4bbpBdImyUMyrCY.",
+      "isActive": true,
+      "branchId": null,
+      "tenantId": null,
+      "createdAt": "2026-07-15T19:22:47.479Z",
+      "updatedAt": "2026-07-15T19:22:47.479Z"
     }
   ],
   "customers": [
@@ -38,7 +50,7 @@
       "fullName": "TeknoMarket Zinciri A.Ş.",
       "phone": "08502220185",
       "email": "kurumsal@teknomarket.com",
-      "notes": "{\"isSaaS\":true,\"plan\":\"Enterprise\",\"licenseStart\":\"2026-01-01\",\"licenseEnd\":\"2027-01-01\",\"branchLimit\":250,\"databaseSizeGb\":4.8,\"smsQuota\":50000,\"smsUsed\":12400,\"leadStatus\":\"WON\",\"leadHistory\":[{\"date\":\"2026-01-01\",\"note\":\"Enterprise paket satışı tamamlandı. 250 şube için altyapı hazırlandı.\",\"author\":\"SuperAdmin\"},{\"date\":\"2026-03-15\",\"note\":\"50,000 SMS ek paketi satın alındı.\",\"author\":\"SuperAdmin\"},{\"date\":\"2026-04-10\",\"note\":\"Özel ERP entegrasyonu talep edildi, çalışma başlatıldı.\",\"author\":\"SuperAdmin\"}],\"modules\":{\"pos\":true,\"repairs\":true,\"stock\":true,\"buyback\":false,\"invoicing\":true},\"tickets\":[{\"id\":\"t1\",\"title\":\"API Entegrasyonunda Hız Sorunu\",\"category\":\"BUG\",\"status\":\"OPEN\",\"assignee\":\"Ahmet Sevim (SüperAdmin)\",\"createdAt\":\"2026-05-20\",\"messages\":[{\"sender\":\"Tenant\",\"body\":\"Anlık satış entegrasyonunda gecikmeler yaşıyoruz. Loglarda timeout gözüküyor.\",\"date\":\"2026-05-20\"},{\"sender\":\"Admin\",\"body\":\"Sorun inceleniyor. API gateway üzerindeki rate-limit değerini arttırıyoruz.\",\"date\":\"2026-05-21\"},{\"sender\":\"Tenant\",\"body\":\"Teşekkürler, gecikme süresi düştü fakat hala ara ara tekrarlıyor.\",\"date\":\"2026-05-22\"}]},{\"id\":\"t2\",\"title\":\"Yıllık Lisans Sözleşmesi İndirimi\",\"category\":\"BILLING\",\"status\":\"RESOLVED\",\"assignee\":\"Ahmet Sevim (SüperAdmin)\",\"createdAt\":\"2026-05-02\",\"messages\":[{\"sender\":\"Tenant\",\"body\":\"Toplu şube lisans yenilemesi için özel bir iskonto alabilir miyiz?\",\"date\":\"2026-05-02\"},{\"sender\":\"Admin\",\"body\":\"Yıllık peşin ödemede %15 ek indirim tanımlanmıştır.\",\"date\":\"2026-05-03\"}]}],\"billingLedger\":[{\"id\":\"b1\",\"type\":\"CHARGE\",\"category\":\"LICENSE\",\"amount\":42000,\"description\":\"Enterprise Yıllık Paket Ücreti (250 Şube Lisansı)\",\"date\":\"2026-01-01\"},{\"id\":\"b2\",\"type\":\"COLLECTION\",\"category\":\"LICENSE\",\"amount\":42000,\"description\":\"Havale/EFT ile Tahsilat\",\"date\":\"2026-01-02\"},{\"id\":\"b3\",\"type\":\"CHARGE\",\"category\":\"SMS_PACK\",\"amount\":3500,\"description\":\"50,000 SMS Paketi Eklemesi\",\"date\":\"2026-03-15\"},{\"id\":\"b4\",\"type\":\"COLLECTION\",\"category\":\"SMS_PACK\",\"amount\":3500,\"description\":\"Kredi Kartı ile Tahsilat\",\"date\":\"2026-03-15\"},{\"id\":\"b5\",\"type\":\"CHARGE\",\"category\":\"CUSTOM_DEV\",\"amount\":15000,\"description\":\"Özel ERP Entegrasyon Modülü Geliştirme\",\"date\":\"2026-04-10\"},{\"id\":\"b6\",\"type\":\"CHARGE\",\"category\":\"SUPPORT\",\"amount\":5000,\"description\":\"7/24 Gold Destek Paketi Yıllık Bedel\",\"date\":\"2026-05-01\"},{\"id\":\"b7\",\"type\":\"COLLECTION\",\"category\":\"SUPPORT\",\"amount\":5000,\"description\":\"Havale/EFT ile Tahsilat\",\"date\":\"2026-05-02\"}]}"
+      "notes": "{\"isSaaS\":true,\"isFrozen\":true,\"plan\":\"Enterprise\",\"licenseStart\":\"2026-01-01\",\"licenseEnd\":\"2028-01-01\",\"branchLimit\":250,\"databaseSizeGb\":4.8,\"smsQuota\":50000,\"smsUsed\":12400,\"leadStatus\":\"WON\",\"leadHistory\":[{\"date\":\"2026-01-01\",\"note\":\"Enterprise paket satışı tamamlandı. 250 şube için altyapı hazırlandı.\",\"author\":\"SuperAdmin\"},{\"date\":\"2026-03-15\",\"note\":\"50,000 SMS ek paketi satın alındı.\",\"author\":\"SuperAdmin\"},{\"date\":\"2026-04-10\",\"note\":\"Özel ERP entegrasyonu talep edildi, çalışma başlatıldı.\",\"author\":\"SuperAdmin\"}],\"modules\":{\"pos\":true,\"repairs\":true,\"stock\":true,\"buyback\":false,\"invoicing\":true},\"rolePermissions\":{\"PLATFORM_OWNER\":[\"pos\",\"repairs\",\"stock\",\"invoicing\",\"buyback\",\"branches\"],\"ADMIN\":[\"pos\",\"repairs\",\"stock\",\"invoicing\",\"buyback\",\"branches\"],\"MANAGER\":[\"pos\",\"repairs\",\"stock\",\"invoicing\",\"buyback\",\"branches\"],\"CASHIER\":[\"pos\"],\"TECHNICIAN\":[\"repairs\"],\"ACCOUNTANT\":[\"invoicing\"]},\"tickets\":[{\"id\":\"t1\",\"title\":\"API Entegrasyonunda Hız Sorunu\",\"category\":\"BUG\",\"status\":\"OPEN\",\"createdAt\":\"2026-05-20\",\"messages\":[{\"sender\":\"Tenant\",\"body\":\"Anlık satış entegrasyonunda gecikmeler yaşıyoruz. Loglarda timeout gözüküyor.\",\"date\":\"2026-05-20\"},{\"sender\":\"Admin\",\"body\":\"Sorun inceleniyor. API gateway üzerindeki rate-limit değerini arttırıyoruz.\",\"date\":\"2026-05-21\"},{\"sender\":\"Tenant\",\"body\":\"Teşekkürler, gecikme süresi düştü fakat hala ara ara tekrarlıyor.\",\"date\":\"2026-05-22\"}]},{\"id\":\"t2\",\"title\":\"Yıllık Lisans Sözleşmesi İndirimi\",\"category\":\"BILLING\",\"status\":\"RESOLVED\",\"createdAt\":\"2026-05-02\",\"messages\":[{\"sender\":\"Tenant\",\"body\":\"Toplu şube lisans yenilemesi için özel bir iskonto alabilir miyiz?\",\"date\":\"2026-05-02\"},{\"sender\":\"Admin\",\"body\":\"Yıllık peşin ödemede %15 ek indirim tanımlanmıştır.\",\"date\":\"2026-05-03\"}]}],\"billingLedger\":[{\"id\":\"b1\",\"type\":\"CHARGE\",\"category\":\"LICENSE\",\"amount\":42000,\"description\":\"Enterprise Yıllık Paket Ücreti (250 Şube Lisansı)\",\"date\":\"2026-01-01\"},{\"id\":\"b2\",\"type\":\"COLLECTION\",\"category\":\"LICENSE\",\"amount\":42000,\"description\":\"Havale/EFT ile Tahsilat\",\"date\":\"2026-01-02\"},{\"id\":\"b3\",\"type\":\"CHARGE\",\"category\":\"SMS_PACK\",\"amount\":3500,\"description\":\"50,000 SMS Paketi Eklemesi\",\"date\":\"2026-03-15\"},{\"id\":\"b4\",\"type\":\"COLLECTION\",\"category\":\"SMS_PACK\",\"amount\":3500,\"description\":\"Kredi Kartı ile Tahsilat\",\"date\":\"2026-03-15\"},{\"id\":\"b5\",\"type\":\"CHARGE\",\"category\":\"CUSTOM_DEV\",\"amount\":15000,\"description\":\"Özel ERP Entegrasyon Modülü Geliştirme\",\"date\":\"2026-04-10\"},{\"id\":\"b6\",\"type\":\"CHARGE\",\"category\":\"SUPPORT\",\"amount\":5000,\"description\":\"7/24 Gold Destek Paketi Yıllık Bedel\",\"date\":\"2026-05-01\"},{\"id\":\"b7\",\"type\":\"COLLECTION\",\"category\":\"SUPPORT\",\"amount\":5000,\"description\":\"Havale/EFT ile Tahsilat\",\"date\":\"2026-05-02\"},{\"id\":\"ledger-1784143798076\",\"type\":\"CHARGE\",\"category\":\"LICENSE\",\"amount\":6018000,\"description\":\"Hizli +1 Yil Lisans Uzatma (Enterprise)\",\"date\":\"2026-07-15\"}],\"crmTasks\":[],\"nextActionDate\":\"\",\"ownerUserId\":\"\",\"expectedDealAmount\":0,\"lostReason\":\"\",\"wonSource\":\"\"}"
     },
     {
       "creditLimit": 50000,
@@ -8021,6 +8033,20 @@
       "stock": 10
     }
   ],
+  "productVariants": [
+    {
+      "id": "variant-7538b5b6",
+      "productId": "stock-item-8fzj25hb7",
+      "size": "256GB",
+      "color": "Mavi",
+      "barcode": "TEL-APPLE-IPHONE13-128GB-SIYAH-256GB-MAVI",
+      "stock": 10,
+      "purchasePrice": null,
+      "salePrice": null,
+      "createdAt": "2026-07-15T18:13:19.533Z",
+      "updatedAt": "2026-07-15T18:13:19.533Z"
+    }
+  ],
   "transactions": [
     {
       "id": "tr-seed-1",
@@ -8721,6 +8747,33 @@
       "minThreshold": 10,
       "createdAt": "2026-05-22T22:54:31.067Z",
       "updatedAt": "2026-05-22T22:54:31.067Z"
+    },
+    {
+      "id": "stock-item-8fzj25hb7",
+      "sku": "TEL-APPLE-IPHONE13-128GB-SIYAH",
+      "name": "iPhone 13 128GB Siyah",
+      "category": "Telefon",
+      "brand": "Apple",
+      "model": "iPhone 13",
+      "variantColor": "Siyah",
+      "variantStorage": "128GB",
+      "serialNumber": null,
+      "imei": null,
+      "quantity": 0,
+      "purchasePrice": 30000,
+      "salePrice": 35000,
+      "purchaseDocType": null,
+      "purchaseDocNo": null,
+      "minThreshold": 0,
+      "isCatalog": true,
+      "requiresSerialNumber": true,
+      "condition": null,
+      "purchaseDate": "2026-07-15T18:11:45.184Z",
+      "createdAt": "2026-07-15T18:11:45.184Z",
+      "updatedAt": "2026-07-15T18:20:22.974Z",
+      "dealerPrice": 32000,
+      "wholesalePrice": 31000,
+      "images": []
     }
   ],
   "transferLogs": [],
@@ -8939,6 +8992,33 @@
     }
   ],
   "studioAuditLogs": [
+    {
+      "id": "audit-267b518e",
+      "createdAt": "2026-07-15T19:29:58.633Z",
+      "actor": "Yeni Kullanıcı",
+      "action": "LICENSE_EXTENDED",
+      "targetType": "TENANT",
+      "targetId": "mock-tenant-1",
+      "detail": "Musteri talebi uzerine yenileme"
+    },
+    {
+      "id": "audit-1a298ee9",
+      "createdAt": "2026-07-15T19:24:24.632Z",
+      "actor": "Yeni Kullanıcı",
+      "action": "TENANT_FROZEN",
+      "targetType": "TENANT",
+      "targetId": "mock-tenant-1",
+      "detail": "Test amaçlı dondurma denemesi"
+    },
+    {
+      "id": "audit-0d83aff2",
+      "createdAt": "2026-07-15T19:22:47.505Z",
+      "actor": "Yeni Kullanıcı",
+      "action": "TEAM_MEMBER_CREATED",
+      "targetType": "TEAM",
+      "targetId": "studio-op-e99ba58d",
+      "detail": "Test Operator (operator@vibegsm.local) ekip uyesi olarak eklendi"
+    },
     {
       "id": "audit-9543c7e6",
       "createdAt": "2026-06-02T11:12:36.512Z",

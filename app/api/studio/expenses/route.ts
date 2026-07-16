@@ -3,7 +3,7 @@ import { readLocalStore, writeLocalStore, localId } from "@/lib/local-store";
 import { requireRole } from "@/lib/auth";
 
 export async function GET() {
-  const auth = requireRole(["PLATFORM_OWNER"]);
+  const auth = requireRole(["PLATFORM_OWNER", "STUDIO_OPERATOR"]);
   if (auth.error) return auth.error;
 
   try {

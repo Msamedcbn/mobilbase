@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     userId: string; 
     email: string; 
     fullName: string; 
-    role: "PLATFORM_OWNER" | "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT"; 
+    role: "PLATFORM_OWNER" | "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT" | "STUDIO_OPERATOR";
     expiresAt: number;
     rolePermissions?: Record<string, string[]>;
     activeModules?: Record<string, boolean>;
@@ -215,7 +215,7 @@ export async function POST(req: Request) {
     // PLATFORM_OWNER için tenant kontrolü yoktur.
     let resolvedTenantId: string | null = null;
 
-    if (authenticatedUser.role !== "PLATFORM_OWNER") {
+    if (authenticatedUser.role !== "PLATFORM_OWNER" && authenticatedUser.role !== "STUDIO_OPERATOR") {
       const userTenantId = (authenticatedUser as any).tenantId as string | null | undefined;
 
       if (userTenantId) {

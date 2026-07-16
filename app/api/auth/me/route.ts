@@ -12,6 +12,7 @@ const DEFAULT_ROLE_PERMISSIONS = {
   CASHIER: ["pos"],
   TECHNICIAN: ["repairs"],
   ACCOUNTANT: ["invoicing"],
+  STUDIO_OPERATOR: [] as string[],
 };
 
 const DEFAULT_ACTIVE_MODULES = {
@@ -73,6 +74,16 @@ export async function GET() {
     }
   } catch (err) {
     console.error("Failed to load tenant metadata for auth me:", err);
+  }
+
+  // MANAGER = ADMIN yetki eşdeğeri — login route'taki mantıkla aynı, sayfa yenilemesinde kaybolmasın diye
+  if (user.role === "MANAGER") {
+    const adminPerms = rolePermissions.ADMIN || [];
+    const managerPerms = rolePermissions.MANAGER || [];
+    rolePermissions = {
+      ...rolePermissions,
+      MANAGER: Array.from(new Set([...adminPerms, ...managerPerms, "branches"])),
+    };
   }
 
   // Kullanıcı bazlı modül override — login route'taki mantıkla aynı, sayfa yenilemesinde de güncel kalsın diye

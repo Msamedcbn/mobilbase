@@ -128,6 +128,38 @@ export const pdfSettingsSchema = z.object({
   template2MaterialType: z.string().max(120),
 });
 
+export const productUpdateSchema = z.object({
+  name: z.string().trim().min(1).optional(),
+  category: z.string().trim().optional().nullable(),
+  brand: z.string().trim().optional().nullable(),
+  model: z.string().trim().optional().nullable(),
+  variantColor: z.string().trim().optional().nullable(),
+  variantStorage: z.string().trim().optional().nullable(),
+  condition: z.string().trim().optional().nullable(),
+  purchasePrice: z.number().nonnegative().optional(),
+  salePrice: z.number().nonnegative().optional(),
+  dealerPrice: z.number().nonnegative().nullable().optional(),
+  wholesalePrice: z.number().nonnegative().nullable().optional(),
+  images: z.array(z.string().url().or(z.string().startsWith("/"))).optional().nullable(),
+});
+
+export const productVariantSchema = z.object({
+  size: z.string().trim().optional().nullable(),
+  color: z.string().trim().optional().nullable(),
+  barcode: z.string().trim().optional(),
+  stock: z.number().int().nonnegative().default(0),
+  purchasePrice: z.number().nonnegative().nullable().optional(),
+  salePrice: z.number().nonnegative().nullable().optional(),
+});
+
+export const productVariantUpdateSchema = z.object({
+  size: z.string().trim().optional().nullable(),
+  color: z.string().trim().optional().nullable(),
+  stock: z.number().int().nonnegative().optional(),
+  purchasePrice: z.number().nonnegative().nullable().optional(),
+  salePrice: z.number().nonnegative().nullable().optional(),
+});
+
 export const tradeInQuoteSchema = z.object({
   buybackCredit: z.number().nonnegative(),
   productId: z.string().min(1),

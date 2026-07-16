@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { PLAN_USD_PRICES, type LsPlan, type LsBillingCycle } from "@/lib/subscription-plans";
+import { useConfirm } from "@/components/confirm-modal";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -76,6 +77,7 @@ function formatTry(usd: number, rate: number) {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function PricingPage() {
+  const { confirm, confirmDialog } = useConfirm();
   const [pricing, setPricing] = useState<PricingData | null>(null);
   const [exchangeRate, setExchangeRate] = useState<ExchangeRate | null>(null);
   const [loading, setLoading] = useState(true);
@@ -152,7 +154,7 @@ export default function PricingPage() {
   };
 
   const handleRevert = async (historyId: string) => {
-    if (!confirm("Bu geçmiş kaydına göre fiyatlandırma geri alınsın mı?")) return;
+    if (!(await confirm("Bu geçmiş kaydına göre fiyatlandırma geri alınsın mı?"))) return;
     try {
       const res = await fetch("/api/studio/pricing", {
         method: "PATCH",
@@ -620,6 +622,7 @@ export default function PricingPage() {
           </div>
         </div>
       )}
+      {confirmDialog}
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/confirm-modal";
 
 type BankAccount = {
   id: string;
@@ -21,6 +22,7 @@ type LogEntry = {
 };
 
 export default function BankaManagementPage() {
+  const { confirm, confirmDialog } = useConfirm();
   const [banks, setBanks] = useState<BankAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedBank, setSelectedBank] = useState<BankAccount | null>(null);
@@ -135,7 +137,7 @@ export default function BankaManagementPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Bu banka/kasa hesabını silmek istediğinize emin misiniz?")) return;
+    if (!(await confirm("Bu banka/kasa hesabını silmek istediğinize emin misiniz?", { danger: true, confirmLabel: "Sil" }))) return;
     try {
       const res = await fetch(`/api/banks/${id}`, { method: "DELETE" });
       const json = await res.json();
@@ -480,6 +482,7 @@ export default function BankaManagementPage() {
           </div>
         </div>
       )}
+      {confirmDialog}
     </section>
   );
 }

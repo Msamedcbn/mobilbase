@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore, writeLocalStore } from "@/lib/local-store";
 import { parseTenantMetadata, stringifyTenantMetadata } from "@/lib/tenant-metadata";
+import { logStudioAction } from "@/lib/studio-audit";
 
 type TenantAdminAction = "FREEZE" | "UNFREEZE" | "RESET_PASSWORD";
 
@@ -26,6 +27,11 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   if (!["FREEZE", "UNFREEZE", "RESET_PASSWORD"].includes(action)) {
     return NextResponse.json({ error: "Gecersiz action." }, { status: 400 });
+  }
+
+  const reason = typeof body?.reason === "string" ? body.reason.trim() : "";
+  if (reason.length < 5) {
+    return NextResponse.json({ error: "Bu islem icin en az 5 karakterlik bir gerekce zorunludur." }, { status: 400 });
   }
 
   if (action === "RESET_PASSWORD") {
@@ -50,6 +56,13 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       user.isActive = true;
       user.updatedAt = new Date().toISOString();
       await writeLocalStore(store);
+      await logStudioAction({
+        actor: auth.user.fullName || auth.user.email,
+        action: "PASSWORD_RESET",
+        targetType: "TENANT",
+        targetId: tenantId,
+        detail: reason,
+      });
       return NextResponse.json({ success: true, message: "Tenant ana kullanici sifresi sifirlandi." });
     }
 
@@ -70,6 +83,13 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       where: { id: primary.id },
       data: { passwordHash: hashSync(newPassword, 10), isActive: true },
     });
+    await logStudioAction({
+      actor: auth.user.fullName || auth.user.email,
+      action: "PASSWORD_RESET",
+      targetType: "TENANT",
+      targetId: tenantId,
+      detail: reason,
+    });
     return NextResponse.json({ success: true, message: "Tenant ana kullanici sifresi sifirlandi." });
   }
 
@@ -86,6 +106,13 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       u.tenantId === tenantId ? { ...u, isActive: action !== "FREEZE", updatedAt: new Date().toISOString() } : u
     );
     await writeLocalStore(store);
+    await logStudioAction({
+      actor: auth.user.fullName || auth.user.email,
+      action: action === "FREEZE" ? "TENANT_FROZEN" : "TENANT_UNFROZEN",
+      targetType: "TENANT",
+      targetId: tenantId,
+      detail: reason,
+    });
     return NextResponse.json({
       success: true,
       message: action === "FREEZE" ? "Tenant donduruldu ve kullanicilar pasif edildi." : "Tenant aktif edildi.",
@@ -107,6 +134,14 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       data: { isActive: action !== "FREEZE" },
     }),
   ]);
+
+  await logStudioAction({
+    actor: auth.user.fullName || auth.user.email,
+    action: action === "FREEZE" ? "TENANT_FROZEN" : "TENANT_UNFROZEN",
+    targetType: "TENANT",
+    targetId: tenantId,
+    detail: reason,
+  });
 
   return NextResponse.json({
     success: true,

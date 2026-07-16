@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { normalizeLedgerEntry } from "@/lib/studio-finance";
 import { TrialHealthPanel } from "@/components/trial-health-panel";
+import { ReasonPromptModal } from "@/components/reason-prompt-modal";
+import { useConfirm } from "@/components/confirm-modal";
 
 interface TicketMessage {
   sender: "Tenant" | "Admin";
@@ -186,7 +188,8 @@ const CANNED_REPLIES = [
 ];
 
 function StudioPageContent() {
-  const [sessionRole, setSessionRole] = useState<"PLATFORM_OWNER" | "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT" | null>(null);
+  const { confirm, confirmDialog } = useConfirm();
+  const [sessionRole, setSessionRole] = useState<"PLATFORM_OWNER" | "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT" | "STUDIO_OPERATOR" | null>(null);
   const [tenants, setTenants] = useState<Customer[]>([]);
   const [loading, setLoadıng] = useState(true);
   const [search, setSearch] = useState("");
@@ -196,6 +199,12 @@ function StudioPageContent() {
 
   // Selected Tenant for the Console Modal
   const [selectedTenantId, setSelectedTenantId] = useState<string | null>(null);
+  const [pendingReasonAction, setPendingReasonAction] = useState<
+    | { type: "DELETE_TENANT"; id: string; name: string }
+    | { type: "TENANT_ADMIN"; id: string; action: "FREEZE" | "UNFREEZE"; name: string }
+    | { type: "EXTEND_LICENSE"; item: typeof tenantConfigs[0] }
+    | null
+  >(null);
   const [detailData, setDetailData] = useState<CustomerDetailPayload | null>(null);
   const [detailLoadıng, setDetailLoadıng] = useState(false);
 
@@ -304,7 +313,7 @@ function StudioPageContent() {
   }, [mockLogs, logLevelFilter, logSearch]);
 
   // Console active tab state
-  const [activeConsoleTab, setActiveConsoleTab] = useState<"GENERAL" | "CRM" | "TICKETS" | "ERP" | "ROLES" | "USERS">("GENERAL");
+  const [activeConsoleTab, setActiveConsoleTab] = useState<"GENERAL" | "CRM" | "TICKETS" | "ERP" | "ROLES" | "USERS" | "AUDIT">("GENERAL");
 
   // Tenant Users (kullanıcı bazlı modül override) state
   type TenantUser = {
@@ -435,6 +444,13 @@ function StudioPageContent() {
   const [reportsLoadıng, setReportsLoadıng] = useState(false);
   const canManagePricing = sessionRole === "ADMIN" || sessionRole === "PLATFORM_OWNER";
   const canManageFinance = sessionRole === "ADMIN" || sessionRole === "PLATFORM_OWNER";
+  const isPlatformOwner = sessionRole === "PLATFORM_OWNER";
+  const [teamMembers, setTeamMembers] = useState<Array<{ id: string; fullName: string; email: string; isActive: boolean }>>([]);
+  const [teamLoading, setTeamLoading] = useState(false);
+  const [newTeamName, setNewTeamName] = useState("");
+  const [newTeamEmail, setNewTeamEmail] = useState("");
+  const [newTeamPassword, setNewTeamPassword] = useState("");
+  const [teamFormOpen, setTeamFormOpen] = useState(false);
 
   // Advanced Tenant Form States
   const [newTaxOffice, setNewTaxOffice] = useState("");
@@ -582,7 +598,7 @@ function StudioPageContent() {
   };
 
   const handleDeleteExpense = async (id: string) => {
-    if (!confirm("Bu gider kaydini silmek istedixinize emin misiniz?")) return;
+    if (!(await confirm("Bu gider kaydini silmek istedixinize emin misiniz?", { danger: true, confirmLabel: "Sil" }))) return;
     try {
       const res = await fetch(`/api/studio/expenses?id=${id}`, {
         method: "DELETE",
@@ -691,7 +707,7 @@ function StudioPageContent() {
     }
 
     const charge = tenant.meta.billingLedger[chargeIndex];
-    if (!confirm(`"${charge.description}" tutarindaki ${charge.amount.toLocaleString()} TL faturayi tahsil etmek istiyor musunuz?`)) {
+    if (!(await confirm(`"${charge.description}" tutarindaki ${charge.amount.toLocaleString()} TL faturayi tahsil etmek istiyor musunuz?`))) {
       return;
     }
 
@@ -755,6 +771,7 @@ function StudioPageContent() {
     fetchReports();
     fetchCrmInsights();
     fetchAuthMe();
+    fetchTeamMembers();
   }, []);
 
   const fetchTenants = async () => {
@@ -1104,6 +1121,48 @@ function StudioPageContent() {
     }
   };
 
+  const fetchTeamMembers = async () => {
+    setTeamLoading(true);
+    try {
+      const res = await fetch("/api/studio/team");
+      if (!res.ok) return;
+      const data = await res.json();
+      setTeamMembers(data.members || []);
+    } catch {
+      setTeamMembers([]);
+    } finally {
+      setTeamLoading(false);
+    }
+  };
+
+  const createTeamMember = async () => {
+    if (newTeamName.trim().length < 3 || !newTeamEmail.trim() || newTeamPassword.length < 8) {
+      toast.error("Ad (en az 3 karakter), e-posta ve en az 8 karakterli şifre girin.");
+      return;
+    }
+    try {
+      const res = await fetch("/api/studio/team", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fullName: newTeamName.trim(), email: newTeamEmail.trim(), password: newTeamPassword }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(json.error || "Ekip üyesi eklenemedi.");
+        return;
+      }
+      toast.success("Ekip üyesi eklendi.");
+      setNewTeamName("");
+      setNewTeamEmail("");
+      setNewTeamPassword("");
+      setTeamFormOpen(false);
+      fetchTeamMembers();
+      fetchReports();
+    } catch {
+      toast.error("Bağlantı hatası.");
+    }
+  };
+
   const getPlanBasePrice = useCallback((plan: SaasMetadata["plan"]) => {
     if (plan === "Lite") return pricing.Lite;
     if (plan === "Service") return pricing.Service;
@@ -1205,6 +1264,38 @@ function StudioPageContent() {
       }
     });
     return counts;
+  }, [tenantConfigs]);
+
+  const riskAlerts = useMemo(() => {
+    type RiskAlert = { tenantId: string; tenantName: string; type: "Lisans" | "Ödeme" | "SLA"; reason: string };
+    const alerts: RiskAlert[] = [];
+    tenantConfigs.forEach((item) => {
+      if (item.isChurnRisk) {
+        alerts.push({ tenantId: item.id, tenantName: item.tenant.fullName, type: "Lisans", reason: item.churnReason });
+      }
+      if (item.balance > 0) {
+        alerts.push({
+          tenantId: item.id,
+          tenantName: item.tenant.fullName,
+          type: "Ödeme",
+          reason: `${item.balance.toLocaleString("tr-TR")} TL vadesi geçmiş borç`,
+        });
+      }
+      const openTickets = (item.meta.tickets || []).filter((t: any) => t.status === "OPEN" && t.createdAt);
+      if (openTickets.length > 0) {
+        const oldest = openTickets.reduce((min: any, t: any) => (new Date(t.createdAt).getTime() < new Date(min.createdAt).getTime() ? t : min));
+        const hoursOpen = Math.floor((Date.now() - new Date(oldest.createdAt).getTime()) / (1000 * 60 * 60));
+        if (hoursOpen >= 48) {
+          alerts.push({
+            tenantId: item.id,
+            tenantName: item.tenant.fullName,
+            type: "SLA",
+            reason: `${hoursOpen} saattir açık destek talebi var`,
+          });
+        }
+      }
+    });
+    return alerts;
   }, [tenantConfigs]);
 
   const apiKpis = useMemo(() => {
@@ -1355,7 +1446,12 @@ function StudioPageContent() {
   }, [tenantConfigs, search, planFilter, statusFilter, crmStatusFilter]);
 
   // Fast Reseller Actions in Table Row
-  const quickUpdateTenant = async (id: string, updatedMeta: SaasMetadata, updatedCustomer: Partial<Customer>) => {
+  const quickUpdateTenant = async (
+    id: string,
+    updatedMeta: SaasMetadata,
+    updatedCustomer: Partial<Customer>,
+    action?: { actionType: string; reason: string }
+  ) => {
     try {
       const res = await fetch(`/api/studio/customers/${id}`, {
         method: "PUT",
@@ -1363,14 +1459,17 @@ function StudioPageContent() {
         body: JSON.stringify({
           ...updatedCustomer,
           saasMetadata: updatedMeta,
+          ...(action ?? {}),
         }),
       });
 
       if (res.ok) {
         toast.success("İşlem başarıyla güncellendi.");
         fetchTenants();
+        fetchReports();
       } else {
-        toast.error("Hızlı güncelleme başarısız.");
+        const errJson = await res.json().catch(() => ({}));
+        toast.error(errJson.error || "Hızlı güncelleme başarısız.");
       }
     } catch {
       toast.error("Baxlanti hatasi.");
@@ -1378,6 +1477,10 @@ function StudioPageContent() {
   };
 
   const handleQuickExtendLicense = (item: typeof tenantConfigs[0]) => {
+    setPendingReasonAction({ type: "EXTEND_LICENSE", item });
+  };
+
+  const confirmExtendLicense = (item: typeof tenantConfigs[0], reason: string) => {
     const meta = { ...item.meta };
     const currentEnd = new Date(meta.licenseEnd);
     const newEnd = new Date(
@@ -1406,7 +1509,7 @@ function StudioPageContent() {
     ];
 
     toast.info(`${item.tenant.fullName} lisansi 1 yil uzatiliyor...`);
-    quickUpdateTenant(item.id, meta, { fullName: item.tenant.fullName });
+    quickUpdateTenant(item.id, meta, { fullName: item.tenant.fullName }, { actionType: "QUICK_EXTEND", reason });
   };
 
   const handleQuickToggleModule = (item: typeof tenantConfigs[0], modKey: keyof SaasMetadata["modules"]) => {
@@ -1420,20 +1523,22 @@ function StudioPageContent() {
     quickUpdateTenant(item.id, meta, { fullName: item.tenant.fullName });
   };
 
-  const handleDeleteTenant = async (id: string, name: string) => {
-    const confirmed = window.confirm(
-      `"${name}" firması ve firmaya ait tüm veriler (şubeler, kasalar, ürünler, satışlar, kullanıcılar) kalıcı olarak silinecektir.\n\nBu işlem geri alınamaz! Devam etmek istediğinize emin misiniz?`
-    );
-    if (!confirmed) return;
+  const handleDeleteTenant = (id: string, name: string) => {
+    setPendingReasonAction({ type: "DELETE_TENANT", id, name });
+  };
 
+  const confirmDeleteTenant = async (id: string, reason: string) => {
     try {
       const res = await fetch(`/api/studio/customers/${id}`, {
         method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason }),
       });
       if (res.ok) {
         toast.success("Firma ve tüm ilişkili veriler başarıyla silindi.");
         setSelectedTenantId(null);
         fetchTenants();
+        fetchReports();
       } else {
         const errJson = await res.json().catch(() => ({}));
         toast.error(errJson.error || "Firma silinemedi.");
@@ -1866,20 +1971,24 @@ function StudioPageContent() {
     action: "FREEZE" | "UNFREEZE" | "RESET_PASSWORD",
     tenantName: string
   ) => {
-    try {
-      let body: Record<string, string> = { action };
-      if (action === "RESET_PASSWORD") {
-        const newPassword = window.prompt(`${tenantName} için yeni şifreyi girin (en az 6 karakter):`);
-        if (!newPassword) return;
-        const confirmPassword = window.prompt("Yeni şifreyi tekrar girin:");
-        if (!confirmPassword) return;
-        body = { action, newPassword, confirmPassword };
-      } else {
-        const op = action === "FREEZE" ? "dondurmak" : "aktif etmek";
-        const ok = window.confirm(`"${tenantName}" tenantını ${op} istediğinize emin misiniz?`);
-        if (!ok) return;
+    if (action === "RESET_PASSWORD") {
+      const newPassword = window.prompt(`${tenantName} için yeni şifreyi girin (en az 6 karakter):`);
+      if (!newPassword) return;
+      const confirmPassword = window.prompt("Yeni şifreyi tekrar girin:");
+      if (!confirmPassword) return;
+      const reason = window.prompt("Bu şifre sıfırlamanın gerekçesi (en az 5 karakter):");
+      if (!reason || reason.trim().length < 5) {
+        toast.error("Gerekçe en az 5 karakter olmalı.");
+        return;
       }
+      await submitTenantAdminAction(id, { action, newPassword, confirmPassword, reason: reason.trim() });
+      return;
+    }
+    setPendingReasonAction({ type: "TENANT_ADMIN", id, action, name: tenantName });
+  };
 
+  const submitTenantAdminAction = async (id: string, body: Record<string, string>) => {
+    try {
       const res = await fetch(`/api/studio/customers/${id}/tenant-admin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1892,12 +2001,25 @@ function StudioPageContent() {
       }
       toast.success(payload.message || "İşlem tamamlandı.");
       fetchTenants();
+      fetchReports();
       if (selectedTenantId === id) {
         fetchTenantDetails(id);
       }
     } catch {
       toast.error("Bağlantı hatası.");
     }
+  };
+
+  const handleConfirmPendingReasonAction = (reason: string) => {
+    if (!pendingReasonAction) return;
+    if (pendingReasonAction.type === "DELETE_TENANT") {
+      confirmDeleteTenant(pendingReasonAction.id, reason);
+    } else if (pendingReasonAction.type === "TENANT_ADMIN") {
+      submitTenantAdminAction(pendingReasonAction.id, { action: pendingReasonAction.action, reason });
+    } else if (pendingReasonAction.type === "EXTEND_LICENSE") {
+      confirmExtendLicense(pendingReasonAction.item, reason);
+    }
+    setPendingReasonAction(null);
   };
 
   const createCrmTask = async (tenantId: string, payload: Partial<CrmTask>) => {
@@ -2004,8 +2126,8 @@ function StudioPageContent() {
     toast.success("Cari hareket eklendi (Kaydet butonuna basmayi unutmayin).");
   };
 
-  const removeLedgerEntry = (id: string) => {
-    if (confirm("Bu cari hareketi silmek istedixinize emin misiniz?")) {
+  const removeLedgerEntry = async (id: string) => {
+    if (await confirm("Bu cari hareketi silmek istedixinize emin misiniz?", { danger: true, confirmLabel: "Sil" })) {
       setEditBillingLedger(editBillingLedger.filter((e) => e.id !== id));
       toast.success("Cari hareket listeden kaldirildi. Dexixiklikleri kalici yapmak icin firma detayini kaydetmeyi unutmayin.");
     }
@@ -2163,6 +2285,91 @@ function StudioPageContent() {
           <span className="text-xs text-indigo-600 mt-2 block font-semibold">Ortalama kazanma süresi: {crmInsights?.kpis?.averageTimeToWinDays || 0} gün</span>
         </div>
       </div>
+
+      {riskAlerts.length > 0 && (
+        <div className="rounded-[24px] border border-rose-200 bg-rose-50/40 p-6 shadow-sm">
+          <h3 className="text-sm font-extrabold text-rose-800 uppercase tracking-wider mb-4 flex items-center gap-2">
+            Riskli Bayiler ({riskAlerts.length})
+          </h3>
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {riskAlerts.map((alert, i) => (
+              <button
+                key={`${alert.tenantId}-${alert.type}-${i}`}
+                onClick={() => setSelectedTenantId(alert.tenantId)}
+                className="w-full flex items-center justify-between p-3 rounded-xl border border-rose-100 bg-white hover:bg-rose-50 transition-colors text-left"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <span
+                    className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded ${
+                      alert.type === "Lisans"
+                        ? "bg-amber-50 text-amber-700 border border-amber-200"
+                        : alert.type === "Ödeme"
+                          ? "bg-rose-50 text-rose-700 border border-rose-200"
+                          : "bg-sky-50 text-sky-700 border border-sky-200"
+                    }`}
+                  >
+                    {alert.type}
+                  </span>
+                  <span className="text-xs font-bold text-slate-700 truncate">{alert.tenantName}</span>
+                  <span className="text-[11px] text-slate-500 truncate">{alert.reason}</span>
+                </div>
+                <svg className="w-4 h-4 text-slate-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {isPlatformOwner && (
+        <div className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider">Ekip Üyeleri (Studio)</h3>
+            <button
+              onClick={() => setTeamFormOpen((v) => !v)}
+              className="px-3 py-1.5 bg-slate-950 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all active:scale-95"
+            >
+              {teamFormOpen ? "Vazgeç" : "+ Yeni Üye"}
+            </button>
+          </div>
+
+          {teamFormOpen && (
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 mb-4 p-4 rounded-xl bg-slate-50 border border-slate-200">
+              <input className="field" placeholder="Ad Soyad" value={newTeamName} onChange={(e) => setNewTeamName(e.target.value)} />
+              <input className="field" placeholder="E-posta" value={newTeamEmail} onChange={(e) => setNewTeamEmail(e.target.value)} />
+              <input className="field" type="password" placeholder="Şifre (en az 8 karakter)" value={newTeamPassword} onChange={(e) => setNewTeamPassword(e.target.value)} />
+              <button onClick={createTeamMember} className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold">
+                Ekle
+              </button>
+            </div>
+          )}
+
+          <p className="text-[11px] text-slate-400 mb-3">
+            Ekip üyeleri Studio&apos;ya salt okunur erişebilir — firma dondurma, silme, şifre sıfırlama, lisans/fiyat kaydetme gibi işlemleri yapamaz.
+          </p>
+
+          {teamLoading ? (
+            <div className="text-xs text-slate-400">Yükleniyor...</div>
+          ) : teamMembers.length === 0 ? (
+            <div className="text-xs text-slate-400">Henüz ekip üyesi eklenmedi.</div>
+          ) : (
+            <div className="space-y-2">
+              {teamMembers.map((m) => (
+                <div key={m.id} className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50/50">
+                  <div>
+                    <span className="text-xs font-bold text-slate-700">{m.fullName}</span>
+                    <span className="text-[11px] text-slate-400 ml-2">{m.email}</span>
+                  </div>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${m.isActive ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-slate-100 text-slate-500 border border-slate-200"}`}>
+                    {m.isActive ? "Aktif" : "Pasif"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Satış Hunisi (Sales Funnel) */}
       <div className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm">
@@ -2534,6 +2741,8 @@ function StudioPageContent() {
                         {/* Action buttons - Added Quick extend 1 year */}
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
+                            {isPlatformOwner && (
+                              <>
                             <button
                               onClick={() =>
                                 handleTenantAdminAction(
@@ -2567,7 +2776,7 @@ function StudioPageContent() {
                             >
                               <span>+1 Yil</span>
                             </button>
-                            
+
                             <button
                               onClick={() => handleDeleteTenant(item.id, item.tenant.fullName)}
                               title="Firmayı ve Tüm Verilerini Sil"
@@ -2575,6 +2784,8 @@ function StudioPageContent() {
                             >
                               <span>Sil</span>
                             </button>
+                              </>
+                            )}
 
                             <button
                               onClick={() => setSelectedTenantId(item.id)}
@@ -4394,6 +4605,7 @@ function StudioPageContent() {
                 { id: "ERP" as const, label: "Finans & ERP", icon: "E" },
                 { id: "ROLES" as const, label: "Rol & Yetki Yönetimi", icon: "R" },
                 { id: "USERS" as const, label: "Kullanıcılar", icon: "U" },
+                { id: "AUDIT" as const, label: "Denetim Kaydı", icon: "A" },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -5518,26 +5730,63 @@ function StudioPageContent() {
                   </div>
                 )}
 
+                {activeConsoleTab === "AUDIT" && (
+                  <div className="p-6 space-y-4">
+                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+                      <div className="border-b border-slate-100 pb-3">
+                        <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                          <span>A</span> Denetim Kaydı
+                        </h3>
+                        <p className="text-[11px] text-slate-400">Bu firmayla ilgili yapılan kritik Studio işlemleri (silme, dondurma, şifre sıfırlama, lisans uzatma vb).</p>
+                      </div>
+                      {(() => {
+                        const tenantAuditLogs = (reports?.auditLogs || []).filter((l: any) => l.targetId === selectedTenantId);
+                        if (tenantAuditLogs.length === 0) {
+                          return <div className="text-xs text-slate-400 py-6 text-center">Bu firma için kayıtlı denetim işlemi yok.</div>;
+                        }
+                        return (
+                          <div className="space-y-2">
+                            {tenantAuditLogs.map((l: any) => (
+                              <div key={l.id} className="p-3 rounded-xl border border-slate-100 bg-slate-50/50 text-xs">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-bold text-slate-700">{l.action}</span>
+                                  <span className="text-[10px] text-slate-400 font-mono">{new Date(l.createdAt).toLocaleString("tr-TR")}</span>
+                                </div>
+                                <div className="text-[11px] text-slate-500 mt-1">{l.detail}</div>
+                                <div className="text-[10px] text-slate-400 mt-1">Yapan: {l.actor}</div>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                )}
+
                 {/* Footer Save & Close buttons */}
                 <div className="p-6 bg-slate-50 border-t border-slate-200 flex justify-end gap-2 mt-auto">
-                  <button
-                    onClick={() => handleDeleteTenant(selectedTenantId, detailData?.customer.fullName || "")}
-                    className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold shadow-sm transition-all active:scale-95 mr-auto"
-                  >
-                    Firmayı Sil (Kalıcı)
-                  </button>
+                  {isPlatformOwner && (
+                    <button
+                      onClick={() => handleDeleteTenant(selectedTenantId, detailData?.customer.fullName || "")}
+                      className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold shadow-sm transition-all active:scale-95 mr-auto"
+                    >
+                      Firmayı Sil (Kalıcı)
+                    </button>
+                  )}
                   <button
                     onClick={() => setSelectedTenantId(null)}
                     className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold border border-slate-200 transition-all"
                   >
                     Kapat
                   </button>
-                  <button
-                    onClick={handleSaveTenantDetails}
-                    className="px-4 py-2 bg-indigo-650 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-sm transition-all active:scale-95"
-                  >
-                    Tüm Ayarlari Kaydet
-                  </button>
+                  {isPlatformOwner && (
+                    <button
+                      onClick={handleSaveTenantDetails}
+                      className="px-4 py-2 bg-indigo-650 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-sm transition-all active:scale-95"
+                    >
+                      Tüm Ayarlari Kaydet
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -5853,6 +6102,29 @@ function StudioPageContent() {
           </div>
         </div>
       )}
+
+      <ReasonPromptModal
+        open={pendingReasonAction !== null}
+        title={
+          pendingReasonAction?.type === "DELETE_TENANT"
+            ? `"${pendingReasonAction.name}" firmasını kalıcı olarak sil`
+            : pendingReasonAction?.type === "TENANT_ADMIN"
+              ? `"${pendingReasonAction.name}" tenantını ${pendingReasonAction.action === "FREEZE" ? "dondur" : "aktif et"}`
+              : pendingReasonAction?.type === "EXTEND_LICENSE"
+                ? `"${pendingReasonAction.item.tenant.fullName}" lisansını 1 yıl uzat`
+                : ""
+        }
+        description={
+          pendingReasonAction?.type === "DELETE_TENANT"
+            ? "Firmaya ait tüm veriler (şubeler, kasalar, ürünler, satışlar, kullanıcılar) kalıcı olarak silinecek. Bu işlem geri alınamaz."
+            : undefined
+        }
+        confirmLabel={pendingReasonAction?.type === "DELETE_TENANT" ? "Kalıcı Olarak Sil" : "Onayla"}
+        danger={pendingReasonAction?.type === "DELETE_TENANT" || (pendingReasonAction?.type === "TENANT_ADMIN" && pendingReasonAction.action === "FREEZE")}
+        onConfirm={handleConfirmPendingReasonAction}
+        onCancel={() => setPendingReasonAction(null)}
+      />
+      {confirmDialog}
     </div>
   );
 }

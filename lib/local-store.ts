@@ -19,7 +19,7 @@ export type LocalStore = {
     id: string;
     fullName: string;
     email: string;
-    role: "PLATFORM_OWNER" | "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT";
+    role: "PLATFORM_OWNER" | "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT" | "STUDIO_OPERATOR";
     passwordHash: string;
     isActive: boolean;
     branchId: string | null;
@@ -97,7 +97,23 @@ export type LocalStore = {
     buybackProcessStatus?: "SERVICE_TRANSFERRED" | "READY_FOR_SALE" | null;
     buybackSaleEnabled?: boolean;
     buybackDealId?: string | null;
+    dealerPrice?: number | null;
+    wholesalePrice?: number | null;
+    images?: string[] | null;
     purchaseDate?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  }>;
+  productVariants?: Array<{
+    id: string;
+    productId: string;
+    tenantId?: string | null;
+    size?: string | null;
+    color?: string | null;
+    barcode: string;
+    stock: number;
+    purchasePrice?: number | null;
+    salePrice?: number | null;
     createdAt?: string;
     updatedAt?: string;
   }>;
@@ -235,8 +251,8 @@ export type LocalStore = {
     createdAt: string;
     actor: string;
     action: string;
-    targetType: "TENANT" | "PRICING" | "LEDGER" | "LICENSE" | "HELPDESK" | "LEAD" | "TRIAL";
-    targetId: string;
+    targetType: "TENANT" | "PRICING" | "LEDGER" | "LICENSE" | "HELPDESK" | "LEAD" | "TRIAL" | "TEAM";
+    targetId?: string;
     detail: string;
     context?: Record<string, unknown>;
   }>;
@@ -319,6 +335,7 @@ const seedStore: LocalStore = {
     { id: "stock-3", productId: "demo-prod-2", branchId: "branch-kadikoy", stock: 20 },
     { id: "stock-4", productId: "demo-prod-2", branchId: "branch-besiktas", stock: 10 }
   ],
+  productVariants: [],
   transactions: [
     { id: "tr-seed-1", transactionNo: "POS-1716298000", type: "INCOME", paymentMethod: "CASH", customerId: "demo-cust-1", totalAmount: 12500, note: "POS Satışı", createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), branchId: "branch-kadikoy" },
     { id: "tr-seed-2", transactionNo: "POS-1716298001", type: "INCOME", paymentMethod: "CREDIT_CARD", customerId: "demo-cust-1", totalAmount: 18000, note: "POS Satışı", createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(), branchId: "branch-besiktas" },
@@ -551,6 +568,7 @@ export async function readLocalStore(): Promise<LocalStore> {
       accountEntries: fixedParsed.accountEntries || [],
       branches: fixedParsed.branches || seedStore.branches,
       productBranchStocks: fixedParsed.productBranchStocks || seedStore.productBranchStocks,
+      productVariants: fixedParsed.productVariants || [],
       transactions: fixedParsed.transactions || seedStore.transactions,
       repairs: fixedParsed.repairs || seedStore.repairs,
       notifications: fixedParsed.notifications || [],

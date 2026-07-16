@@ -43,7 +43,7 @@ export async function GET() {
 
   const mapLegacyProducts = async () => {
     const products = await prisma.product.findMany({
-      where: tenantId ? { tenantId, isCatalog: false } : { tenantId: null, isCatalog: false },
+      where: tenantId ? { tenantId, isCatalog: false, isActive: true } : { tenantId: null, isCatalog: false, isActive: true },
       orderBy: { updatedAt: "desc" },
     });
     return products.map((p) => ({
@@ -72,7 +72,7 @@ export async function GET() {
 
   try {
     const items = await prisma.stockItem.findMany({
-      where: tenantId ? { tenantId } : { tenantId: null },
+      where: tenantId ? { tenantId, isActive: true } : { tenantId: null, isActive: true },
       orderBy: { updatedAt: "desc" },
     });
     // Legacy uyumluluk: eski veriler Product tablosunda kalmış olabilir.
@@ -162,127 +162,137 @@ export async function POST(req: Request) {
       stockItemSku = `${sku.trim()}-${cleanImei}`;
     }
 
-    // Accessory / Non-serialized item upsert logic
-    if (!isSerialized) {
-      if (isDbDisabledMode()) {
-        const store = await readLocalStore();
-        if (!store.stockItems) store.stockItems = [];
-        const existingIdx = store.stockItems.findIndex((x) => x.sku.toLowerCase() === stockItemSku.toLowerCase() && !x.isCatalog && x.tenantId === tenantId);
-        if (existingIdx !== -1) {
-          const item = store.stockItems[existingIdx];
-          item.quantity += Number(quantity || 0);
-          item.purchasePrice = Number(purchasePrice || 0);
-          item.salePrice = Number(salePrice || 0);
-          item.purchaseDocType = purchaseDocType || null;
-          item.purchaseDocNo = purchaseDocNo || null;
-          item.isBuybackItem = Boolean(item.isBuybackItem ?? false);
-          item.buybackProcessStatus = item.buybackProcessStatus ?? null;
-          item.buybackSaleEnabled = Boolean(item.buybackSaleEnabled ?? false);
-          item.buybackDealId = item.buybackDealId ?? null;
-          item.updatedAt = new Date().toISOString();
-          
-          // Sync to Product
-          if (!store.productBranchStocks) store.productBranchStocks = [];
-          const targetBranchId = store.branches?.[0]?.id;
-          if (targetBranchId) {
-            const pbsIdx = store.productBranchStocks.findIndex((x) => x.productId === item.id && x.branchId === targetBranchId);
-            if (pbsIdx !== -1) {
-              store.productBranchStocks[pbsIdx].stock = item.quantity;
-            }
+    const formattedName = isSerialized && condition ? `${name.trim()} (${condition})` : name.trim();
+
+    // Upsert: reuse an existing StockItem row with the same sku if one exists.
+    // Covers restocking accessories AND buyback re-entry of a previously sold serial/IMEI
+    // (that row still exists with quantity 0 — creating a new row would collide on the sku unique constraint).
+    if (isDbDisabledMode()) {
+      const store = await readLocalStore();
+      if (!store.stockItems) store.stockItems = [];
+      const existingIdx = store.stockItems.findIndex((x) => x.sku.toLowerCase() === stockItemSku.toLowerCase() && x.tenantId === tenantId);
+      if (existingIdx !== -1) {
+        const item = store.stockItems[existingIdx];
+        item.quantity += Number(quantity || 0);
+        item.name = formattedName;
+        item.condition = condition || null;
+        item.serialNumber = serialNumber?.trim() || null;
+        item.purchasePrice = Number(purchasePrice || 0);
+        item.salePrice = Number(salePrice || 0);
+        item.purchaseDocType = purchaseDocType || null;
+        item.purchaseDocNo = purchaseDocNo || null;
+        item.isCatalog = false;
+        item.isBuybackItem = Boolean(item.isBuybackItem ?? false);
+        item.buybackProcessStatus = item.buybackProcessStatus ?? null;
+        item.buybackSaleEnabled = Boolean(item.buybackSaleEnabled ?? false);
+        item.buybackDealId = item.buybackDealId ?? null;
+        item.updatedAt = new Date().toISOString();
+
+        // Sync to Product
+        if (!store.productBranchStocks) store.productBranchStocks = [];
+        const targetBranchId = store.branches?.[0]?.id;
+        if (targetBranchId) {
+          const pbsIdx = store.productBranchStocks.findIndex((x) => x.productId === item.id && x.branchId === targetBranchId);
+          if (pbsIdx !== -1) {
+            store.productBranchStocks[pbsIdx].stock = item.quantity;
           }
-
-          const logDetail = `Stok Miktarı Güncellendi (Upsert): ${item.sku} - ${item.name} (+${quantity} Adet, Yeni Toplam: ${item.quantity})`;
-          store.stockLogs?.unshift({
-            id: `stock-log-${Math.random().toString(36).substr(2, 9)}`,
-            action: "STOCK_UPDATE",
-            entityId: item.id,
-            detail: logDetail,
-            createdAt: new Date().toISOString(),
-          });
-
-          await writeLocalStore(store);
-          return NextResponse.json(item, { status: 201 });
         }
-      } else {
-        const existingStock = await prisma.stockItem.findFirst({
-          where: { sku: stockItemSku, isCatalog: false, tenantId },
+
+        const logDetail = `Stok Miktarı Güncellendi (Upsert): ${item.sku} - ${item.name} (+${quantity} Adet, Yeni Toplam: ${item.quantity})`;
+        store.stockLogs?.unshift({
+          id: `stock-log-${Math.random().toString(36).substr(2, 9)}`,
+          action: "STOCK_UPDATE",
+          entityId: item.id,
+          detail: logDetail,
+          createdAt: new Date().toISOString(),
         });
-        if (existingStock) {
-          const hasBuybackCols = await supportsStockItemBuybackColumns();
-          const updated = await prisma.stockItem.update({
-            where: { id: existingStock.id },
+
+        await writeLocalStore(store);
+        return NextResponse.json(item, { status: 201 });
+      }
+    } else {
+      const existingStock = await prisma.stockItem.findFirst({
+        where: { sku: stockItemSku, tenantId },
+      });
+      if (existingStock) {
+        const hasBuybackCols = await supportsStockItemBuybackColumns();
+        const updated = await prisma.stockItem.update({
+          where: { id: existingStock.id },
+          data: {
+            quantity: existingStock.quantity + Number(quantity || 0),
+            name: formattedName,
+            condition: condition || null,
+            serialNumber: serialNumber?.trim() || null,
+            purchasePrice: Number(purchasePrice || 0),
+            salePrice: Number(salePrice || 0),
+            purchaseDocType: purchaseDocType || null,
+            purchaseDocNo: purchaseDocNo || null,
+            purchaseDate: purchaseDate ? new Date(purchaseDate) : undefined,
+            isCatalog: false,
+            ...(hasBuybackCols
+              ? {
+                  isBuybackItem: isBuybackItem !== undefined ? Boolean(isBuybackItem) : undefined,
+                  buybackProcessStatus: buybackProcessStatus !== undefined ? buybackProcessStatus : undefined,
+                  buybackSaleEnabled: buybackSaleEnabled !== undefined ? Boolean(buybackSaleEnabled) : undefined,
+                  buybackDealId: buybackDealId !== undefined ? (buybackDealId || null) : undefined,
+                }
+              : {}),
+          },
+        });
+
+        const existingProduct = await prisma.product.findFirst({
+          where: { barcode: stockItemSku, tenantId },
+        });
+        if (existingProduct) {
+          await prisma.product.update({
+            where: { id: existingProduct.id },
             data: {
-              quantity: existingStock.quantity + Number(quantity || 0),
-              purchasePrice: Number(purchasePrice || 0),
-              salePrice: Number(salePrice || 0),
-              purchaseDocType: purchaseDocType || null,
-              purchaseDocNo: purchaseDocNo || null,
-              purchaseDate: purchaseDate ? new Date(purchaseDate) : undefined,
-              ...(hasBuybackCols
-                ? {
-                    isBuybackItem: isBuybackItem !== undefined ? Boolean(isBuybackItem) : undefined,
-                    buybackProcessStatus: buybackProcessStatus !== undefined ? buybackProcessStatus : undefined,
-                    buybackSaleEnabled: buybackSaleEnabled !== undefined ? Boolean(buybackSaleEnabled) : undefined,
-                    buybackDealId: buybackDealId !== undefined ? (buybackDealId || null) : undefined,
-                  }
-                : {}),
+              name: updated.name,
+              condition: updated.condition,
+              stock: updated.quantity,
+              purchasePrice: updated.purchasePrice,
+              salePrice: updated.salePrice,
             },
           });
 
-          const existingProduct = await prisma.product.findFirst({
-            where: { barcode: stockItemSku, tenantId },
+          const defaultBranch = await prisma.branch.findFirst({
+            where: { tenantId },
+            orderBy: { createdAt: "asc" },
+            select: { id: true },
           });
-          if (existingProduct) {
-            await prisma.product.update({
-              where: { id: existingProduct.id },
-              data: {
-                stock: updated.quantity,
-                purchasePrice: updated.purchasePrice,
-                salePrice: updated.salePrice,
-              },
-            });
-
-            const defaultBranch = await prisma.branch.findFirst({
-              where: { tenantId },
-              orderBy: { createdAt: "asc" },
-              select: { id: true },
-            });
-            if (defaultBranch) {
-              await prisma.productBranchStock.upsert({
-                where: {
-                  productId_branchId: {
-                    productId: existingProduct.id,
-                    branchId: defaultBranch.id,
-                  },
-                },
-                create: {
+          if (defaultBranch) {
+            await prisma.productBranchStock.upsert({
+              where: {
+                productId_branchId: {
                   productId: existingProduct.id,
                   branchId: defaultBranch.id,
-                  stock: updated.quantity,
                 },
-                update: {
-                  stock: updated.quantity,
-                },
-              });
-            }
+              },
+              create: {
+                productId: existingProduct.id,
+                branchId: defaultBranch.id,
+                stock: updated.quantity,
+              },
+              update: {
+                stock: updated.quantity,
+              },
+            });
           }
-
-          await writeAuditLog({
-            action: "STOCK_UPDATE",
-            entityType: "StockItem",
-            entityId: updated.id,
-            detail: `Stok Miktarı Güncellendi (Upsert): ${updated.sku} - ${updated.name} (+${quantity} Adet, Yeni Toplam: ${updated.quantity})`,
-            actorUserId: auth.user?.userId,
-          });
-
-          return NextResponse.json(updated, { status: 201 });
         }
+
+        await writeAuditLog({
+          action: "STOCK_UPDATE",
+          entityType: "StockItem",
+          entityId: updated.id,
+          detail: `Stok Miktarı Güncellendi (Upsert): ${updated.sku} - ${updated.name} (+${quantity} Adet, Yeni Toplam: ${updated.quantity})`,
+          actorUserId: auth.user?.userId,
+        });
+
+        return NextResponse.json(updated, { status: 201 });
       }
     }
 
     // Standard Create StockItem Flow (Serialized or New Accessory SKU)
-    const formattedName = isSerialized && condition ? `${name.trim()} (${condition})` : name.trim();
-
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
       if (!store.stockItems) store.stockItems = [];

@@ -28,7 +28,7 @@ function isSaasTenant(notes: string | null | undefined) {
 }
 
 export async function GET() {
-  const auth = requireRole(["PLATFORM_OWNER"]);
+  const auth = requireRole(["PLATFORM_OWNER", "STUDIO_OPERATOR"]);
   if (auth.error) return auth.error;
 
   if (isDbDisabledMode()) {

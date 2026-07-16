@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { ProductCardModal } from "@/components/product-card-modal";
+import { useConfirm } from "@/components/confirm-modal";
 
 type StockItem = {
   id: string;
@@ -118,16 +120,23 @@ function cleanString(str: string): string {
 }
 
 export default function StockPage() {
+  const { confirm, confirmDialog } = useConfirm();
   const [items, setItems] = useState<StockItem[]>([]);
   const [catalogCards, setCatalogCards] = useState<Product[]>([]);
   const [deviceModels, setDeviceModels] = useState<DeviceModel[]>([]);
+  const [selectedProductCardId, setSelectedProductCardId] = useState<string | null>(null);
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loadingSeed, setLoadingSeed] = useState(false);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("ALL");
-  
+
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkPriceMode, setBulkPriceMode] = useState<"FIXED" | "MARKUP">("FIXED");
+  const [bulkPriceValue, setBulkPriceValue] = useState("");
+  const [applyingBulkPrice, setApplyingBulkPrice] = useState(false);
+
   // Tabbed Navigation: inventory (Envanter), entry (Stok Girişi), catalog (Ürün Kartları), report (Raporlar & Loglar)
   const [activeTab, setActiveTab] = useState<"inventory" | "buyback" | "entry" | "catalog" | "report">("inventory");
   const [buybackProcessFilter, setBuybackProcessFilter] = useState<"ALL" | "SERVICE_TRANSFERRED" | "READY_FOR_SALE">("ALL");
@@ -549,7 +558,7 @@ export default function StockPage() {
   }
 
   async function handleLoadDefaultCards() {
-    if (!confirm("Popüler Apple, Samsung modelleri, yedek parçalar ve aksesuarları içeren 20 adet varsayılan ürün kartını yüklemek istiyor musunuz?")) return;
+    if (!(await confirm("Popüler Apple, Samsung modelleri, yedek parçalar ve aksesuarları içeren 20 adet varsayılan ürün kartını yüklemek istiyor musunuz?"))) return;
     setLoadingSeed(true);
     try {
       const res = await fetch("/api/products/seed", { method: "POST" });
@@ -631,16 +640,58 @@ export default function StockPage() {
   }
 
   async function deleteItem(id: string) {
-    if (!confirm("Bu stok kaydını envanterden silmek istiyor musunuz?")) return;
+    if (!(await confirm("Bu stok kaydını envanterden silmek istiyor musunuz?", { danger: true, confirmLabel: "Sil" }))) return;
     try {
       const res = await fetch(`/api/stock-items/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Silinemedi");
-      toast.success("Ürün envanterden silindi.");
+      const body = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(body?.error || "Silinemedi");
+      toast.success(body?.archived ? body.message : "Ürün envanterden silindi.");
       if (editingId === id) resetStockForm();
       await fetchItems();
       await fetchLogs();
-    } catch {
-      toast.error("Silme işlemi başarısız.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Silme işlemi başarısız.");
+    }
+  }
+
+  function toggleSelected(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAllFiltered(ids: string[]) {
+    setSelectedIds((prev) => {
+      const allSelected = ids.length > 0 && ids.every((id) => prev.has(id));
+      return allSelected ? new Set() : new Set(ids);
+    });
+  }
+
+  async function applyBulkPrice() {
+    const value = Number(bulkPriceValue);
+    if (!Number.isFinite(value) || value < 0) return toast.error("Geçerli bir değer girin.");
+    if (selectedIds.size === 0) return;
+    setApplyingBulkPrice(true);
+    try {
+      const res = await fetch("/api/stock-items/bulk-price", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds), mode: bulkPriceMode, value }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(body?.error || "Toplu güncelleme başarısız.");
+      toast.success(`${body?.updated ?? selectedIds.size} ürünün satış fiyatı güncellendi.`);
+      setSelectedIds(new Set());
+      setBulkPriceValue("");
+      await fetchItems();
+      await fetchLogs();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Toplu güncelleme başarısız.");
+    } finally {
+      setApplyingBulkPrice(false);
     }
   }
 
@@ -953,6 +1004,44 @@ export default function StockPage() {
               </div>
             </div>
 
+            {selectedIds.size > 0 && (
+              <div className="flex flex-wrap items-center gap-2 p-3 rounded-xl border border-blue-200 bg-blue-50">
+                <span className="text-xs font-bold text-blue-800">{selectedIds.size} ürün seçili</span>
+                <select
+                  className="field text-xs py-1.5 w-auto"
+                  value={bulkPriceMode}
+                  onChange={(e) => setBulkPriceMode(e.target.value as "FIXED" | "MARKUP")}
+                >
+                  <option value="FIXED">Satış fiyatını şuna eşitle (TL)</option>
+                  <option value="MARKUP">Alış fiyatına şu kadar % ekle</option>
+                </select>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  className="field text-xs py-1.5 w-28"
+                  placeholder={bulkPriceMode === "FIXED" ? "TL" : "%"}
+                  value={bulkPriceValue}
+                  onChange={(e) => setBulkPriceValue(e.target.value)}
+                />
+                <button
+                  type="button"
+                  disabled={applyingBulkPrice || !bulkPriceValue}
+                  className="px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-700 text-white hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  onClick={() => void applyBulkPrice()}
+                >
+                  {applyingBulkPrice ? "Uygulanıyor..." : "Uygula"}
+                </button>
+                <button
+                  type="button"
+                  className="px-3 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-700 cursor-pointer"
+                  onClick={() => setSelectedIds(new Set())}
+                >
+                  Seçimi Temizle
+                </button>
+              </div>
+            )}
+
             <div className="overflow-x-auto border border-slate-200/80 rounded-xl shadow-2xs">
               {loading ? (
                 <div className="p-8 text-center text-slate-400">Yükleniyor...</div>
@@ -962,6 +1051,13 @@ export default function StockPage() {
                 <table className="data-table">
                   <thead>
                     <tr>
+                      <th className="text-xs w-8">
+                        <input
+                          type="checkbox"
+                          checked={filtered.length > 0 && filtered.every((i) => selectedIds.has(i.id))}
+                          onChange={() => toggleSelectAllFiltered(filtered.map((i) => i.id))}
+                        />
+                      </th>
                       <th className="text-xs">SKU</th>
                       <th className="text-xs">Ürün Tanımı</th>
                       <th className="text-xs">Kategori</th>
@@ -980,6 +1076,9 @@ export default function StockPage() {
                       
                       return (
                         <tr key={item.id} className="hover:bg-slate-50/50">
+                          <td>
+                            <input type="checkbox" checked={selectedIds.has(item.id)} onChange={() => toggleSelected(item.id)} />
+                          </td>
                           <td className="font-mono text-[11px] font-semibold text-slate-500">{item.sku}</td>
                           <td>
                             <div className="flex flex-col">
@@ -1780,7 +1879,12 @@ export default function StockPage() {
                   </thead>
                   <tbody>
                     {catalogCards.map((card) => (
-                      <tr key={card.id} className="hover:bg-slate-50/50">
+                      <tr
+                        key={card.id}
+                        className="hover:bg-slate-50/50 cursor-pointer"
+                        onClick={() => setSelectedProductCardId(card.id)}
+                        title="Ürün kartını aç"
+                      >
                         <td className="font-mono text-[11px] text-slate-500 font-bold">{card.barcode}</td>
                         <td>
                           <div className="flex flex-col">
@@ -1975,6 +2079,16 @@ export default function StockPage() {
           </div>
         </div>
       )}
+
+      <ProductCardModal
+        productId={selectedProductCardId}
+        onClose={() => setSelectedProductCardId(null)}
+        onSaved={() => {
+          fetchCatalog();
+          setSelectedProductCardId(null);
+        }}
+      />
+      {confirmDialog}
     </section>
   );
 }

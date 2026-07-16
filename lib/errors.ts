@@ -17,6 +17,10 @@ export function getErrorMessage(error: unknown, fallback = "Beklenmeyen bir hata
     return "Bu bilgi zaten sistemde kayitli.";
   }
 
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2003") {
+    return "Bu kayit satis/islem gecmisinde kullanildigi icin silinemez.";
+  }
+
   if (error instanceof Error) return error.message;
   return fallback;
 }
@@ -29,6 +33,9 @@ export function getErrorCode(error: unknown) {
   if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
     return "CONFLICT" as const;
   }
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2003") {
+    return "CONFLICT" as const;
+  }
   return "INTERNAL" as const;
 }
 
@@ -38,5 +45,6 @@ export function getErrorStatus(error: unknown) {
   }
   if (error instanceof Prisma.PrismaClientRustPanicError) return 503;
   if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") return 409;
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2003") return 409;
   return 400;
 }

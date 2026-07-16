@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/confirm-modal";
 
 type Branch = {
   id: string;
@@ -35,6 +36,7 @@ type Product = {
 };
 
 export default function BranchesPage() {
+  const { confirm, confirmDialog } = useConfirm();
   const [branches, setBranches] = useState<Branch[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
@@ -197,7 +199,7 @@ export default function BranchesPage() {
   }
 
   async function handleDeleteBranch(id: string) {
-    if (!confirm("Bu şubeyi silmek istediğinizden emin misiniz?")) return;
+    if (!(await confirm("Bu şubeyi silmek istediğinizden emin misiniz?", { danger: true, confirmLabel: "Sil" }))) return;
     try {
       const res = await fetch(`/api/branches/${id}`, { method: "DELETE" });
       const data = await res.json();
@@ -300,7 +302,7 @@ export default function BranchesPage() {
   }
 
   async function handleDeleteUser(id: string) {
-    if (!confirm("Bu personeli silmek istediğinizden emin misiniz?")) return;
+    if (!(await confirm("Bu personeli silmek istediğinizden emin misiniz?", { danger: true, confirmLabel: "Sil" }))) return;
     try {
       const res = await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
       const data = await res.json();
@@ -1232,6 +1234,7 @@ export default function BranchesPage() {
           </div>
         </div>
       )}
+      {confirmDialog}
     </section>
   );
 }

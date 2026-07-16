@@ -21,7 +21,7 @@ function parseMeta(notes: string | null) {
 }
 
 export async function GET(req: Request) {
-  const auth = requireRole(["PLATFORM_OWNER"]);
+  const auth = requireRole(["PLATFORM_OWNER", "STUDIO_OPERATOR"]);
   if (auth.error) return auth.error;
 
   const { searchParams } = new URL(req.url);

@@ -3,3 +3,9 @@
 .env
 .env.local
 .vercel
+public/uploads
+.gstack/
+.agents/
+.claude/skills/
+scroll-world/
+skills-lock.json

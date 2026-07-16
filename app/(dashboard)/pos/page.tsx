@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/confirm-modal";
 
 type Branch = { id: string; name: string };
 type Product = {
@@ -96,6 +97,7 @@ const getBrandStyle = (brandId: string) => {
 };
 
 export default function PosPage() {
+  const { confirm, confirmDialog } = useConfirm();
   const [products, setProducts] = useState<Product[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -855,9 +857,9 @@ export default function PosPage() {
                       <div className="flex gap-1">
                         <button
                           type="button"
-                          onClick={() => {
+                          onClick={async () => {
                             if (cart.length > 0) {
-                              const confirmMerge = window.confirm("Aktif sepetinizde ürünler var. Bekleyen sepeti aktif sepetle birleştirmek istiyor musunuz? (İptal derseniz aktif sepet silinip yerine bu yüklenir)");
+                              const confirmMerge = await confirm("Aktif sepetinizde ürünler var. Bekleyen sepeti aktif sepetle birleştirmek istiyor musunuz? (İptal derseniz aktif sepet silinip yerine bu yüklenir)");
                               if (confirmMerge) {
                                 setCart((prev) => {
                                   let updated = [...prev];
@@ -973,7 +975,7 @@ export default function PosPage() {
                     </div>
 
                     {/* Discount / Admin block */}
-                    {session?.role === "ADMIN" && (
+                    {(session?.role === "ADMIN" || session?.role === "MANAGER") && (
                       <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-xl px-2 py-0.5">
                         <span className="text-[9px] text-slate-400 font-bold uppercase">%</span>
                         <input
@@ -1713,6 +1715,7 @@ export default function PosPage() {
           </div>
         </div>
       )}
+      {confirmDialog}
     </section>
   );
 }
