@@ -16,12 +16,14 @@ type Expense = {
 };
 
 type Branch = { id: string; name: string };
+type BankAccount = { id: string; name: string; balance: number };
 
 const DEFAULT_EXPENSE_TYPES = ["Kira", "Fatura", "Maas", "Mal Alimi", "Diger"];
 
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
+  const [banks, setBanks] = useState<BankAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [expenseTypes, setExpenseTypes] = useState<string[]>(DEFAULT_EXPENSE_TYPES);
@@ -32,6 +34,7 @@ export default function ExpensesPage() {
   const [formNote, setFormNote] = useState("");
   const [formPaymentMethod, setFormPaymentMethod] = useState<"CASH" | "CREDIT_CARD" | "ON_ACCOUNT">("CASH");
   const [formBranchId, setFormBranchId] = useState("");
+  const [formBankAccountId, setFormBankAccountId] = useState("");
 
   const [filterCategory, setFilterCategory] = useState("All");
   const [filterBranch, setFilterBranch] = useState("All");
@@ -46,9 +49,10 @@ export default function ExpensesPage() {
   async function fetchData() {
     setLoading(true);
     try {
-      const [expRes, branchRes, settingsRes] = await Promise.all([
+      const [expRes, branchRes, bankRes, settingsRes] = await Promise.all([
         fetch("/api/expenses"),
         fetch("/api/branches"),
+        fetch("/api/banks").catch(() => null),
         fetch("/api/settings").catch(() => null),
       ]);
       const expJson = await expRes.json();
@@ -58,6 +62,11 @@ export default function ExpensesPage() {
         const bJson = await branchRes.json();
         setBranches(Array.isArray(bJson) ? bJson : []);
         if ((bJson || []).length && !formBranchId) setFormBranchId(bJson[0].id);
+      }
+
+      if (bankRes && bankRes.ok) {
+        const bankJson = await bankRes.json();
+        setBanks(Array.isArray(bankJson) ? bankJson : []);
       }
 
       if (settingsRes && settingsRes.ok) {
@@ -114,7 +123,13 @@ export default function ExpensesPage() {
       const res = await fetch("/api/expenses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ totalAmount: amount, paymentMethod: formPaymentMethod, note, branchId: formBranchId || null }),
+        body: JSON.stringify({
+          totalAmount: amount,
+          paymentMethod: formPaymentMethod,
+          note,
+          branchId: formBranchId || null,
+          bankAccountId: formPaymentMethod !== "ON_ACCOUNT" && formBankAccountId ? formBankAccountId : null,
+        }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Kayit basarisiz");
@@ -199,6 +214,15 @@ export default function ExpensesPage() {
                 {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
               </select>
             </div>
+            {formPaymentMethod !== "ON_ACCOUNT" && (
+              <div>
+                <label style={{ fontSize: 12, color: "#64748b" }}>Odenen Kasa/Banka (Isteğe Bağlı)</label>
+                <select className="field" value={formBankAccountId} onChange={(e) => setFormBankAccountId(e.target.value)}>
+                  <option value="">Seçiniz... (bakiye düşülmez)</option>
+                  {banks.map((b) => <option key={b.id} value={b.id}>{b.name} ({Number(b.balance).toLocaleString("tr-TR")} TL)</option>)}
+                </select>
+              </div>
+            )}
             <input className="field" value={formNote} onChange={(e) => setFormNote(e.target.value)} placeholder="Aciklama" />
             <div className="form-grid-2">
               <input className="field" value={newExpenseType} onChange={(e) => setNewExpenseType(e.target.value)} placeholder="Yeni gider tipi (ornek: Kargo)" />

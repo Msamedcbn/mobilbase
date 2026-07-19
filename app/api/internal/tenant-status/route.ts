@@ -17,19 +17,28 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url);
   const tenantId = searchParams.get("tenantId");
-  if (!tenantId) {
-    return NextResponse.json({ error: "tenantId zorunludur." }, { status: 400 });
+  const userId = searchParams.get("userId");
+  if (!tenantId && !userId) {
+    return NextResponse.json({ error: "tenantId veya userId zorunludur." }, { status: 400 });
   }
 
   if (isDbDisabledMode()) {
     const store = await readLocalStore();
-    const tenant = store.customers.find((c) => c.id === tenantId);
-    return NextResponse.json({ frozen: isTenantFrozenFromNotes(tenant?.notes) });
+    const frozen = tenantId
+      ? isTenantFrozenFromNotes(store.customers.find((c) => c.id === tenantId)?.notes)
+      : false;
+    const localUser = userId ? (store.users || []).find((u) => u.id === userId) : undefined;
+    const userActive = userId ? (localUser ? localUser.isActive !== false : false) : true;
+    return NextResponse.json({ frozen, userActive });
   }
 
-  const tenant = await prisma.customer.findUnique({
-    where: { id: tenantId },
-    select: { notes: true },
+  const [tenant, appUser] = await Promise.all([
+    tenantId ? prisma.customer.findUnique({ where: { id: tenantId }, select: { notes: true } }) : null,
+    userId ? prisma.appUser.findUnique({ where: { id: userId }, select: { isActive: true } }) : null,
+  ]);
+
+  return NextResponse.json({
+    frozen: tenantId ? isTenantFrozenFromNotes(tenant?.notes) : false,
+    userActive: userId ? (appUser ? appUser.isActive !== false : false) : true,
   });
-  return NextResponse.json({ frozen: isTenantFrozenFromNotes(tenant?.notes) });
 }

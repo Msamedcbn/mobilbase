@@ -357,7 +357,7 @@ export default function PosPage() {
             discountPct: item.discountPct
           })),
           paymentMethod,
-          customerId: (paymentMethod === "ON_ACCOUNT" || (paymentMethod === "INSTALLMENT" && customerId)) ? customerId : undefined,
+          customerId: customerId || undefined,
           branchId: selectedBranchId || undefined,
           bankAccountId: (paymentMethod !== "ON_ACCOUNT" && paymentMethod !== "INSTALLMENT") && bankAccountId ? bankAccountId : undefined,
           installmentCount: paymentMethod === "INSTALLMENT" ? installmentCount : undefined,
@@ -384,7 +384,7 @@ export default function PosPage() {
         transactionNo: json.data?.transactionNo || json.transactionNo,
         paymentMethod: json.data?.paymentMethod || json.paymentMethod || paymentMethod,
         totalAmount: json.data?.totalAmount || json.totalAmount || total,
-        customerId: (paymentMethod === "ON_ACCOUNT" || (paymentMethod === "INSTALLMENT" && customerId)) ? customerId : undefined,
+        customerId: customerId || undefined,
         items: json.data?.items || json.items || cart.map(c => ({ productName: c.name, quantity: c.quantity, lineTotal: c.unitPrice * c.quantity - (c.unitPrice * c.quantity * c.discountPct / 100) })),
         installments: json.data?.installments || json.installments,
         installmentCount: json.data?.installmentCount || json.installmentCount,
@@ -1260,35 +1260,36 @@ export default function PosPage() {
               </div>
             )}
 
-            {/* Customer Selector */}
-            {(paymentMethod === "ON_ACCOUNT" || paymentMethod === "INSTALLMENT") && (
-              <div className="space-y-1">
-                <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">
-                  {paymentMethod === "INSTALLMENT" ? "Borçlandırılacak Müşteri (İsteğe Bağlı)" : "Borçlandırılacak Müşteri"}
-                </label>
-                <div className="relative">
-                  <select
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none cursor-pointer font-semibold"
-                    value={customerId}
-                    onChange={(e) => setCustomerId(e.target.value)}
-                  >
-                    <option value="">
-                      {paymentMethod === "INSTALLMENT" ? "Genel Satış / Müşteri Yok" : "Seçiniz..."}
+            {/* Customer Selector — shown for every payment method. Required for ON_ACCOUNT
+                (checked in checkout()); optional for CASH/CREDIT_CARD/INSTALLMENT so a
+                walk-in cash/card sale can still be attributed to a customer for purchase
+                history / warranty lookups, which the backend already supports. */}
+            <div className="space-y-1">
+              <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                {paymentMethod === "ON_ACCOUNT" ? "Borçlandırılacak Müşteri" : "Müşteri (İsteğe Bağlı)"}
+              </label>
+              <div className="relative">
+                <select
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none cursor-pointer font-semibold"
+                  value={customerId}
+                  onChange={(e) => setCustomerId(e.target.value)}
+                >
+                  <option value="">
+                    {paymentMethod === "ON_ACCOUNT" ? "Seçiniz..." : "Genel Satış / Müşteri Yok"}
+                  </option>
+                  {customers.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.fullName} ({c.phone})
                     </option>
-                    {customers.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.fullName} ({c.phone})
-                      </option>
-                    ))}
-                  </select>
-                  <div className="absolute inset-y-0 right-3.5 flex items-center pointer-events-none text-slate-400">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-3.5 flex items-center pointer-events-none text-slate-400">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
                 </div>
               </div>
-            )}
+            </div>
 
             <button
               onClick={checkout}

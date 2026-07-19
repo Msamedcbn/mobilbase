@@ -78,7 +78,7 @@ export async function POST(req: Request) {
           if (customer && customer.notes) {
             const parsedNotes = JSON.parse(customer.notes);
             if (parsedNotes.rolePermissions) rolePermissions = parsedNotes.rolePermissions;
-            if (parsedNotes.modules) activeModules = { ...parsedNotes.modules, buyback: true };
+            if (parsedNotes.modules) activeModules = { ...parsedNotes.modules };
           }
         } else {
           const customer = customerId
@@ -87,7 +87,7 @@ export async function POST(req: Request) {
           if (customer && customer.notes) {
             const parsedNotes = JSON.parse(customer.notes);
             if (parsedNotes.rolePermissions) rolePermissions = parsedNotes.rolePermissions;
-            if (parsedNotes.modules) activeModules = { ...parsedNotes.modules, buyback: true };
+            if (parsedNotes.modules) activeModules = { ...parsedNotes.modules };
           }
         }
       } catch (err) {

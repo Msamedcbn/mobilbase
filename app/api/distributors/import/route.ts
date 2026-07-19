@@ -64,13 +64,12 @@ export async function POST(req: Request) {
 
     // DB Mode: run upserts in transaction or sequential loop
     for (const row of parsedRows) {
-      const existing = await prisma.product.findUnique({
-        where: {
-          barcode_tenantId: {
-            barcode: row.barcode,
-            tenantId: tenantId || "",
-          },
-        },
+      // findFirst (not findUnique) so a null tenantId (PLATFORM_OWNER importing without
+      // tenant context) is matched the same way it's written below — findUnique on the
+      // barcode_tenantId composite requires an exact non-null-safe match, which caused
+      // re-imports to never find the row they'd just created and duplicate it every time.
+      const existing = await prisma.product.findFirst({
+        where: { barcode: row.barcode, tenantId },
       });
 
       if (existing) {

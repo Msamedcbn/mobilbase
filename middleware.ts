@@ -34,11 +34,14 @@ function decodeSessionPayloadFromToken(token: string) {
   }
 }
 
-function getModuleFromPath(path: string): "pos" | "repairs" | "stock" | "invoicing" | null {
+function getModuleFromPath(path: string): "pos" | "repairs" | "stock" | "invoicing" | "buyback" | null {
   const cleanPath = path.toLowerCase();
-  
+
   if (cleanPath.startsWith("/pos") || cleanPath.startsWith("/api/pos")) {
     return "pos";
+  }
+  if (cleanPath.startsWith("/buyback") || cleanPath.startsWith("/api/buyback")) {
+    return "buyback";
   }
   if (
     cleanPath.startsWith("/tamir-takip") ||
@@ -150,9 +153,11 @@ export async function middleware(req: NextRequest) {
     const user = decodeSessionPayloadFromToken(session);
     if (!user) throw new Error("Invalid session token");
 
-    if (user.tenantId && user.role !== "PLATFORM_OWNER") {
+    if (user.userId) {
       try {
-        const statusRes = await fetch(`${req.nextUrl.origin}/api/internal/tenant-status?tenantId=${encodeURIComponent(user.tenantId)}`, {
+        const statusParams = new URLSearchParams({ userId: user.userId });
+        if (user.tenantId && user.role !== "PLATFORM_OWNER") statusParams.set("tenantId", user.tenantId);
+        const statusRes = await fetch(`${req.nextUrl.origin}/api/internal/tenant-status?${statusParams.toString()}`, {
           headers: {
             "x-internal-token": process.env.INTERNAL_API_TOKEN || process.env.SESSION_SECRET || "",
           },
@@ -164,6 +169,20 @@ export async function middleware(req: NextRequest) {
             if (path.startsWith("/api/")) {
               return NextResponse.json(
                 { error: "Bu tenant dondurulmustur. Erisim gecici olarak kapatilmistir." },
+                { status: 403, headers: { "x-request-id": requestId } }
+              );
+            }
+            const url = new URL("/login", req.url);
+            const response = NextResponse.redirect(url, { headers: { "x-request-id": requestId } });
+            response.cookies.delete("tp_session");
+            return response;
+          }
+          // Deactivated/deleted users lose access immediately instead of riding out
+          // the remaining lifetime of an already-issued session cookie.
+          if (statusPayload?.userActive === false) {
+            if (path.startsWith("/api/")) {
+              return NextResponse.json(
+                { error: "Hesabiniz devre disi birakilmis." },
                 { status: 403, headers: { "x-request-id": requestId } }
               );
             }

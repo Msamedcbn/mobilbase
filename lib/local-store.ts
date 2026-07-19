@@ -30,7 +30,7 @@ export type LocalStore = {
   }>;
   customers: Array<{ id: string; tenantId?: string | null; nationalId: string | null; fullName: string; phone: string; email: string | null; notes: string | null; creditLimit?: number }>;
   devices: Array<{ id: string; customerId: string; brand: string; model: string; storage: string; imei: string | null; serialNumber?: string | null; color: string | null; conditionNote: string | null; isSecondHandStock: boolean }>;
-  buybacks: Array<{ id: string; customerId: string; deviceId: string; offeredPrice: number; agreedPrice: number | null; status: "DRAFT" | "APPROVED" | "REJECTED" | "COMPLETED"; reconciliationStatus: "NONE" | "SENT" | "VIEWED" | "APPROVED" | "REJECTED" | "EXPIRED"; evaluationNote: string | null; bankAccountId?: string | null; createdAt?: string; updatedAt?: string }>;
+  buybacks: Array<{ id: string; customerId: string; deviceId: string; offeredPrice: number; agreedPrice: number | null; status: "DRAFT" | "APPROVED" | "REJECTED" | "COMPLETED"; reconciliationStatus: "NONE" | "SENT" | "VIEWED" | "APPROVED" | "REJECTED" | "EXPIRED"; evaluationNote: string | null; bankAccountId?: string | null; branchId?: string | null; createdAt?: string; updatedAt?: string }>;
   pricingRules: Array<{ id: string; tenantId?: string | null; brand: string; modelPattern: string | null; basePrice: number; minPrice?: number | null; maxPrice?: number | null; excellentBonusPct: number; goodBonusPct: number; badPenaltyPct: number; batteryHighPct: number; batteryLowPenalty: number; brokenPenaltyPct: number; isActive: boolean; requiresSerialNumber?: boolean }>;
   buybackCatalog?: Array<{ id: string; category: string; brand: string; model: string; basePrice: number; minPrice: number; questionSetJson: string; requiresSerialNumber?: boolean }>;
   reconciliations: Array<{ id: string; token: string; buybackDealId: string; customerPrice: number; companyPrice: number; differenceAmount: number; status: "SENT" | "VIEWED" | "APPROVED" | "REJECTED" | "EXPIRED"; tokenExpiresAt: string; customerNote: string | null }>;
@@ -276,6 +276,7 @@ async function acquireLock(): Promise<() => void> {
   await prev;
   return release!;
 }
+
 
 const seedStore: LocalStore = {
   users: [
@@ -618,13 +619,34 @@ export async function readLocalStore(): Promise<LocalStore> {
   }
 }
 
+async function writeLocalStoreRaw(state: LocalStore) {
+  await fs.mkdir(path.dirname(STORE_PATH), { recursive: true });
+  const tmpPath = STORE_PATH + ".tmp";
+  await fs.writeFile(tmpPath, JSON.stringify(state, null, 2), "utf8");
+  await fs.rename(tmpPath, STORE_PATH);
+}
+
 export async function writeLocalStore(state: LocalStore) {
   const release = await acquireLock();
   try {
-    await fs.mkdir(path.dirname(STORE_PATH), { recursive: true });
-    const tmpPath = STORE_PATH + ".tmp";
-    await fs.writeFile(tmpPath, JSON.stringify(state, null, 2), "utf8");
-    await fs.rename(tmpPath, STORE_PATH);
+    await writeLocalStoreRaw(state);
+  } finally {
+    release();
+  }
+}
+
+// Serializes an entire read-check-mutate-write critical section against every other
+// caller of this helper (or of writeLocalStore) in this process. Use this instead of
+// bare readLocalStore()/writeLocalStore() whenever a route does a check-then-act on
+// local-store state (e.g. "is this already paid?") that must not race with a concurrent
+// call to the same route (double-click, retry, etc).
+export async function withLocalStoreLock<T>(fn: (store: LocalStore) => Promise<T>): Promise<T> {
+  const release = await acquireLock();
+  try {
+    const store = await readLocalStore();
+    const result = await fn(store);
+    await writeLocalStoreRaw(store);
+    return result;
   } finally {
     release();
   }

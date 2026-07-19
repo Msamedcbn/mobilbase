@@ -127,7 +127,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       return NextResponse.json(updatedItem);
     }
 
-    const existingItem = await prisma.stockItem.findUnique({ where: { id: params.id } });
+    const existingItem = await prisma.stockItem.findFirst({ where: { id: params.id, tenantId: auth.user.tenantId } });
     if (!existingItem) {
       return NextResponse.json({ error: "Urun bulunamadi." }, { status: 404 });
     }
@@ -289,7 +289,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       return NextResponse.json({ success: true });
     }
 
-    const item = await prisma.stockItem.findUnique({ where: { id: params.id } });
+    const item = await prisma.stockItem.findFirst({ where: { id: params.id, tenantId: auth.user.tenantId } });
     if (!item) {
       return NextResponse.json({ error: "Urun bulunamadi." }, { status: 404 });
     }

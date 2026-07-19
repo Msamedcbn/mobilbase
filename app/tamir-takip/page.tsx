@@ -1769,13 +1769,18 @@ export default function RepairPage() {
                     </div>
                     <div>
                       <label className="text-xs font-bold text-slate-500 block mb-1.5 uppercase tracking-wide">Güncel Durum</label>
-                      <select className="field w-full font-bold" value={editStatus} onChange={(e) => {
-                        const newStatus = e.target.value as any;
-                        setEditStatus(newStatus);
-                        if (newStatus === "DELIVERED" && banks.length > 0 && !editBankAccountId) {
-                          setEditBankAccountId(banks[0].id);
-                        }
-                      }}>
+                      <select
+                        className="field w-full font-bold"
+                        value={editStatus}
+                        disabled={selectedRepair?.status === "DELIVERED" || selectedRepair?.status === "CANCELED"}
+                        onChange={(e) => {
+                          const newStatus = e.target.value as any;
+                          setEditStatus(newStatus);
+                          if (newStatus === "DELIVERED" && banks.length > 0 && !editBankAccountId) {
+                            setEditBankAccountId(banks[0].id);
+                          }
+                        }}
+                      >
                         <option value="RECEIVED">Teslim Alındı</option>
                         <option value="IN_PROGRESS">Onarımda</option>
                         <option value="WAITING_PART">Parça Bekliyor</option>
@@ -1783,6 +1788,11 @@ export default function RepairPage() {
                         <option value="DELIVERED">Müşteriye Teslim Edildi</option>
                         <option value="CANCELED">İptal Edildi</option>
                       </select>
+                      {(selectedRepair?.status === "DELIVERED" || selectedRepair?.status === "CANCELED") && (
+                        <p className="text-[11px] text-slate-400 mt-1">
+                          Teslim edilmiş/iptal edilmiş kayıtların durumu, oluşturulan fatura ve kasa hareketi nedeniyle değiştirilemez.
+                        </p>
+                      )}
                     </div>
                   </div>
 

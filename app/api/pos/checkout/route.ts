@@ -217,10 +217,14 @@ export async function POST(req: Request) {
 
     const tenantId = auth.user.tenantId;
 
-    if (paymentMethod === "ON_ACCOUNT" || (paymentMethod === "INSTALLMENT" && customerId)) {
-      if (paymentMethod === "ON_ACCOUNT" && !customerId) {
-        return fail("Cari hesap satışinda müşteri secimi zorunlu", "VALIDATION", 400);
-      }
+    if (paymentMethod === "ON_ACCOUNT" && !customerId) {
+      return fail("Cari hesap satışinda müşteri secimi zorunlu", "VALIDATION", 400);
+    }
+
+    // Any payment method can optionally tag a customer (purchase history/warranty), not
+    // just ON_ACCOUNT/INSTALLMENT — so verify tenant ownership whenever one is supplied,
+    // and only enforce the credit-limit check where debt is actually being created.
+    if (customerId) {
       const customer = await prisma.customer.findFirst({
         where: { id: customerId, tenantId },
         include: { accountEntries: true },
@@ -228,12 +232,14 @@ export async function POST(req: Request) {
       if (!customer) {
         return fail("Müşteri bulunamadi", "NOT_FOUND", 404);
       }
-      const netBalance = customer.accountEntries.reduce((sum, entry) => {
-        return sum + (entry.type === "DEBIT" ? Number(entry.amount) : -Number(entry.amount));
-      }, 0);
-      const limit = Number(customer.creditLimit);
-      if (netBalance + totalAmount > limit) {
-        return fail("Bu işlem müşterinin veresiye/taksit limitini aşmaktadır.", "VALIDATION", 400);
+      if (paymentMethod === "ON_ACCOUNT" || paymentMethod === "INSTALLMENT") {
+        const netBalance = customer.accountEntries.reduce((sum, entry) => {
+          return sum + (entry.type === "DEBIT" ? Number(entry.amount) : -Number(entry.amount));
+        }, 0);
+        const limit = Number(customer.creditLimit);
+        if (netBalance + totalAmount > limit) {
+          return fail("Bu işlem müşterinin veresiye/taksit limitini aşmaktadır.", "VALIDATION", 400);
+        }
       }
     }
 

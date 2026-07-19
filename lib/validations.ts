@@ -63,6 +63,7 @@ export const buybackDealCreateSchema = z.object({
   agreedPrice: z.number().positive().optional(),
   status: buybackStatusSchema.default("DRAFT"),
   evaluationNote: z.string().max(1000).optional(),
+  branchId: z.string().nullable().optional(),
 });
 
 export const buybackDealUpdateSchema = z.object({
@@ -71,6 +72,7 @@ export const buybackDealUpdateSchema = z.object({
   status: buybackStatusSchema.optional(),
   evaluationNote: z.string().max(1000).nullable().optional(),
   bankAccountId: z.string().nullable().optional(),
+  branchId: z.string().nullable().optional(),
 });
 
 export const reconciliationCreateSchema = z.object({
@@ -103,17 +105,21 @@ export const erpSyncSchema = z.object({
   })).default([]),
 });
 
+// PLATFORM_OWNER is intentionally excluded: these schemas back the tenant-scoped
+// /api/admin/users routes, and allowing PLATFORM_OWNER here lets a tenant ADMIN/MANAGER
+// self-escalate to cross-tenant super-admin. PLATFORM_OWNER accounts are managed only
+// through the Studio (platform) routes, which don't use these schemas.
 export const appUserCreateSchema = z.object({
   fullName: z.string().trim().min(3),
   email: z.string().email(),
-  role: z.enum(["PLATFORM_OWNER", "ADMIN", "CASHIER", "TECHNICIAN", "MANAGER", "ACCOUNTANT"]),
+  role: z.enum(["ADMIN", "CASHIER", "TECHNICIAN", "MANAGER", "ACCOUNTANT"]),
   password: z.string().min(8),
   isActive: z.boolean().optional(),
 });
 
 export const appUserUpdateSchema = z.object({
   fullName: z.string().trim().min(3).optional(),
-  role: z.enum(["PLATFORM_OWNER", "ADMIN", "CASHIER", "TECHNICIAN", "MANAGER", "ACCOUNTANT"]).optional(),
+  role: z.enum(["ADMIN", "CASHIER", "TECHNICIAN", "MANAGER", "ACCOUNTANT"]).optional(),
   password: z.string().min(8).optional(),
   isActive: z.boolean().optional(),
 });

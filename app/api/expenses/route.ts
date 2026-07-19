@@ -32,7 +32,7 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { totalAmount, paymentMethod, note, branchId } = body;
+    const { totalAmount, paymentMethod, note, branchId, bankAccountId } = body;
 
     if (totalAmount === undefined || totalAmount <= 0) {
       return NextResponse.json({ error: "Geçerli bir tutar girilmelidir" }, { status: 400 });
@@ -43,6 +43,12 @@ export async function POST(req: Request) {
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
       if (!store.transactions) store.transactions = [];
+
+      if (bankAccountId) {
+        const bank = (store.bankAccounts || []).find((b) => b.id === bankAccountId && b.tenantId === tenantId);
+        if (!bank) return NextResponse.json({ error: "Kasa/banka hesabı bulunamadı" }, { status: 404 });
+        bank.balance = Number(bank.balance) - Number(totalAmount);
+      }
 
       const newItem = {
         id: localId("tr"),
@@ -55,6 +61,7 @@ export async function POST(req: Request) {
         note: note || "",
         createdAt: new Date().toISOString(),
         branchId: branchId || "branch-kadikoy",
+        bankAccountId: bankAccountId || null,
       };
 
       store.transactions.unshift(newItem);
@@ -63,21 +70,30 @@ export async function POST(req: Request) {
       return NextResponse.json(newItem, { status: 201 });
     }
 
-    const item = await prisma.transaction.create({
-      data: {
-        transactionNo,
-        tenantId,
-        type: "EXPENSE",
-        paymentMethod: paymentMethod || "CASH",
-        customerId: null,
-        totalAmount: Number(totalAmount),
-        note: note || "",
-        branchId: branchId || null,
-      },
+    const item = await prisma.$transaction(async (tx) => {
+      if (bankAccountId) {
+        const bank = await tx.bankAccount.findFirst({ where: { id: bankAccountId, tenantId }, select: { id: true } });
+        if (!bank) throw Object.assign(new Error("Kasa/banka hesabı bulunamadı"), { status: 404 });
+        await tx.bankAccount.update({ where: { id: bankAccountId }, data: { balance: { decrement: Number(totalAmount) } } });
+      }
+
+      return tx.transaction.create({
+        data: {
+          transactionNo,
+          tenantId,
+          type: "EXPENSE",
+          paymentMethod: paymentMethod || "CASH",
+          customerId: null,
+          totalAmount: Number(totalAmount),
+          note: note || "",
+          branchId: branchId || null,
+          bankAccountId: bankAccountId || null,
+        },
+      });
     });
 
     return NextResponse.json(item, { status: 201 });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Gider eklenirken bir hata oluştu" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Gider eklenirken bir hata oluştu" }, { status: error.status || 500 });
   }
 }

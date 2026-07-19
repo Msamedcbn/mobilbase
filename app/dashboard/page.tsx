@@ -358,9 +358,14 @@ export default async function DashboardPage({
   const collectionRate = periodIncome > 0 ? (periodTahsilat / periodIncome) * 100 : 0;
   const veresiyeRiskRate = totalDebit > 0 ? (veresiyeBalance / totalDebit) * 100 : 0;
 
-  // Fallbacks if no data exists
+  // Fallbacks if no data exists yet (brand new / not-yet-active tenant). These are sample
+  // numbers, not real activity — usedSampleData drives a visible banner below so nobody
+  // mistakes a demo chart for their actual revenue.
+  let usedSampleData = false;
+
   const hasDbData = last7DaysData.some((x) => x.sales > 0 || x.collections > 0);
   if (!hasDbData) {
+    usedSampleData = true;
     last7DaysData[0].sales = 12500; last7DaysData[0].collections = 9000;
     last7DaysData[1].sales = 18000; last7DaysData[1].collections = 14200;
     last7DaysData[2].sales = 14500; last7DaysData[2].collections = 11000;
@@ -372,6 +377,7 @@ export default async function DashboardPage({
 
   const hasRepairData = repairChartData.some((x) => x.count > 0);
   if (!hasRepairData) {
+    usedSampleData = true;
     repairChartData.find((x) => x.status === "RECEIVED")!.count = 5;
     repairChartData.find((x) => x.status === "IN_PROGRESS")!.count = 7;
     repairChartData.find((x) => x.status === "WAITING_PART")!.count = 3;
@@ -382,6 +388,7 @@ export default async function DashboardPage({
 
   const hasSixMonthData = monthsList.some((m) => m.income > 0 || m.expense > 0);
   if (!hasSixMonthData) {
+    usedSampleData = true;
     const seedValues = [
       { income: 45000, expense: 28000 },
       { income: 52000, expense: 31000 },
@@ -402,6 +409,7 @@ export default async function DashboardPage({
   });
 
   if (recentLogs.length === 0) {
+    usedSampleData = true;
     recentLogs = [
       { id: "mock-1", createdAt: new Date(Date.now() - 1000 * 60 * 12), action: "POS_CHECKOUT", entityType: "Transaction", entityId: "tr-9304", detail: "POS-1716298000 / 1,299.00 TL" },
       { id: "mock-2", createdAt: new Date(Date.now() - 1000 * 60 * 45), action: "REPAIR_RECEIVED", entityType: "RepairRecord", entityId: "rep-0210", detail: "iPhone 11 Ekran Degisimi" },
@@ -457,6 +465,20 @@ export default async function DashboardPage({
               {dbDisabled
                 ? "Sistem veritabani baglantisi olmadan calisiyor. Gorsel grafikler ve analizler simule edilmis verilerle zenginlestirilmistir."
                 : "PostgreSQL veritabani servisinizle iletisim kurulamadi. Gosterilen finansal panolar ve analizler simule edilmistir."}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Sample-data banner — shown when the DB is fine but this tenant has no real
+          activity yet, so the charts/log below are filled with placeholder numbers. */}
+      {!dbUnavailable && !dbDisabled && usedSampleData && (
+        <div className="flex items-center gap-3.5 rounded-2xl border border-blue-200/60 bg-blue-50/50 p-4 text-blue-900 shadow-sm backdrop-blur-md">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-100/80 text-blue-700 font-bold text-lg border border-blue-200">i</span>
+          <div className="text-sm">
+            <span className="font-bold block text-blue-950">Örnek Veriler Gösteriliyor</span>
+            <span className="text-blue-800 text-xs mt-0.5 block">
+              Henüz gerçek satış/işlem kaydınız bulunmuyor. Aşağıdaki grafik ve işlem günlüğündeki rakamlar gerçek verileriniz değil, örnek amaçlıdır — ilk satışınızla birlikte gerçek verilerinizle değişecektir.
             </span>
           </div>
         </div>

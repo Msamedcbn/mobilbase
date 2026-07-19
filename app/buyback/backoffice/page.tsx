@@ -384,6 +384,7 @@ export default function BuybackBackofficePage() {
           agreedPrice: offeredPrice,
           status: "APPROVED",
           evaluationNote: "Sadeleştirilmiş Cihaz Alımı",
+          branchId: branchId || null,
         }),
       });
       const dealJson = await dealRes.json();

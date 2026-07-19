@@ -84,6 +84,16 @@ export async function POST(req: Request) {
     }
 
     // Database mode
+    const tenantId = auth.user.tenantId;
+    const [ownedProduct, ownedSourceBranch, ownedTargetBranch] = await Promise.all([
+      prisma.product.findFirst({ where: { id: productId, tenantId }, select: { id: true } }),
+      prisma.branch.findFirst({ where: { id: sourceBranchId, tenantId }, select: { id: true } }),
+      prisma.branch.findFirst({ where: { id: targetBranchId, tenantId }, select: { id: true } }),
+    ]);
+    if (!ownedProduct || !ownedSourceBranch || !ownedTargetBranch) {
+      return fail("Ürün veya şube bulunamadı.", "NOT_FOUND", 404);
+    }
+
     const result = await prisma.$transaction(async (tx) => {
       // Find source stock
       const sourceStock = await tx.productBranchStock.findUnique({

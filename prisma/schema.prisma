@@ -251,6 +251,8 @@ model BuybackDeal {
   notifications   BuybackNotification[]
   bankAccountId   String?
   bankAccount     BankAccount?    @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
+  branchId        String?
+  branch          Branch?         @relation(fields: [branchId], references: [id], onDelete: SetNull)
   stockItems      StockItem[]
 }
 
@@ -543,6 +545,7 @@ model Branch {
   transactions  Transaction[]
   repairs       RepairRecord[]
   posSales      PosSale[]
+  buybackDeals  BuybackDeal[]
 
   tenantId      String?
   tenant        Customer?       @relation("TenantToBranches", fields: [tenantId], references: [id])

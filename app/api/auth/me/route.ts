@@ -56,7 +56,7 @@ export async function GET() {
         if (customer.notes) {
           const parsed = JSON.parse(customer.notes);
           if (parsed.rolePermissions) rolePermissions = parsed.rolePermissions;
-          if (parsed.modules) activeModules = { ...parsed.modules, buyback: true };
+          if (parsed.modules) activeModules = { ...parsed.modules };
         }
       }
     } else {
@@ -68,7 +68,7 @@ export async function GET() {
         if (customer.notes) {
           const parsed = JSON.parse(customer.notes);
           if (parsed.rolePermissions) rolePermissions = parsed.rolePermissions;
-          if (parsed.modules) activeModules = { ...parsed.modules, buyback: true };
+          if (parsed.modules) activeModules = { ...parsed.modules };
         }
       }
     }

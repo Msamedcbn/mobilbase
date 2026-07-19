@@ -29,7 +29,7 @@ export async function POST(req: Request) {
       salePrice = product.salePrice;
       productName = product.name;
     } else {
-      const product = await prisma.product.findUnique({ where: { id: productId } });
+      const product = await prisma.product.findFirst({ where: { id: productId, tenantId: auth.user.tenantId } });
       if (!product) return fail("Ürün bulunamadı", "NOT_FOUND", 404);
       salePrice = Number(product.salePrice);
       productName = product.name;

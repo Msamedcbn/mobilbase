@@ -74,15 +74,36 @@ export async function POST(req: Request) {
       }, 201, "Takas işlemi tamamlandi");
     }
 
-    const product = await prisma.product.findUnique({ where: { id: productId } });
+    const tenantId = auth.user.tenantId;
+    const product = await prisma.product.findFirst({ where: { id: productId, tenantId } });
     if (!product) return fail("Ürün bulunamadı", "NOT_FOUND", 404);
-    if (product.stock < quantity) return fail("Stok yetersiz", "STOCK", 409);
 
     const grossAmount = Number(product.salePrice) * quantity;
     const differenceAmount = Math.max(0, grossAmount - buybackCredit);
 
     const result = await prisma.$transaction(async (tx) => {
-      await tx.product.update({ where: { id: productId }, data: { stock: { decrement: quantity } } });
+      if (branchId) {
+        const branchStock = await tx.productBranchStock.findUnique({
+          where: { productId_branchId: { productId, branchId } },
+        });
+        const currentStock = branchStock?.stock ?? 0;
+        if (currentStock < quantity) return { error: fail(`Şube stogu yetersiz (Mevcut: ${currentStock})`, "STOCK", 409) };
+        await tx.productBranchStock.update({
+          where: { productId_branchId: { productId, branchId } },
+          data: { stock: { decrement: quantity } },
+        });
+        await tx.stockItem.updateMany({
+          where: { sku: product.barcode, tenantId },
+          data: { quantity: { decrement: quantity } },
+        });
+      } else {
+        if (product.stock < quantity) return { error: fail("Stok yetersiz", "STOCK", 409) };
+        await tx.product.update({ where: { id: productId }, data: { stock: { decrement: quantity } } });
+        await tx.stockItem.updateMany({
+          where: { sku: product.barcode, tenantId },
+          data: { quantity: { decrement: quantity } },
+        });
+      }
       return tx.transaction.create({
         data: {
           transactionNo: `TRD-${Date.now()}`,
@@ -105,6 +126,8 @@ export async function POST(req: Request) {
         },
       });
     });
+
+    if ("error" in result) return result.error;
 
     return ok({
       transactionNo: result.transactionNo,

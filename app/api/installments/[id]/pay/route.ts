@@ -3,7 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { getErrorCode, getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { fail, ok } from "@/lib/api-response";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
-import { readLocalStore, writeLocalStore, localId } from "@/lib/local-store";
+import { withLocalStoreLock, localId } from "@/lib/local-store";
 
 export async function POST(
   req: Request,
@@ -23,7 +23,10 @@ export async function POST(
       return fail("installmentId ve bankAccountId parametreleri zorunludur.", "VALIDATION", 400);
     }
 
-    const store = await readLocalStore();
+    // The whole check-then-act (is it already paid? then mark paid + move money) runs
+    // inside a single lock so two concurrent requests for the same installment (double
+    // click, retry) can't both pass the "not yet paid" check and both credit the bank.
+    return await withLocalStoreLock(async (store) => {
     const saleIndex = store.installmentSales?.findIndex((s) => s.id === saleId && s.tenantId === tenantId) ?? -1;
 
     if (saleIndex === -1 || !store.installmentSales) {
@@ -91,7 +94,6 @@ export async function POST(
         bankAccountId,
       });
 
-      await writeLocalStore(store);
       return ok({ success: true, remainingAmount: sale.remainingAmount });
     } else {
       // DB Enabled Mode
@@ -146,9 +148,9 @@ export async function POST(
         });
       });
 
-      await writeLocalStore(store);
       return ok({ success: true, remainingAmount: sale.remainingAmount });
     }
+    });
   } catch (error) {
     return fail(getErrorMessage(error), getErrorCode(error), getErrorStatus(error));
   }

@@ -49,9 +49,22 @@ export async function GET() {
       };
     });
 
-    const totalRevenue = branchRevenues.reduce((sum, br) => sum + br.revenue, 0);
+    // Income transactions with no branchId (e.g. a POS sale made without a branch
+    // selected) must still count toward total revenue — otherwise this total silently
+    // undercounts vs. the dashboard's tenant-wide monthlyIncome, which sums ALL income
+    // transactions regardless of branchId. Surface them as an explicit bucket instead
+    // of dropping them, so the numbers reconcile and nothing looks like it vanished.
+    const unassignedRevenue = transactions
+      .filter(t => !t.branchId && t.type === "INCOME")
+      .reduce((sum, t) => sum + t.totalAmount, 0);
 
-    const performance = branchRevenues.map(br => ({
+    const allRevenues = unassignedRevenue > 0
+      ? [...branchRevenues, { id: "unassigned", name: "Atanmamış (Şubesiz)", revenue: unassignedRevenue }]
+      : branchRevenues;
+
+    const totalRevenue = allRevenues.reduce((sum, br) => sum + br.revenue, 0);
+
+    const performance = allRevenues.map(br => ({
       ...br,
       percentage: totalRevenue > 0 ? Math.round((br.revenue / totalRevenue) * 100) : 0
     }));

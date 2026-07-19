@@ -125,6 +125,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       if (!current) return fail("Kayit bulunamadi", "NOT_FOUND", 404);
       const customer = store.customers.find((c) => c.id === current.customerId && c.tenantId === auth.user.tenantId);
       if (!customer) return fail("Kayit bulunamadi", "NOT_FOUND", 404);
+      if (parsed.data.branchId) {
+        const branch = (store.branches || []).find((b) => b.id === parsed.data.branchId && b.tenantId === auth.user.tenantId);
+        if (!branch) return fail("Şube bulunamadı veya yetkisiz", "NOT_FOUND", 404);
+      }
 
       const nextStatus = parsed.data.status ?? current.status;
       if (!isValidBuybackStatusTransition(current.status, nextStatus)) {
@@ -208,6 +212,13 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       },
     });
     if (!current) return fail("Kayit bulunamadi", "NOT_FOUND", 404);
+    if (parsed.data.branchId) {
+      const branch = await prisma.branch.findFirst({
+        where: { id: parsed.data.branchId, tenantId: auth.user.tenantId },
+        select: { id: true },
+      });
+      if (!branch) return fail("Şube bulunamadı veya yetkisiz", "NOT_FOUND", 404);
+    }
 
     const nextStatus = parsed.data.status ?? current.status;
     if (!isValidBuybackStatusTransition(current.status, nextStatus)) {
@@ -234,13 +245,25 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         });
       }
       if (nextStatus === "COMPLETED" && current.status !== "COMPLETED") {
+        const device = await tx.device.findUnique({ where: { id: current.deviceId } });
+
+        // Guard against phantom duplicate inventory: a StockItem for this exact deal
+        // may already exist (re-triggered completion), or a StockItem carrying the
+        // same physical IMEI may already exist from another source (manual entry,
+        // another buyback deal). Either case must skip creation, not add a duplicate.
         const existingStock = await tx.stockItem.findFirst({
-          where: { tenantId: auth.user.tenantId, buybackDealId: current.id },
+          where: {
+            tenantId: auth.user.tenantId,
+            isActive: true,
+            OR: [
+              { buybackDealId: current.id },
+              ...(device?.imei ? [{ imei: device.imei }] : []),
+            ],
+          },
           select: { id: true },
         });
 
         if (!existingStock) {
-          const device = await tx.device.findUnique({ where: { id: current.deviceId } });
           if (device) {
             const stockItem = await tx.stockItem.create({
               data: {

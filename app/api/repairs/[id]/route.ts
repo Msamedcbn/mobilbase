@@ -4,6 +4,26 @@ import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore, writeLocalStore } from "@/lib/local-store";
 import { getSessionUser, requireRole } from "@/lib/auth";
 
+// DELIVERED and CANCELED are terminal: once a repair is delivered it has already
+// created an Invoice/Transaction/bank-balance effect with no reliable link back to
+// reverse, and once canceled there's nothing left to action. Without this guard,
+// DELIVERED -> CANCELED -> DELIVERED re-triggers invoice creation, which either
+// crashes (Invoice.repairRecordId is @unique in DB mode) or silently duplicates
+// income/debt entries (local-store mode).
+const REPAIR_STATUS_TRANSITIONS: Record<string, string[]> = {
+  RECEIVED: ["IN_PROGRESS", "WAITING_PART", "READY", "CANCELED"],
+  IN_PROGRESS: ["WAITING_PART", "READY", "CANCELED"],
+  WAITING_PART: ["IN_PROGRESS", "READY", "CANCELED"],
+  READY: ["IN_PROGRESS", "DELIVERED", "CANCELED"],
+  DELIVERED: [],
+  CANCELED: [],
+};
+
+function isValidRepairStatusTransition(from: string, to: string) {
+  if (from === to) return true;
+  return REPAIR_STATUS_TRANSITIONS[from]?.includes(to) ?? false;
+}
+
 export async function GET(_: Request, { params }: { params: { id: string } }) {
   const user = getSessionUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -67,6 +87,13 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     const customer = device ? store.customers.find((c) => c.id === device.customerId && c.tenantId === tenantId) : null;
     if (!customer) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    if (body.status !== undefined && !isValidRepairStatusTransition(current.status, body.status)) {
+      return NextResponse.json(
+        { error: `Durum geçişi geçersiz: ${current.status} -> ${body.status}` },
+        { status: 400 }
+      );
     }
 
     const isDelivering = body.status === "DELIVERED" && current.status !== "DELIVERED";
@@ -156,6 +183,13 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     },
   });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  if (body.status !== undefined && !isValidRepairStatusTransition(existing.status, body.status)) {
+    return NextResponse.json(
+      { error: `Durum geçişi geçersiz: ${existing.status} -> ${body.status}` },
+      { status: 400 }
+    );
+  }
 
   const isDelivering = body.status === "DELIVERED" && existing.status !== "DELIVERED";
 

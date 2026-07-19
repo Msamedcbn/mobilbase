@@ -53,7 +53,6 @@ export async function GET(req: Request) {
     return ok(items.map((item) => ({
       ...item,
       customerId: item.customerId,
-      branchId: null,
       device: item.device ? { ...item.device, imei: item.device.imei ?? null } : null,
     })).filter(passPin));
   } catch (error) {
@@ -78,6 +77,10 @@ export async function POST(req: Request) {
       if (!customer) {
         return fail("Müşteri bulunamadı veya yetkisiz", "NOT_FOUND", 404);
       }
+      if (parsed.data.branchId) {
+        const branch = (store.branches || []).find((b) => b.id === parsed.data.branchId && b.tenantId === auth.user.tenantId);
+        if (!branch) return fail("Şube bulunamadı veya yetkisiz", "NOT_FOUND", 404);
+      }
       const item = {
         id: localId("buy"),
         customerId: parsed.data.customerId,
@@ -87,6 +90,7 @@ export async function POST(req: Request) {
         status: parsed.data.status,
         reconciliationStatus: "NONE" as const,
         evaluationNote: parsed.data.evaluationNote ?? null,
+        branchId: parsed.data.branchId ?? null,
       };
       store.buybacks.unshift(item);
       await writeLocalStore(store);
@@ -98,6 +102,13 @@ export async function POST(req: Request) {
     });
     if (!customer) {
       return fail("Müşteri bulunamadı veya yetkisiz", "NOT_FOUND", 404);
+    }
+    if (parsed.data.branchId) {
+      const branch = await prisma.branch.findFirst({
+        where: { id: parsed.data.branchId, tenantId: auth.user.tenantId },
+        select: { id: true },
+      });
+      if (!branch) return fail("Şube bulunamadı veya yetkisiz", "NOT_FOUND", 404);
     }
 
     const item = await prisma.buybackDeal.create({ data: parsed.data });
