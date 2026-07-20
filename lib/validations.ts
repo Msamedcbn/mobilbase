@@ -20,22 +20,44 @@ export const deviceSchema = z.object({
   isSecondHandStock: z.boolean().optional(),
 });
 
-export const posCheckoutSchema = z.object({
-  items: z.array(z.object({
-    productId: z.string().min(1),
-    quantity: z.number().int().positive(),
-    unitPrice: z.number().positive(),
-    discountPct: z.number().min(0).max(100).default(0),
-  })).min(1),
-  paymentMethod: z.enum(["CASH", "CREDIT_CARD", "ON_ACCOUNT", "INSTALLMENT"]),
-  customerId: z.string().optional(),
-  branchId: z.string().optional(),
-  relatedBuybackId: z.string().optional(),
-  tradeInRef: z.string().optional(),
+const posPaymentMethodEnum = z.enum(["CASH", "CREDIT_CARD", "ON_ACCOUNT", "INSTALLMENT"]);
+
+// One leg of a split/partial payment (e.g. part cash + part card). "amount" is the
+// pre-interest portion of the sale allocated to this leg; INSTALLMENT legs apply
+// their own interestRate on top of that, same as the legacy single-method flow did.
+export const posPaymentLineSchema = z.object({
+  method: posPaymentMethodEnum,
+  amount: z.number().positive(),
   bankAccountId: z.string().optional(),
   installmentCount: z.number().int().positive().optional(),
   interestRate: z.number().nonnegative().optional(),
 });
+
+export const posCheckoutSchema = z
+  .object({
+    items: z.array(z.object({
+      productId: z.string().min(1),
+      quantity: z.number().int().positive(),
+      unitPrice: z.number().positive(),
+      discountPct: z.number().min(0).max(100).default(0),
+    })).min(1),
+    // Legacy single-method shape — still accepted for callers that only ever send one
+    // payment leg (e.g. the buyback backoffice mini-POS widget).
+    paymentMethod: posPaymentMethodEnum.optional(),
+    bankAccountId: z.string().optional(),
+    installmentCount: z.number().int().positive().optional(),
+    interestRate: z.number().nonnegative().optional(),
+    // New multi-leg / split-payment shape. Takes precedence over paymentMethod when present.
+    payments: z.array(posPaymentLineSchema).min(1).optional(),
+    customerId: z.string().min(1, "Müşteri seçimi zorunlu"),
+    branchId: z.string().optional(),
+    relatedBuybackId: z.string().optional(),
+    tradeInRef: z.string().optional(),
+  })
+  .refine((data) => !!data.paymentMethod || (data.payments && data.payments.length > 0), {
+    message: "Ödeme yöntemi veya ödeme dağılımı gereklidir",
+    path: ["paymentMethod"],
+  });
 
 export const buybackWizardSchema = z.object({
   customerId: z.string().min(1),
@@ -115,6 +137,9 @@ export const appUserCreateSchema = z.object({
   role: z.enum(["ADMIN", "CASHIER", "TECHNICIAN", "MANAGER", "ACCOUNTANT"]),
   password: z.string().min(8),
   isActive: z.boolean().optional(),
+  baseSalary: z.number().nonnegative().optional(),
+  commissionBasis: z.enum(["NONE", "PROFIT", "REVENUE"]).optional(),
+  commissionPct: z.number().min(0).max(100).optional(),
 });
 
 export const appUserUpdateSchema = z.object({
@@ -122,6 +147,9 @@ export const appUserUpdateSchema = z.object({
   role: z.enum(["ADMIN", "CASHIER", "TECHNICIAN", "MANAGER", "ACCOUNTANT"]).optional(),
   password: z.string().min(8).optional(),
   isActive: z.boolean().optional(),
+  baseSalary: z.number().nonnegative().optional(),
+  commissionBasis: z.enum(["NONE", "PROFIT", "REVENUE"]).optional(),
+  commissionPct: z.number().min(0).max(100).optional(),
 });
 
 export const pdfSettingsSchema = z.object({

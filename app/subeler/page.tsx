@@ -18,7 +18,32 @@ type AppUser = {
   role: "PLATFORM_OWNER" | "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT";
   isActive: boolean;
   branchId: string | null;
+  baseSalary?: number | string;
+  commissionBasis?: "NONE" | "PROFIT" | "REVENUE";
+  commissionPct?: number | string;
   createdAt: string;
+};
+
+type StaffPerformanceRow = {
+  userId: string;
+  fullName: string;
+  role: string;
+  baseSalary: number;
+  commissionBasis: "NONE" | "PROFIT" | "REVENUE";
+  commissionPct: number;
+  salesCount: number;
+  revenue: number;
+  cost: number;
+  profit: number;
+  commissionAmount: number;
+  totalPayout: number;
+  alreadyPosted: boolean;
+};
+
+const COMMISSION_BASIS_LABELS: Record<string, string> = {
+  NONE: "Yok (Sadece Sabit Maaş)",
+  PROFIT: "Satış Kârından Pay",
+  REVENUE: "Cirodan Pay",
 };
 
 type Product = {
@@ -74,13 +99,22 @@ export default function BranchesPage() {
   const [userRole, setUserRole] = useState<"PLATFORM_OWNER" | "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT">("CASHIER");
   const [userBranchId, setUserBranchId] = useState("");
   const [userIsActive, setUserIsActive] = useState(true);
+  const [userBaseSalary, setUserBaseSalary] = useState("0");
+  const [userCommissionBasis, setUserCommissionBasis] = useState<"NONE" | "PROFIT" | "REVENUE">("NONE");
+  const [userCommissionPct, setUserCommissionPct] = useState("0");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
 
+  // Staff performance / hakediş report state
+  const [performancePeriod, setPerformancePeriod] = useState<"day" | "week" | "month" | "all">("month");
+  const [staffPerformance, setStaffPerformance] = useState<StaffPerformanceRow[]>([]);
+  const [staffPerformanceLoading, setStaffPerformanceLoading] = useState(false);
+  const [postingPayoutUserId, setPostingPayoutUserId] = useState<string | null>(null);
+
   // Active UI tab state
-  const [activeTab, setActiveTab] = useState<"branches" | "users" | "transfers">("branches");
+  const [activeTab, setActiveTab] = useState<"branches" | "users" | "transfers" | "performance">("branches");
 
   async function loadData() {
     setLoading(true);
@@ -154,7 +188,7 @@ export default function BranchesPage() {
   }, []);
 
   useEffect(() => {
-    if (!isUserAdmin && activeTab === "users") {
+    if (!isUserAdmin && (activeTab === "users" || activeTab === "performance")) {
       setActiveTab("branches");
     }
   }, [isUserAdmin, activeTab]);
@@ -267,6 +301,9 @@ export default function BranchesPage() {
       role: userRole,
       isActive: userIsActive,
       branchId: userBranchId || null,
+      baseSalary: Number(userBaseSalary) || 0,
+      commissionBasis: userCommissionBasis,
+      commissionPct: Number(userCommissionPct) || 0,
     };
     if (!editingUser) {
       payload.email = userEmail;
@@ -293,6 +330,9 @@ export default function BranchesPage() {
       setUserRole("CASHIER");
       setUserBranchId("");
       setUserIsActive(true);
+      setUserBaseSalary("0");
+      setUserCommissionBasis("NONE");
+      setUserCommissionPct("0");
       setEditingUser(null);
       setShowUserModal(false);
       loadData();
@@ -342,6 +382,49 @@ export default function BranchesPage() {
       loadPerformanceAndHistory();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "İşlem başarısız");
+    }
+  }
+
+  async function loadStaffPerformance(period: "day" | "week" | "month" | "all") {
+    setStaffPerformanceLoading(true);
+    try {
+      const res = await fetch(`/api/reports/staff-performance?period=${period}`);
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Hakediş raporu getirilemedi");
+      setStaffPerformance(Array.isArray(json.staff) ? json.staff : []);
+      if (json.dbUnavailable) {
+        toast.warning("Bu rapor gerçek veritabanı gerektirir, veriler eksik olabilir.");
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Hakediş raporu getirilemedi");
+    } finally {
+      setStaffPerformanceLoading(false);
+    }
+  }
+
+  async function handlePostPayout(row: StaffPerformanceRow) {
+    if (
+      !(await confirm(
+        `${row.fullName} için ${row.totalPayout.toLocaleString("tr-TR")} TL hakediş, personelin cari hesabına alacak olarak işlenecek. Onaylıyor musunuz?`,
+        { confirmLabel: "Cariye İşle" }
+      ))
+    )
+      return;
+    setPostingPayoutUserId(row.userId);
+    try {
+      const res = await fetch("/api/reports/staff-performance/payout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: row.userId, period: performancePeriod }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Hakediş işlenemedi");
+      toast.success(data.message || "Hakediş cari hesaba işlendi");
+      void loadStaffPerformance(performancePeriod);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Hakediş işlenemedi");
+    } finally {
+      setPostingPayoutUserId(null);
     }
   }
 
@@ -441,6 +524,22 @@ export default function BranchesPage() {
           </svg>
           Stok Transferi
         </button>
+
+        {isUserAdmin && (
+          <button
+            onClick={() => { setActiveTab("performance"); void loadStaffPerformance(performancePeriod); }}
+            className={`flex items-center gap-2 py-3 px-4 text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+              activeTab === "performance"
+                ? "border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400"
+                : "border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            Hakediş Raporu
+          </button>
+        )}
       </div>
 
       {/* Tab Contents */}
@@ -686,6 +785,9 @@ export default function BranchesPage() {
                 setUserRole("CASHIER");
                 setUserBranchId(branches.length > 0 ? branches[0].id : "");
                 setUserIsActive(true);
+                setUserBaseSalary("0");
+                setUserCommissionBasis("NONE");
+                setUserCommissionPct("0");
                 setShowUserModal(true);
               }}
               className="primary-btn shrink-0"
@@ -797,6 +899,9 @@ export default function BranchesPage() {
                                   setUserRole(u.role);
                                   setUserBranchId(u.branchId || "");
                                   setUserIsActive(u.isActive);
+                                  setUserBaseSalary(String(u.baseSalary ?? 0));
+                                  setUserCommissionBasis(u.commissionBasis ?? "NONE");
+                                  setUserCommissionPct(String(u.commissionPct ?? 0));
                                   setShowUserModal(true);
                                 }}
                                 className="field py-1.5 px-3 text-xs font-semibold hover:border-blue-500 hover:text-blue-600 transition-colors flex items-center gap-1 cursor-pointer"
@@ -1042,6 +1147,85 @@ export default function BranchesPage() {
         </div>
       )}
 
+      {activeTab === "performance" && isUserAdmin && (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Personel Hakediş Raporu</h3>
+              <p className="text-xs sm:text-sm text-slate-500">Sabit maaş + kâr/ciro payına göre dönemsel hakediş ve personel cari hesabına işleme.</p>
+            </div>
+            <div className="inline-flex rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-1 text-xs font-bold shadow-sm">
+              {(["day", "week", "month", "all"] as const).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => { setPerformancePeriod(p); void loadStaffPerformance(p); }}
+                  className={`px-4 py-2 rounded-xl transition-all ${performancePeriod === p ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}
+                >
+                  {p === "day" ? "Günlük" : p === "week" ? "Haftalık" : p === "month" ? "Aylık" : "Tümü"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="panel overflow-hidden">
+            {staffPerformanceLoading ? (
+              <div className="p-8 text-center text-slate-400 text-sm">Yükleniyor...</div>
+            ) : staffPerformance.length === 0 ? (
+              <div className="p-8 text-center text-slate-400 text-sm">Bu dönem için personel verisi bulunamadı.</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-500 uppercase bg-slate-50 dark:bg-slate-900">
+                      <th className="px-4 py-3">Personel</th>
+                      <th className="px-4 py-3 text-right">Satış Adedi</th>
+                      <th className="px-4 py-3 text-right">Ciro</th>
+                      <th className="px-4 py-3 text-right">Maliyet</th>
+                      <th className="px-4 py-3 text-right">Kâr</th>
+                      <th className="px-4 py-3">Prim Bazı</th>
+                      <th className="px-4 py-3 text-right">Prim</th>
+                      <th className="px-4 py-3 text-right">Sabit Maaş</th>
+                      <th className="px-4 py-3 text-right">Toplam Hakediş</th>
+                      <th className="px-4 py-3 text-right">İşlem</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {staffPerformance.map((row) => (
+                      <tr key={row.userId} className="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+                        <td className="px-4 py-3 font-semibold text-slate-900 dark:text-white">{row.fullName}</td>
+                        <td className="px-4 py-3 text-right text-slate-600 dark:text-slate-300">{row.salesCount}</td>
+                        <td className="px-4 py-3 text-right font-mono text-slate-700 dark:text-slate-200">{row.revenue.toLocaleString("tr-TR")} TL</td>
+                        <td className="px-4 py-3 text-right font-mono text-slate-500">{row.cost.toLocaleString("tr-TR")} TL</td>
+                        <td className={`px-4 py-3 text-right font-mono font-semibold ${row.profit >= 0 ? "text-emerald-600" : "text-rose-600"}`}>{row.profit.toLocaleString("tr-TR")} TL</td>
+                        <td className="px-4 py-3 text-xs text-slate-500">{COMMISSION_BASIS_LABELS[row.commissionBasis]}{row.commissionBasis !== "NONE" ? ` (%${row.commissionPct})` : ""}</td>
+                        <td className="px-4 py-3 text-right font-mono text-slate-700 dark:text-slate-200">{row.commissionAmount.toLocaleString("tr-TR")} TL</td>
+                        <td className="px-4 py-3 text-right font-mono text-slate-700 dark:text-slate-200">{row.baseSalary.toLocaleString("tr-TR")} TL</td>
+                        <td className="px-4 py-3 text-right font-mono font-bold text-blue-700 dark:text-blue-400">{row.totalPayout.toLocaleString("tr-TR")} TL</td>
+                        <td className="px-4 py-3 text-right">
+                          {performancePeriod === "all" ? (
+                            <span className="text-[10px] text-slate-400">Dönem seçin</span>
+                          ) : row.alreadyPosted ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">İşlendi ✓</span>
+                          ) : (
+                            <button
+                              onClick={() => void handlePostPayout(row)}
+                              disabled={postingPayoutUserId === row.userId || row.totalPayout <= 0}
+                              className="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-lg transition-colors font-semibold"
+                            >
+                              {postingPayoutUserId === row.userId ? "İşleniyor..." : "Cariye İşle"}
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Add/Edit Branch Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
@@ -1202,6 +1386,49 @@ export default function BranchesPage() {
                       </option>
                     ))}
                   </select>
+                </div>
+              </div>
+
+              <div className="space-y-1.5 border-t border-slate-100 dark:border-slate-800 pt-4">
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Maaş Tipi</label>
+                <p className="text-[11px] text-slate-400 -mt-1">Sabit maaş + isteğe bağlı satış kârından veya cirodan pay. Hakediş, Şubeler &gt; Hakediş Raporu sekmesinden hesaplanır.</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-slate-400 uppercase block">Sabit Maaş (TL)</label>
+                    <input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      className="field"
+                      value={userBaseSalary}
+                      onChange={(e) => setUserBaseSalary(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-slate-400 uppercase block">Prim Bazı</label>
+                    <select
+                      className="field font-medium cursor-pointer"
+                      value={userCommissionBasis}
+                      onChange={(e) => setUserCommissionBasis(e.target.value as any)}
+                    >
+                      <option value="NONE">Yok</option>
+                      <option value="PROFIT">Satış Kârından Pay</option>
+                      <option value="REVENUE">Cirodan Pay</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-slate-400 uppercase block">Prim Oranı (%)</label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      step="0.01"
+                      className="field"
+                      value={userCommissionPct}
+                      onChange={(e) => setUserCommissionPct(e.target.value)}
+                      disabled={userCommissionBasis === "NONE"}
+                    />
+                  </div>
                 </div>
               </div>
 

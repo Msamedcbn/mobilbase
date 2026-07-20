@@ -51,6 +51,8 @@ export default async function VeriAnaliziPage({
     branchId: string | null;
     branchName: string | null;
     customerName: string | null;
+    staffUserId: string | null;
+    staffName: string | null;
   };
 
   let rows: Row[] = [];
@@ -62,6 +64,7 @@ export default async function VeriAnaliziPage({
       const store = await readLocalStore();
       const branches = store.branches || [];
       const customers = store.customers || [];
+      const users = store.users || [];
       rows = (store.transactions || [])
         .filter((t) => t.tenantId === tenantId && (t.type === "INCOME" || t.type === "EXPENSE"))
         .filter((t) => !periodStart || new Date(t.createdAt) >= periodStart)
@@ -76,6 +79,8 @@ export default async function VeriAnaliziPage({
           branchId: t.branchId ?? null,
           branchName: branches.find((b) => b.id === t.branchId)?.name ?? null,
           customerName: customers.find((c) => c.id === t.customerId)?.fullName ?? null,
+          staffUserId: t.soldByUserId ?? null,
+          staffName: users.find((u) => u.id === t.soldByUserId)?.fullName ?? null,
         }));
     } else {
       const txs = await prisma.transaction.findMany({
@@ -85,7 +90,7 @@ export default async function VeriAnaliziPage({
           ...(periodStart ? { createdAt: { gte: periodStart } } : {}),
         },
         orderBy: { createdAt: "desc" },
-        include: { branch: true, customer: true },
+        include: { branch: true, customer: true, soldByUser: { select: { fullName: true } } },
       });
       rows = txs.map((t) => ({
         id: t.id,
@@ -98,6 +103,8 @@ export default async function VeriAnaliziPage({
         branchId: t.branchId,
         branchName: t.branch?.name ?? null,
         customerName: t.customer?.fullName ?? null,
+        staffUserId: t.soldByUserId,
+        staffName: t.soldByUser?.fullName ?? null,
       }));
     }
   } catch {
@@ -112,6 +119,8 @@ export default async function VeriAnaliziPage({
     unitPrice: number;
     lineTotal: number;
     estCost: number;
+    paymentMethod: string;
+    staffName: string | null;
   };
 
   type PurchaseRow = {
@@ -152,19 +161,29 @@ export default async function VeriAnaliziPage({
             ...(periodStart ? { createdAt: { gte: periodStart } } : {}),
           },
         },
-        include: { product: true, transaction: { select: { createdAt: true } } },
+        include: {
+          product: true,
+          transaction: { select: { createdAt: true, paymentMethod: true, soldByUser: { select: { fullName: true } } } },
+        },
         orderBy: { transaction: { createdAt: "desc" } },
         take: 300,
       });
-      soldItemRows = soldItems.map((ti) => ({
-        id: ti.id,
-        createdAt: ti.transaction.createdAt,
-        productName: ti.product?.name ?? "Bilinmeyen Ürün",
-        quantity: ti.quantity,
-        unitPrice: Number(ti.unitPrice),
-        lineTotal: Number(ti.lineTotal),
-        estCost: ti.quantity * Number(ti.product?.purchasePrice ?? 0),
-      }));
+      soldItemRows = soldItems.map((ti) => {
+        // Prefer the cost snapshot taken at sale time; older rows (written before this
+        // field existed) fall back to the product's current purchase price.
+        const unitCost = Number(ti.unitCost) > 0 ? Number(ti.unitCost) : Number(ti.product?.purchasePrice ?? 0);
+        return {
+          id: ti.id,
+          createdAt: ti.transaction.createdAt,
+          productName: ti.product?.name ?? "Bilinmeyen Ürün",
+          quantity: ti.quantity,
+          unitPrice: Number(ti.unitPrice),
+          lineTotal: Number(ti.lineTotal),
+          estCost: ti.quantity * unitCost,
+          paymentMethod: ti.transaction.paymentMethod,
+          staffName: ti.transaction.soldByUser?.fullName ?? null,
+        };
+      });
 
       const stockItems = await prisma.stockItem.findMany({
         where: {
@@ -213,6 +232,20 @@ export default async function VeriAnaliziPage({
   }
   const branchBreakdown = Array.from(branchMap.values()).sort((a, b) => b.total - a.total);
   const unassignedIncome = branchMap.get("__unassigned__")?.total ?? 0;
+
+  // Staff breakdown for income — which personnel produced how much ciro/kaç işlem,
+  // keyed by user id so two staff with the same display name never collapse together.
+  const staffMap = new Map<string, { name: string; total: number; count: number }>();
+  for (const r of incomeRows) {
+    const key = r.staffUserId ?? "__unassigned__";
+    const name = r.staffName ?? "Atanmamış";
+    const entry = staffMap.get(key) ?? { name, total: 0, count: 0 };
+    entry.total += r.totalAmount;
+    entry.count += 1;
+    staffMap.set(key, entry);
+  }
+  const staffBreakdown = Array.from(staffMap.values()).sort((a, b) => b.total - a.total);
+  const unassignedStaffIncome = staffMap.get("__unassigned__")?.total ?? 0;
 
   const periodLabel =
     selectedPeriod === "day" ? "Günlük" : selectedPeriod === "week" ? "Haftalık" : selectedPeriod === "month" ? "Aylık" : "Tüm Zamanlar";
@@ -276,7 +309,7 @@ export default async function VeriAnaliziPage({
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="panel p-6 bg-white rounded-2xl border border-slate-200/80">
           <h3 className="text-sm font-bold text-slate-800 mb-1">Ne Sattım?</h3>
-          <p className="text-xs text-slate-500 mb-4">Ürün bazlı satış detayı, güncel alış fiyatına göre tahmini kâr ile.</p>
+          <p className="text-xs text-slate-500 mb-4">Ürün bazlı satış detayı, satış anındaki maliyete göre tahmini kâr, ödeme yöntemi ve satışı yapan personel ile.</p>
           <div className="overflow-x-auto max-h-[420px] overflow-y-auto">
             {soldItemRows.length === 0 ? (
               <p className="text-sm text-slate-400">{dbUnavailable ? "Bu görünüm gerçek veritabanı gerektirir." : "Bu dönemde satış kaydı yok."}</p>
@@ -289,6 +322,8 @@ export default async function VeriAnaliziPage({
                     <th className="text-xs text-right">Adet</th>
                     <th className="text-xs text-right">Tutar</th>
                     <th className="text-xs text-right">Tah. Kâr</th>
+                    <th className="text-xs">Ödeme</th>
+                    <th className="text-xs">Personel</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -301,6 +336,8 @@ export default async function VeriAnaliziPage({
                         <td className="text-xs text-slate-600 text-right">{r.quantity}</td>
                         <td className="text-xs font-mono font-bold text-emerald-700 text-right">{r.lineTotal.toLocaleString("tr-TR")} TL</td>
                         <td className={`text-xs font-mono font-bold text-right ${margin >= 0 ? "text-emerald-600" : "text-red-600"}`}>{margin.toLocaleString("tr-TR")} TL</td>
+                        <td className="text-xs text-slate-600">{PAYMENT_LABELS[r.paymentMethod] ?? r.paymentMethod}</td>
+                        <td className="text-xs text-slate-600">{r.staffName ?? "—"}</td>
                       </tr>
                     );
                   })}
@@ -362,6 +399,33 @@ export default async function VeriAnaliziPage({
                   </div>
                   <span className="text-xs font-mono font-bold text-slate-600 w-28 text-right">{b.total.toLocaleString("tr-TR")} TL</span>
                   <span className="text-2xs text-slate-400 w-16 text-right">{b.count} işlem</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div className="panel p-6 bg-white rounded-2xl border border-slate-200/80">
+        <h3 className="text-sm font-bold text-slate-800 mb-1">Personel Bazlı Satış Dağılımı</h3>
+        <p className="text-xs text-slate-500 mb-4">
+          Hangi personel ne kadar ciro yaptı — satış sırasında oturum açan kullanıcıya göre.
+          {unassignedStaffIncome > 0 && ` Şu an ${unassignedStaffIncome.toLocaleString("tr-TR")} TL personel ataması olmadan görünüyor.`}
+        </p>
+        {staffBreakdown.length === 0 ? (
+          <p className="text-sm text-slate-400">Bu dönemde gelir kaydı yok.</p>
+        ) : (
+          <div className="space-y-2">
+            {staffBreakdown.map((s) => {
+              const pct = totalIncome > 0 ? (s.total / totalIncome) * 100 : 0;
+              return (
+                <div key={s.name} className="flex items-center gap-3">
+                  <span className={`text-xs font-semibold w-40 truncate ${s.name === "Atanmamış" ? "text-amber-600" : "text-slate-700"}`}>{s.name}</span>
+                  <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <div className={`h-full ${s.name === "Atanmamış" ? "bg-amber-400" : "bg-purple-600"}`} style={{ width: `${pct}%` }} />
+                  </div>
+                  <span className="text-xs font-mono font-bold text-slate-600 w-28 text-right">{s.total.toLocaleString("tr-TR")} TL</span>
+                  <span className="text-2xs text-slate-400 w-16 text-right">{s.count} işlem</span>
                 </div>
               );
             })}

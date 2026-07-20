@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
+import CustomerQuickAddModal from "@/components/customer-quick-add-modal";
 
 type Customer = {
   id: string;
@@ -28,6 +29,28 @@ type BankAccount = {
   balance: number | string;
 };
 
+type CustomerHistoryResult = {
+  customer: Customer;
+  summary: {
+    totalDebit: number;
+    totalCredit: number;
+    netBalance: number;
+    repairCount: number;
+    transactionCount: number;
+    deviceCount: number;
+  };
+  timeline: Array<{
+    id: string;
+    date: string;
+    kind: "ACCOUNT_ENTRY" | "REPAIR" | "TRANSACTION" | "INVOICE";
+    title: string;
+    amount: number | null;
+    direction: "IN" | "OUT" | null;
+    detail: string | null;
+    status: string | null;
+  }>;
+};
+
 export default function CustomersVeresiyePage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [ledger, setLedger] = useState<AccountEntry[]>([]);
@@ -51,12 +74,11 @@ export default function CustomersVeresiyePage() {
 
   // Add Customer modal state
   const [isAddCustomerModalOpen, setIsAddCustomerModalOpen] = useState(false);
-  const [newCustFullName, setNewCustFullName] = useState("");
-  const [newCustPhone, setNewCustPhone] = useState("");
-  const [newCustEmail, setNewCustEmail] = useState("");
-  const [newCustNationalId, setNewCustNationalId] = useState("");
-  const [newCustNotes, setNewCustNotes] = useState("");
-  const [newCustCreditLimit, setNewCustCreditLimit] = useState("0");
+
+  // Customer history search state
+  const [historyQuery, setHistoryQuery] = useState("");
+  const [historyResults, setHistoryResults] = useState<CustomerHistoryResult[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -222,52 +244,30 @@ export default function CustomersVeresiyePage() {
     }
   };
 
-  const handleAddCustomer = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newCustFullName.trim().length < 3) {
-      toast.error("Müşteri adı en az 3 karakter olmalıdır.");
+  const handleCustomerHistorySearch = async (presetQuery?: string) => {
+    const q = (presetQuery ?? historyQuery).trim();
+    if (q.length < 2) {
+      toast.warning("Müşteri adı için en az 2 karakter girin.");
       return;
     }
-    if (newCustPhone.trim().length < 10) {
-      toast.error("Telefon numarası en az 10 karakter olmalıdır.");
-      return;
-    }
-    if (newCustNationalId && (newCustNationalId.length !== 11 || !/^\d+$/.test(newCustNationalId))) {
-      toast.error("T.C. Kimlik Numarası 11 haneli ve sadece rakamlardan oluşmalıdır.");
-      return;
-    }
-
+    setHistoryLoading(true);
     try {
-      const res = await fetch("/api/customers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fullName: newCustFullName.trim(),
-          phone: newCustPhone.trim(),
-          email: newCustEmail.trim() || null,
-          nationalId: newCustNationalId.trim() || null,
-          notes: newCustNotes.trim() || null,
-          creditLimit: newCustCreditLimit ? Number(newCustCreditLimit) : 0,
-        }),
-      });
-
-      const json = await res.json();
-      if (res.ok) {
-        toast.success("Müşteri başarıyla eklendi.");
-        setIsAddCustomerModalOpen(false);
-        setNewCustFullName("");
-        setNewCustPhone("");
-        setNewCustEmail("");
-        setNewCustNationalId("");
-        setNewCustNotes("");
-        setNewCustCreditLimit("0");
-        fetchData();
-      } else {
-        toast.error(json.error || json.message || "Müşteri eklenirken bir hata oluştu.");
-      }
-    } catch {
-      toast.error("İşlem başarısız.");
+      const res = await fetch(`/api/customers/history?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Müşteri geçmişi getirilemedi.");
+      setHistoryResults(Array.isArray(data.items) ? data.items : []);
+      if (!data.items?.length) toast.info("Aramaya uygun müşteri bulunamadı.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Müşteri geçmişi getirilemedi.");
+    } finally {
+      setHistoryLoading(false);
     }
+  };
+
+  const viewCustomerHistory = (c: Customer) => {
+    setHistoryQuery(c.fullName);
+    void handleCustomerHistorySearch(c.fullName);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const sendWhatsAppReminder = (cust: Customer) => {
@@ -396,6 +396,93 @@ export default function CustomersVeresiyePage() {
           <button onClick={() => setBalanceFilter("PAYABLE")} className={`px-3 py-2 rounded-lg border text-xs font-semibold ${balanceFilter === "PAYABLE" ? "bg-rose-600 text-white border-rose-600" : "bg-white text-rose-700 border-rose-200"}`}>Vereceklerim</button>
         </div>
       </div>
+      {/* Customer store-history search */}
+      <div className="panel bg-white border border-slate-200 rounded-2xl p-4">
+        <div className="flex flex-col md:flex-row md:items-center gap-3">
+          <div className="w-full md:max-w-md relative">
+            <input
+              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              placeholder="Müşteri adı veya telefon ile mağaza geçmişi sorgula..."
+              value={historyQuery}
+              onChange={(e) => setHistoryQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void handleCustomerHistorySearch();
+              }}
+            />
+          </div>
+          <button
+            onClick={() => void handleCustomerHistorySearch()}
+            disabled={historyLoading}
+            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white font-medium rounded-xl transition-all shadow-sm active:scale-95"
+          >
+            {historyLoading ? "Sorgulanıyor..." : "Geçmiş İşlemleri Sorgula"}
+          </button>
+          {historyResults.length > 0 && (
+            <button
+              onClick={() => { setHistoryResults([]); setHistoryQuery(""); }}
+              className="px-4 py-3 text-sm text-slate-500 hover:text-slate-800 transition-colors"
+            >
+              Temizle
+            </button>
+          )}
+        </div>
+
+        {historyResults.length > 0 && (
+          <div className="mt-4 grid gap-3">
+            {historyResults.map((item) => (
+              <div key={item.customer.id} className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <strong className="text-slate-900">{item.customer.fullName}</strong>
+                    <div className="text-xs text-slate-500">{item.customer.phone}</div>
+                  </div>
+                  <div className="text-xs text-slate-600">
+                    Borç: <strong className="text-rose-600">{Number(item.summary.totalDebit).toLocaleString("tr-TR")} TL</strong>
+                    {" · "}Tahsilat: <strong className="text-emerald-600">{Number(item.summary.totalCredit).toLocaleString("tr-TR")} TL</strong>
+                    {" · "}Net: <strong>{Number(item.summary.netBalance).toLocaleString("tr-TR")} TL</strong>
+                  </div>
+                </div>
+
+                <div className="mt-2 text-xs text-slate-500">
+                  Tamir: {item.summary.repairCount} · İşlem: {item.summary.transactionCount} · Cihaz: {item.summary.deviceCount}
+                </div>
+
+                {item.timeline.length === 0 ? (
+                  <p className="mt-3 text-xs text-slate-400">Bu müşteri için mağaza hareketi bulunamadı.</p>
+                ) : (
+                  <div className="mt-3 overflow-x-auto">
+                    <table className="w-full border-collapse text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-slate-200 text-slate-500 uppercase">
+                          <th className="py-2 pr-3">Tarih</th>
+                          <th className="py-2 pr-3">Tip</th>
+                          <th className="py-2 pr-3">Açıklama</th>
+                          <th className="py-2 pr-3 text-right">Tutar</th>
+                          <th className="py-2">Durum</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-slate-700">
+                        {item.timeline.slice(0, 20).map((row) => (
+                          <tr key={row.id}>
+                            <td className="py-2 pr-3 text-slate-500">{new Date(row.date).toLocaleString("tr-TR")}</td>
+                            <td className="py-2 pr-3">{row.kind}</td>
+                            <td className="py-2 pr-3">{row.title}{row.detail ? ` — ${row.detail}` : ""}</td>
+                            <td className={`py-2 pr-3 text-right font-mono font-bold ${row.direction === "IN" ? "text-emerald-600" : row.direction === "OUT" ? "text-rose-600" : ""}`}>
+                              {row.amount == null ? "-" : `${Number(row.amount).toLocaleString("tr-TR")} TL`}
+                            </td>
+                            <td className="py-2">{row.status || "-"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div className="panel bg-white border border-slate-200 rounded-xl px-4 py-3 flex items-center justify-between">
         <span className="text-sm text-slate-500">Net Veresiye Bakiye</span>
         <strong className={netBalance >= 0 ? "text-emerald-600" : "text-rose-600"}>
@@ -479,6 +566,12 @@ export default function CustomersVeresiyePage() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-3">
+                          <button
+                            onClick={() => viewCustomerHistory(c)}
+                            className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors font-medium"
+                          >
+                            Geçmiş
+                          </button>
                           <button
                             onClick={() => {
                               setEntryCustomerId(c.id);
@@ -707,106 +800,13 @@ export default function CustomersVeresiyePage() {
 
       {/* MODAL 3: Add Customer */}
       {isAddCustomerModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-lg bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
-            <div>
-              <h3 className="text-xl font-bold text-slate-900">Yeni Müşteri Ekle</h3>
-              <p className="text-sm text-slate-500 mt-1">Sisteme yeni bir müşteri kaydı oluşturun.</p>
-            </div>
-
-            <form onSubmit={handleAddCustomer} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">Ad Soyad *</label>
-                  <input
-                    type="text"
-                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="örn. Ahmet Yılmaz"
-                    value={newCustFullName}
-                    onChange={(e) => setNewCustFullName(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">Telefon *</label>
-                  <input
-                    type="tel"
-                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="örn. 05551234567"
-                    value={newCustPhone}
-                    onChange={(e) => setNewCustPhone(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">E-posta</label>
-                  <input
-                    type="email"
-                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="örn. ahmet@example.com"
-                    value={newCustEmail}
-                    onChange={(e) => setNewCustEmail(e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">T.C. Kimlik No</label>
-                  <input
-                    type="text"
-                    maxLength={11}
-                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono"
-                    placeholder="11 haneli T.C. No"
-                    value={newCustNationalId}
-                    onChange={(e) => setNewCustNationalId(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">Başlangıç Veresiye Limiti (TL)</label>
-                <input
-                  type="number"
-                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono"
-                  placeholder="örn. 5000"
-                  value={newCustCreditLimit}
-                  onChange={(e) => setNewCustCreditLimit(e.target.value)}
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">Özel Notlar</label>
-                <textarea
-                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent h-20 resize-none"
-                  placeholder="Müşteri hakkında notlar girin..."
-                  value={newCustNotes}
-                  onChange={(e) => setNewCustNotes(e.target.value)}
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsAddCustomerModalOpen(false)}
-                  className="px-4 py-2 text-sm text-slate-500 hover:text-slate-900 transition-colors"
-                >
-                  Vazgeç
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-slate-900 text-sm font-medium rounded-xl transition-all"
-                >
-                  Kaydet
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <CustomerQuickAddModal
+          onClose={() => setIsAddCustomerModalOpen(false)}
+          onCreated={() => {
+            setIsAddCustomerModalOpen(false);
+            fetchData();
+          }}
+        />
       )}
     </section>
   );

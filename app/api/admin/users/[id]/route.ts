@@ -27,12 +27,15 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       );
       if (userIndex === -1) return fail("Kullanıcı bulunamadı", "NOT_FOUND", 404);
 
-      const u = store.users![userIndex];
+      const u = store.users![userIndex] as any;
       if (parsed.data.fullName !== undefined) u.fullName = parsed.data.fullName;
       if (parsed.data.role !== undefined) u.role = parsed.data.role;
       if (parsed.data.isActive !== undefined) u.isActive = parsed.data.isActive;
       if (parsed.data.password) u.passwordHash = hashSync(parsed.data.password, 10);
       if (targetBranchId !== undefined) u.branchId = targetBranchId;
+      if (parsed.data.baseSalary !== undefined) u.baseSalary = parsed.data.baseSalary;
+      if (parsed.data.commissionBasis !== undefined) u.commissionBasis = parsed.data.commissionBasis;
+      if (parsed.data.commissionPct !== undefined) u.commissionPct = parsed.data.commissionPct;
       u.updatedAt = new Date().toISOString();
 
       await writeLocalStore(store);
@@ -53,6 +56,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (parsed.data.isActive !== undefined) updateData.isActive = parsed.data.isActive;
     if (parsed.data.password) updateData.passwordHash = hashSync(parsed.data.password, 10);
     if (targetBranchId !== undefined) updateData.branchId = targetBranchId;
+    if (parsed.data.baseSalary !== undefined) updateData.baseSalary = parsed.data.baseSalary;
+    if (parsed.data.commissionBasis !== undefined) updateData.commissionBasis = parsed.data.commissionBasis as any;
+    if (parsed.data.commissionPct !== undefined) updateData.commissionPct = parsed.data.commissionPct;
 
     const user = await prisma.appUser.update({
       where: { id: params.id },
@@ -64,6 +70,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         role: true,
         isActive: true,
         branchId: true,
+        baseSalary: true,
+        commissionBasis: true,
+        commissionPct: true,
         createdAt: true,
         updatedAt: true,
       },

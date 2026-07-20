@@ -94,6 +94,12 @@ enum CorporateQuoteStatus {
   CANCELED
 }
 
+enum CommissionBasis {
+  NONE
+  PROFIT
+  REVENUE
+}
+
 model Customer {
   id              String          @id @default(cuid())
   nationalId      String?
@@ -398,10 +404,18 @@ model Transaction {
   bankAccountId   String?
   bankAccount     BankAccount?      @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
 
+  // Groups the payment legs of one split/partial-payment sale together; null for
+  // ordinary single-method sales (fully backward compatible with existing rows).
+  groupNo         String?
+  soldByUserId    String?
+  soldByUser      AppUser?          @relation("TransactionsSoldBy", fields: [soldByUserId], references: [id], onDelete: SetNull)
+
   tenantId        String?
   tenant          Customer?         @relation("TenantToTransactions", fields: [tenantId], references: [id])
 
   @@unique([transactionNo, tenantId])
+  @@index([tenantId, groupNo])
+  @@index([soldByUserId])
 }
 
 model TransactionItem {
@@ -411,6 +425,11 @@ model TransactionItem {
   quantity        Int
   unitPrice       Decimal           @db.Decimal(10, 2)
   lineTotal       Decimal           @db.Decimal(10, 2)
+  // Snapshot of Product.purchasePrice at sale time, so historical cost/profit
+  // reporting stays stable even if the product's purchase price changes later.
+  // 0 on rows written before this field existed — readers fall back to the
+  // product's current purchasePrice in that case.
+  unitCost        Decimal           @default(0) @db.Decimal(10, 2)
   transaction     Transaction       @relation(fields: [transactionId], references: [id], onDelete: Cascade)
   product         Product           @relation(fields: [productId], references: [id], onDelete: Restrict)
 }
@@ -456,6 +475,35 @@ model AppUser {
   tenantId     String?
   tenant       Customer? @relation(fields: [tenantId], references: [id])
   moduleOverrides Json?
+
+  // Compensation: fixed base salary plus an optional commission on either the
+  // profit or the revenue of sales attributed to this user via Transaction.soldByUserId.
+  baseSalary      Decimal          @default(0) @db.Decimal(10, 2)
+  commissionBasis CommissionBasis  @default(NONE)
+  commissionPct   Decimal          @default(0) @db.Decimal(5, 2)
+
+  soldTransactions Transaction[]   @relation("TransactionsSoldBy")
+  staffPayouts     StaffPayoutRecord[]
+}
+
+model StaffPayoutRecord {
+  id               String   @id @default(cuid())
+  appUserId        String
+  appUser          AppUser  @relation(fields: [appUserId], references: [id], onDelete: Cascade)
+  periodStart      DateTime
+  periodEnd        DateTime
+  revenue          Decimal  @db.Decimal(10, 2)
+  profit           Decimal  @db.Decimal(10, 2)
+  baseSalary       Decimal  @db.Decimal(10, 2)
+  commissionAmount Decimal  @db.Decimal(10, 2)
+  totalPayout      Decimal  @db.Decimal(10, 2)
+  accountEntryId   String?
+  createdByUserId  String?
+  createdAt        DateTime @default(now())
+  tenantId         String?
+
+  @@index([appUserId, periodStart, periodEnd])
+  @@index([tenantId])
 }
 
 model AuditLog {

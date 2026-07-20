@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useConfirm } from "@/components/confirm-modal";
+import CustomerQuickAddModal from "@/components/customer-quick-add-modal";
 
 type Branch = { id: string; name: string };
 type Product = {
@@ -28,6 +29,14 @@ type CartItem = {
   stock: number;
   discountPct: number;
 };
+type PaymentLine = {
+  method: "CASH" | "CREDIT_CARD" | "ON_ACCOUNT" | "INSTALLMENT";
+  amount: number;
+  bankAccountId?: string;
+  installmentCount?: number;
+  interestRate?: number;
+};
+
 type Receipt = {
   transactionNo: string;
   paymentMethod: string;
@@ -37,6 +46,14 @@ type Receipt = {
   installments?: Array<{ installmentNo: number; dueDate: string; amount: number; status: string }>;
   installmentCount?: number;
   interestRate?: number;
+  payments?: PaymentLine[];
+};
+
+const PAYMENT_LABELS: Record<string, string> = {
+  CASH: "Nakit",
+  CREDIT_CARD: "Kart",
+  ON_ACCOUNT: "Veresiye",
+  INSTALLMENT: "Taksitli",
 };
 
 type InvoiceData = {
@@ -129,6 +146,15 @@ export default function PosPage() {
   const [heldCarts, setHeldCarts] = useState<HeldCart[]>([]);
   // Cash change calculator state
   const [receivedCash, setReceivedCash] = useState<string>("");
+
+  // Split / partial payment state — added payment legs + the amount pending
+  // for the currently-selected method (defaults to whatever remains unpaid).
+  const [payments, setPayments] = useState<PaymentLine[]>([]);
+  const [legAmount, setLegAmount] = useState<string>("");
+  const [showQuickAddCustomer, setShowQuickAddCustomer] = useState(false);
+  const [customerHistoryOpen, setCustomerHistoryOpen] = useState(false);
+  const [customerHistory, setCustomerHistory] = useState<any | null>(null);
+  const [customerHistoryLoading, setCustomerHistoryLoading] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("vibegsm_held_carts");
@@ -263,6 +289,73 @@ export default function PosPage() {
     }, 0);
   }, [cart]);
 
+  const paymentsSum = useMemo(() => Math.round(payments.reduce((s, p) => s + p.amount, 0) * 100) / 100, [payments]);
+  const remaining = useMemo(() => Math.max(0, Math.round((total - paymentsSum) * 100) / 100), [total, paymentsSum]);
+
+  // Keep the pending-amount field tracking the unpaid remainder until the cashier
+  // starts splitting the sale (once a leg is added, they control it manually).
+  useEffect(() => {
+    if (payments.length === 0) {
+      setLegAmount(total > 0 ? String(total) : "");
+    }
+  }, [total, payments.length]);
+
+  function addPaymentLine() {
+    const amt = Number(legAmount);
+    if (!amt || amt <= 0) return toast.warning("Geçerli bir ödeme tutarı girin");
+    if (amt > remaining + 0.01) {
+      return toast.warning(`Girilen tutar kalan tutardan (${remaining.toLocaleString("tr-TR")} TL) büyük olamaz`);
+    }
+    if (paymentMethod === "ON_ACCOUNT" && !customerId) {
+      return toast.warning("Veresiye ödemesi için müşteri seçimi zorunlu");
+    }
+    const line: PaymentLine = {
+      method: paymentMethod,
+      amount: Math.round(amt * 100) / 100,
+      bankAccountId: paymentMethod !== "ON_ACCOUNT" && paymentMethod !== "INSTALLMENT" && bankAccountId ? bankAccountId : undefined,
+      installmentCount: paymentMethod === "INSTALLMENT" ? installmentCount : undefined,
+      interestRate: paymentMethod === "INSTALLMENT" ? interestRate : undefined,
+    };
+    setPayments((prev) => {
+      const next = [...prev, line];
+      const nextRemaining = Math.max(0, Math.round((total - next.reduce((s, p) => s + p.amount, 0)) * 100) / 100);
+      setLegAmount(nextRemaining > 0 ? String(nextRemaining) : "");
+      return next;
+    });
+  }
+
+  function removePaymentLine(idx: number) {
+    setPayments((prev) => {
+      const next = prev.filter((_, i) => i !== idx);
+      const nextRemaining = Math.max(0, Math.round((total - next.reduce((s, p) => s + p.amount, 0)) * 100) / 100);
+      setLegAmount(nextRemaining > 0 ? String(nextRemaining) : String(total));
+      return next;
+    });
+  }
+
+  async function loadCustomerHistory() {
+    if (customerHistoryOpen) {
+      setCustomerHistoryOpen(false);
+      return;
+    }
+    const cust = customers.find((c) => c.id === customerId);
+    if (!cust) return;
+    setCustomerHistoryOpen(true);
+    setCustomerHistoryLoading(true);
+    try {
+      const res = await fetch(`/api/customers/history?q=${encodeURIComponent(cust.fullName)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Müşteri geçmişi getirilemedi.");
+      const match = Array.isArray(data.items) ? data.items.find((item: any) => item.customer.id === customerId) : null;
+      setCustomerHistory(match || null);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Müşteri geçmişi getirilemedi.");
+      setCustomerHistoryOpen(false);
+    } finally {
+      setCustomerHistoryLoading(false);
+    }
+  }
+
   const installmentPreviewList = useMemo(() => {
     if (paymentMethod !== "INSTALLMENT" || installmentCount <= 0) return [];
     const instTotal = total * (1 + interestRate / 100);
@@ -340,8 +433,29 @@ export default function PosPage() {
 
   async function checkout() {
     if (!cart.length) return toast.warning("Sepet boş");
-    if (paymentMethod === "ON_ACCOUNT" && !customerId) {
-      return toast.warning("Cari hesap satışı için müşteri seçimi zorunlu");
+    if (!customerId) {
+      return toast.warning("Satış için müşteri seçimi zorunlu — seçin veya '+ Yeni Müşteri' ile ekleyin");
+    }
+
+    let finalPayments: PaymentLine[];
+    if (payments.length > 0) {
+      if (remaining > 0.01) {
+        return toast.warning(`Kalan ${remaining.toLocaleString("tr-TR")} TL için bir ödeme yöntemi daha ekleyin`);
+      }
+      finalPayments = payments;
+    } else {
+      if (paymentMethod === "ON_ACCOUNT" && !customerId) {
+        return toast.warning("Cari hesap satışı için müşteri seçimi zorunlu");
+      }
+      finalPayments = [
+        {
+          method: paymentMethod,
+          amount: total,
+          bankAccountId: paymentMethod !== "ON_ACCOUNT" && paymentMethod !== "INSTALLMENT" && bankAccountId ? bankAccountId : undefined,
+          installmentCount: paymentMethod === "INSTALLMENT" ? installmentCount : undefined,
+          interestRate: paymentMethod === "INSTALLMENT" ? interestRate : undefined,
+        },
+      ];
     }
 
     setLoading(true);
@@ -356,12 +470,9 @@ export default function PosPage() {
             unitPrice: item.unitPrice,
             discountPct: item.discountPct
           })),
-          paymentMethod,
-          customerId: customerId || undefined,
+          payments: finalPayments,
+          customerId,
           branchId: selectedBranchId || undefined,
-          bankAccountId: (paymentMethod !== "ON_ACCOUNT" && paymentMethod !== "INSTALLMENT") && bankAccountId ? bankAccountId : undefined,
-          installmentCount: paymentMethod === "INSTALLMENT" ? installmentCount : undefined,
-          interestRate: paymentMethod === "INSTALLMENT" ? interestRate : undefined
         })
       });
 
@@ -389,6 +500,7 @@ export default function PosPage() {
         installments: json.data?.installments || json.installments,
         installmentCount: json.data?.installmentCount || json.installmentCount,
         interestRate: json.data?.interestRate || json.interestRate,
+        payments: json.data?.payments || json.payments,
       });
 
       setCart([]);
@@ -397,6 +509,8 @@ export default function PosPage() {
       setInstallmentCount(6);
       setInterestRate(0);
       setReceivedCash("");
+      setPayments([]);
+      setLegAmount("");
       toast.success(json.message ?? "Satış başarıyla tamamlandı");
 
       // Reload products to update stock quantities
@@ -477,10 +591,30 @@ export default function PosPage() {
         ? "Kredi Kartı"
         : r.paymentMethod === "INSTALLMENT"
         ? "Taksitli Satış"
+        : r.paymentMethod === "MIXED"
+        ? "Parçalı Ödeme"
         : "Cari Hesap";
 
+    let paymentBreakdownHtml = "";
+    if (r.payments && r.payments.length > 1) {
+      const rows = r.payments.map((p) => `
+        <tr>
+          <td style="padding: 2px 0; font-size: 11px;">${PAYMENT_LABELS[p.method] ?? p.method}${p.method === "INSTALLMENT" ? ` (${p.installmentCount} Taksit)` : ""}</td>
+          <td style="text-align: right; padding: 2px 0; font-size: 11px;">${p.amount.toLocaleString("tr-TR")} TL</td>
+        </tr>
+      `).join("");
+      paymentBreakdownHtml = `
+        <div style="margin-top: 10px; border-top: 1px dashed #000; padding-top: 6px;">
+          <div style="font-weight: bold; font-size: 11px; margin-bottom: 4px; text-align: center;">ÖDEME DAĞILIMI</div>
+          <table style="width: 100%; border-collapse: collapse;">
+            ${rows}
+          </table>
+        </div>
+      `;
+    }
+
     let installmentTableHtml = "";
-    if (r.paymentMethod === "INSTALLMENT" && r.installments && r.installments.length > 0) {
+    if (r.installments && r.installments.length > 0) {
       const rows = r.installments.map(inst => `
         <tr>
           <td style="padding: 2px 0; font-size: 11px;">Taksit #${inst.installmentNo} (${new Date(inst.dueDate).toLocaleDateString("tr-TR")})</td>
@@ -573,6 +707,7 @@ export default function PosPage() {
           </div>
         </div>
 
+        ${paymentBreakdownHtml}
         ${installmentTableHtml}
 
         <div class="footer text-center">
@@ -1260,23 +1395,27 @@ export default function PosPage() {
               </div>
             )}
 
-            {/* Customer Selector — shown for every payment method. Required for ON_ACCOUNT
-                (checked in checkout()); optional for CASH/CREDIT_CARD/INSTALLMENT so a
-                walk-in cash/card sale can still be attributed to a customer for purchase
-                history / warranty lookups, which the backend already supports. */}
+            {/* Customer Selector — mandatory for every sale. */}
             <div className="space-y-1">
-              <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">
-                {paymentMethod === "ON_ACCOUNT" ? "Borçlandırılacak Müşteri" : "Müşteri (İsteğe Bağlı)"}
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                  Müşteri *
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowQuickAddCustomer(true)}
+                  className="text-[10px] font-bold text-blue-600 hover:text-blue-800 transition"
+                >
+                  + Yeni Müşteri
+                </button>
+              </div>
               <div className="relative">
                 <select
                   className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none cursor-pointer font-semibold"
                   value={customerId}
-                  onChange={(e) => setCustomerId(e.target.value)}
+                  onChange={(e) => { setCustomerId(e.target.value); setCustomerHistoryOpen(false); setCustomerHistory(null); }}
                 >
-                  <option value="">
-                    {paymentMethod === "ON_ACCOUNT" ? "Seçiniz..." : "Genel Satış / Müşteri Yok"}
-                  </option>
+                  <option value="">Müşteri Seçiniz...</option>
                   {customers.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.fullName} ({c.phone})
@@ -1289,6 +1428,94 @@ export default function PosPage() {
                   </svg>
                 </div>
               </div>
+              {customerId && (
+                <button
+                  type="button"
+                  onClick={loadCustomerHistory}
+                  className="text-[10px] font-bold text-slate-400 hover:text-slate-700 transition"
+                >
+                  {customerHistoryOpen ? "▾ Son İşlemleri Gizle" : "▸ Son İşlemleri Göster"}
+                </button>
+              )}
+              {customerHistoryOpen && (
+                <div className="mt-1 p-2.5 bg-slate-50 border border-slate-200/60 rounded-xl max-h-[16vh] overflow-y-auto space-y-1">
+                  {customerHistoryLoading ? (
+                    <p className="text-[10px] text-slate-400">Yükleniyor...</p>
+                  ) : customerHistory && customerHistory.timeline?.length > 0 ? (
+                    <>
+                      <p className="text-[10px] font-bold text-slate-500 pb-1 border-b border-slate-200/60">
+                        Net Bakiye: {Number(customerHistory.summary?.netBalance ?? 0).toLocaleString("tr-TR")} TL
+                      </p>
+                      {customerHistory.timeline.slice(0, 8).map((row: any) => (
+                        <div key={row.id} className="flex justify-between text-[10px] text-slate-600">
+                          <span>{new Date(row.date).toLocaleDateString("tr-TR")} — {row.title}</span>
+                          <span className="font-bold font-mono">{row.amount == null ? "-" : `${Number(row.amount).toLocaleString("tr-TR")} TL`}</span>
+                        </div>
+                      ))}
+                    </>
+                  ) : (
+                    <p className="text-[10px] text-slate-400">Geçmiş işlem bulunamadı.</p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Split / Partial Payment controls */}
+            <div className="space-y-2 bg-indigo-50/40 border border-indigo-100 p-3 rounded-2xl">
+              <div className="flex items-center justify-between">
+                <label className="block text-[9px] font-bold text-indigo-500 uppercase tracking-wider">
+                  Ödeme Tutarı ({PAYMENT_LABELS[paymentMethod]})
+                </label>
+                <span className="text-[10px] font-bold text-slate-500">
+                  Kalan:{" "}
+                  <span className={remaining > 0.01 ? "text-amber-600" : "text-emerald-600"}>
+                    {remaining.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
+                  </span>
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  min={0}
+                  className="flex-1 min-w-0 px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  value={legAmount}
+                  onChange={(e) => setLegAmount(e.target.value)}
+                  placeholder="0.00"
+                />
+                <button
+                  type="button"
+                  onClick={addPaymentLine}
+                  className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold rounded-xl active:scale-95 transition whitespace-nowrap"
+                >
+                  + Ödemeyi Ekle
+                </button>
+              </div>
+              <p className="text-[9px] text-slate-400">
+                Satışı tek yöntemle tamamlamak için doğrudan &quot;Satışı Tamamla&quot;ya basabilirsiniz. Birden fazla ödeme yöntemi kullanmak (örn. kısmen nakit, kalanı kart) için tutarı girip &quot;Ödemeyi Ekle&quot;ye basın.
+              </p>
+
+              {payments.length > 0 && (
+                <div className="space-y-1 pt-1">
+                  {payments.map((p, idx) => (
+                    <div key={idx} className="flex items-center justify-between bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-[11px]">
+                      <span className="font-bold text-slate-700">
+                        {PAYMENT_LABELS[p.method]}
+                        {p.method === "INSTALLMENT" ? ` (${p.installmentCount} Taksit)` : ""}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-slate-800">{p.amount.toLocaleString("tr-TR")} TL</span>
+                        <button
+                          type="button"
+                          onClick={() => removePaymentLine(idx)}
+                          className="text-rose-500 hover:text-rose-700 font-bold px-1"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <button
@@ -1300,19 +1527,21 @@ export default function PosPage() {
             </button>
 
             <div className="grid grid-cols-2 gap-2">
-              <button 
+              <button
                 type="button"
                 onClick={handleHoldCart}
                 className="py-2.5 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100/50 text-indigo-700 text-xs font-bold rounded-xl transition active:scale-95 flex items-center justify-center gap-1"
               >
                 📥 Beklet
               </button>
-              <button 
+              <button
                 type="button"
                 onClick={() => {
                   setCart([]);
                   setReceivedCash("");
-                }} 
+                  setPayments([]);
+                  setLegAmount("");
+                }}
                 className="py-2.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-700 text-xs font-semibold rounded-xl transition active:scale-95 flex items-center justify-center gap-1"
               >
                 🗑️ Temizle
@@ -1321,6 +1550,17 @@ export default function PosPage() {
           </div>
         </aside>
       </div>
+
+      {showQuickAddCustomer && (
+        <CustomerQuickAddModal
+          onClose={() => setShowQuickAddCustomer(false)}
+          onCreated={(created) => {
+            setCustomers((prev) => [{ id: created.id, fullName: created.fullName, phone: created.phone }, ...prev]);
+            setCustomerId(created.id);
+            setShowQuickAddCustomer(false);
+          }}
+        />
+      )}
 
       {/* MODAL: Checkout Success Receipt */}
       {receipt && (
@@ -1336,13 +1576,25 @@ export default function PosPage() {
             
             <div className="space-y-2 text-xs text-slate-600 bg-slate-50 border border-slate-200/50 p-3.5 rounded-2xl">
               <p className="flex justify-between"><span>İşlem No:</span> <span className="font-mono font-bold text-slate-800">{receipt.transactionNo}</span></p>
-              <p className="flex justify-between"><span>Ödeme Tipi:</span> <span className="font-bold text-slate-850">{receipt.paymentMethod === "CASH" ? "Nakit" : receipt.paymentMethod === "CREDIT_CARD" ? "Kredi Kartı" : receipt.paymentMethod === "INSTALLMENT" ? "Taksitli Satış" : "Cari Hesap"}</span></p>
+              <p className="flex justify-between"><span>Ödeme Tipi:</span> <span className="font-bold text-slate-850">{receipt.paymentMethod === "CASH" ? "Nakit" : receipt.paymentMethod === "CREDIT_CARD" ? "Kredi Kartı" : receipt.paymentMethod === "INSTALLMENT" ? "Taksitli Satış" : receipt.paymentMethod === "MIXED" ? "Parçalı Ödeme" : "Cari Hesap"}</span></p>
               {receipt.paymentMethod === "INSTALLMENT" && receipt.installmentCount && (
                 <p className="flex justify-between"><span>Taksit Planı:</span> <span className="font-bold text-slate-850">{receipt.installmentCount} Taksit / Oran: %{receipt.interestRate}</span></p>
               )}
             </div>
 
-            {receipt.paymentMethod === "INSTALLMENT" && receipt.installments && receipt.installments.length > 0 && (
+            {receipt.payments && receipt.payments.length > 1 && (
+              <div className="my-3.5 p-3.5 bg-indigo-50/50 border border-indigo-100 rounded-2xl space-y-1.5 text-[11px]">
+                <p className="font-bold text-indigo-700 mb-1 border-b border-indigo-100 pb-1.5">Ödeme Dağılımı</p>
+                {receipt.payments.map((p, idx) => (
+                  <div key={idx} className="flex justify-between text-slate-700">
+                    <span>{PAYMENT_LABELS[p.method] ?? p.method}{p.method === "INSTALLMENT" ? ` (${p.installmentCount} Taksit)` : ""}</span>
+                    <span className="font-bold font-mono text-slate-850">{p.amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {receipt.installments && receipt.installments.length > 0 && (
               <div className="my-3.5 p-3.5 bg-slate-50 border border-slate-100 rounded-2xl space-y-1.5 max-h-[18vh] overflow-y-auto font-mono text-[11px] panel-scroll">
                 <p className="font-bold text-slate-750 mb-1 border-b pb-1.5">Taksit Ödeme Tablosu</p>
                 {receipt.installments.map((inst) => (

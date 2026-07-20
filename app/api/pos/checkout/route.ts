@@ -1,4 +1,4 @@
-﻿import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { posCheckoutSchema } from "@/lib/validations";
 import { requireRole } from "@/lib/auth";
 import { getErrorCode, getErrorMessage, getErrorStatus } from "@/lib/errors";
@@ -12,6 +12,59 @@ function generateNumericReceiptNo() {
   return `${Date.now()}${Math.floor(100 + Math.random() * 900)}`;
 }
 
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  CASH: "Nakit",
+  CREDIT_CARD: "Kart",
+  ON_ACCOUNT: "Veresiye",
+  INSTALLMENT: "Taksitli",
+};
+
+type PaymentLeg = {
+  method: "CASH" | "CREDIT_CARD" | "ON_ACCOUNT" | "INSTALLMENT";
+  amount: number;
+  bankAccountId?: string;
+  installmentCount?: number;
+  interestRate?: number;
+};
+
+// Amount actually owed for this leg once its own interest (if any) is applied.
+// `leg.amount` is always the pre-interest portion of the sale allocated to it.
+function legFinalAmount(leg: PaymentLeg) {
+  if (leg.method === "INSTALLMENT" && leg.interestRate) {
+    return Math.round(leg.amount * (1 + leg.interestRate / 100) * 100) / 100;
+  }
+  return Math.round(leg.amount * 100) / 100;
+}
+
+function buildInstallmentSchedule(totalAmount: number, count: number) {
+  const installments = [];
+  const monthlyAmount = Math.round((totalAmount / count) * 100) / 100;
+  let addedAmount = 0;
+
+  for (let i = 1; i <= count; i++) {
+    const dueDate = new Date();
+    dueDate.setMonth(dueDate.getMonth() + i);
+
+    let currentInstAmount = monthlyAmount;
+    if (i === count) {
+      currentInstAmount = Math.round((totalAmount - addedAmount) * 100) / 100;
+    } else {
+      addedAmount += monthlyAmount;
+    }
+
+    installments.push({
+      id: localId("inst"),
+      installmentNo: i,
+      dueDate: dueDate.toISOString(),
+      amount: currentInstAmount,
+      status: "UNPAID" as const,
+      paidAt: null,
+      bankAccountId: null,
+    });
+  }
+  return installments;
+}
+
 export async function POST(req: Request) {
   const auth = requireRole(["ADMIN", "CASHIER", "MANAGER"]);
   if (auth.error) return auth.error;
@@ -21,22 +74,51 @@ export async function POST(req: Request) {
     const parsed = posCheckoutSchema.safeParse(body);
     if (!parsed.success) return fail("Checkout verisi geçersiz", "VALIDATION", 400);
 
-    const { items, paymentMethod, customerId, branchId, relatedBuybackId, tradeInRef, bankAccountId, installmentCount, interestRate } = parsed.data;
-    let totalAmount = items.reduce((sum, item) => {
+    const { items, customerId, branchId, relatedBuybackId, tradeInRef } = parsed.data;
+
+    const subtotal = items.reduce((sum, item) => {
       const lineBase = item.unitPrice * item.quantity;
       const discount = lineBase * (item.discountPct / 100);
       return sum + (lineBase - discount);
     }, 0);
 
-    if (paymentMethod === "INSTALLMENT" && interestRate) {
-      totalAmount = totalAmount * (1 + interestRate / 100);
+    const legs: PaymentLeg[] =
+      parsed.data.payments && parsed.data.payments.length > 0
+        ? parsed.data.payments
+        : [
+            {
+              method: parsed.data.paymentMethod!,
+              amount: subtotal,
+              bankAccountId: parsed.data.bankAccountId,
+              installmentCount: parsed.data.installmentCount,
+              interestRate: parsed.data.interestRate,
+            },
+          ];
+
+    const allocatedSum = Math.round(legs.reduce((s, l) => s + l.amount, 0) * 100) / 100;
+    const roundedSubtotal = Math.round(subtotal * 100) / 100;
+    if (Math.abs(allocatedSum - roundedSubtotal) > 0.01) {
+      return fail(
+        `Ödeme tutarları toplamı (${allocatedSum.toLocaleString("tr-TR")} TL) satış tutarına (${roundedSubtotal.toLocaleString("tr-TR")} TL) eşit değil`,
+        "VALIDATION",
+        400,
+      );
     }
+
+    const isSplit = legs.length > 1;
+    const totalFinalAmount = legs.reduce((s, l) => s + legFinalAmount(l), 0);
+    const debtPortion = legs
+      .filter((l) => l.method === "ON_ACCOUNT" || l.method === "INSTALLMENT")
+      .reduce((s, l) => s + legFinalAmount(l), 0);
+
+    const soldByUserId = auth.user?.userId ?? null;
+    const primaryMethod = isSplit ? "MIXED" : legs[0].method;
 
     let installmentsToReturn: any[] | undefined = undefined;
 
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
-      const transactionNo = generateNumericReceiptNo();
+      const groupTransactionNo = generateNumericReceiptNo();
       const localStockById = new Map((store.stockItems || []).map((s: any) => [s.id, s]));
 
       // Check and update branch stock if branchId is provided, else update global stock
@@ -89,10 +171,7 @@ export async function POST(req: Request) {
         }
       }
 
-      if (paymentMethod === "ON_ACCOUNT") {
-        if (!customerId) {
-          return fail("Cari hesap satışinda müşteri secimi zorunlu", "VALIDATION", 400);
-        }
+      if (debtPortion > 0 && customerId) {
         const customer = store.customers.find((c) => c.id === customerId);
         if (!customer) {
           return fail("Müşteri bulunamadi", "NOT_FOUND", 404);
@@ -101,109 +180,81 @@ export async function POST(req: Request) {
         const netBalance = customerEntries.reduce((sum, entry) => {
           return sum + (entry.type === "DEBIT" ? entry.amount : -entry.amount);
         }, 0);
+        const activeInstallmentDebts = (store.installmentSales || [])
+          .filter((s) => s.customerId === customerId)
+          .reduce((sum, s) => sum + s.remainingAmount, 0);
         const limit = customer.creditLimit ?? 0;
-        if (netBalance + totalAmount > limit) {
-          return fail("Bu işlem müşterinin veresiye limitini aşmaktadır.", "VALIDATION", 400);
-        }
-
-        if (!store.accountEntries) store.accountEntries = [];
-        store.accountEntries.push({
-          id: localId("entry"),
-          customerId,
-          type: "DEBIT",
-          amount: totalAmount,
-          description: `${transactionNo} no'lu POS satış borcu`,
-          createdAt: new Date().toISOString(),
-        });
-      } else if (paymentMethod === "INSTALLMENT") {
-        if (customerId) {
-          const customer = store.customers.find((c) => c.id === customerId);
-          if (!customer) {
-            return fail("Müşteri bulunamadı", "NOT_FOUND", 404);
-          }
-          const customerEntries = (store.accountEntries || []).filter((e) => e.customerId === customerId);
-          const netBalance = customerEntries.reduce((sum, entry) => {
-            return sum + (entry.type === "DEBIT" ? entry.amount : -entry.amount);
-          }, 0);
-          const activeInstallmentDebts = (store.installmentSales || [])
-            .filter((s) => s.customerId === customerId)
-            .reduce((sum, s) => sum + s.remainingAmount, 0);
-
-          const limit = customer.creditLimit ?? 0;
-          if (netBalance + activeInstallmentDebts + totalAmount > limit) {
-            return fail("Bu işlem müşterinin limitini aşmaktadır.", "VALIDATION", 400);
-          }
-        }
-
-        const count = installmentCount || 1;
-        const rate = interestRate || 0;
-        const installments = [];
-        const monthlyAmount = Math.round((totalAmount / count) * 100) / 100;
-        let addedAmount = 0;
-
-        for (let i = 1; i <= count; i++) {
-          const dueDate = new Date();
-          dueDate.setMonth(dueDate.getMonth() + i);
-
-          let currentInstAmount = monthlyAmount;
-          if (i === count) {
-            currentInstAmount = Math.round((totalAmount - addedAmount) * 100) / 100;
-          } else {
-            addedAmount += monthlyAmount;
-          }
-
-          installments.push({
-            id: localId("inst"),
-            installmentNo: i,
-            dueDate: dueDate.toISOString(),
-            amount: currentInstAmount,
-            status: "UNPAID" as const,
-            paidAt: null,
-            bankAccountId: null,
-          });
-        }
-
-        if (!store.installmentSales) store.installmentSales = [];
-        store.installmentSales.push({
-          id: localId("inst-sale"),
-          transactionNo,
-          customerId: customerId || null,
-          totalAmount,
-          installmentCount: count,
-          interestRate: rate,
-          remainingAmount: totalAmount,
-          createdAt: new Date().toISOString(),
-          installments,
-        });
-        installmentsToReturn = installments;
-      } else if (bankAccountId) {
-        const bank = store.bankAccounts?.find((b) => b.id === bankAccountId);
-        if (bank) {
-          bank.balance = Number(bank.balance) + totalAmount;
+        if (netBalance + activeInstallmentDebts + debtPortion > limit) {
+          return fail("Bu işlem müşterinin veresiye/taksit limitini aşmaktadır.", "VALIDATION", 400);
         }
       }
 
-      const newTransaction = {
-        id: localId("tr"),
-        transactionNo,
-        type: "INCOME" as const,
-        paymentMethod,
-        customerId: customerId || null,
-        totalAmount,
-        note: `Hizli satış checkout${relatedBuybackId ? ` / relatedBuybackId:${relatedBuybackId}` : ""}${tradeInRef ? ` / tradeInRef:${tradeInRef}` : ""}${paymentMethod === "INSTALLMENT" ? ` / Taksitli Satış: ${installmentCount} Taksit / Oran: %${interestRate}` : ""}`,
-        createdAt: new Date().toISOString(),
-        branchId: activeBranchId,
-        bankAccountId: bankAccountId || null,
-      };
       if (!store.transactions) store.transactions = [];
-      store.transactions.unshift(newTransaction);
+
+      legs.forEach((leg, idx) => {
+        const legAmount = legFinalAmount(leg);
+        const transactionNo = idx === 0 ? groupTransactionNo : generateNumericReceiptNo();
+        const legNote =
+          idx === 0
+            ? `Hizli satış checkout${isSplit ? " (Parçalı Ödeme)" : ""}${relatedBuybackId ? ` / relatedBuybackId:${relatedBuybackId}` : ""}${tradeInRef ? ` / tradeInRef:${tradeInRef}` : ""}${leg.method === "INSTALLMENT" ? ` / Taksitli Satış: ${leg.installmentCount || 1} Taksit / Oran: %${leg.interestRate || 0}` : ""}`
+            : `Satış #${groupTransactionNo} — Parça Ödeme (${PAYMENT_METHOD_LABELS[leg.method]})${leg.method === "INSTALLMENT" ? ` / ${leg.installmentCount || 1} Taksit / Oran: %${leg.interestRate || 0}` : ""}`;
+
+        if (leg.method === "ON_ACCOUNT") {
+          if (!store.accountEntries) store.accountEntries = [];
+          store.accountEntries.push({
+            id: localId("entry"),
+            customerId: customerId!,
+            type: "DEBIT",
+            amount: legAmount,
+            description: `${transactionNo} no'lu POS satış borcu`,
+            createdAt: new Date().toISOString(),
+          });
+        } else if (leg.method === "INSTALLMENT") {
+          const count = leg.installmentCount || 1;
+          const installments = buildInstallmentSchedule(legAmount, count);
+          if (!store.installmentSales) store.installmentSales = [];
+          store.installmentSales.push({
+            id: localId("inst-sale"),
+            transactionNo,
+            customerId: customerId || null,
+            totalAmount: legAmount,
+            installmentCount: count,
+            interestRate: leg.interestRate || 0,
+            remainingAmount: legAmount,
+            createdAt: new Date().toISOString(),
+            installments,
+          });
+          installmentsToReturn = installments;
+        } else if (leg.bankAccountId) {
+          const bank = store.bankAccounts?.find((b) => b.id === leg.bankAccountId);
+          if (bank) {
+            bank.balance = Number(bank.balance) + legAmount;
+          }
+        }
+
+        store.transactions!.unshift({
+          id: localId("tr"),
+          transactionNo,
+          type: "INCOME" as const,
+          paymentMethod: leg.method,
+          customerId: customerId || null,
+          totalAmount: legAmount,
+          note: legNote,
+          createdAt: new Date().toISOString(),
+          branchId: activeBranchId,
+          bankAccountId: leg.bankAccountId || null,
+          groupNo: isSplit ? groupTransactionNo : null,
+          soldByUserId,
+        });
+      });
 
       await writeLocalStore(store);
       return ok({
-        transactionId: newTransaction.id,
-        transactionNo,
-        paymentMethod,
-        totalAmount,
+        transactionId: groupTransactionNo,
+        transactionNo: groupTransactionNo,
+        groupNo: isSplit ? groupTransactionNo : null,
+        paymentMethod: primaryMethod,
+        totalAmount: totalFinalAmount,
         relatedBuybackId: relatedBuybackId ?? null,
         tradeInRef: tradeInRef ?? null,
         items: items.map((i) => ({
@@ -211,35 +262,33 @@ export async function POST(req: Request) {
           quantity: i.quantity,
           lineTotal: i.unitPrice * i.quantity - (i.unitPrice * i.quantity * i.discountPct) / 100,
         })),
+        payments: legs.map((l) => ({
+          method: l.method,
+          amount: legFinalAmount(l),
+          bankAccountId: l.bankAccountId ?? null,
+          installmentCount: l.installmentCount ?? null,
+          interestRate: l.interestRate ?? null,
+        })),
         installments: installmentsToReturn,
       }, 201, "Satış tamamlandi");
     }
 
     const tenantId = auth.user.tenantId;
 
-    if (paymentMethod === "ON_ACCOUNT" && !customerId) {
-      return fail("Cari hesap satışinda müşteri secimi zorunlu", "VALIDATION", 400);
+    const customer = await prisma.customer.findFirst({
+      where: { id: customerId, tenantId },
+      include: { accountEntries: true },
+    });
+    if (!customer) {
+      return fail("Müşteri bulunamadi", "NOT_FOUND", 404);
     }
-
-    // Any payment method can optionally tag a customer (purchase history/warranty), not
-    // just ON_ACCOUNT/INSTALLMENT — so verify tenant ownership whenever one is supplied,
-    // and only enforce the credit-limit check where debt is actually being created.
-    if (customerId) {
-      const customer = await prisma.customer.findFirst({
-        where: { id: customerId, tenantId },
-        include: { accountEntries: true },
-      });
-      if (!customer) {
-        return fail("Müşteri bulunamadi", "NOT_FOUND", 404);
-      }
-      if (paymentMethod === "ON_ACCOUNT" || paymentMethod === "INSTALLMENT") {
-        const netBalance = customer.accountEntries.reduce((sum, entry) => {
-          return sum + (entry.type === "DEBIT" ? Number(entry.amount) : -Number(entry.amount));
-        }, 0);
-        const limit = Number(customer.creditLimit);
-        if (netBalance + totalAmount > limit) {
-          return fail("Bu işlem müşterinin veresiye/taksit limitini aşmaktadır.", "VALIDATION", 400);
-        }
+    if (debtPortion > 0) {
+      const netBalance = customer.accountEntries.reduce((sum, entry) => {
+        return sum + (entry.type === "DEBIT" ? Number(entry.amount) : -Number(entry.amount));
+      }, 0);
+      const limit = Number(customer.creditLimit);
+      if (netBalance + debtPortion > limit) {
+        return fail("Bu işlem müşterinin veresiye/taksit limitini aşmaktadır.", "VALIDATION", 400);
       }
     }
 
@@ -249,6 +298,8 @@ export async function POST(req: Request) {
 
     const result = await prisma.$transaction(async (tx) => {
       const activeBranchId = branchId;
+      let productMap: Map<string, any>;
+
       if (activeBranchId) {
         const stocks = await tx.productBranchStock.findMany({
           where: {
@@ -258,7 +309,7 @@ export async function POST(req: Request) {
         });
         const stockMap = new Map(stocks.map((s) => [s.productId, s]));
         const products = await tx.product.findMany({ where: { id: { in: items.map((i) => i.productId) }, tenantId } });
-        const productMap = new Map(products.map((p) => [p.id, p]));
+        productMap = new Map(products.map((p) => [p.id, p]));
         const stockItems = await tx.stockItem.findMany({
           where: { tenantId, sku: { in: products.map((p) => p.barcode) } },
           select: { sku: true, isBuybackItem: true, buybackSaleEnabled: true, buybackProcessStatus: true, name: true },
@@ -298,7 +349,7 @@ export async function POST(req: Request) {
         }
       } else {
         const products = await tx.product.findMany({ where: { id: { in: items.map((i) => i.productId) }, tenantId } });
-        const map = new Map(products.map((p) => [p.id, p]));
+        productMap = new Map(products.map((p) => [p.id, p]));
         const stockItems = await tx.stockItem.findMany({
           where: { tenantId, sku: { in: products.map((p) => p.barcode) } },
           select: { sku: true, isBuybackItem: true, buybackSaleEnabled: true, buybackProcessStatus: true, name: true },
@@ -306,7 +357,7 @@ export async function POST(req: Request) {
         const stockItemBySku = new Map(stockItems.map((s) => [s.sku, s]));
 
         for (const item of items) {
-          const product = map.get(item.productId);
+          const product = productMap.get(item.productId);
           if (!product) return { error: fail(`Ürün bulunamadı: ${item.productId}`, "NOT_FOUND", 404) };
           const stockItem = stockItemBySku.get(product.barcode);
           const sellabilityError = validateBuybackSellability(stockItem);
@@ -316,7 +367,7 @@ export async function POST(req: Request) {
 
         for (const item of items) {
           await tx.product.update({ where: { id: item.productId }, data: { stock: { decrement: item.quantity } } });
-          const product = map.get(item.productId);
+          const product = productMap.get(item.productId);
           if (product) {
             await tx.stockItem.updateMany({
               where: { sku: product.barcode, tenantId },
@@ -326,126 +377,139 @@ export async function POST(req: Request) {
         }
       }
 
-      const dbPaymentMethod = paymentMethod === "INSTALLMENT" ? "ON_ACCOUNT" : paymentMethod;
-      const transaction = await tx.transaction.create({
-        data: {
-          transactionNo: generateNumericReceiptNo(),
-          type: "INCOME",
-          paymentMethod: dbPaymentMethod as any,
-          customerId: customerId ?? null,
-          branchId: activeBranchId ?? null,
-          totalAmount,
-          bankAccountId: bankAccountId ?? null,
-          tenantId,
-          note: `Hizli satış checkout${relatedBuybackId ? ` / relatedBuybackId:${relatedBuybackId}` : ""}${tradeInRef ? ` / tradeInRef:${tradeInRef}` : ""}${paymentMethod === "INSTALLMENT" ? ` / Taksitli Satış: ${installmentCount} Taksit / Oran: %${interestRate}` : ""}`,
-          items: {
-            create: items.map((item) => {
-              const lineBase = item.unitPrice * item.quantity;
-              const discount = lineBase * (item.discountPct / 100);
-              return {
-                productId: item.productId,
-                quantity: item.quantity,
-                unitPrice: item.unitPrice,
-                lineTotal: lineBase - discount,
-              };
-            }),
-          },
-        },
-        include: { items: { include: { product: true } } },
-      });
+      const groupTransactionNo = generateNumericReceiptNo();
+      const createdLegs: Array<{ transaction: any; leg: PaymentLeg }> = [];
 
-      if ((paymentMethod === "ON_ACCOUNT" || paymentMethod === "INSTALLMENT") && customerId) {
-        await tx.accountEntry.create({
+      for (let idx = 0; idx < legs.length; idx++) {
+        const leg = legs[idx];
+        const legAmount = legFinalAmount(leg);
+        const dbPaymentMethod = leg.method === "INSTALLMENT" ? "ON_ACCOUNT" : leg.method;
+        const transactionNo = idx === 0 ? groupTransactionNo : generateNumericReceiptNo();
+        const legNote =
+          idx === 0
+            ? `Hizli satış checkout${isSplit ? " (Parçalı Ödeme)" : ""}${relatedBuybackId ? ` / relatedBuybackId:${relatedBuybackId}` : ""}${tradeInRef ? ` / tradeInRef:${tradeInRef}` : ""}${leg.method === "INSTALLMENT" ? ` / Taksitli Satış: ${leg.installmentCount || 1} Taksit / Oran: %${leg.interestRate || 0}` : ""}`
+            : `Satış #${groupTransactionNo} — Parça Ödeme (${PAYMENT_METHOD_LABELS[leg.method]})${leg.method === "INSTALLMENT" ? ` / ${leg.installmentCount || 1} Taksit / Oran: %${leg.interestRate || 0}` : ""}`;
+
+        const transaction = await tx.transaction.create({
           data: {
+            transactionNo,
+            type: "INCOME",
+            paymentMethod: dbPaymentMethod as any,
             customerId,
-            type: "DEBIT",
-            amount: totalAmount,
-            description: `${transaction.transactionNo} no'lu POS satış borcu ${paymentMethod === "INSTALLMENT" ? `(${installmentCount} Taksit)` : ""}`,
+            branchId: activeBranchId ?? null,
+            totalAmount: legAmount,
+            bankAccountId: leg.bankAccountId ?? null,
+            tenantId,
+            groupNo: isSplit ? groupTransactionNo : null,
+            soldByUserId,
+            note: legNote,
+            items:
+              idx === 0
+                ? {
+                    create: items.map((item) => {
+                      const lineBase = item.unitPrice * item.quantity;
+                      const discount = lineBase * (item.discountPct / 100);
+                      const product = productMap.get(item.productId);
+                      return {
+                        productId: item.productId,
+                        quantity: item.quantity,
+                        unitPrice: item.unitPrice,
+                        lineTotal: lineBase - discount,
+                        unitCost: product ? Number(product.purchasePrice) : 0,
+                      };
+                    }),
+                  }
+                : undefined,
           },
+          include: { items: { include: { product: true } } },
         });
-      } else if (bankAccountId) {
-        const bank = await tx.bankAccount.findFirst({
-          where: { id: bankAccountId, tenantId }
-        });
-        if (!bank) return { error: fail("Banka hesabi bulunamadi", "NOT_FOUND", 404) };
 
-        await tx.bankAccount.update({
-          where: { id: bankAccountId },
-          data: { balance: { increment: totalAmount } },
-        });
+        if (leg.method === "ON_ACCOUNT" || leg.method === "INSTALLMENT") {
+          // Both veresiye and taksitli legs create a DEBIT ledger entry — this is what
+          // the credit-limit check above (customer.accountEntries) and the customer's
+          // net-balance display rely on, regardless of the separate installment schedule.
+          await tx.accountEntry.create({
+            data: {
+              customerId,
+              type: "DEBIT",
+              amount: legAmount,
+              description: `${transaction.transactionNo} no'lu POS satış borcu${leg.method === "INSTALLMENT" ? ` (${leg.installmentCount || 1} Taksit)` : ""}`,
+            },
+          });
+        } else if (leg.bankAccountId) {
+          const bank = await tx.bankAccount.findFirst({ where: { id: leg.bankAccountId, tenantId } });
+          if (!bank) return { error: fail("Banka hesabi bulunamadi", "NOT_FOUND", 404) };
+          await tx.bankAccount.update({
+            where: { id: leg.bankAccountId },
+            data: { balance: { increment: legAmount } },
+          });
+        }
+
+        createdLegs.push({ transaction, leg });
       }
 
-      return { transaction };
+      return { createdLegs, groupTransactionNo };
     });
 
     if ("error" in result) return result.error;
 
-    if (paymentMethod === "INSTALLMENT") {
+    const { createdLegs, groupTransactionNo } = result;
+    const primaryTransaction = createdLegs[0].transaction;
+
+    // Installment schedules still live in the local JSON store even in DB mode
+    // (existing architecture) — write one per INSTALLMENT leg.
+    if (legs.some((l) => l.method === "INSTALLMENT")) {
       const store = await readLocalStore();
-      const count = installmentCount || 1;
-      const rate = interestRate || 0;
-      const installments = [];
-      const monthlyAmount = Math.round((totalAmount / count) * 100) / 100;
-      let addedAmount = 0;
-
-      for (let i = 1; i <= count; i++) {
-        const dueDate = new Date();
-        dueDate.setMonth(dueDate.getMonth() + i);
-
-        let currentInstAmount = monthlyAmount;
-        if (i === count) {
-          currentInstAmount = Math.round((totalAmount - addedAmount) * 100) / 100;
-        } else {
-          addedAmount += monthlyAmount;
-        }
-
-        installments.push({
-          id: localId("inst"),
-          installmentNo: i,
-          dueDate: dueDate.toISOString(),
-          amount: currentInstAmount,
-          status: "UNPAID" as const,
-          paidAt: null,
-          bankAccountId: null,
-        });
-      }
-
       if (!store.installmentSales) store.installmentSales = [];
-      store.installmentSales.push({
-        id: localId("inst-sale"),
-        transactionNo: result.transaction.transactionNo,
-        customerId: customerId || null,
-        totalAmount,
-        installmentCount: count,
-        interestRate: rate,
-        remainingAmount: totalAmount,
-        createdAt: new Date().toISOString(),
-        installments,
-      });
-      installmentsToReturn = installments;
+      for (const { transaction, leg } of createdLegs) {
+        if (leg.method !== "INSTALLMENT") continue;
+        const legAmount = legFinalAmount(leg);
+        const count = leg.installmentCount || 1;
+        const installments = buildInstallmentSchedule(legAmount, count);
+        store.installmentSales.push({
+          id: localId("inst-sale"),
+          transactionNo: transaction.transactionNo,
+          customerId: customerId || null,
+          totalAmount: legAmount,
+          installmentCount: count,
+          interestRate: leg.interestRate || 0,
+          remainingAmount: legAmount,
+          createdAt: new Date().toISOString(),
+          installments,
+        });
+        installmentsToReturn = installments;
+      }
       await writeLocalStore(store);
     }
 
     await writeAuditLog({
       action: "POS_CHECKOUT",
       entityType: "Transaction",
-      entityId: result.transaction.id,
+      entityId: primaryTransaction.id,
       actorUserId: auth.user?.userId,
-      customerId: result.transaction.customerId ?? undefined,
-      detail: `${result.transaction.transactionNo} / ${result.transaction.totalAmount.toString()}`,
+      customerId: primaryTransaction.customerId ?? undefined,
+      detail: `${groupTransactionNo} / ${totalFinalAmount.toString()}${isSplit ? ` / ${legs.length} bacak` : ""}`,
     });
 
     return ok({
-      transactionId: result.transaction.id,
-      transactionNo: result.transaction.transactionNo,
-      paymentMethod: result.transaction.paymentMethod,
-      totalAmount: Number(result.transaction.totalAmount),
+      transactionId: primaryTransaction.id,
+      transactionNo: groupTransactionNo,
+      groupNo: isSplit ? groupTransactionNo : null,
+      paymentMethod: primaryMethod,
+      totalAmount: totalFinalAmount,
       relatedBuybackId: relatedBuybackId ?? null,
       tradeInRef: tradeInRef ?? null,
-      items: result.transaction.items.map((i) => ({
+      items: primaryTransaction.items.map((i: any) => ({
         productName: i.product.name,
         quantity: i.quantity,
         lineTotal: Number(i.lineTotal),
+      })),
+      payments: createdLegs.map(({ leg }) => ({
+        method: leg.method,
+        amount: legFinalAmount(leg),
+        bankAccountId: leg.bankAccountId ?? null,
+        installmentCount: leg.installmentCount ?? null,
+        interestRate: leg.interestRate ?? null,
       })),
       installments: installmentsToReturn,
     }, 201, "Satış tamamlandi");
@@ -453,6 +517,3 @@ export async function POST(req: Request) {
     return fail(getErrorMessage(error), getErrorCode(error), getErrorStatus(error));
   }
 }
-
-
-
