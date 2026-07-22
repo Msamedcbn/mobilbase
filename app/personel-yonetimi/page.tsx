@@ -215,7 +215,46 @@ export default function PersonnelPage() {
     }
   }
 
+  async function handleCloseCari(user: AppUser, cari: { customerId: string; balance: number }) {
+    if (Math.abs(cari.balance) === 0) {
+      toast.info(`${user.fullName} cari hesabı zaten dengede (0,00 TL).`);
+      return;
+    }
+
+    const type = cari.balance > 0 ? "CREDIT" : "DEBIT";
+    const amount = Math.abs(cari.balance);
+    const label = cari.balance > 0 ? "Tahsilat Alındı (Cari Kapatma)" : "Ödeme Yapıldı (Cari Kapatma)";
+
+    if (
+      !(await confirm(
+        `${user.fullName} için ${amount.toLocaleString("tr-TR")} TL tutarındaki cari bakiyeyi sıfırlayarak hesabı kapatmak istiyor musunuz?`,
+        { confirmLabel: "Cari Kapat" }
+      ))
+    )
+      return;
+
+    try {
+      const res = await fetch("/api/account-entries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerId: cari.customerId,
+          type,
+          amount,
+          description: `Personel Cari Kapatma / Sıfırlama - ${label}`,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Cari kapatılamadı");
+      toast.success(`${user.fullName} cari hesabı kapatıldı ve bakiye sıfırlandı.`);
+      loadData();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Cari kapatma başarısız");
+    }
+  }
+
   async function handleGiveAdvance(e: React.FormEvent) {
+
     e.preventDefault();
     if (!advanceTargetUser) return;
     const amt = Number(advanceAmount);
@@ -550,6 +589,18 @@ export default function PersonnelPage() {
                           </td>
                           <td style={{ textAlign: "right" }}>
                             <div className="flex gap-2 justify-end">
+                              {cari && (
+                                <button
+                                  onClick={() => void handleCloseCari(u, cari)}
+                                  className="field py-1.5 px-3 text-xs font-bold border-emerald-300 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors flex items-center gap-1 cursor-pointer"
+                                  title="Personel cari bakiyesini sıfırlayarak hesabı kapat"
+                                >
+                                  <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  Cari Kapat
+                                </button>
+                              )}
                               <button
                                 onClick={() => {
                                   if (!cari) {
@@ -566,6 +617,7 @@ export default function PersonnelPage() {
                                 className="field py-1.5 px-3 text-xs font-semibold hover:border-amber-500 hover:text-amber-600 transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                                 title={cari ? "Personele avans ver" : "Önce cari hesap açın"}
                               >
+
                                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V6m0 10v2m9-8a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>

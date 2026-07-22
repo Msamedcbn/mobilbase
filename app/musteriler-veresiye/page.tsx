@@ -364,32 +364,45 @@ export default function CustomersVeresiyePage() {
         <div className="flex flex-col sm:flex-row w-full md:w-auto items-center gap-3">
           <button
             onClick={() => setIsAddCustomerModalOpen(true)}
-            className="w-full md:w-auto px-6 py-3 bg-white hover:bg-slate-50 text-slate-700 font-medium rounded-xl border border-slate-200 transition-all shadow-sm hover:shadow-slate-100 active:scale-95 flex items-center justify-center gap-2"
+            className="w-full md:w-auto px-4 py-3 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2"
           >
-            <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
             </svg>
-            Yeni Müşteri Ekle
+            + Yeni Müşteri
           </button>
 
           <button
             onClick={() => {
-              if (customers.length > 0) {
-                setEntryCustomerId(customers[0].id);
-              } else {
-                setEntryCustomerId("");
-              }
+              if (customers.length > 0) setEntryCustomerId(customers[0].id);
               setEntryType("DEBIT");
+              setEntryAmount("");
               setIsEntryModalOpen(true);
             }}
-            className="w-full md:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-slate-900 font-medium rounded-xl transition-all shadow-lg hover:shadow-indigo-500/20 active:scale-95 flex items-center justify-center gap-2"
+            className="w-full md:w-auto px-5 py-3 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
-            Yeni Cari İşlem Ekle
+            🔴 Cari Aç (Borçlandır)
+          </button>
+
+          <button
+            onClick={() => {
+              if (customers.length > 0) setEntryCustomerId(customers[0].id);
+              setEntryType("CREDIT");
+              setEntryAmount("");
+              setIsEntryModalOpen(true);
+            }}
+            className="w-full md:w-auto px-5 py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            🟢 Cari Kapat (Tahsilat Al)
           </button>
         </div>
+
         <div className="flex items-center gap-2 w-full md:w-auto">
           <button onClick={() => setBalanceFilter("ALL")} className={`px-3 py-2 rounded-lg border text-xs font-semibold ${balanceFilter === "ALL" ? "bg-slate-800 text-white border-slate-800" : "bg-white text-slate-600 border-slate-200"}`}>Tum Bakiye</button>
           <button onClick={() => setBalanceFilter("RECEIVABLE")} className={`px-3 py-2 rounded-lg border text-xs font-semibold ${balanceFilter === "RECEIVABLE" ? "bg-emerald-600 text-white border-emerald-600" : "bg-white text-emerald-700 border-emerald-200"}`}>Alacaklarim</button>
@@ -565,26 +578,38 @@ export default function CustomersVeresiyePage() {
                         )}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-3">
+                        <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => viewCustomerHistory(c)}
-                            className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors font-medium"
+                            className="px-2.5 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors font-semibold"
                           >
                             Geçmiş
                           </button>
                           <button
                             onClick={() => {
                               setEntryCustomerId(c.id);
-                              setEntryType("CREDIT");
+                              setEntryType("DEBIT");
+                              setEntryAmount("");
                               setIsEntryModalOpen(true);
                             }}
-                            className="px-3 py-1.5 text-xs bg-emerald-600/80 hover:bg-emerald-600 text-slate-900 rounded-lg transition-colors font-medium"
+                            className="px-2.5 py-1.5 text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg transition-colors font-bold"
                           >
-                            Tahsilat Yap
+                            Cari Aç
+                          </button>
+                          <button
+                            onClick={() => {
+                              setEntryCustomerId(c.id);
+                              setEntryType("CREDIT");
+                              setEntryAmount(bal > 0 ? String(bal) : "");
+                              setIsEntryModalOpen(true);
+                            }}
+                            className="px-2.5 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors font-bold shadow-sm"
+                          >
+                            Cari Kapat
                           </button>
                           <button
                             onClick={() => sendWhatsAppReminder(c)}
-                            className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-300 rounded-xl transition-all border border-emerald-500/20 flex items-center justify-center"
+                            className="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg transition-all border border-emerald-200 flex items-center justify-center"
                             title="WhatsApp Borç Hatırlat"
                           >
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -593,6 +618,7 @@ export default function CustomersVeresiyePage() {
                           </button>
                         </div>
                       </td>
+
                     </tr>
                   );
                 })}
@@ -702,8 +728,12 @@ export default function CustomersVeresiyePage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-lg bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
             <div>
-              <h3 className="text-xl font-bold text-slate-900">Yeni Cari İşlem Ekle</h3>
-              <p className="text-sm text-slate-500 mt-1">Borçlandırma veya ödeme tahsilatı ekleyin.</p>
+              <h3 className="text-xl font-bold text-slate-900">
+                {entryType === "DEBIT" ? "🔴 Cari Aç (Borç Ekle / Veresiye Verme)" : "🟢 Cari Kapat (Tahsilat Al / Borç Kapatma)"}
+              </h3>
+              <p className="text-sm text-slate-500 mt-1">
+                {entryType === "DEBIT" ? "Müşteri hesabına borç kaydedin (Cari Açma)." : "Müşteriden ödeme alarak cari hesabı kapatın veya bakiyeyi düşürün."}
+              </p>
             </div>
 
             <form onSubmit={handleAddEntry} className="space-y-4">
@@ -727,16 +757,17 @@ export default function CustomersVeresiyePage() {
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">İşlem Tipi</label>
                   <select
-                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-bold"
                     value={entryType}
                     onChange={(e) => setEntryType(e.target.value as "DEBIT" | "CREDIT")}
                     required
                   >
-                    <option value="DEBIT" className="bg-white text-slate-900">Borç (Dükkandan Alışveriş)</option>
-                    <option value="CREDIT" className="bg-white text-slate-900">Alacak/Tahsilat (Ödeme Aldık)</option>
+                    <option value="DEBIT" className="bg-white text-rose-700 font-bold">🔴 Cari Aç (Borçlandır)</option>
+                    <option value="CREDIT" className="bg-white text-emerald-700 font-bold">🟢 Cari Kapat (Tahsilat Al / Sıfırla)</option>
                   </select>
                 </div>
               </div>
+
 
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">Tutar (TL)</label>

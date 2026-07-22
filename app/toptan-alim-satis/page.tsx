@@ -79,8 +79,17 @@ export default function WholesalePage() {
   }
 
   return (
-    <section className="compact-shell" style={{ display: "grid", gap: 10 }}>
-      <h2 className="page-title" style={{ margin: 0 }}>Toptan Alis / Satis</h2>
+    <section className="compact-shell space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold mb-2">
+            <span>📦 SCM - Toptan Tedarik & Alış-Satış</span>
+          </div>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Toptan Alış & Tedarik Yönetimi</h2>
+          <p className="text-xs text-slate-500">Tedarikçi alışları, toplu mal kabul işlemleri ve şubeler arası stok transferleri.</p>
+        </div>
+      </div>
+
       <div className="form-grid-4">
         <div className="panel" style={{ padding: "0.7rem" }}>
           <p style={{ margin: 0, color: "#64748b", fontSize: 12 }}>Bugun Islem</p>

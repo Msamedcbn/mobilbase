@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ProductCardModal } from "@/components/product-card-modal";
+import { ErpProductMatrixCreator } from "@/components/erp-product-matrix-creator";
 import { useConfirm } from "@/components/confirm-modal";
+
 
 type StockItem = {
   id: string;
@@ -125,8 +127,10 @@ export default function StockPage() {
   const [catalogCards, setCatalogCards] = useState<Product[]>([]);
   const [deviceModels, setDeviceModels] = useState<DeviceModel[]>([]);
   const [selectedProductCardId, setSelectedProductCardId] = useState<string | null>(null);
+  const [showErpMatrixCreator, setShowErpMatrixCreator] = useState(false);
   
   const [loading, setLoading] = useState(true);
+
   const [saving, setSaving] = useState(false);
   const [loadingSeed, setLoadingSeed] = useState(false);
   const [search, setSearch] = useState("");
@@ -639,7 +643,21 @@ export default function StockPage() {
     }
   }
 
+  async function deleteCatalogCard(id: string, name: string) {
+    if (!(await confirm(`"${name}" ürün kartını silmek istediğinizden emin misiniz?`, { danger: true, confirmLabel: "Kartı Sil" }))) return;
+    try {
+      const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(body?.error || "Silinemedi");
+      toast.success(body?.archived ? body.message : "Ürün kartı silindi.");
+      await fetchCatalog();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Silme işlemi başarısız.");
+    }
+  }
+
   async function deleteItem(id: string) {
+
     if (!(await confirm("Bu stok kaydını envanterden silmek istiyor musunuz?", { danger: true, confirmLabel: "Sil" }))) return;
     try {
       const res = await fetch(`/api/stock-items/${id}`, { method: "DELETE" });
@@ -871,14 +889,22 @@ export default function StockPage() {
   return (
     <section className="flex flex-col gap-6 animate-fade-in pb-12">
       {/* Top Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="page-title m-0">Stok & Cihaz Yönetimi</h2>
           <p className="text-slate-500 text-xs md:text-sm m-0 mt-1">
             Ürün kartı tanımlama, envantere cihaz ekleme, tekil IMEI takibi ve alış-satış maliyet denetimi.
           </p>
         </div>
+        <button
+          type="button"
+          onClick={() => setShowErpMatrixCreator(true)}
+          className="px-5 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold text-xs rounded-2xl shadow-lg shadow-indigo-500/20 active:scale-95 transition-all flex items-center gap-2"
+        >
+          <span>⚡ ERP Hızlı Ürün Kartı & Varyant Sihirbazı</span>
+        </button>
       </div>
+
 
       {/* Tab Navigation */}
       <div className="flex border-b border-slate-200 gap-2 mb-2 overflow-x-auto scrollbar-none">
@@ -1875,6 +1901,7 @@ export default function StockPage() {
                       <th>Varsayılan Alış</th>
                       <th>Varsayılan Satış</th>
                       <th>Mevcut Stok</th>
+                      <th className="text-right">İşlemler</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1902,8 +1929,19 @@ export default function StockPage() {
                         <td className="font-semibold text-slate-700">{Number(card.purchasePrice || 0).toLocaleString("tr-TR")} TL</td>
                         <td className="font-bold text-blue-800">{Number(card.salePrice || 0).toLocaleString("tr-TR")} TL</td>
                         <td className="font-bold text-slate-900">{card.stock || 0} Adet</td>
+                        <td className="text-right" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            type="button"
+                            onClick={() => void deleteCatalogCard(card.id, card.name)}
+                            className="px-2.5 py-1 text-2xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition-colors"
+                            title="Ürün kartını sil"
+                          >
+                            Sil
+                          </button>
+                        </td>
                       </tr>
                     ))}
+
                   </tbody>
                 </table>
               )}
@@ -2088,7 +2126,16 @@ export default function StockPage() {
           setSelectedProductCardId(null);
         }}
       />
+      <ErpProductMatrixCreator
+        isOpen={showErpMatrixCreator}
+        onClose={() => setShowErpMatrixCreator(false)}
+        onCreated={() => {
+          void fetchCatalog();
+          void fetchItems();
+        }}
+      />
       {confirmDialog}
     </section>
+
   );
 }

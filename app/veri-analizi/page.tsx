@@ -260,9 +260,12 @@ export default async function VeriAnaliziPage({
 
       <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div className="sm:max-w-xl">
-          <h2 className="text-[clamp(1.8rem,3vw,2.5rem)] font-black tracking-tight text-slate-900 leading-none">Veri Analizi</h2>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold mb-2">
+            <span>📊 Mini ERP Finansal Analiz</span>
+          </div>
+          <h2 className="text-[clamp(1.8rem,3vw,2.5rem)] font-black tracking-tight text-slate-900 leading-none">Gelir - Gider & Net Kâr (P&L)</h2>
           <p className="mt-2 text-sm leading-relaxed text-slate-500 max-w-lg">
-            Ne sattım, ne aldım, ne kadar kâr ettim — gelir/gider, ürün bazlı satış/alış ve şube dağılımı, gerçek işlem kayıtlarından.
+            Satışlar, satılan malın maliyeti (COGS), işletme giderleri ve personel ödemeleriyle hesaplanan konsolide ERP Finans Tablosu.
           </p>
         </div>
         <div className="inline-flex rounded-2xl border border-slate-200 bg-white p-1 text-xs font-bold shadow-sm">
@@ -276,35 +279,39 @@ export default async function VeriAnaliziPage({
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="relative overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-6 shadow-sm">
           <div className="absolute top-0 left-0 w-full h-[3px] bg-blue-600 opacity-80" />
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Toplam Gelir</p>
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Toplam Hasılat (Gelir)</p>
           <h3 className="mt-3 text-2xl font-black text-slate-800 font-mono tracking-tight">{totalIncome.toLocaleString("tr-TR")} TL</h3>
+          <p className="mt-1 text-xs text-slate-400">POS Satışları + Teknik Servis Tahsilatları</p>
         </div>
         <div className="relative overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-6 shadow-sm">
           <div className="absolute top-0 left-0 w-full h-[3px] bg-rose-500 opacity-85" />
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Toplam Gider</p>
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} İşletme Giderleri</p>
           <h3 className="mt-3 text-2xl font-black text-rose-600 font-mono tracking-tight">{totalExpense > 0 ? "-" : ""}{totalExpense.toLocaleString("tr-TR")} TL</h3>
+          <p className="mt-1 text-xs text-slate-400">Kira, Fatura, Yemek, Kargo vb. Harcamalar</p>
         </div>
         <div className="relative overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-6 shadow-sm">
           <div className="absolute top-0 left-0 w-full h-[3px] bg-amber-500 opacity-85" />
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Net Kar</p>
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Net Faaliyet Kârı</p>
           <h3 className={`mt-3 text-2xl font-black font-mono tracking-tight ${netProfit >= 0 ? "text-emerald-600" : "text-red-600"}`}>{netProfit.toLocaleString("tr-TR")} TL</h3>
+          <p className="mt-1 text-xs text-slate-400">Konsolide Net Nakit Dengesi</p>
         </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="relative overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-6 shadow-sm">
           <div className="absolute top-0 left-0 w-full h-[3px] bg-emerald-500 opacity-85" />
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Brüt Kâr (Satış Maliyetine Göre)</p>
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Brüt Kâr Marjı (COGS Düşülmüş)</p>
           <h3 className={`mt-3 text-2xl font-black font-mono tracking-tight ${grossProfit >= 0 ? "text-emerald-600" : "text-red-600"}`}>{grossProfit.toLocaleString("tr-TR")} TL</h3>
-          <p className="mt-1 text-xs text-slate-400">Satılan ürün geliri − güncel alış fiyatına göre tahmini maliyet. Diğer giderleri (kira, maaş vb.) içermez.</p>
+          <p className="mt-1 text-xs text-slate-400">Satılan ürün geliri − güncel/kayıtlı alış maliyeti (COGS).</p>
         </div>
         <div className="relative overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-6 shadow-sm">
           <div className="absolute top-0 left-0 w-full h-[3px] bg-indigo-500 opacity-85" />
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Alınan Ürünlerin Stok Değeri</p>
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Girişi Yapılan Ürün / Stok Değeri</p>
           <h3 className="mt-3 text-2xl font-black text-slate-800 font-mono tracking-tight">{totalPurchaseCost.toLocaleString("tr-TR")} TL</h3>
-          <p className="mt-1 text-xs text-slate-400">Bu dönemde stok kartı açılan/güncellenen ürünlerin güncel stok adedi × alış fiyatı. Sonradan satılan ürünlerde güncel adet düştüğü için gerçek harcanan tutardan düşük çıkabilir.</p>
+          <p className="mt-1 text-xs text-slate-400">Bu dönemde stok girişi / toptan alımı yapılan ürünlerin toplam maliyeti.</p>
         </div>
       </div>
+
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="panel p-6 bg-white rounded-2xl border border-slate-200/80">

@@ -155,6 +155,21 @@ export function ProductCardModal({
     setProduct({ ...product, images: (product.images || []).filter((u) => u !== url) });
   }
 
+  async function deleteProductCard() {
+    if (!product) return;
+    if (!confirm(`"${product.name}" ürün kartını silmek istediğinizden emin misiniz?`)) return;
+    try {
+      const res = await fetch(`/api/products/${product.id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Silinemedi");
+      toast.success(json.message || "Ürün kartı silindi");
+      onSaved();
+      onClose();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Silinemedi");
+    }
+  }
+
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
       <div className="w-full max-w-4xl h-[85vh] bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
@@ -290,18 +305,29 @@ export function ProductCardModal({
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-2">
-          <button onClick={onClose} className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold border border-slate-200">
-            Kapat
+        <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-between items-center">
+          <button
+            type="button"
+            onClick={deleteProductCard}
+            disabled={saving || !product}
+            className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold transition-colors cursor-pointer disabled:opacity-50"
+          >
+            Ürün Kartını Sil
           </button>
-          <button onClick={saveGeneral} disabled={saving || !product} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold disabled:opacity-50">
-            {saving ? "Kaydediliyor..." : "Kaydet"}
-          </button>
+          <div className="flex gap-2">
+            <button onClick={onClose} className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold border border-slate-200">
+              Kapat
+            </button>
+            <button onClick={saveGeneral} disabled={saving || !product} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold disabled:opacity-50">
+              {saving ? "Kaydediliyor..." : "Kaydet"}
+            </button>
+          </div>
         </div>
       </div>
     </div>,
     document.body
   );
+
 }
 
 function Field({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {

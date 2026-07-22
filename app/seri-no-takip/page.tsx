@@ -112,24 +112,28 @@ export default function SerialNumberTrackingPage() {
     <section className="space-y-8 pb-12">
       <div className="space-y-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Seri Numarasi / IMEI Takibi</h2>
-          <p className="text-slate-500 text-sm mt-1">Servis, alim, envanter ve satis hareketlerini tek ekranda izleyin.</p>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold mb-2">
+            <span>🔍 SCM - Seri No / IMEI Yaşam Döngüsü</span>
+          </div>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Seri Numarası & IMEI Cihaz Takip Kartı</h2>
+          <p className="text-slate-500 text-sm mt-1">Alış faturası, servis geçmişi, parça değişimleri ve nihai satış hareketlerini tek timeline ekranda izleyin.</p>
         </div>
 
         <form onSubmit={handleSearch} className="max-w-2xl flex gap-3">
           <input
             type="text"
-            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono transition-all"
-            placeholder="IMEI veya Seri Numarasi girin..."
+            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-mono transition-all"
+            placeholder="IMEI veya Seri Numarası girin (örn: 354892019482103 veya SR-9921)..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             required
           />
-          <button type="submit" disabled={loading} className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-400 text-slate-900 font-medium rounded-xl transition-all shadow-md active:scale-95">
-            {loading ? "Sorgulaniyor..." : "Sorgula"}
+          <button type="submit" disabled={loading} className="px-6 py-3 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-700 text-white font-medium rounded-xl transition-all shadow-md active:scale-95 shrink-0">
+            {loading ? "Sorgulanıyor..." : "Sorgula"}
           </button>
         </form>
       </div>
+
 
       {result ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

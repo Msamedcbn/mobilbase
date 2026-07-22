@@ -79,6 +79,7 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
 
   const [submitting, setSubmitting] = useState(false);
   const [managedParts, setManagedParts] = useState<ManagedPartRecord[]>([]);
+  const [editingPartId, setEditingPartId] = useState<string | null>(null);
   const [manageBrand, setManageBrand] = useState<ManagedPartRecord["brand"]>("iPhone");
   const [manageModel, setManageModel] = useState("");
   const [manageCategory, setManageCategory] = useState("");
@@ -86,6 +87,7 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
   const [managePartName, setManagePartName] = useState("");
   const [managePrice, setManagePrice] = useState("");
   const [manageSaving, setManageSaving] = useState(false);
+
 
   // Fetch customers and devices on load
   useEffect(() => {
@@ -420,15 +422,36 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
     }
   };
 
+  const resetManageForm = () => {
+    setEditingPartId(null);
+    setManageModel("");
+    setManageCategory("");
+    setManagePartName("");
+    setManagePrice("");
+  };
+
+  const startEditPart = (row: ManagedPartRecord) => {
+    setEditingPartId(row.id);
+    setManageBrand(row.brand);
+    setManageModel(row.model);
+    setManageCategory(row.category);
+    setManageType(row.type);
+    setManagePartName(row.partName);
+    setManagePrice(row.price);
+    window.scrollTo({ top: 120, behavior: "smooth" });
+  };
+
   const addManagedPart = async () => {
     if (!manageModel.trim() || !manageCategory.trim() || !managePartName.trim() || !managePrice.trim()) {
-      toast.error("Marka/model/parca/fiyat alanlarini doldurun.");
+      toast.error("Marka/model/parça/fiyat alanlarını doldurun.");
       return;
     }
     setManageSaving(true);
     try {
-      const res = await fetch("/api/repair-price-items", {
-        method: "POST",
+      const url = editingPartId ? `/api/repair-price-items/${editingPartId}` : "/api/repair-price-items";
+      const method = editingPartId ? "PUT" : "POST";
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           brand: manageBrand,
@@ -440,9 +463,9 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
         }),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Kayit eklenemedi");
+      if (!res.ok) throw new Error(json.error || "Kayıt kaydedilemedi");
       const row = json.data;
-      const next: ManagedPartRecord = {
+      const updatedRecord: ManagedPartRecord = {
         id: row.id,
         brand: row.brand,
         model: row.model,
@@ -451,14 +474,17 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
         partName: row.partName,
         price: String(Number(row.price || 0)),
       };
-      setManagedParts((prev) => [next, ...prev]);
-      setManageModel("");
-      setManageCategory("");
-      setManagePartName("");
-      setManagePrice("");
-      toast.success("Parca/fiyat kaydi eklendi.");
+
+      if (editingPartId) {
+        setManagedParts((prev) => prev.map((x) => (x.id === editingPartId ? updatedRecord : x)));
+        toast.success("Parça fiyat kaydı güncellendi.");
+      } else {
+        setManagedParts((prev) => [updatedRecord, ...prev]);
+        toast.success("Yeni parça fiyat kaydı eklendi.");
+      }
+      resetManageForm();
     } catch (error: any) {
-      toast.error(error?.message || "Kayit eklenemedi.");
+      toast.error(error?.message || "İşlem başarısız.");
     } finally {
       setManageSaving(false);
     }
@@ -468,13 +494,15 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
     try {
       const res = await fetch(`/api/repair-price-items/${id}`, { method: "DELETE" });
       const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json.error || "Kayit silinemedi");
+      if (!res.ok) throw new Error(json.error || "Kayıt silinemedi");
       setManagedParts((prev) => prev.filter((x) => x.id !== id));
-      toast.success("Kayit silindi.");
+      if (editingPartId === id) resetManageForm();
+      toast.success("Kayıt silindi.");
     } catch (error: any) {
-      toast.error(error?.message || "Kayit silinemedi.");
+      toast.error(error?.message || "Kayıt silinemedi.");
     }
   };
+
 
   // Helper: map brand to manufacturer for the database
   const getSaveDetails = (modelGroup: GroupedModel) => {
@@ -728,8 +756,10 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
 
       <div className="panel" style={{ padding: "0.9rem", marginBottom: "1rem", display: "grid", gap: 8 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
-          <h3 style={{ margin: 0, fontSize: 15 }}>Parca Onarim Fiyat Yonetimi</h3>
-          <span style={{ fontSize: 12, color: "var(--muted)" }}>Marka, model, ariza, parca ve fiyat ekleyin.</span>
+          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: editingPartId ? "var(--accent)" : "var(--text)" }}>
+            {editingPartId ? "✏️ Parça Fiyat Kaydı Düzenle" : "➕ Parça & Onarım Fiyat Yönetimi"}
+          </h3>
+          <span style={{ fontSize: 12, color: "var(--muted)" }}>Marka, model, arıza, parça tipi ve fiyat tanımlayın / güncelleyin.</span>
         </div>
         <div className="form-grid-4">
           <select className="field" value={manageBrand} onChange={(e) => setManageBrand(e.target.value as ManagedPartRecord["brand"])}>
@@ -738,8 +768,8 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
             <option value="iPad">iPad</option>
             <option value="MacBook">MacBook</option>
           </select>
-          <input className="field" placeholder="Model (or: iPhone 13)" value={manageModel} onChange={(e) => setManageModel(e.target.value)} />
-          <input className="field" placeholder="Ariza Grubu (or: EKRAN DEG.)" value={manageCategory} onChange={(e) => setManageCategory(e.target.value)} />
+          <input className="field" placeholder="Model (örn: iPhone 13)" value={manageModel} onChange={(e) => setManageModel(e.target.value)} />
+          <input className="field" placeholder="Arıza Grubu (örn: EKRAN DEG.)" value={manageCategory} onChange={(e) => setManageCategory(e.target.value)} />
           <select className="field" value={manageType} onChange={(e) => setManageType(e.target.value as ManagedPartRecord["type"])}>
             <option value="original">Orijinal</option>
             <option value="equivalent">Muadil</option>
@@ -747,26 +777,42 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
           </select>
         </div>
         <div className="form-grid-4">
-          <input className="field" placeholder="Parca/Islem Adi" value={managePartName} onChange={(e) => setManagePartName(e.target.value)} />
-          <input className="field" placeholder="Fiyat (or: 3500)" value={managePrice} onChange={(e) => setManagePrice(e.target.value)} />
-          <button type="button" className="primary-btn" style={{ width: 180 }} onClick={() => void addManagedPart()} disabled={manageSaving}>
-            {manageSaving ? "Kaydediliyor..." : "Kaydi Ekle"}
-          </button>
+          <input className="field" placeholder="Parça/İşlem Adı" value={managePartName} onChange={(e) => setManagePartName(e.target.value)} />
+          <input className="field" placeholder="Fiyat (örn: 3500)" value={managePrice} onChange={(e) => setManagePrice(e.target.value)} />
+          <div style={{ display: "flex", gap: 6 }}>
+            <button type="button" className="primary-btn" style={{ flex: 1 }} onClick={() => void addManagedPart()} disabled={manageSaving}>
+              {manageSaving ? "Kaydediliyor..." : editingPartId ? "Kaydı Güncelle" : "Kaydı Ekle"}
+            </button>
+            {editingPartId && (
+              <button type="button" className="field" style={{ width: 75 }} onClick={resetManageForm}>
+                Vazgeç
+              </button>
+            )}
+          </div>
         </div>
-        <div className="panel panel-scroll" style={{ maxHeight: 180 }}>
-          {managedParts.length === 0 ? <div className="empty-box">Henuz manuel kayit yok.</div> : (
+        <div className="panel panel-scroll" style={{ maxHeight: 220 }}>
+          {managedParts.length === 0 ? <div className="empty-box">Henüz özel/düzenlenmiş parça fiyat kaydı yok.</div> : (
             <table className="data-table">
-              <thead><tr><th>Marka</th><th>Model</th><th>Ariza</th><th>Tip</th><th>Parca</th><th>Fiyat</th><th></th></tr></thead>
+              <thead><tr><th>Marka</th><th>Model</th><th>Arıza</th><th>Tip</th><th>Parça</th><th>Fiyat</th><th style={{ textAlign: "right" }}>İşlemler</th></tr></thead>
               <tbody>
                 {managedParts.map((row) => (
-                  <tr key={row.id}>
-                    <td>{row.brand}</td>
+                  <tr key={row.id} style={{ backgroundColor: editingPartId === row.id ? "#eff6ff" : undefined }}>
+                    <td><strong>{row.brand}</strong></td>
                     <td>{row.model}</td>
                     <td>{row.category}</td>
                     <td>{row.type}</td>
                     <td>{row.partName}</td>
-                    <td>{row.price} TL</td>
-                    <td><button type="button" className="field" style={{ width: 56 }} onClick={() => void deleteManagedPart(row.id)}>Sil</button></td>
+                    <td><strong className="text-blue-700">{Number(row.price).toLocaleString("tr-TR")} TL</strong></td>
+                    <td style={{ textAlign: "right" }}>
+                      <div style={{ display: "inline-flex", gap: 6 }}>
+                        <button type="button" className="field" style={{ width: 68, color: "#1d4ed8", fontWeight: 700 }} onClick={() => startEditPart(row)}>
+                          Düzenle
+                        </button>
+                        <button type="button" className="field" style={{ width: 52, color: "#dc2626" }} onClick={() => void deleteManagedPart(row.id)}>
+                          Sil
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -1076,9 +1122,46 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
                                       ></span>
                                       <span style={{ fontWeight: "600", color: text }}>{opt.name}</span>
                                     </div>
-                                    <span style={{ fontWeight: "800", color: "var(--text)" }}>
-                                      {opt.price.includes("TEKLİF") ? opt.price : `${opt.price} TL`}
-                                    </span>
+                                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                                      <span style={{ fontWeight: "800", color: "var(--text)" }}>
+                                        {opt.price.includes("TEKLİF") ? opt.price : `${opt.price} TL`}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          const existing = managedParts.find(
+                                            (m) => m.model.toLowerCase() === modelGroup.model.toLowerCase() && m.category === cat.category && m.type === opt.type
+                                          );
+                                          if (existing) {
+                                            startEditPart(existing);
+                                          } else {
+                                            setEditingPartId(null);
+                                            setManageBrand(modelGroup.brand);
+                                            setManageModel(modelGroup.model);
+                                            setManageCategory(cat.category);
+                                            setManageType(opt.type);
+                                            setManagePartName(opt.name);
+                                            setManagePrice(cleanNumericPrice(opt.price));
+                                            window.scrollTo({ top: 120, behavior: "smooth" });
+                                          }
+                                        }}
+                                        style={{
+                                          padding: "2px 8px",
+                                          fontSize: "0.7rem",
+                                          fontWeight: "700",
+                                          color: "#1d4ed8",
+                                          backgroundColor: "#ffffff",
+                                          border: "1px solid #93c5fd",
+                                          borderRadius: "6px",
+                                          cursor: "pointer",
+                                        }}
+                                        title="Bu parçanın fiyatını düzenle"
+                                      >
+                                        ✏️ Düzenle
+                                      </button>
+                                    </div>
+
                                   </div>
                                 );
                               })}

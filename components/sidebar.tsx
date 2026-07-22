@@ -14,58 +14,54 @@ type NavItem = {
 
 const navSections: Array<{ title: string; items: NavItem[] }> = [
   {
-    title: "Genel",
+    title: "📊 Genel Yönetim & Analiz",
     items: [
       { href: "/hizli-yonetim", label: "Hızlı Yönetim" },
       { href: "/dashboard", label: "Dashboard" },
-      { href: "/yardim", label: "Yardım" },
+      { href: "/veri-analizi", label: "P&L Finans & Analiz", module: "invoicing" },
     ],
   },
   {
-    title: "Operasyon",
+    title: "🛒 Satış & Müşteri (CRM/POS)",
+    items: [
+      { href: "/pos", label: "Hızlı Satış (POS)", module: "pos" },
+      { href: "/taksit-yonetimi", label: "Taksit Yönetimi", module: "invoicing" },
+      { href: "/kurumsal-teklifler", label: "Kurumsal Teklifler", module: "invoicing" },
+      { href: "/musteriler-veresiye", label: "Müşteriler & Cari", module: "invoicing" },
+    ],
+  },
+  {
+    title: "🔧 Teknik Servis & Atölye",
     items: [
       { href: "/tamir-takip", label: "Tamir Takip", module: "repairs" },
       { href: "/parca-fiyatlari", label: "Parça & Onarım Fiyatları", module: "repairs" },
-      { href: "/pos", label: "Hızlı Satış (POS)", module: "pos" },
-      { href: "/kurumsal-teklifler", label: "Kurumsal Teklifler", module: "invoicing" },
+      { href: "/ic-servis-dongusu", label: "İç Servis Döngüsü", module: "stock" },
     ],
   },
   {
-    title: "Stok ve Lojistik",
+    title: "📦 Stok & Tedarik (SCM)",
     items: [
       { href: "/stok", label: "Stok Yönetimi", module: "stock" },
-      { href: "/ic-servis-dongusu", label: "İç Servis Döngüsü", module: "stock" },
-      { href: "/toptan-alim-satis", label: "Toptan Alış / Satış", module: "stock" },
+      { href: "/seri-no-takip", label: "Seri No / IMEI Takibi", module: "stock" },
+      { href: "/toptan-alim-satis", label: "Toptan Alış & Tedarik", module: "stock" },
       { href: "/distributor-ithalat", label: "Distribütör İthalat", module: "stock" },
-      { href: "/seri-no-takip", label: "Seri No Takip", module: "stock" },
-    ],
-  },
-  {
-    title: "İkinci El ve Cihaz Alımı",
-    items: [
-      { href: "/buyback/backoffice", label: "Cihaz Alimi (Buyback)", module: "buyback" },
+      { href: "/buyback/backoffice", label: "Cihaz Alımı (Buyback)", module: "buyback" },
       { href: "/ikinci-el", label: "İkinci El İşlemleri", module: "buyback" },
     ],
   },
   {
-    title: "Finans",
+    title: "💼 Finans & İK & Şubeler",
     items: [
-      { href: "/musteriler-veresiye", label: "Müşteriler & Veresiye", module: "invoicing" },
-      { href: "/banka", label: "Banka Yönetimi", module: "invoicing" },
-      { href: "/taksit-yonetimi", label: "Taksit Yönetimi", module: "invoicing" },
-      { href: "/giderler", label: "Gider Yönetimi", module: "invoicing" },
-      { href: "/veri-analizi", label: "Veri Analizi", module: "invoicing" },
-    ],
-  },
-  {
-    title: "Yönetim",
-    items: [
+      { href: "/giderler", label: "İşletme Giderleri", module: "invoicing" },
+      { href: "/banka", label: "Kasa & Banka", module: "invoicing" },
+      { href: "/personel-yonetimi", label: "Personel & Hakediş", module: "branches" },
       { href: "/subeler", label: "Şube Yönetimi", module: "branches" },
-      { href: "/personel-yonetimi", label: "Personel Yönetimi", module: "branches" },
-      { href: "/ayarlar", label: "Ayarlar", module: "branches" },
+      { href: "/ayarlar", label: "Sistem Ayarları", module: "branches" },
+      { href: "/yardim", label: "Yardım & Destek" },
     ],
   },
 ];
+
 
 type SessionUser = {
   fullName: string;
