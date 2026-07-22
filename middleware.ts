@@ -222,7 +222,10 @@ export async function middleware(req: NextRequest) {
       }
 
       // Check branch management routes with role permissions
-      const isBranchPath = path.startsWith("/subeler") || path.startsWith("/api/branches");
+      const isBranchPath =
+        path.startsWith("/subeler") ||
+        path.startsWith("/personel-yonetimi") ||
+        path.startsWith("/api/branches");
       if (isBranchPath) {
         const rolePermissions = user.rolePermissions || {};
         const activeModules = user.activeModules || {};

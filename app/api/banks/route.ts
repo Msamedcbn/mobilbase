@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/auth";
+import { requireRole, getEffectiveTenantId } from "@/lib/auth";
 import { getErrorCode, getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { fail, ok } from "@/lib/api-response";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
@@ -8,7 +8,8 @@ import { readLocalStore, writeLocalStore, localId } from "@/lib/local-store";
 export async function GET() {
   const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN", "MANAGER"]);
   if (auth.error) return auth.error;
-  const tenantId = auth.user.tenantId;
+  const tenantId = await getEffectiveTenantId(auth.user);
+  if (!tenantId) return fail("Tenant baglami bulunamadi", "NOT_FOUND", 404);
 
   if (isDbDisabledMode()) {
     const store = await readLocalStore();
@@ -29,7 +30,8 @@ export async function GET() {
 export async function POST(req: Request) {
   const auth = requireRole(["ADMIN"]);
   if (auth.error) return auth.error;
-  const tenantId = auth.user.tenantId;
+  const tenantId = await getEffectiveTenantId(auth.user);
+  if (!tenantId) return fail("Tenant baglami bulunamadi", "NOT_FOUND", 404);
 
   try {
     const body = await req.json();
@@ -72,3 +74,4 @@ export async function POST(req: Request) {
     return fail(getErrorMessage(error), getErrorCode(error), getErrorStatus(error));
   }
 }
+

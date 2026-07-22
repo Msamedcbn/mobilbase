@@ -2,12 +2,13 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore, writeLocalStore, localId } from "@/lib/local-store";
-import { requireRole, getSessionUser } from "@/lib/auth";
+import { requireRole, getSessionUser, getEffectiveTenantId } from "@/lib/auth";
 
 export async function GET() {
   const user = getSessionUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const tenantId = user.tenantId;
+  const tenantId = await getEffectiveTenantId(user);
+  if (!tenantId) return NextResponse.json({ error: "Tenant baglami bulunamadi" }, { status: 404 });
 
   if (isDbDisabledMode()) {
     const store = await readLocalStore();
@@ -36,7 +37,8 @@ export async function GET() {
 export async function POST(req: Request) {
   const auth = requireRole(["ADMIN", "CASHIER", "MANAGER"]);
   if (auth.error) return auth.error;
-  const tenantId = auth.user.tenantId;
+  const tenantId = await getEffectiveTenantId(auth.user);
+  if (!tenantId) return NextResponse.json({ error: "Tenant baglami bulunamadi" }, { status: 404 });
 
   const body = await req.json();
 
@@ -98,3 +100,4 @@ export async function POST(req: Request) {
 
   return NextResponse.json(result, { status: 201 });
 }
+

@@ -1,5 +1,12 @@
 export type ReportPeriod = "day" | "week" | "month" | "all";
 
+// AppUser.benefits is a loosely-typed Json column (label/amount pairs, e.g. yol,
+// yemek) — this defensively sums it regardless of legacy/malformed shapes.
+export function sumBenefits(benefits: unknown): number {
+  if (!Array.isArray(benefits)) return 0;
+  return benefits.reduce((sum: number, b: any) => sum + (Number(b?.amount) || 0), 0);
+}
+
 // Resolves a period preset (or an explicit from/to pair) into concrete date
 // boundaries. Used by both the staff-performance report and its payout-posting
 // endpoint so the two always agree on exactly which window a payout covers.

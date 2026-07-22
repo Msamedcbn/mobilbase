@@ -477,10 +477,13 @@ model AppUser {
   moduleOverrides Json?
 
   // Compensation: fixed base salary plus an optional commission on either the
-  // profit or the revenue of sales attributed to this user via Transaction.soldByUserId.
+  // profit or the revenue of sales attributed to this user via Transaction.soldByUserId,
+  // plus a free-form list of recurring benefits (yol, yemek, vb.) — each
+  // { label: string, amount: number }, always added on top of baseSalary.
   baseSalary      Decimal          @default(0) @db.Decimal(10, 2)
   commissionBasis CommissionBasis  @default(NONE)
   commissionPct   Decimal          @default(0) @db.Decimal(5, 2)
+  benefits        Json?
 
   soldTransactions Transaction[]   @relation("TransactionsSoldBy")
   staffPayouts     StaffPayoutRecord[]
@@ -496,6 +499,7 @@ model StaffPayoutRecord {
   profit           Decimal  @db.Decimal(10, 2)
   baseSalary       Decimal  @db.Decimal(10, 2)
   commissionAmount Decimal  @db.Decimal(10, 2)
+  benefitsAmount   Decimal  @default(0) @db.Decimal(10, 2)
   totalPayout      Decimal  @db.Decimal(10, 2)
   accountEntryId   String?
   createdByUserId  String?

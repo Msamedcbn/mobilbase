@@ -61,6 +61,7 @@ const navSections: Array<{ title: string; items: NavItem[] }> = [
     title: "Yönetim",
     items: [
       { href: "/subeler", label: "Şube Yönetimi", module: "branches" },
+      { href: "/personel-yonetimi", label: "Personel Yönetimi", module: "branches" },
       { href: "/ayarlar", label: "Ayarlar", module: "branches" },
     ],
   },
@@ -175,6 +176,12 @@ const getIcon = (href: string) => {
         <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      );
+    case "/personel-yonetimi":
+      return (
+        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
         </svg>
       );
     case "/buyback/backoffice":

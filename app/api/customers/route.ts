@@ -1,7 +1,7 @@
-﻿import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { customerSchema } from "@/lib/validations";
 import { getErrorCode, getErrorMessage, getErrorStatus } from "@/lib/errors";
-import { requireRole, getSessionUser } from "@/lib/auth";
+import { requireRole, getSessionUser, getEffectiveTenantId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import { fail, ok } from "@/lib/api-response";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
@@ -9,7 +9,8 @@ import { localId, readLocalStore, writeLocalStore } from "@/lib/local-store";
 
 export async function GET() {
   const user = getSessionUser();
-  const tenantId = user?.tenantId || null;
+  const tenantId = await getEffectiveTenantId(user);
+
 
   if (isDbDisabledMode()) {
     const store = await readLocalStore();
@@ -297,7 +298,9 @@ export async function POST(req: Request) {
       return fail("Geçersiz müşteri verisi", "VALIDATION", 400);
     }
 
-    const tenantId = auth.user?.tenantId || null;
+    const requestedTenantId = typeof body?.tenantId === "string" ? body.tenantId : null;
+    const effectiveTenantId = await getEffectiveTenantId(auth.user);
+    const tenantId = requestedTenantId || effectiveTenantId || null;
     const payload = {
       ...parsed.data,
       nationalId: parsed.data.nationalId || null,

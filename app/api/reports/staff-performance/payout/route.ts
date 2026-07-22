@@ -1,23 +1,22 @@
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/auth";
+import { requireRole, getEffectiveTenantId } from "@/lib/auth";
 import { fail, ok } from "@/lib/api-response";
 import { getErrorCode, getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
-import { resolvePeriod } from "@/lib/reports";
+import { resolvePeriod, sumBenefits } from "@/lib/reports";
 import { writeAuditLog } from "@/lib/audit";
 
 export async function POST(req: Request) {
   const auth = requireRole(["ADMIN", "MANAGER"]);
   if (auth.error) return auth.error;
-  const tenantId = auth.user?.tenantId ?? null;
+  const tenantId = await getEffectiveTenantId(auth.user);
+  if (!tenantId) return fail("Tenant baglami bulunamadi", "NOT_FOUND", 404);
 
   if (isDbDisabledMode()) {
     return fail("Bu islem gercek veritabani gerektirir", "VALIDATION", 400);
   }
 
   try {
-    if (!tenantId) return fail("Tenant baglami bulunamadi", "NOT_FOUND", 404);
-
     const body = await req.json();
     const userId = typeof body?.userId === "string" ? body.userId : null;
     if (!userId) return fail("Personel secimi gereklidir", "VALIDATION", 400);
@@ -32,8 +31,13 @@ export async function POST(req: Request) {
       return fail("Hakediş işlemek için belirli bir dönem seçin (Tüm Zamanlar seçilemez)", "VALIDATION", 400);
     }
 
-    const staffUser = await prisma.appUser.findFirst({ where: { id: userId, tenantId } as any });
+    const staffUser = await prisma.appUser.findFirst({
+      where: { id: userId, tenantId } as any,
+    });
     if (!staffUser) return fail("Personel bulunamadi", "NOT_FOUND", 404);
+
+    const effectiveTenantId = tenantId;
+
 
     const existing = await prisma.staffPayoutRecord.findFirst({
       where: { appUserId: userId, periodStart, periodEnd },
@@ -41,17 +45,17 @@ export async function POST(req: Request) {
     if (existing) return fail("Bu dönem için hakediş zaten cariye işlenmiş", "CONFLICT", 409);
 
     const cari = await prisma.customer.findFirst({
-      where: { tenantId, email: { equals: staffUser.email, mode: "insensitive" } },
+      where: { tenantId: effectiveTenantId, email: { equals: staffUser.email, mode: "insensitive" } },
     });
     if (!cari) {
-      return fail("Bu personel için önce Şubeler > Personel ekranından cari hesap oluşturun", "VALIDATION", 400);
+      return fail("Bu personel için önce Personel Yönetimi ekranından cari hesap oluşturun", "VALIDATION", 400);
     }
 
     const items = await prisma.transactionItem.findMany({
       where: {
         transaction: {
           type: "INCOME",
-          tenantId,
+          tenantId: effectiveTenantId,
           soldByUserId: userId,
           createdAt: { gte: periodStart, lte: periodEnd },
         },
@@ -78,9 +82,11 @@ export async function POST(req: Request) {
         ? revenue * (commissionPct / 100)
         : 0;
     const baseSalary = Number(staffUser.baseSalary);
-    const totalPayout = baseSalary + commissionAmount;
+    const benefitsAmount = sumBenefits(staffUser.benefits);
+    const totalPayout = baseSalary + commissionAmount + benefitsAmount;
 
     const periodLabel = `${periodStart.toLocaleDateString("tr-TR")} – ${periodEnd.toLocaleDateString("tr-TR")}`;
+    const benefitsLabel = benefitsAmount > 0 ? ` + Ek Haklar: ${benefitsAmount.toLocaleString("tr-TR")} TL` : "";
 
     const result = await prisma.$transaction(async (tx) => {
       const accountEntry = await tx.accountEntry.create({
@@ -88,7 +94,7 @@ export async function POST(req: Request) {
           customerId: cari.id,
           type: "CREDIT",
           amount: totalPayout,
-          description: `Hakediş ${periodLabel} (Sabit: ${baseSalary.toLocaleString("tr-TR")} TL + Prim: ${commissionAmount.toLocaleString("tr-TR")} TL)`,
+          description: `Hakediş ${periodLabel} (Sabit: ${baseSalary.toLocaleString("tr-TR")} TL + Prim: ${commissionAmount.toLocaleString("tr-TR")} TL${benefitsLabel})`,
         },
       });
 
@@ -101,10 +107,11 @@ export async function POST(req: Request) {
           profit,
           baseSalary,
           commissionAmount,
+          benefitsAmount,
           totalPayout,
           accountEntryId: accountEntry.id,
           createdByUserId: auth.user?.userId,
-          tenantId,
+          tenantId: effectiveTenantId,
         },
       });
 

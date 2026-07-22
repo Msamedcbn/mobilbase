@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireRole, getSessionUser } from "@/lib/auth";
+import { requireRole, getSessionUser, getEffectiveTenantId } from "@/lib/auth";
 import { getErrorCode, getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { fail, ok } from "@/lib/api-response";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
@@ -8,7 +8,8 @@ import { readLocalStore, writeLocalStore } from "@/lib/local-store";
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   const user = getSessionUser();
   if (!user) return fail("Oturum bulunamadi", "UNAUTHORIZED", 401);
-  const tenantId = user.tenantId;
+  const tenantId = await getEffectiveTenantId(user);
+  if (!tenantId) return fail("Tenant baglami bulunamadi", "NOT_FOUND", 404);
 
   if (isDbDisabledMode()) {
     const store = await readLocalStore();
@@ -31,7 +32,8 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   const auth = requireRole(["ADMIN", "MANAGER"]);
   if (auth.error) return auth.error;
-  const tenantId = auth.user.tenantId;
+  const tenantId = await getEffectiveTenantId(auth.user);
+  if (!tenantId) return fail("Tenant baglami bulunamadi", "NOT_FOUND", 404);
 
   try {
     const body = await req.json();
@@ -59,7 +61,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     }
 
     const existing = await prisma.branch.findFirst({
-      where: { id: params.id, tenantId }
+      where: { id: params.id, tenantId },
     });
     if (!existing) return fail("Şube bulunamadı", "NOT_FOUND", 404);
 
@@ -76,7 +78,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   const auth = requireRole(["ADMIN", "MANAGER"]);
   if (auth.error) return auth.error;
-  const tenantId = auth.user.tenantId;
+  const tenantId = await getEffectiveTenantId(auth.user);
+  if (!tenantId) return fail("Tenant baglami bulunamadi", "NOT_FOUND", 404);
 
   try {
     if (isDbDisabledMode()) {
@@ -101,7 +104,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     }
 
     const existing = await prisma.branch.findFirst({
-      where: { id: params.id, tenantId }
+      where: { id: params.id, tenantId },
     });
     if (!existing) return fail("Şube bulunamadı", "NOT_FOUND", 404);
 
@@ -120,3 +123,4 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     return fail(getErrorMessage(error), getErrorCode(error), getErrorStatus(error));
   }
 }
+

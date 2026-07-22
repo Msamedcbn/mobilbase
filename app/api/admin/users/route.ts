@@ -1,5 +1,5 @@
-﻿import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { requireRole, getEffectiveTenantId } from "@/lib/auth";
 import { fail, ok } from "@/lib/api-response";
 import { getErrorCode, getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { appUserCreateSchema } from "@/lib/validations";
@@ -11,12 +11,13 @@ import { localId, readLocalStore, writeLocalStore } from "@/lib/local-store";
 export async function GET() {
   const auth = requireRole(["ADMIN", "MANAGER"]);
   if (auth.error) return auth.error;
-  const tenantId = auth.user?.tenantId ?? null;
+  const tenantId = await getEffectiveTenantId(auth.user);
+  if (!tenantId) return fail("Tenant baglami bulunamadi", "NOT_FOUND", 404);
 
   if (isDbDisabledMode()) {
     const store = await readLocalStore();
     const users = (store.users || [])
-      .filter((u) => (auth.user?.role === "PLATFORM_OWNER" ? true : u.tenantId === tenantId))
+      .filter((u) => u.tenantId === tenantId)
       .map((u) => ({
       id: u.id,
       fullName: u.fullName,
@@ -27,6 +28,8 @@ export async function GET() {
       baseSalary: (u as any).baseSalary ?? 0,
       commissionBasis: (u as any).commissionBasis ?? "NONE",
       commissionPct: (u as any).commissionPct ?? 0,
+      benefits: (u as any).benefits ?? [],
+      tenantId: u.tenantId ?? null,
       createdAt: u.createdAt || new Date().toISOString(),
       updatedAt: u.updatedAt || new Date().toISOString(),
     }));
@@ -34,8 +37,6 @@ export async function GET() {
   }
 
   try {
-    if (!tenantId) return fail("Tenant baglami bulunamadi", "NOT_FOUND", 404);
-
     const users = await prisma.appUser.findMany({
       where: { tenantId } as any,
       orderBy: { createdAt: "desc" },
@@ -49,6 +50,8 @@ export async function GET() {
         baseSalary: true,
         commissionBasis: true,
         commissionPct: true,
+        benefits: true,
+        tenantId: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -69,7 +72,7 @@ export async function POST(req: Request) {
     if (!parsed.success) return fail("Kullanici verisi geçersiz", "VALIDATION", 400);
 
     const payloadEmail = parsed.data.email.toLowerCase().trim();
-    const tenantId = auth.user?.tenantId ?? null;
+    const tenantId = await getEffectiveTenantId(auth.user);
     if (!tenantId) return fail("Tenant baglami bulunamadi", "NOT_FOUND", 404);
 
     if (isDbDisabledMode()) {
@@ -88,6 +91,8 @@ export async function POST(req: Request) {
         baseSalary: parsed.data.baseSalary ?? 0,
         commissionBasis: parsed.data.commissionBasis ?? "NONE",
         commissionPct: parsed.data.commissionPct ?? 0,
+        benefits: parsed.data.benefits ?? [],
+        tenantId,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -113,6 +118,7 @@ export async function POST(req: Request) {
         baseSalary: parsed.data.baseSalary ?? 0,
         commissionBasis: (parsed.data.commissionBasis ?? "NONE") as any,
         commissionPct: parsed.data.commissionPct ?? 0,
+        benefits: parsed.data.benefits ?? [],
         tenantId,
       } as any,
       select: {
@@ -125,6 +131,7 @@ export async function POST(req: Request) {
         baseSalary: true,
         commissionBasis: true,
         commissionPct: true,
+        benefits: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -143,4 +150,5 @@ export async function POST(req: Request) {
     return fail(getErrorMessage(error), getErrorCode(error), getErrorStatus(error));
   }
 }
+
 

@@ -131,6 +131,13 @@ export const erpSyncSchema = z.object({
 // /api/admin/users routes, and allowing PLATFORM_OWNER here lets a tenant ADMIN/MANAGER
 // self-escalate to cross-tenant super-admin. PLATFORM_OWNER accounts are managed only
 // through the Studio (platform) routes, which don't use these schemas.
+// Recurring flat benefits (yol, yemek, vb.) added on top of baseSalary — a free-form
+// label + amount list so the owner isn't limited to a fixed set of benefit types.
+const benefitSchema = z.object({
+  label: z.string().trim().min(1).max(60),
+  amount: z.number().nonnegative(),
+});
+
 export const appUserCreateSchema = z.object({
   fullName: z.string().trim().min(3),
   email: z.string().email(),
@@ -140,6 +147,7 @@ export const appUserCreateSchema = z.object({
   baseSalary: z.number().nonnegative().optional(),
   commissionBasis: z.enum(["NONE", "PROFIT", "REVENUE"]).optional(),
   commissionPct: z.number().min(0).max(100).optional(),
+  benefits: z.array(benefitSchema).optional(),
 });
 
 export const appUserUpdateSchema = z.object({
@@ -150,6 +158,7 @@ export const appUserUpdateSchema = z.object({
   baseSalary: z.number().nonnegative().optional(),
   commissionBasis: z.enum(["NONE", "PROFIT", "REVENUE"]).optional(),
   commissionPct: z.number().min(0).max(100).optional(),
+  benefits: z.array(benefitSchema).optional(),
 });
 
 export const pdfSettingsSchema = z.object({

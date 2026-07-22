@@ -28,6 +28,7 @@ export type LocalStore = {
     baseSalary?: number;
     commissionBasis?: "NONE" | "PROFIT" | "REVENUE";
     commissionPct?: number;
+    benefits?: Array<{ label: string; amount: number }>;
     createdAt?: string;
     updatedAt?: string;
   }>;

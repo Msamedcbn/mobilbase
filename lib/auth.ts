@@ -1,6 +1,9 @@
 import { cookies } from "next/headers";
 import { fail } from "@/lib/api-response";
 import { verifySignedSessionToken } from "@/lib/session";
+import { prisma } from "@/lib/prisma";
+import { isDbDisabledMode } from "@/lib/runtime-mode";
+import { readLocalStore } from "@/lib/local-store";
 
 export type SessionUser = {
   userId: string;
@@ -42,3 +45,26 @@ export function requireRole(allowed: SessionUser["role"][]) {
 
   return { error: null, user };
 }
+
+export async function getEffectiveTenantId(user: SessionUser | null): Promise<string | null> {
+  if (!user) return null;
+  if (user.tenantId) return user.tenantId;
+
+  if (user.role === "PLATFORM_OWNER" || user.role === "STUDIO_OPERATOR") {
+    const tenantName = process.env.TENANT_NAME ?? "VibeGSM";
+    if (isDbDisabledMode()) {
+      const store = await readLocalStore();
+      const customer = store.customers?.find((c) => c.fullName === tenantName);
+      return customer?.id ?? null;
+    } else {
+      const customer = await prisma.customer.findFirst({
+        where: { fullName: tenantName },
+        select: { id: true },
+      });
+      return customer?.id ?? null;
+    }
+  }
+
+  return null;
+}
+

@@ -1,18 +1,17 @@
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/auth";
+import { requireRole, getEffectiveTenantId } from "@/lib/auth";
 import { fail, ok } from "@/lib/api-response";
 import { getErrorCode, getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
-import { resolvePeriod } from "@/lib/reports";
+import { resolvePeriod, sumBenefits } from "@/lib/reports";
 
 export async function GET(req: Request) {
   const auth = requireRole(["ADMIN", "MANAGER"]);
   if (auth.error) return auth.error;
-  const tenantId = auth.user?.tenantId ?? null;
+  const tenantId = await getEffectiveTenantId(auth.user);
+  if (!tenantId) return fail("Tenant baglami bulunamadi", "NOT_FOUND", 404);
 
   try {
-    if (!tenantId) return fail("Tenant baglami bulunamadi", "NOT_FOUND", 404);
-
     const { searchParams } = new URL(req.url);
     const { periodStart, periodEnd } = resolvePeriod(searchParams);
 
@@ -31,6 +30,8 @@ export async function GET(req: Request) {
           baseSalary: 0,
           commissionBasis: "NONE",
           commissionPct: 0,
+          benefits: [],
+          benefitsAmount: 0,
           salesCount: 0,
           revenue: 0,
           cost: 0,
@@ -51,6 +52,7 @@ export async function GET(req: Request) {
         baseSalary: true,
         commissionBasis: true,
         commissionPct: true,
+        benefits: true,
       },
     });
 
@@ -100,7 +102,8 @@ export async function GET(req: Request) {
       const commissionPct = Number(u.commissionPct);
       const commissionAmount =
         u.commissionBasis === "PROFIT" ? profit * (commissionPct / 100) : u.commissionBasis === "REVENUE" ? revenue * (commissionPct / 100) : 0;
-      const totalPayout = Number(u.baseSalary) + commissionAmount;
+      const benefitsAmount = sumBenefits(u.benefits);
+      const totalPayout = Number(u.baseSalary) + commissionAmount + benefitsAmount;
       return {
         userId: u.id,
         fullName: u.fullName,
@@ -108,6 +111,8 @@ export async function GET(req: Request) {
         baseSalary: Number(u.baseSalary),
         commissionBasis: u.commissionBasis,
         commissionPct,
+        benefits: Array.isArray(u.benefits) ? u.benefits : [],
+        benefitsAmount,
         salesCount: agg?.saleIds.size ?? 0,
         revenue,
         cost,
@@ -128,3 +133,4 @@ export async function GET(req: Request) {
     return fail(getErrorMessage(error), getErrorCode(error), getErrorStatus(error));
   }
 }
+
