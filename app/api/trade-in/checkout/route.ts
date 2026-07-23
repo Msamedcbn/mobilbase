@@ -82,6 +82,14 @@ export async function POST(req: Request) {
     const differenceAmount = Math.max(0, grossAmount - buybackCredit);
 
     const result = await prisma.$transaction(async (tx) => {
+      const stockItem = await tx.stockItem.findFirst({
+        where: { sku: product.barcode, tenantId },
+        select: { quantity: true },
+      });
+      if (stockItem && stockItem.quantity < quantity) {
+        return { error: fail(`Stok kartı miktarı yetersiz (Mevcut: ${stockItem.quantity})`, "STOCK", 409) };
+      }
+
       if (branchId) {
         const branchStock = await tx.productBranchStock.findUnique({
           where: { productId_branchId: { productId, branchId } },

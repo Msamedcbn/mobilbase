@@ -3,7 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { compareSync } from "bcryptjs";
 import { getErrorCode, getErrorMessage, getErrorStatus } from "@/lib/errors";
-import { getDemoAuthUser, isDbDisabledMode } from "@/lib/runtime-mode";
+import { getDemoAuthUser, isDbDisabledMode, type DemoAuthUser } from "@/lib/runtime-mode";
 import { readLocalStore } from "@/lib/local-store";
 import { createSignedSessionToken } from "@/lib/session";
 import { isTenantFrozenFromNotes } from "@/lib/tenant-metadata";
@@ -25,11 +25,12 @@ export async function POST(req: Request) {
   const isHttpsBaseUrl = (process.env.APP_BASE_URL ?? "").toLowerCase().startsWith("https://");
   const secureCookie = process.env.NODE_ENV === "production" ? isHttpsBaseUrl : false;
 
-  const createResponseWithSession = (payload: { 
-    userId: string; 
-    email: string; 
-    fullName: string; 
+  const createResponseWithSession = (payload: {
+    userId: string;
+    email: string;
+    fullName: string;
     role: "PLATFORM_OWNER" | "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT" | "STUDIO_OPERATOR";
+    tenantId?: string | null;
     expiresAt: number;
     rolePermissions?: Record<string, string[]>;
     activeModules?: Record<string, boolean>;
@@ -99,16 +100,41 @@ export async function POST(req: Request) {
 
     if (isDbDisabledMode()) {
       const demo = getDemoAuthUser();
-      if (parsed.data.email.toLowerCase() !== demo.email || parsed.data.password !== demo.password) {
+      // Dev/demo-only test accounts covering every role, so the app can be exercised
+      // end-to-end without a real database. Only reachable when DB_DISABLED_MODE=true.
+      const DEMO_TEST_ACCOUNTS: Array<{ email: string; password: string; fullName: string; role: DemoAuthUser["role"] | "STUDIO_OPERATOR" }> = [
+        { email: demo.email, password: demo.password, fullName: demo.fullName, role: demo.role },
+        { email: "owner@vibegsm.local", password: "Owner123!", fullName: "Platform Sahibi (Test)", role: "PLATFORM_OWNER" },
+        { email: "manager@vibegsm.local", password: "Manager123!", fullName: "Şube Müdürü (Test)", role: "MANAGER" },
+        { email: "cashier@vibegsm.local", password: "Cashier123!", fullName: "Kasiyer (Test)", role: "CASHIER" },
+        { email: "tech@vibegsm.local", password: "Tech123!", fullName: "Teknisyen (Test)", role: "TECHNICIAN" },
+        { email: "accountant@vibegsm.local", password: "Accountant123!", fullName: "Muhasebeci (Test)", role: "ACCOUNTANT" },
+        { email: "studio@vibegsm.local", password: "Studio123!", fullName: "Studio Operatörü (Test)", role: "STUDIO_OPERATOR" },
+      ];
+
+      const account = DEMO_TEST_ACCOUNTS.find(
+        (a) => a.email === parsed.data.email.toLowerCase() && a.password === parsed.data.password,
+      );
+      if (!account) {
         return NextResponse.json({ error: "E-posta veya sifre hatali" }, { status: 401 });
       }
-      const tenantConf = await getTenantConfig();
+
+      const needsTenant = account.role !== "PLATFORM_OWNER" && account.role !== "STUDIO_OPERATOR";
+      let demoTenantId: string | null = null;
+      if (needsTenant) {
+        const tenantName = process.env.TENANT_NAME ?? "VibeGSM";
+        const store = await readLocalStore();
+        demoTenantId = store.customers.find((c) => c.fullName === tenantName)?.id ?? null;
+      }
+
+      const tenantConf = await getTenantConfig(demoTenantId);
       const expiresAt = Date.now() + 1000 * 60 * 60 * 8;
       return createResponseWithSession({
-        userId: "demo-admin",
-        email: demo.email,
-        fullName: demo.fullName,
-        role: demo.role as any,
+        userId: `demo-${account.role.toLowerCase()}`,
+        email: account.email,
+        fullName: account.fullName,
+        role: account.role as any,
+        tenantId: demoTenantId,
         expiresAt,
         rolePermissions: tenantConf.rolePermissions,
         activeModules: tenantConf.activeModules,

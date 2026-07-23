@@ -58,6 +58,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       buybackDealId,
     } = body;
 
+    if (quantity !== undefined && Number(quantity) < 0) {
+      return NextResponse.json({ error: "Stok miktarı negatif olamaz." }, { status: 400 });
+    }
+
     if (isDbDisabledMode()) {
       const store = await readLocalStore();
       if (!store.stockItems) store.stockItems = [];

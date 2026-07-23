@@ -127,6 +127,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "SKU ve ürün adı zorunludur." }, { status: 400 });
     }
 
+    if (Number(quantity || 0) < 0) {
+      return NextResponse.json({ error: "Stok miktarı negatif olamaz." }, { status: 400 });
+    }
+
     const isSerialized = Boolean(requiresSerialNumber);
     const cleanImei = imei ? imei.trim() : null;
 

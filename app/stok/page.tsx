@@ -135,6 +135,7 @@ export default function StockPage() {
   const [loadingSeed, setLoadingSeed] = useState(false);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("ALL");
+  const [showOutOfStock, setShowOutOfStock] = useState(false);
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkPriceMode, setBulkPriceMode] = useState<"FIXED" | "MARKUP">("FIXED");
@@ -361,13 +362,14 @@ export default function StockPage() {
     const term = search.trim().toLowerCase();
     return items.filter((item) => {
       if (item.isBuybackItem) return false;
+      if (!showOutOfStock && Number(item.quantity) <= 0) return false;
       if (categoryFilter !== "ALL" && item.category !== categoryFilter) return false;
       if (!term) return true;
       return `${item.sku} ${item.name} ${item.category} ${item.imei || ""} ${item.serialNumber || ""}`
         .toLowerCase()
         .includes(term);
     });
-  }, [items, search, categoryFilter]);
+  }, [items, search, categoryFilter, showOutOfStock]);
 
   const buybackItems = useMemo(() => {
     return items
@@ -1028,6 +1030,15 @@ export default function StockPage() {
                   );
                 })}
               </div>
+
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 whitespace-nowrap px-1 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={showOutOfStock}
+                  onChange={(e) => setShowOutOfStock(e.target.checked)}
+                />
+                Stokta olmayanları da göster
+              </label>
             </div>
 
             {selectedIds.size > 0 && (
@@ -1120,13 +1131,20 @@ export default function StockPage() {
                             </span>
                           </td>
                           <td>
-                            {item.condition ? (
-                              <span className="bg-indigo-50 border border-indigo-100 text-indigo-700 text-2xs px-2 py-0.5 rounded font-bold">
-                                {item.condition}
-                              </span>
-                            ) : (
-                              <span className="text-slate-400">-</span>
-                            )}
+                            <div className="flex flex-col gap-1 items-start">
+                              {Number(item.quantity) <= 0 && (
+                                <span className="bg-slate-100 border border-slate-200 text-slate-500 text-2xs px-2 py-0.5 rounded font-bold">
+                                  Pasif
+                                </span>
+                              )}
+                              {item.condition ? (
+                                <span className="bg-indigo-50 border border-indigo-100 text-indigo-700 text-2xs px-2 py-0.5 rounded font-bold">
+                                  {item.condition}
+                                </span>
+                              ) : Number(item.quantity) > 0 ? (
+                                <span className="text-slate-400">-</span>
+                              ) : null}
+                            </div>
                           </td>
                           <td className="font-mono text-xs">
                             {item.imei ? (

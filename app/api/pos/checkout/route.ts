@@ -136,6 +136,9 @@ export async function POST(req: Request) {
           const stockItem = localStockById.get(item.productId) as any;
           const sellabilityError = validateBuybackSellability(stockItem);
           if (sellabilityError) return fail(sellabilityError, "VALIDATION", 400);
+          if (stockItem && Number(stockItem.quantity) < item.quantity) {
+            return fail(`Bu ürün için stok kartı miktarı yetersiz (Mevcut: ${stockItem.quantity})`, "STOCK", 409);
+          }
         }
         // Decrement
         for (const item of items) {
@@ -312,7 +315,7 @@ export async function POST(req: Request) {
         productMap = new Map(products.map((p) => [p.id, p]));
         const stockItems = await tx.stockItem.findMany({
           where: { tenantId, sku: { in: products.map((p) => p.barcode) } },
-          select: { sku: true, isBuybackItem: true, buybackSaleEnabled: true, buybackProcessStatus: true, name: true },
+          select: { sku: true, quantity: true, isBuybackItem: true, buybackSaleEnabled: true, buybackProcessStatus: true, name: true },
         });
         const stockItemBySku = new Map(stockItems.map((s) => [s.sku, s]));
 
@@ -326,6 +329,9 @@ export async function POST(req: Request) {
           if (sellabilityError) return { error: fail(sellabilityError, "VALIDATION", 400) };
           if (currentStock < item.quantity) {
             return { error: fail(`${product.name} için şube stoğu yetersiz (Stok: ${currentStock})`, "STOCK", 409) };
+          }
+          if (stockItem && stockItem.quantity < item.quantity) {
+            return { error: fail(`${product.name} için stok kartı miktarı yetersiz (Stok: ${stockItem.quantity})`, "STOCK", 409) };
           }
         }
 
@@ -352,7 +358,7 @@ export async function POST(req: Request) {
         productMap = new Map(products.map((p) => [p.id, p]));
         const stockItems = await tx.stockItem.findMany({
           where: { tenantId, sku: { in: products.map((p) => p.barcode) } },
-          select: { sku: true, isBuybackItem: true, buybackSaleEnabled: true, buybackProcessStatus: true, name: true },
+          select: { sku: true, quantity: true, isBuybackItem: true, buybackSaleEnabled: true, buybackProcessStatus: true, name: true },
         });
         const stockItemBySku = new Map(stockItems.map((s) => [s.sku, s]));
 
@@ -363,6 +369,9 @@ export async function POST(req: Request) {
           const sellabilityError = validateBuybackSellability(stockItem);
           if (sellabilityError) return { error: fail(sellabilityError, "VALIDATION", 400) };
           if (product.stock < item.quantity) return { error: fail(`${product.name} icin stok yetersiz`, "STOCK", 409) };
+          if (stockItem && stockItem.quantity < item.quantity) {
+            return { error: fail(`${product.name} için stok kartı miktarı yetersiz (Stok: ${stockItem.quantity})`, "STOCK", 409) };
+          }
         }
 
         for (const item of items) {

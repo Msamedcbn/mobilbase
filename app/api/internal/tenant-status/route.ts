@@ -28,7 +28,12 @@ export async function GET(req: Request) {
       ? isTenantFrozenFromNotes(store.customers.find((c) => c.id === tenantId)?.notes)
       : false;
     const localUser = userId ? (store.users || []).find((u) => u.id === userId) : undefined;
-    const userActive = userId ? (localUser ? localUser.isActive !== false : false) : true;
+    // "demo-*" ids are synthetic DB_DISABLED_MODE test accounts (see app/api/auth/login),
+    // not real store.users rows, so they'd otherwise look deactivated and get logged out.
+    const isSyntheticDemoUser = userId?.startsWith("demo-") ?? false;
+    const userActive = userId
+      ? (isSyntheticDemoUser ? true : localUser ? localUser.isActive !== false : false)
+      : true;
     return NextResponse.json({ frozen, userActive });
   }
 
