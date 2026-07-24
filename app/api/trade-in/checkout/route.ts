@@ -84,11 +84,21 @@ export async function POST(req: Request) {
     const result = await prisma.$transaction(async (tx) => {
       const stockItem = await tx.stockItem.findFirst({
         where: { sku: product.barcode, tenantId },
-        select: { quantity: true },
+        select: { id: true, quantity: true, imei: true },
       });
       if (stockItem && stockItem.quantity < quantity) {
         return { error: fail(`Stok kartı miktarı yetersiz (Mevcut: ${stockItem.quantity})`, "STOCK", 409) };
       }
+
+      const decrementStockItem = async () => {
+        if (!stockItem) return;
+        const remaining = stockItem.quantity - quantity;
+        if (stockItem.imei && remaining <= 0) {
+          await tx.stockItem.delete({ where: { id: stockItem.id } });
+        } else {
+          await tx.stockItem.update({ where: { id: stockItem.id }, data: { quantity: { decrement: quantity } } });
+        }
+      };
 
       if (branchId) {
         const branchStock = await tx.productBranchStock.findUnique({
@@ -100,17 +110,11 @@ export async function POST(req: Request) {
           where: { productId_branchId: { productId, branchId } },
           data: { stock: { decrement: quantity } },
         });
-        await tx.stockItem.updateMany({
-          where: { sku: product.barcode, tenantId },
-          data: { quantity: { decrement: quantity } },
-        });
+        await decrementStockItem();
       } else {
         if (product.stock < quantity) return { error: fail("Stok yetersiz", "STOCK", 409) };
         await tx.product.update({ where: { id: productId }, data: { stock: { decrement: quantity } } });
-        await tx.stockItem.updateMany({
-          where: { sku: product.barcode, tenantId },
-          data: { quantity: { decrement: quantity } },
-        });
+        await decrementStockItem();
       }
       return tx.transaction.create({
         data: {

@@ -150,7 +150,14 @@ export async function POST(req: Request) {
           }
           const sItemIndex = store.stockItems.findIndex((s) => s.id === item.productId);
           if (sItemIndex !== -1) {
-            store.stockItems[sItemIndex].quantity -= item.quantity;
+            const stockItem = store.stockItems[sItemIndex] as any;
+            const remaining = Number(stockItem.quantity) - item.quantity;
+            if (stockItem.imei && remaining <= 0) {
+              store.stockItems.splice(sItemIndex, 1);
+              store.productBranchStocks = store.productBranchStocks.filter((s) => s.productId !== item.productId);
+            } else {
+              stockItem.quantity = remaining;
+            }
           }
         }
       } else {
@@ -169,7 +176,13 @@ export async function POST(req: Request) {
         for (const item of items) {
           const sItemIndex = store.stockItems.findIndex((s) => s.id === item.productId);
           if (sItemIndex !== -1) {
-            store.stockItems[sItemIndex].quantity -= item.quantity;
+            const stockItem = store.stockItems[sItemIndex] as any;
+            const remaining = Number(stockItem.quantity) - item.quantity;
+            if (stockItem.imei && remaining <= 0) {
+              store.stockItems.splice(sItemIndex, 1);
+            } else {
+              stockItem.quantity = remaining;
+            }
           }
         }
       }
@@ -315,7 +328,7 @@ export async function POST(req: Request) {
         productMap = new Map(products.map((p) => [p.id, p]));
         const stockItems = await tx.stockItem.findMany({
           where: { tenantId, sku: { in: products.map((p) => p.barcode) } },
-          select: { sku: true, quantity: true, isBuybackItem: true, buybackSaleEnabled: true, buybackProcessStatus: true, name: true },
+          select: { id: true, sku: true, quantity: true, imei: true, isBuybackItem: true, buybackSaleEnabled: true, buybackProcessStatus: true, name: true },
         });
         const stockItemBySku = new Map(stockItems.map((s) => [s.sku, s]));
 
@@ -346,11 +359,17 @@ export async function POST(req: Request) {
             data: { stock: { decrement: item.quantity } },
           });
           const product = productMap.get(item.productId);
-          if (product) {
-            await tx.stockItem.updateMany({
-              where: { sku: product.barcode, tenantId },
-              data: { quantity: { decrement: item.quantity } },
-            });
+          const stockItem = product ? stockItemBySku.get(product.barcode) : undefined;
+          if (stockItem) {
+            const remaining = stockItem.quantity - item.quantity;
+            // Serialized (IMEI) stock cards represent a single unique unit — once sold
+            // there is nothing left to restock, so remove the card instead of leaving
+            // a zeroed-out row behind.
+            if (stockItem.imei && remaining <= 0) {
+              await tx.stockItem.delete({ where: { id: stockItem.id } });
+            } else {
+              await tx.stockItem.update({ where: { id: stockItem.id }, data: { quantity: { decrement: item.quantity } } });
+            }
           }
         }
       } else {
@@ -358,7 +377,7 @@ export async function POST(req: Request) {
         productMap = new Map(products.map((p) => [p.id, p]));
         const stockItems = await tx.stockItem.findMany({
           where: { tenantId, sku: { in: products.map((p) => p.barcode) } },
-          select: { sku: true, quantity: true, isBuybackItem: true, buybackSaleEnabled: true, buybackProcessStatus: true, name: true },
+          select: { id: true, sku: true, quantity: true, imei: true, isBuybackItem: true, buybackSaleEnabled: true, buybackProcessStatus: true, name: true },
         });
         const stockItemBySku = new Map(stockItems.map((s) => [s.sku, s]));
 
@@ -377,11 +396,14 @@ export async function POST(req: Request) {
         for (const item of items) {
           await tx.product.update({ where: { id: item.productId }, data: { stock: { decrement: item.quantity } } });
           const product = productMap.get(item.productId);
-          if (product) {
-            await tx.stockItem.updateMany({
-              where: { sku: product.barcode, tenantId },
-              data: { quantity: { decrement: item.quantity } },
-            });
+          const stockItem = product ? stockItemBySku.get(product.barcode) : undefined;
+          if (stockItem) {
+            const remaining = stockItem.quantity - item.quantity;
+            if (stockItem.imei && remaining <= 0) {
+              await tx.stockItem.delete({ where: { id: stockItem.id } });
+            } else {
+              await tx.stockItem.update({ where: { id: stockItem.id }, data: { quantity: { decrement: item.quantity } } });
+            }
           }
         }
       }

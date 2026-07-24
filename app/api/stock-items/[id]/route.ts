@@ -73,6 +73,20 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       }
 
       const existing = store.stockItems[idx];
+      const effectiveImei = imei !== undefined ? (imei?.trim() || null) : ((existing as any).imei ?? null);
+      if (effectiveImei) {
+        const dup = store.stockItems.some(
+          (x) =>
+            x.id !== params.id &&
+            (x as any).imei &&
+            (x as any).imei.toLowerCase() === effectiveImei.toLowerCase() &&
+            x.quantity > 0 &&
+            (x as any).tenantId === (existing as any).tenantId,
+        );
+        if (dup) {
+          return NextResponse.json({ error: `Bu IMEI numarası (${effectiveImei}) zaten stokta mevcut.` }, { status: 400 });
+        }
+      }
       const updatedItem = {
         ...existing,
         sku: sku !== undefined ? sku.trim() : existing.sku,
@@ -134,6 +148,21 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     const existingItem = await prisma.stockItem.findFirst({ where: { id: params.id, tenantId: auth.user.tenantId } });
     if (!existingItem) {
       return NextResponse.json({ error: "Urun bulunamadi." }, { status: 404 });
+    }
+
+    const effectiveImei = imei !== undefined ? (imei?.trim() || null) : existingItem.imei;
+    if (effectiveImei) {
+      const dup = await prisma.stockItem.findFirst({
+        where: {
+          id: { not: params.id },
+          imei: { equals: effectiveImei, mode: "insensitive" },
+          quantity: { gte: 1 },
+          tenantId: auth.user.tenantId,
+        },
+      });
+      if (dup) {
+        return NextResponse.json({ error: `Bu IMEI numarası (${effectiveImei}) zaten stokta mevcut (SKU: ${dup.sku}).` }, { status: 400 });
+      }
     }
 
     const hasBuybackCols = await supportsStockItemBuybackColumns();

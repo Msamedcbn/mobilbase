@@ -149,8 +149,16 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       }
 
       if (nextStatus === "COMPLETED" && current.status !== "COMPLETED") {
-        const existingStock = (store.stockItems || []).find((s: any) => s.buybackDealId === current.id && s.tenantId === auth.user.tenantId);
         const device = (store.devices || []).find((d) => d.id === current.deviceId);
+        // Guard against phantom duplicate inventory: a StockItem for this exact deal
+        // may already exist (re-triggered completion), or a StockItem carrying the
+        // same physical IMEI may already exist and still be in stock (manual entry,
+        // another buyback deal). Either case must skip creation, not add a duplicate.
+        const existingStock = (store.stockItems || []).find(
+          (s: any) =>
+            s.tenantId === auth.user.tenantId &&
+            (s.buybackDealId === current.id || (device?.imei && s.imei === device.imei && Number(s.quantity) > 0)),
+        );
         if (!existingStock && device) {
           const now = new Date().toISOString();
           const stockItemId = `stock-item-${Math.random().toString(36).slice(2, 11)}`;
@@ -254,10 +262,9 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         const existingStock = await tx.stockItem.findFirst({
           where: {
             tenantId: auth.user.tenantId,
-            isActive: true,
             OR: [
               { buybackDealId: current.id },
-              ...(device?.imei ? [{ imei: device.imei }] : []),
+              ...(device?.imei ? [{ imei: device.imei, quantity: { gte: 1 } }] : []),
             ],
           },
           select: { id: true },
