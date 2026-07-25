@@ -247,6 +247,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       entityId: updated.id,
       detail: `Stok Karti Guncellendi: ${updated.sku} - ${updated.name} (Adet: ${updated.quantity}, Fiyat: ${updated.salePrice} TL)`,
       actorUserId: auth.user?.userId,
+      tenantId: auth.user?.tenantId ?? null,
     });
 
     return NextResponse.json(updated);
@@ -311,6 +312,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
         entityId: params.id,
         detail: `Stok Karti Silindi: ${item.sku} - ${item.name}`,
         actorUserId: auth.user?.userId,
+        tenantId: auth.user?.tenantId ?? null,
       });
 
       return NextResponse.json({ success: true });
@@ -330,6 +332,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
           entityId: params.id,
           detail: `Stok Karti Arsivlendi (satis gecmisi oldugu icin tam silinemedi): ${item.sku} - ${item.name}`,
           actorUserId: auth.user?.userId,
+          tenantId: auth.user?.tenantId ?? null,
         });
 
         return NextResponse.json({

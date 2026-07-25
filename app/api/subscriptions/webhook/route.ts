@@ -1,19 +1,37 @@
 import { NextResponse } from "next/server";
 import { verifyWebhookSignature, parseLsWebhook } from "@/lib/lemonsqueezy";
-import { readLocalStore, writeLocalStore } from "@/lib/local-store";
+import { findTenantById, updateTenantMetadata } from "@/lib/tenant-store";
+import { logStudioAction } from "@/lib/studio-audit";
 import { normalizeLedgerEntry } from "@/lib/studio-finance";
+import type { TenantMetadata } from "@/lib/tenant-metadata";
 
 /**
  * POST /api/subscriptions/webhook
  * LemonSqueezy'den gelen webhook olaylarını işler.
  *
  * Desteklenen olaylar:
- *   subscription_created       → tenant lisansını güncelle
- *   subscription_updated       → abonelik durumu değişikliği
+ *   subscription_created         → tenant lisansını güncelle
+ *   subscription_updated         → abonelik durumu değişikliği
  *   subscription_payment_success → billing ledger'a tahsilat ekle
- *   subscription_cancelled     → tenant'ı dondur
- *   subscription_expired       → lisansı bitir
+ *   subscription_cancelled       → dönem sonuna kadar aktif kalır
+ *   subscription_expired/paused  → tenant'ı dondur
+ *
+ * State is written through lib/tenant-store, which targets the database when one
+ * is configured. This route previously wrote only to the process-local JSON
+ * store, so on a real deployment paid subscriptions never reached the tenant
+ * record the application actually reads.
  */
+
+const HANDLED_EVENTS = new Set([
+  "subscription_created",
+  "subscription_updated",
+  "subscription_payment_success",
+  "subscription_cancelled",
+  "subscription_expired",
+  "subscription_paused",
+  "subscription_unpaused",
+]);
+
 export async function POST(req: Request) {
   const rawBody = await req.text();
   const signatureHeader = req.headers.get("x-signature") ?? "";
@@ -36,7 +54,10 @@ export async function POST(req: Request) {
 
   console.log(`[ls-webhook] ${eventName} — tenant: ${tenantId || "(bilinmiyor)"}`);
 
-  const store = await readLocalStore();
+  if (!HANDLED_EVENTS.has(eventName)) {
+    console.log(`[ls-webhook] Bilinmeyen olay: ${eventName} — işlem atlandı`);
+    return NextResponse.json({ received: true });
+  }
 
   if (!tenantId) {
     // tenant_id yoksa sadece logla
@@ -44,18 +65,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ received: true });
   }
 
-  const customerIdx = store.customers.findIndex((c) => c.id === tenantId);
-  if (customerIdx === -1) {
+  const tenant = await findTenantById(tenantId);
+  if (!tenant) {
     console.warn(`[ls-webhook] tenant ${tenantId} bulunamadı`);
     return NextResponse.json({ received: true });
-  }
-
-  const customer = store.customers[customerIdx];
-  let meta: Record<string, any> = {};
-  try {
-    meta = customer.notes ? JSON.parse(customer.notes) : {};
-  } catch {
-    meta = {};
   }
 
   const subscriptionId = String(event.data.id);
@@ -63,107 +76,112 @@ export async function POST(req: Request) {
   const variantId = String(attrs.variant_id ?? "");
   const currentPeriodEnd: string = attrs.current_period_end ?? "";
   const renewsAt: string | null = attrs.renews_at ?? null;
-  const endsAt: string | null = attrs.ends_at ?? null;
   const productName: string = attrs.product_name ?? "";
 
-  // LS abonelik alanlarını güncelle
-  meta.lsSubscriptionId = subscriptionId;
-  meta.lsSubscriptionStatus = status;
-  meta.lsVariantId = variantId;
-  meta.lsCustomerId = String(attrs.customer_id ?? "");
-  meta.lsCurrentPeriodEnd = currentPeriodEnd;
-  meta.lsRenewsAt = renewsAt;
-  meta.lsProductName = productName;
+  const applied = await updateTenantMetadata(tenantId, (current) => {
+    const meta = { ...current } as TenantMetadata & Record<string, any>;
 
-  switch (eventName) {
-    case "subscription_created": {
-      // Plan bilgisini custom_data'dan al
-      const plan = customData.plan as string | undefined;
-      if (plan && ["Lite", "Service", "Pro", "Enterprise"].includes(plan)) {
-        meta.plan = plan;
+    // LS abonelik alanlarını güncelle
+    meta.lsSubscriptionId = subscriptionId;
+    meta.lsSubscriptionStatus = status;
+    meta.lsVariantId = variantId;
+    meta.lsCustomerId = String(attrs.customer_id ?? "");
+    meta.lsCurrentPeriodEnd = currentPeriodEnd;
+    meta.lsRenewsAt = renewsAt;
+    meta.lsProductName = productName;
+
+    switch (eventName) {
+      case "subscription_created": {
+        // Plan bilgisini custom_data'dan al
+        const plan = customData.plan as string | undefined;
+        if (plan && ["Lite", "Service", "Pro", "Enterprise"].includes(plan)) {
+          meta.plan = plan;
+        }
+        // Lisans bitiş tarihini current_period_end olarak ayarla
+        if (currentPeriodEnd) meta.licenseEnd = currentPeriodEnd.split("T")[0];
+        meta.isFrozen = false;
+        meta.isTrial = false;
+        meta.leadStatus = "WON";
+        break;
       }
-      // Lisans bitiş tarihini current_period_end olarak ayarla
-      if (currentPeriodEnd) {
-        meta.licenseEnd = currentPeriodEnd.split("T")[0];
+
+      case "subscription_updated": {
+        if (status === "active") meta.isFrozen = false;
+        if (currentPeriodEnd) meta.licenseEnd = currentPeriodEnd.split("T")[0];
+        break;
       }
-      meta.isFrozen = false;
-      meta.leadStatus = "WON";
-      console.log(`[ls-webhook] Abonelik oluşturuldu — tenant ${tenantId}, plan: ${plan}`);
-      break;
+
+      case "subscription_payment_success": {
+        const amount = Number(attrs.total ?? 0) / 100; // cents → USD
+        const billingReason = attrs.billing_reason ?? "subscription";
+
+        // LemonSqueezy retries webhooks until it gets a 2xx, and the previous
+        // implementation keyed each ledger row on Date.now() — so every retry
+        // booked the same payment again and inflated reported revenue. Key on
+        // the invoice id instead and skip if it is already recorded.
+        const invoiceId = String(attrs.invoice_id ?? attrs.order_id ?? subscriptionId);
+        const entryId = `ls-pay-${invoiceId}`;
+        const ledger: any[] = Array.isArray(meta.billingLedger) ? meta.billingLedger : [];
+
+        if (!ledger.some((e) => e?.id === entryId)) {
+          const newEntry = normalizeLedgerEntry({
+            id: entryId,
+            type: "COLLECTION",
+            category: "LICENSE",
+            amount,
+            description: `LemonSqueezy Ödeme: ${productName} (${billingReason})`,
+            date: new Date().toISOString().split("T")[0],
+            status: "PAID",
+            referenceNo: subscriptionId,
+            sourceModule: "BILLING",
+            createdBy: "LemonSqueezy",
+          });
+          meta.billingLedger = [...ledger, newEntry];
+        }
+
+        if (currentPeriodEnd) meta.licenseEnd = currentPeriodEnd.split("T")[0];
+        meta.isFrozen = false;
+        break;
+      }
+
+      case "subscription_cancelled": {
+        meta.lsSubscriptionStatus = "cancelled";
+        meta.lsCancelledAt = new Date().toISOString();
+        // Dönem sonuna kadar aktif kalır
+        break;
+      }
+
+      case "subscription_expired": {
+        meta.lsSubscriptionStatus = "expired";
+        meta.isFrozen = true;
+        if (!meta.licenseEnd) meta.licenseEnd = new Date().toISOString().split("T")[0];
+        break;
+      }
+
+      case "subscription_paused": {
+        meta.lsSubscriptionStatus = "paused";
+        meta.isFrozen = true;
+        break;
+      }
+
+      case "subscription_unpaused": {
+        meta.lsSubscriptionStatus = "active";
+        meta.isFrozen = false;
+        break;
+      }
     }
 
-    case "subscription_updated": {
-      // Güncelleme — status değişimi
-      if (status === "active") meta.isFrozen = false;
-      if (currentPeriodEnd) meta.licenseEnd = currentPeriodEnd.split("T")[0];
-      console.log(`[ls-webhook] Abonelik güncellendi — tenant ${tenantId}, status: ${status}`);
-      break;
-    }
+    return meta;
+  });
 
-    case "subscription_payment_success": {
-      const amount = Number(attrs.total ?? 0) / 100; // cents → USD
-      const billingReason = attrs.billing_reason ?? "subscription";
-
-      const newEntry = normalizeLedgerEntry({
-        id: `ls-pay-${Date.now()}`,
-        type: "COLLECTION",
-        category: "LICENSE",
-        amount,
-        description: `LemonSqueezy Ödeme: ${productName} (${billingReason})`,
-        date: new Date().toISOString().split("T")[0],
-        status: "PAID",
-        referenceNo: subscriptionId,
-        sourceModule: "BILLING",
-        createdBy: "LemonSqueezy",
-      });
-
-      meta.billingLedger = [...(meta.billingLedger ?? []), newEntry];
-      if (currentPeriodEnd) meta.licenseEnd = currentPeriodEnd.split("T")[0];
-      meta.isFrozen = false;
-      console.log(`[ls-webhook] Ödeme başarılı — tenant ${tenantId}, ${amount} USD`);
-      break;
-    }
-
-    case "subscription_cancelled": {
-      meta.lsSubscriptionStatus = "cancelled";
-      meta.lsCancelledAt = new Date().toISOString();
-      // Dönem sonuna kadar aktif kalır
-      console.log(`[ls-webhook] Abonelik iptal edildi — tenant ${tenantId}`);
-      break;
-    }
-
-    case "subscription_expired": {
-      meta.lsSubscriptionStatus = "expired";
-      meta.isFrozen = true;
-      if (!meta.licenseEnd) meta.licenseEnd = new Date().toISOString().split("T")[0];
-      console.log(`[ls-webhook] Abonelik sona erdi — tenant ${tenantId}`);
-      break;
-    }
-
-    case "subscription_paused": {
-      meta.lsSubscriptionStatus = "paused";
-      meta.isFrozen = true;
-      console.log(`[ls-webhook] Abonelik duraklatıldı — tenant ${tenantId}`);
-      break;
-    }
-
-    case "subscription_unpaused": {
-      meta.lsSubscriptionStatus = "active";
-      meta.isFrozen = false;
-      console.log(`[ls-webhook] Abonelik devam ediyor — tenant ${tenantId}`);
-      break;
-    }
-
-    default:
-      console.log(`[ls-webhook] Bilinmeyen olay: ${eventName} — işlem atlandı`);
-      return NextResponse.json({ received: true });
+  if (!applied) {
+    console.warn(`[ls-webhook] tenant ${tenantId} guncellenemedi`);
+    return NextResponse.json({ received: true });
   }
 
-  // Audit log ekle
-  store.studioAuditLogs = store.studioAuditLogs ?? [];
-  store.studioAuditLogs.unshift({
-    id: `audit-ls-${Date.now()}`,
-    createdAt: new Date().toISOString(),
+  console.log(`[ls-webhook] ${eventName} islendi — tenant ${tenantId}, status: ${status}`);
+
+  await logStudioAction({
     actor: "LemonSqueezy",
     action: eventName.toUpperCase(),
     targetType: "TENANT",
@@ -172,11 +190,5 @@ export async function POST(req: Request) {
     context: { subscriptionId, status, variantId },
   });
 
-  store.customers[customerIdx] = {
-    ...customer,
-    notes: JSON.stringify(meta),
-  };
-
-  await writeLocalStore(store);
   return NextResponse.json({ received: true });
 }

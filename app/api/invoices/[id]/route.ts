@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
+import { pickFields } from "@/lib/tenant-guard";
+
+// Explicit allowlist: passing the raw body through would let a caller set
+// `tenantId` and move the invoice into another tenant's books.
+const INVOICE_EDITABLE = ["invoiceNo", "totalAmount", "paidAmount", "dueAmount", "dueDate", "issuedAt"] as const;
 
 export async function GET(_: Request, { params }: { params: { id: string } }) {
   const user = getSessionUser();
@@ -25,7 +30,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   const body = await req.json();
   const item = await prisma.invoice.update({
     where: { id: params.id },
-    data: body,
+    data: pickFields(body, INVOICE_EDITABLE),
   });
   return NextResponse.json(item);
 }

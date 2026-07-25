@@ -104,12 +104,27 @@ export async function POST(req: Request) {
       }
     }
 
+    // Bumping the epoch invalidates every session cookie minted with the old
+    // password, including any an attacker may already hold. The caller's own
+    // cookie goes with them, so the client must send them back to /login.
     await prisma.appUser.update({
       where: { id: dbUser.id },
-      data: { passwordHash: hashSync(newPassword, 10) },
+      data: {
+        passwordHash: hashSync(newPassword, 10),
+        sessionEpoch: { increment: 1 },
+      },
     });
 
-    return NextResponse.json({ ok: true, message: "Sifreniz güncellendi." });
+    // Other devices are cut off by the epoch bump, but that only takes effect
+    // once middleware's cached status expires. Clearing the caller's own cookie
+    // here makes their session end immediately rather than after the TTL.
+    const response = NextResponse.json({
+      ok: true,
+      message: "Sifreniz güncellendi. Guvenlik icin tekrar giris yapmaniz gerekiyor.",
+      reauthRequired: true,
+    });
+    response.cookies.delete("tp_session");
+    return response;
   } catch {
     return NextResponse.json({ error: "Sifre güncellenemedi." }, { status: 500 });
   }

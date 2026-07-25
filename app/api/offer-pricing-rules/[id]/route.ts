@@ -30,6 +30,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       entityType: "OfferPricingRule",
       entityId: rule.id,
       actorUserId: auth.user?.userId,
+      tenantId: auth.user?.tenantId ?? null,
       detail: `base:${before?.basePrice ?? "-"} -> ${rule.basePrice}`,
     });
     return ok(rule);
@@ -60,6 +61,7 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
       entityType: "OfferPricingRule",
       entityId: params.id,
       actorUserId: auth.user?.userId,
+      tenantId: auth.user?.tenantId ?? null,
       detail: `brand:${existing?.brand ?? "-"} model:${existing?.modelPattern ?? "-"}`,
     });
     return ok({ ok: true });

@@ -487,6 +487,7 @@ export async function POST(req: Request) {
       entityType: "Transaction",
       entityId: primaryTransaction.id,
       actorUserId: auth.user?.userId,
+      tenantId: auth.user?.tenantId ?? null,
       customerId: primaryTransaction.customerId ?? undefined,
       detail: `${groupTransactionNo} / ${totalFinalAmount.toString()}${isSplit ? ` / ${legs.length} bacak` : ""}`,
     });

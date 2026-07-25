@@ -51,6 +51,7 @@ export async function POST(req: Request) {
       entityType: "OfferPricingRule",
       entityId: rule.id,
       actorUserId: auth.user?.userId,
+      tenantId: auth.user?.tenantId ?? null,
       detail: `brand:${rule.brand} model:${rule.modelPattern ?? "-"}`,
     });
     return ok(rule, 201);

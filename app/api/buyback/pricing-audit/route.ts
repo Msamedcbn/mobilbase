@@ -12,7 +12,8 @@ export async function GET() {
   try {
     const logs = await prisma.auditLog.findMany({
       where: {
-        OR: [{ action: "PRICING_RULE_CREATE" }, { action: "PRICING_RULE_UPDATE" }, { action: "PRICING_RULE_DELETE" }],
+        tenantId: auth.user.tenantId ?? null,
+        action: { in: ["PRICING_RULE_CREATE", "PRICING_RULE_UPDATE", "PRICING_RULE_DELETE"] },
       },
       orderBy: { createdAt: "desc" },
       take: 50,

@@ -3,6 +3,11 @@ import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore, writeLocalStore } from "@/lib/local-store";
 import { requireRole, getSessionUser } from "@/lib/auth";
+import { pickFields } from "@/lib/tenant-guard";
+
+// AccountEntry inherits its tenant via customerId, so customerId is deliberately
+// not editable here — reassigning it would move a ledger line to another tenant.
+const ACCOUNT_ENTRY_EDITABLE = ["type", "amount", "description", "dueDate", "bankAccountId"] as const;
 
 export async function GET(_: Request, { params }: { params: { id: string } }) {
   const user = getSessionUser();
@@ -48,7 +53,6 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
     const updated = {
       ...entry,
-      customerId: body.customerId ?? entry.customerId,
       type: body.type ?? entry.type,
       amount: body.amount !== undefined ? Number(body.amount) : entry.amount,
       description: body.description !== undefined ? body.description : entry.description,
@@ -63,7 +67,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const item = await prisma.accountEntry.update({ where: { id: params.id }, data: body });
+  const item = await prisma.accountEntry.update({
+    where: { id: params.id },
+    data: pickFields(body, ACCOUNT_ENTRY_EDITABLE),
+  });
   return NextResponse.json(item);
 }
 

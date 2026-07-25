@@ -79,6 +79,7 @@ export async function POST(req: Request) {
       entityType: "Device",
       entityId: item.id,
       actorUserId: auth.user?.userId,
+      tenantId: auth.user?.tenantId ?? null,
       detail: `${item.brand} ${item.model}`,
     });
 

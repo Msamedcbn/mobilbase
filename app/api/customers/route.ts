@@ -355,6 +355,7 @@ export async function POST(req: Request) {
       entityType: "Customer",
       entityId: item.id,
       actorUserId: auth.user?.userId,
+      tenantId,
       customerId: item.id,
     });
 

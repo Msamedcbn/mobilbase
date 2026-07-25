@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/auth";
 import { createCheckoutUrl, getVariantId, type LsPlan, type LsBillingCycle } from "@/lib/lemonsqueezy";
-import { readLocalStore } from "@/lib/local-store";
+import { findTenantById } from "@/lib/tenant-store";
 
 /**
  * POST /api/subscriptions/checkout
@@ -17,8 +17,11 @@ export async function POST(req: Request) {
     const body = await req.json();
     const plan = (body.plan ?? "Pro") as LsPlan;
     const cycle = (body.cycle ?? "monthly") as LsBillingCycle;
-    // Studio admin başka tenant için URL üretebilir
-    const overrideTenantId: string | undefined = body.tenantId;
+    // Only the platform side may raise a checkout on another tenant's behalf.
+    // Accepting this from any caller let one tenant start a subscription against
+    // another tenant's record.
+    const isPlatformCaller = auth.user.role === "PLATFORM_OWNER";
+    const overrideTenantId: string | undefined = isPlatformCaller ? body.tenantId : undefined;
 
     const validPlans: LsPlan[] = ["Lite", "Service", "Pro", "Enterprise"];
     if (!validPlans.includes(plan)) {
@@ -39,25 +42,17 @@ export async function POST(req: Request) {
       );
     }
 
-    // Session bilgisinden mevcut tenant'ı bul
-    const store = await readLocalStore();
-    const sessionRes = await fetch(
-      `${process.env.APP_BASE_URL ?? "http://localhost:3000"}/api/auth/me`,
-      { headers: { cookie: req.headers.get("cookie") ?? "" } },
-    );
-    const sessionJson = sessionRes.ok ? await sessionRes.json() : null;
-    const sessionUser = sessionJson?.user;
+    // requireRole already returned the verified session, so the previous HTTP
+    // round-trip to /api/auth/me was a network hop for data we hold in hand.
+    const targetTenantId = overrideTenantId ?? auth.user.tenantId ?? null;
 
-    const targetTenantId = overrideTenantId ?? sessionUser?.tenantId ?? null;
-
-    // Tenant bilgilerini bul
-    let tenantEmail = sessionUser?.email ?? "billing@tenant.local";
+    let tenantEmail = auth.user.email ?? "billing@tenant.local";
     let tenantName = "Tenant";
     if (targetTenantId) {
-      const customer = store.customers.find((c) => c.id === targetTenantId);
-      if (customer) {
-        tenantEmail = customer.email ?? tenantEmail;
-        tenantName = customer.fullName ?? tenantName;
+      const tenant = await findTenantById(targetTenantId);
+      if (tenant) {
+        tenantEmail = tenant.email ?? tenantEmail;
+        tenantName = tenant.fullName ?? tenantName;
       }
     }
 

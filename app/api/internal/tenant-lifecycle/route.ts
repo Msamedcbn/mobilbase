@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { readLocalStore, writeLocalStore, localId } from "@/lib/local-store";
+import { listTenants, updateTenantMetadata } from "@/lib/tenant-store";
+import { parseTenantMetadata } from "@/lib/tenant-metadata";
+import { logStudioAction } from "@/lib/studio-audit";
 
 interface TenantMeta {
   isSaas?: boolean;
@@ -9,20 +11,19 @@ interface TenantMeta {
   licenseEnd?: string;
 }
 
-function parseMeta(customer: { notes: string | null }): TenantMeta {
-  try {
-    return customer.notes ? JSON.parse(customer.notes) : {};
-  } catch {
-    return {};
-  }
-}
-
 function daysUntil(dateStr: string): number {
   const target = new Date(dateStr).getTime();
   const now = Date.now();
   return Math.ceil((target - now) / (24 * 60 * 60 * 1000));
 }
 
+/**
+ * Nightly sweep that expires finished trials and reports the ones about to end.
+ *
+ * Reads and writes through lib/tenant-store, so it acts on the same tenant
+ * records the application serves. It previously operated only on the local JSON
+ * store, which meant trials never actually expired in production.
+ */
 export async function GET(req: Request) {
   const token = req.headers.get("x-internal-token") || new URL(req.url).searchParams.get("token");
   const expected = process.env.INTERNAL_API_TOKEN || process.env.SESSION_SECRET || "";
@@ -31,62 +32,57 @@ export async function GET(req: Request) {
   }
 
   try {
-    const store = await readLocalStore();
-    const now = Date.now();
+    const tenants = await listTenants();
     const affected: Array<{ tenantId: string; name: string; action: string; daysRemaining: number }> = [];
+    let totalTrials = 0;
 
-    for (const customer of store.customers) {
-      const meta = parseMeta(customer);
+    for (const tenant of tenants) {
+      const meta = parseTenantMetadata(tenant.notes) as TenantMeta;
 
+      if (meta.isTrial) totalTrials += 1;
       if (!meta.isSaas || !meta.isTrial) continue;
       if (!meta.trialExpiresAt) continue;
 
       const days = daysUntil(meta.trialExpiresAt);
 
-      if (days <= 0) {
-        if (meta.plan !== "EXPIRED") {
-          const metaObj: any = meta;
-          metaObj.plan = "EXPIRED";
-          metaObj.licenseEnd = new Date().toISOString();
-          metaObj.leadHistory = metaObj.leadHistory || [];
-          metaObj.leadHistory.push({
-            status: "TRIAL_EXPIRED",
-            date: new Date().toISOString(),
-            note: "Auto-expired by lifecycle job",
-          });
-
-          customer.notes = JSON.stringify(metaObj);
-          affected.push({ tenantId: customer.id, name: customer.fullName, action: "EXPIRED", daysRemaining: days });
-
-          store.studioAuditLogs = store.studioAuditLogs || [];
-          store.studioAuditLogs.unshift({
-            id: localId("audit"),
-            createdAt: new Date().toISOString(),
-            actor: "LifecycleJob",
-            action: "TRIAL_EXPIRED",
-            targetType: "TENANT",
-            targetId: customer.id,
-            detail: `${customer.fullName} trial expired (${days} days past)`,
-          });
-        }
-      } else if (days <= 1) {
-        affected.push({ tenantId: customer.id, name: customer.fullName, action: "WARN_1D", daysRemaining: days });
-      } else if (days <= 3) {
-        affected.push({ tenantId: customer.id, name: customer.fullName, action: "WARN_3D", daysRemaining: days });
-      } else if (days <= 7) {
-        affected.push({ tenantId: customer.id, name: customer.fullName, action: "WARN_7D", daysRemaining: days });
+      if (days > 0) {
+        if (days <= 1) affected.push({ tenantId: tenant.id, name: tenant.fullName, action: "WARN_1D", daysRemaining: days });
+        else if (days <= 3) affected.push({ tenantId: tenant.id, name: tenant.fullName, action: "WARN_3D", daysRemaining: days });
+        else if (days <= 7) affected.push({ tenantId: tenant.id, name: tenant.fullName, action: "WARN_7D", daysRemaining: days });
+        continue;
       }
-    }
 
-    if (affected.length > 0) {
-      await writeLocalStore(store);
+      if (meta.plan === "EXPIRED") continue;
+
+      await updateTenantMetadata(tenant.id, (current) => {
+        const next = { ...current } as Record<string, any>;
+        next.plan = "EXPIRED";
+        next.licenseEnd = new Date().toISOString();
+        next.leadHistory = Array.isArray(next.leadHistory) ? next.leadHistory : [];
+        next.leadHistory.push({
+          status: "TRIAL_EXPIRED",
+          date: new Date().toISOString(),
+          note: "Auto-expired by lifecycle job",
+        });
+        return next;
+      });
+
+      affected.push({ tenantId: tenant.id, name: tenant.fullName, action: "EXPIRED", daysRemaining: days });
+
+      await logStudioAction({
+        actor: "LifecycleJob",
+        action: "TRIAL_EXPIRED",
+        targetType: "TENANT",
+        targetId: tenant.id,
+        detail: `${tenant.fullName} trial expired (${Math.abs(days)} days past)`,
+      });
     }
 
     return NextResponse.json({
       executedAt: new Date().toISOString(),
       affected,
       summary: {
-        totalTrials: store.customers.filter((c) => { const m = parseMeta(c); return m.isTrial; }).length,
+        totalTrials,
         expired: affected.filter((a) => a.action === "EXPIRED").length,
         day1: affected.filter((a) => a.action === "WARN_1D").length,
         day3: affected.filter((a) => a.action === "WARN_3D").length,
@@ -94,6 +90,7 @@ export async function GET(req: Request) {
       },
     });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error("[tenant-lifecycle]", err);
+    return NextResponse.json({ error: "Lifecycle job basarisiz" }, { status: 500 });
   }
 }

@@ -53,6 +53,7 @@ export async function POST(req: Request) {
       action: "BUYBACK_BULK_STATUS_UPDATE",
       entityType: "BuybackDeal",
       actorUserId: auth.user?.userId,
+      tenantId: auth.user?.tenantId ?? null,
       detail: `Count:${result.count} Status:${parsed.data.status}`,
     });
 

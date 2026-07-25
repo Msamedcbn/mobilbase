@@ -21,13 +21,15 @@ export async function GET() {
       return NextResponse.json(sortedLogs);
     }
 
-    const tenantStockItems = await prisma.stockItem.findMany({ where: { tenantId }, select: { id: true } });
+    // Previously this loaded every stock item id for the tenant just to build an
+    // `entityId IN (...)` filter, which grows with the tenant's catalogue. The
+    // denormalised AuditLog.tenantId turns it into a single index scan.
     const dbLogs = await prisma.auditLog.findMany({
       where: {
         action: {
           startsWith: "STOCK_",
         },
-        entityId: { in: tenantStockItems.map((s) => s.id) },
+        tenantId,
       },
       orderBy: {
         createdAt: "desc",

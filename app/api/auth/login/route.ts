@@ -7,6 +7,14 @@ import { getDemoAuthUser, isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore } from "@/lib/local-store";
 import { createSignedSessionToken } from "@/lib/session";
 import { isTenantFrozenFromNotes } from "@/lib/tenant-metadata";
+import { checkRateLimit, rateLimitResponse, resetRateLimit } from "@/lib/rate-limit";
+
+// Two buckets, because they stop different attacks. The per-IP bucket blunts a
+// spray across many accounts from one host; the per-email bucket stops a
+// distributed guess against one known account. The email bucket is the wider
+// window since a legitimate user rarely fails ten times in a quarter hour.
+const LOGIN_IP_LIMIT = { bucket: "login-ip", limit: 10, windowMs: 5 * 60_000 };
+const LOGIN_EMAIL_LIMIT = { bucket: "login-email", limit: 10, windowMs: 15 * 60_000 };
 
 const schema = z.object({
   email: z.string().email(),
@@ -33,6 +41,7 @@ export async function POST(req: Request) {
     expiresAt: number;
     rolePermissions?: Record<string, string[]>;
     activeModules?: Record<string, boolean>;
+    sessionEpoch?: number;
   }) => {
     const response = NextResponse.json({ ok: true, user: payload });
     response.cookies.set("tp_session", createSignedSessionToken(payload as any), {
@@ -46,11 +55,18 @@ export async function POST(req: Request) {
   };
 
   try {
+    const ipLimit = await checkRateLimit(req, LOGIN_IP_LIMIT);
+    if (!ipLimit.ok) return rateLimitResponse(ipLimit);
+
     const body = await req.json();
     const parsed = schema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json({ error: "Geçersiz giris verisi" }, { status: 400 });
     }
+
+    const emailKey = parsed.data.email.toLowerCase();
+    const emailLimit = await checkRateLimit(req, { ...LOGIN_EMAIL_LIMIT, key: emailKey });
+    if (!emailLimit.ok) return rateLimitResponse(emailLimit);
 
     // Helper to fetch tenant config - customerId ile belirli tenant'ın konfigürasyonunu yükler
     const getTenantConfig = async (customerId?: string | null) => {
@@ -269,6 +285,10 @@ export async function POST(req: Request) {
       tenantConf.rolePermissions = { ...tenantConf.rolePermissions, [authenticatedUser.role]: Array.from(effective) };
     }
 
+    // Clear the failure counter so a user who mistyped a few times then got in
+    // is not still throttled on their next sign-in.
+    resetRateLimit(req, { bucket: LOGIN_EMAIL_LIMIT.bucket, key: emailKey });
+
     const expiresAt = Date.now() + 1000 * 60 * 60 * 8;
     const payload = {
       userId: authenticatedUser.id,
@@ -279,6 +299,7 @@ export async function POST(req: Request) {
       expiresAt,
       rolePermissions: tenantConf.rolePermissions,
       activeModules: tenantConf.activeModules,
+      sessionEpoch: (authenticatedUser as any).sessionEpoch ?? 0,
     };
 
     return createResponseWithSession(payload);

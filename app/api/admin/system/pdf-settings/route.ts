@@ -25,6 +25,7 @@ export async function POST(req: Request) {
     action: "PDF_SETTINGS_UPDATE",
     entityType: "SystemConfig",
     actorUserId: auth.user?.userId,
+    tenantId: auth.user?.tenantId ?? null,
     detail: `template1DealerName:${parsed.data.template1DealerName}`,
   });
 

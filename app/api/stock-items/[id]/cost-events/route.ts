@@ -242,6 +242,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         entityId: result.updated.id,
         detail: `Maliyet hareketi: ${result.event.type} / Delta: ${result.event.costDelta.toString()} / Yeni Maliyet: ${result.event.unitCostAfter.toString()}`,
         actorUserId: auth.user?.userId,
+        tenantId: auth.user?.tenantId ?? null,
       });
     } catch (auditError) {
       console.error("Audit log yazılamadı:", auditError);
