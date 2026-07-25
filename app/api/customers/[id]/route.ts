@@ -3,6 +3,24 @@ import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore, writeLocalStore } from "@/lib/local-store";
 import { getSessionUser } from "@/lib/auth";
+import { pickFields } from "@/lib/tenant-guard";
+
+const CUSTOMER_EDITABLE = ["fullName", "phone", "email", "nationalId", "notes", "creditLimit"] as const;
+
+/**
+ * A tenant is itself a Customer row, and on that row `notes` is not a free-text
+ * note — it is the JSON metadata blob holding the tenant's module entitlements,
+ * role permissions and isFrozen flag, all owned by the Studio. Letting a tenant
+ * admin PUT it here would let them re-enable modules they have not paid for or
+ * unfreeze their own suspended account, so `notes` is dropped for the tenant's
+ * own root record. Ordinary customer rows keep it as a normal note field.
+ */
+function buildCustomerUpdate(body: unknown, isOwnTenantRecord: boolean) {
+  const allowed = isOwnTenantRecord
+    ? (CUSTOMER_EDITABLE.filter((f) => f !== "notes") as unknown as typeof CUSTOMER_EDITABLE)
+    : CUSTOMER_EDITABLE;
+  return pickFields(body, allowed);
+}
 
 export async function GET(_: Request, { params }: { params: { id: string } }) {
   const user = getSessionUser();
@@ -44,7 +62,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       fullName: body.fullName ?? store.customers[idx].fullName,
       phone: body.phone ?? store.customers[idx].phone,
       email: body.email !== undefined ? body.email : store.customers[idx].email,
-      notes: body.notes !== undefined ? body.notes : store.customers[idx].notes,
+      notes:
+        body.notes !== undefined && params.id !== tenantId ? body.notes : store.customers[idx].notes,
       creditLimit: body.creditLimit !== undefined ? Number(body.creditLimit) : store.customers[idx].creditLimit,
     };
     store.customers[idx] = updated;
@@ -65,7 +84,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
   const item = await prisma.customer.update({
     where: { id: params.id },
-    data: body,
+    data: buildCustomerUpdate(body, params.id === tenantId),
   });
   return NextResponse.json(item);
 }

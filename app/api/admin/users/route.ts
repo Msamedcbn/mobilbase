@@ -142,6 +142,7 @@ export async function POST(req: Request) {
       entityType: "AppUser",
       entityId: user.id,
       actorUserId: auth.user?.userId,
+      tenantId,
       detail: `email:${user.email} role:${user.role}`,
     });
 

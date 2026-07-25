@@ -71,6 +71,7 @@ export async function PATCH(req: Request) {
       entityType: "StockItem",
       detail: `${items.length} urun icin toplu fiyat guncellemesi (mod: ${mode}, deger: ${value})`,
       actorUserId: auth.user?.userId,
+      tenantId: auth.user?.tenantId ?? null,
     });
 
     return NextResponse.json({ updated: items.length });

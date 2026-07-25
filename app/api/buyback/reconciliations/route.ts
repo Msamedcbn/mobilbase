@@ -55,8 +55,14 @@ export async function POST(req: Request) {
       return ok({ reconciliationId: reconciliation.id, tokenExpiresAt: expiresAt, reconciliationLink }, 201, "Mutabakat olusturuldu");
     }
 
-    const deal = await prisma.buybackDeal.findUnique({
-      where: { id: parsed.data.buybackDealId },
+    // BuybackDeal carries its tenant through customer.tenantId — looking it up by
+    // bare id let an admin of one tenant open a reconciliation (and trigger the
+    // customer-facing email) against another tenant's deal.
+    const deal = await prisma.buybackDeal.findFirst({
+      where: {
+        id: parsed.data.buybackDealId,
+        customer: { tenantId: auth.user.tenantId ?? null },
+      },
       include: { customer: true },
     });
     if (!deal) return fail("Buyback kaydi bulunamadi", "NOT_FOUND", 404);
@@ -100,6 +106,7 @@ export async function POST(req: Request) {
       entityType: "BuybackReconciliation",
       entityId: reconciliation.id,
       actorUserId: auth.user?.userId,
+      tenantId: auth.user?.tenantId ?? null,
       customerId: deal.customerId,
       detail: `deal:${deal.id}`,
     });

@@ -1,23 +1,27 @@
 import { NextResponse } from "next/server";
-import { localId, readLocalStore, writeLocalStore } from "@/lib/local-store";
+import { localId } from "@/lib/local-store";
+import { logStudioAction } from "@/lib/studio-audit";
+import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
+  // Unauthenticated and it writes a row per call, so it needs its own throttle.
+  const limit = await checkRateLimit(req, { bucket: "trial-lead", limit: 5, windowMs: 60_000 });
+  if (!limit.ok) return rateLimitResponse(limit);
+
   try {
     const body = await req.json();
     const { email, phone, source, deviceModel, estimatedPrice } = body || {};
 
-    if (!email || !email.includes("@")) {
+    if (!email || typeof email !== "string" || !email.includes("@")) {
       return NextResponse.json({ error: "Email zorunludur" }, { status: 400 });
     }
 
-    const store = await readLocalStore();
-
     const leadId = localId("lead");
 
-    store.studioAuditLogs = store.studioAuditLogs || [];
-    store.studioAuditLogs.unshift({
-      id: localId("audit"),
-      createdAt: new Date().toISOString(),
+    // logStudioAction writes to the StudioAuditLog table when a database is
+    // configured; this route previously wrote only to the local JSON store, so
+    // captured leads never reached the Studio in production.
+    await logStudioAction({
       actor: "LeadCapture",
       action: "LEAD_CAPTURED",
       targetType: "LEAD",
@@ -26,11 +30,9 @@ export async function POST(req: Request) {
       context: { email, phone, source, deviceModel, estimatedPrice },
     });
 
-    await writeLocalStore(store);
-
     return NextResponse.json({ leadId, received: true });
   } catch (err: any) {
     console.error("Lead capture error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: "Kayit olusturulamadi" }, { status: 500 });
   }
 }

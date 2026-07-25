@@ -103,6 +103,7 @@ export async function PUT(req: Request) {
       entityType: "SystemSettings",
       entityId: tenantId,
       actorUserId: auth.user?.userId,
+      tenantId: auth.user?.tenantId ?? null,
       detail: "Sistem ve WhatsApp bildirim ayarları güncellendi.",
     });
 

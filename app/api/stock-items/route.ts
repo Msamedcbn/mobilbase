@@ -290,6 +290,7 @@ export async function POST(req: Request) {
           entityId: updated.id,
           detail: `Stok Miktarı Güncellendi (Upsert): ${updated.sku} - ${updated.name} (+${quantity} Adet, Yeni Toplam: ${updated.quantity})`,
           actorUserId: auth.user?.userId,
+          tenantId: auth.user?.tenantId ?? null,
         });
 
         return NextResponse.json(updated, { status: 201 });
@@ -570,6 +571,7 @@ export async function POST(req: Request) {
       entityId: item.id,
       detail: `Yeni Envanter Girişi: ${item.sku} - ${item.name} (Adet: ${item.quantity})`,
       actorUserId: auth.user?.userId,
+      tenantId: auth.user?.tenantId ?? null,
     });
 
     return NextResponse.json(item, { status: 201 });

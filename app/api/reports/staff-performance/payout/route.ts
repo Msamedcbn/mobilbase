@@ -123,6 +123,7 @@ export async function POST(req: Request) {
       entityType: "StaffPayoutRecord",
       entityId: result.payoutRecord.id,
       actorUserId: auth.user?.userId,
+      tenantId,
       customerId: cari.id,
       detail: `${staffUser.fullName} / ${periodLabel} / ${totalPayout.toLocaleString("tr-TR")} TL`,
     });

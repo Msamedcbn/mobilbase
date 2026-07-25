@@ -19,6 +19,7 @@ export async function GET() {
     const dbLogs = await prisma.auditLog.findMany({
       where: {
         action: "STOCK_TRANSFER",
+        tenantId: auth.user.tenantId ?? null,
       },
       orderBy: {
         createdAt: "desc",

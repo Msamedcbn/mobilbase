@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { verifySessionTokenEdge } from "@/lib/session-edge";
+import { getCachedTenantStatus, setCachedTenantStatus } from "@/lib/tenant-status-cache";
 
 const PUBLIC_PATHS = [
   "/login",
@@ -21,17 +23,14 @@ const PUBLIC_PATHS = [
   "/servis",
 ];
 
-function decodeSessionPayloadFromToken(token: string) {
-  try {
-    const [encodedBody] = token.split(".");
-    if (!encodedBody) return null;
-    const normalized = encodedBody.replace(/-/g, "+").replace(/_/g, "/");
-    const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
-    const json = atob(padded);
-    return JSON.parse(json) as any;
-  } catch {
-    return null;
-  }
+/**
+ * Verifies the session cookie's HMAC before returning its claims.
+ *
+ * This used to be a bare base64 decode, so role/tenantId/module claims were
+ * attacker-controlled and every check below was decorative.
+ */
+async function readVerifiedSession(token: string) {
+  return (await verifySessionTokenEdge(token)) as any;
 }
 
 function getModuleFromPath(path: string): "pos" | "repairs" | "stock" | "invoicing" | "buyback" | null {
@@ -95,19 +94,32 @@ export async function middleware(req: NextRequest) {
     return response;
   }
 
-  const session = req.cookies.get("tp_session")?.value;
-  if (!session) {
-    const isStudioPath = path.startsWith("/studio") || path.startsWith("/api/studio");
-    const redirectPath = isStudioPath ? "/studio/login" : "/login";
-    const url = new URL(redirectPath, req.url);
+  const isStudioPath = path.startsWith("/studio") || path.startsWith("/api/studio");
+
+  const rejectUnauthenticated = () => {
+    if (path.startsWith("/api/")) {
+      return NextResponse.json(
+        { error: "Oturum bulunamadi veya gecersiz" },
+        { status: 401, headers: { "x-request-id": requestId } },
+      );
+    }
+    const url = new URL(isStudioPath ? "/studio/login" : "/login", req.url);
     const response = NextResponse.redirect(url, { headers: { "x-request-id": requestId } });
+    response.cookies.delete("tp_session");
     response.headers.set("x-request-id", requestId);
     return response;
-  }
+  };
+
+  const session = req.cookies.get("tp_session")?.value;
+  if (!session) return rejectUnauthenticated();
+
+  // Fail closed: an unverifiable cookie is treated exactly like no cookie, so a
+  // forged payload cannot reach the checks below.
+  const user = await readVerifiedSession(session);
+  if (!user) return rejectUnauthenticated();
 
   // Trial expiry check — redirect expired trials to /trial-expired
-  try {
-    const user = decodeSessionPayloadFromToken(session);
+  {
     if (user?.isTrial && user?.trialExpiresAt) {
       const expiresAt = new Date(user.trialExpiresAt).getTime();
       if (Date.now() > expiresAt) {
@@ -122,26 +134,17 @@ export async function middleware(req: NextRequest) {
         return response;
       }
     }
-  } catch {}
+  }
 
   // Reseller Studio Authorization check
-  if (path.startsWith("/studio") || path.startsWith("/api/studio")) {
-    try {
-      const user = decodeSessionPayloadFromToken(session);
-      if (!user) throw new Error("Invalid session token");
-      if (user.role !== "PLATFORM_OWNER" && user.role !== "STUDIO_OPERATOR") {
-        if (path.startsWith("/api/")) {
-          return NextResponse.json(
-            { error: "Bu islem icin yetkiniz yok" },
-            { status: 403, headers: { "x-request-id": requestId } }
-          );
-        }
-        const url = new URL("/studio/login", req.url);
-        const response = NextResponse.redirect(url, { headers: { "x-request-id": requestId } });
-        return response;
+  if (isStudioPath) {
+    if (user.role !== "PLATFORM_OWNER" && user.role !== "STUDIO_OPERATOR") {
+      if (path.startsWith("/api/")) {
+        return NextResponse.json(
+          { error: "Bu islem icin yetkiniz yok" },
+          { status: 403, headers: { "x-request-id": requestId } }
+        );
       }
-    } catch (err) {
-      console.error("Studio middleware auth parse error:", err);
       const url = new URL("/studio/login", req.url);
       const response = NextResponse.redirect(url, { headers: { "x-request-id": requestId } });
       return response;
@@ -150,22 +153,50 @@ export async function middleware(req: NextRequest) {
 
   // Normal App Module Authorization checks
   try {
-    const user = decodeSessionPayloadFromToken(session);
-    if (!user) throw new Error("Invalid session token");
-
     if (user.userId) {
       try {
-        const statusParams = new URLSearchParams({ userId: user.userId });
-        if (user.tenantId && user.role !== "PLATFORM_OWNER") statusParams.set("tenantId", user.tenantId);
-        const statusRes = await fetch(`${req.nextUrl.origin}/api/internal/tenant-status?${statusParams.toString()}`, {
-          headers: {
-            "x-internal-token": process.env.INTERNAL_API_TOKEN || process.env.SESSION_SECRET || "",
-          },
-          cache: "no-store",
-        });
-        if (statusRes.ok) {
-          const statusPayload = await statusRes.json();
-          if (statusPayload?.frozen === true) {
+        const statusKey = `${user.userId}:${user.role !== "PLATFORM_OWNER" ? user.tenantId ?? "" : ""}`;
+        let statusPayload = getCachedTenantStatus(statusKey);
+
+        if (!statusPayload) {
+          const statusParams = new URLSearchParams({ userId: user.userId });
+          if (user.tenantId && user.role !== "PLATFORM_OWNER") statusParams.set("tenantId", user.tenantId);
+          const statusRes = await fetch(`${req.nextUrl.origin}/api/internal/tenant-status?${statusParams.toString()}`, {
+            headers: {
+              "x-internal-token": process.env.INTERNAL_API_TOKEN || process.env.SESSION_SECRET || "",
+            },
+            cache: "no-store",
+          });
+          if (statusRes.ok) {
+            const fresh = await statusRes.json();
+            statusPayload = {
+              frozen: fresh?.frozen === true,
+              userActive: fresh?.userActive !== false,
+              sessionEpoch: Number(fresh?.sessionEpoch ?? 0),
+            };
+            setCachedTenantStatus(statusKey, statusPayload);
+          }
+        }
+
+        if (statusPayload) {
+          // Session revocation: a password change or an explicit "sign out
+          // everywhere" bumps the user's epoch, which orphans every cookie
+          // minted before it. Tokens issued before this field existed carry no
+          // epoch and read as 0, matching the column default.
+          if (Number(user.sessionEpoch ?? 0) !== statusPayload.sessionEpoch) {
+            if (path.startsWith("/api/")) {
+              return NextResponse.json(
+                { error: "Oturumunuz sonlandirilmis. Lutfen tekrar giris yapin." },
+                { status: 401, headers: { "x-request-id": requestId } }
+              );
+            }
+            const url = new URL("/login", req.url);
+            const response = NextResponse.redirect(url, { headers: { "x-request-id": requestId } });
+            response.cookies.delete("tp_session");
+            return response;
+          }
+
+          if (statusPayload.frozen === true) {
             if (path.startsWith("/api/")) {
               return NextResponse.json(
                 { error: "Bu tenant dondurulmustur. Erisim gecici olarak kapatilmistir." },
@@ -193,7 +224,12 @@ export async function middleware(req: NextRequest) {
           }
         }
       } catch {
-        // fail-open to avoid accidental global lockout on transient internal route errors
+        // Deliberate fail-open: a transient error reaching the internal status
+        // route would otherwise lock every tenant out at once. The cost is that
+        // the freeze and session-revocation checks are availability-biased —
+        // they are enforcement for the normal path, not a hard security
+        // boundary. The authoritative checks live in the API routes, which
+        // re-verify the session on every call.
       }
     }
 
@@ -269,7 +305,17 @@ export async function middleware(req: NextRequest) {
       }
     }
   } catch (err) {
-    console.error("Normal app middleware auth parse error:", err);
+    // Fail closed. This block only runs authorization checks, so swallowing an
+    // error here previously granted access on any unexpected fault.
+    console.error("Normal app middleware authorization error:", err);
+    if (path.startsWith("/api/")) {
+      return NextResponse.json(
+        { error: "Yetki dogrulamasi yapilamadi" },
+        { status: 503, headers: { "x-request-id": requestId } }
+      );
+    }
+    const url = new URL("/login", req.url);
+    return NextResponse.redirect(url, { headers: { "x-request-id": requestId } });
   }
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });

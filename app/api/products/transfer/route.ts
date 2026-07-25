@@ -165,6 +165,7 @@ export async function POST(req: Request) {
       entityId: productId,
       detail: logDetail,
       actorUserId: auth.user?.userId,
+      tenantId: auth.user?.tenantId ?? null,
     });
 
     return ok(result, 200, "Stok transferi başarıyla tamamlandı");

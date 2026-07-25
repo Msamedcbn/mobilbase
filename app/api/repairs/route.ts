@@ -4,6 +4,18 @@ import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { localId, readLocalStore, writeLocalStore } from "@/lib/local-store";
 import { getSessionUser, requireRole } from "@/lib/auth";
 import { fail } from "@/lib/api-response";
+import { pickFields } from "@/lib/tenant-guard";
+
+const REPAIR_CREATABLE = [
+  "issueDescription",
+  "diagnosisNote",
+  "laborCost",
+  "partCost",
+  "totalCost",
+  "status",
+  "branchId",
+  "completedAt",
+] as const;
 
 export async function GET() {
   const user = getSessionUser();
@@ -105,6 +117,23 @@ export async function POST(req: Request) {
     return fail("Cihaz bulunamadı veya yetkiniz yok", "NOT_FOUND", 404);
   }
 
-  const item = await prisma.repairRecord.create({ data: body });
+  // A branch id from another tenant would otherwise attach this repair to a
+  // foreign branch and pollute that tenant's branch reporting.
+  if (body.branchId) {
+    const branch = await prisma.branch.findFirst({
+      where: { id: body.branchId, tenantId },
+      select: { id: true },
+    });
+    if (!branch) return fail("Şube bulunamadı veya yetkiniz yok", "NOT_FOUND", 404);
+  }
+
+  const item = await prisma.repairRecord.create({
+    data: {
+      ...pickFields(body, REPAIR_CREATABLE),
+      // deviceId comes from the record we just verified belongs to this tenant,
+      // never straight from the body.
+      deviceId: device.id,
+    } as any,
+  });
   return NextResponse.json(item, { status: 201 });
 }

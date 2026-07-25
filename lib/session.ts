@@ -9,6 +9,12 @@ export type SessionPayload = {
   expiresAt: number;
   rolePermissions?: Record<string, string[]>;
   activeModules?: Record<string, boolean>;
+  /**
+   * Value of AppUser.sessionEpoch when this token was minted. Middleware
+   * compares it against the current column value, so bumping the column
+   * invalidates every cookie issued before the bump.
+   */
+  sessionEpoch?: number;
 };
 
 function getSessionSecret() {

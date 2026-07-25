@@ -62,6 +62,15 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (parsed.data.commissionPct !== undefined) updateData.commissionPct = parsed.data.commissionPct;
     if (parsed.data.benefits !== undefined) updateData.benefits = parsed.data.benefits as any;
 
+    // Role, deactivation and password are all baked into the signed session
+    // cookie, so an already-issued token would keep the old privileges until it
+    // expired. Bumping the epoch forces the user back through login.
+    const revokesSessions =
+      parsed.data.role !== undefined ||
+      parsed.data.password !== undefined ||
+      parsed.data.isActive === false;
+    if (revokesSessions) updateData.sessionEpoch = { increment: 1 };
+
     const user = await prisma.appUser.update({
       where: { id: params.id },
       data: updateData,
@@ -86,6 +95,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       entityType: "AppUser",
       entityId: user.id,
       actorUserId: auth.user?.userId,
+      tenantId,
       detail: `email:${user.email} role:${user.role} active:${user.isActive}`,
     });
 
@@ -135,6 +145,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       entityType: "AppUser",
       entityId: user.id,
       actorUserId: auth.user?.userId,
+      tenantId,
       detail: `email:${user.email} fullName:${user.fullName}`,
     });
 

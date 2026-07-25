@@ -117,6 +117,7 @@ export async function POST(req: Request) {
       entityType: "BuybackDeal",
       entityId: item.id,
       actorUserId: auth.user?.userId,
+      tenantId: auth.user?.tenantId ?? null,
       customerId: item.customerId,
       detail: `Status:${item.status}`,
     });

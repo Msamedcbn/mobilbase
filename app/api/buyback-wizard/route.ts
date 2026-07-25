@@ -148,6 +148,7 @@ export async function POST(req: Request) {
       entityType: "BuybackWizardData",
       entityId: result.wizard.id,
       actorUserId: auth.user?.userId,
+      tenantId: auth.user?.tenantId ?? null,
       customerId: parsed.data.customerId,
       detail: `2.el stok karti: ${result.product.id}`,
     });

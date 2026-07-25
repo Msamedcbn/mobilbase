@@ -383,6 +383,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       entityType: "BuybackDeal",
       entityId: item.id,
       actorUserId: auth.user?.userId,
+      tenantId: auth.user?.tenantId ?? null,
       customerId: item.customerId,
       detail: `Status:${current.status}->${item.status}`,
     });
@@ -427,6 +428,7 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
       entityType: "BuybackDeal",
       entityId: params.id,
       actorUserId: auth.user?.userId,
+      tenantId: auth.user?.tenantId ?? null,
       customerId: current.customerId,
       detail: `Deleted status:${current.status}`,
     });
