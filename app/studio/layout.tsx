@@ -26,6 +26,7 @@ function NavIcon({ active, icon }: { active: boolean; icon: string }) {
 function StudioLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sessionInfo, setSessionInfo] = useState<{ fullName: string; role: string } | null>(null);
   const [telemetry, setTelemetry] = useState({
     cpu: 34.2,
     ram: 14.8,
@@ -43,6 +44,15 @@ function StudioLayoutContent({ children }: { children: React.ReactNode }) {
       }));
     }, 3000);
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((json) => {
+        if (json?.user) setSessionInfo({ fullName: json.user.fullName, role: json.user.role });
+      })
+      .catch(() => {});
   }, []);
 
   if (pathname === "/studio/login") {
@@ -95,10 +105,14 @@ function StudioLayoutContent({ children }: { children: React.ReactNode }) {
         <div className="mb-5 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
           <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">Oturum</p>
           <div className="mt-3 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-500 to-blue-400 text-sm font-black">SA</div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-500 to-blue-400 text-sm font-black">
+              {(sessionInfo?.fullName || "?").slice(0, 2).toUpperCase()}
+            </div>
             <div>
-              <p className="text-sm font-black">SuperAdmin</p>
-              <p className="text-xs text-slate-400">Reseller operasyon yetkilisi</p>
+              <p className="text-sm font-black">{sessionInfo?.fullName || "..."}</p>
+              <p className="text-xs text-slate-400">
+                {sessionInfo?.role === "PLATFORM_OWNER" ? "Platform Sahibi" : sessionInfo?.role === "STUDIO_OPERATOR" ? "Reseller operasyon yetkilisi" : sessionInfo?.role || ""}
+              </p>
             </div>
           </div>
         </div>

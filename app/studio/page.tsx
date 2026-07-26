@@ -282,36 +282,6 @@ function StudioPageContent() {
     }
   }, [pathname, searchParams]);
 
-  const mockLogs = useMemo(() => {
-    return [
-      { time: "2026-05-23 01:45:10", level: "INFO", module: "SYSTEM", text: "Altyapi kumesi ağ trafiği yükü dengeli. (Avg Latency: 12ms)" },
-      { time: "2026-05-23 01:42:05", level: "INFO", module: "API", text: "TeknoMarket Zinciri A.S. (mock-tenant-1) API Gateway uzerinden 250 şube veri eşitlemesini başarıyla tamamladı." },
-      { time: "2026-05-23 01:30:00", level: "INFO", module: "CRON", text: "Günlük otomatik lisans denetim motoru çalıştırıldı. Herhangi bir ihlal tespit edilmedi." },
-      { time: "2026-05-23 01:15:32", level: "INFO", module: "DATABASE", text: "Postgres veritabani havuzlari sağlıklı durumda. (28 aktif bağlantı)" },
-      { time: "2026-05-23 01:05:18", level: "WARNING", module: "LICENSE", text: "Mavi Cep Noktasi (mock-tenant-7) lisans suresi 30 gunden az kaldi. Uyari e-postasi siraya alindi." },
-      { time: "2026-05-23 00:55:12", level: "INFO", module: "API", text: "Apex İletişim Grubu (mock-tenant-2) 150 şube için POS işlemlerini senkronize etti." },
-      { time: "2026-05-23 00:45:00", level: "INFO", module: "SYSTEM", text: "Sunucu disk alani kontrolu: %34.2 dolu (128GB box alan kullanilabilir)" },
-      { time: "2026-05-22 23:59:00", level: "INFO", module: "SYSTEM", text: "Günlük veritabanı yedekleme işlemi (VibeGSM_Backup_20260522.sql) başarıyla AWS S3'e yedeklendi." },
-      { time: "2026-05-22 23:45:22", level: "INFO", module: "API", text: "Mega Cep Dunyasi (mock-tenant-4) 54 şubenin stok sayim güncellemelerini ERP sunucusuna aktardi." },
-      { time: "2026-05-22 23:22:15", level: "ERROR", module: "SMS", text: "Alo Mobil Şubeleri (mock-tenant-5) SMS kotası yetersizliği nedeniyle kampanya SMS gönderim denemesi başarısız oldu." },
-      { time: "2026-05-22 23:10:05", level: "INFO", module: "TICKET", text: "Genclik GSM Franchising (mock-tenant-3) yeni bir destek talebi (t4) oluşturdu." },
-      { time: "2026-05-22 22:55:40", level: "INFO", module: "API", text: "/api/studio/customers/mock-tenant-1 detaylari SuperAdmin tarafindan yuklendi." },
-      { time: "2026-05-22 22:15:32", level: "INFO", module: "DATABASE", text: "Postgres database connections healthy (14 pools active)" },
-      { time: "2026-05-22 22:10:05", level: "INFO", module: "API", text: "/api/auth/me called from tenant Kadıkoy Iletixim (IP: 192.168.1.45)" },
-      { time: "2026-05-22 21:55:18", level: "WARNING", module: "LICENSE", text: "Tenant Apex Mobil license expires in 8 days. Notification sent." },
-      { time: "2026-05-22 20:30:10", level: "INFO", module: "CRON", text: "Daily billing engine completed. 0 accounts flagged for auto-suspend." },
-      { time: "2026-05-22 20:15:00", level: "INFO", module: "SYSTEM", text: "Disk space usage at 34% (128GB free)" },
-    ];
-  }, []);
-
-  const filteredLogs = useMemo(() => {
-    return mockLogs.filter((log) => {
-      const matchesLevel = logLevelFilter === "ALL" || log.level === logLevelFilter;
-      const matchesSearch = log.text.toLowerCase().includes(logSearch.toLowerCase()) || log.module.toLowerCase().includes(logSearch.toLowerCase());
-      return matchesLevel && matchesSearch;
-    });
-  }, [mockLogs, logLevelFilter, logSearch]);
-
   // Console active tab state
   const [activeConsoleTab, setActiveConsoleTab] = useState<"GENERAL" | "CRM" | "TICKETS" | "ERP" | "ROLES" | "USERS" | "AUDIT">("GENERAL");
 
@@ -442,6 +412,36 @@ function StudioPageContent() {
   const [pricingChangeReason, setPricingChangeReason] = useState("");
   const [reports, setReports] = useState<StudioReports | null>(null);
   const [reportsLoadıng, setReportsLoadıng] = useState(false);
+
+  // Gercek StudioAuditLog kayitlari (logStudioAction ile yazilir), /api/studio/reports
+  // uzerinden zaten cekiliyor (bkz. reports.auditLogs, ayni fetch Portfoy sekmesinde de
+  // kullaniliyor). Onceden burada kurgu sirket isimleriyle sabit mock veri vardi.
+  const realLogs = useMemo(() => {
+    const rows = reports?.auditLogs || [];
+    return rows.map((l: any) => {
+      const action = String(l.action || "");
+      const level = /FAIL|ERROR|REJECT/i.test(action)
+        ? "ERROR"
+        : /EXPIR|OVERDUE|FROZEN|WARN/i.test(action)
+          ? "WARNING"
+          : "INFO";
+      return {
+        time: l.createdAt ? new Date(l.createdAt).toLocaleString("tr-TR") : "-",
+        level,
+        module: l.targetType || "SYSTEM",
+        text: `${l.actor || "Sistem"} — ${action}${l.detail ? `: ${l.detail}` : ""}`,
+      };
+    });
+  }, [reports]);
+
+  const filteredLogs = useMemo(() => {
+    return realLogs.filter((log) => {
+      const matchesLevel = logLevelFilter === "ALL" || log.level === logLevelFilter;
+      const matchesSearch = log.text.toLowerCase().includes(logSearch.toLowerCase()) || log.module.toLowerCase().includes(logSearch.toLowerCase());
+      return matchesLevel && matchesSearch;
+    });
+  }, [realLogs, logLevelFilter, logSearch]);
+
   const canManagePricing = sessionRole === "ADMIN" || sessionRole === "PLATFORM_OWNER";
   const canManageFinance = sessionRole === "ADMIN" || sessionRole === "PLATFORM_OWNER";
   const isPlatformOwner = sessionRole === "PLATFORM_OWNER";
@@ -3174,7 +3174,7 @@ function StudioPageContent() {
         <div className="space-y-6">
           {/* Altyapi Kapasite Kartlari */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {/* Kart 1: Sube Doluluk Orani */}
+            {/* Kart 1: Sube Doluluk Orani — gercek veri (tenantConfigs) */}
             <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Toplam Şube Kullanımı</span>
               <span className="text-3xl font-extrabold text-slate-900 mt-2 block">
@@ -3183,7 +3183,7 @@ function StudioPageContent() {
               <div className="mt-3 space-y-1">
                 <div className="w-full bg-slate-100 rounded-full h-2 border border-slate-200">
                   <div
-                    className="bg-indigo-605 bg-indigo-600 h-2 rounded-full"
+                    className="bg-indigo-600 h-2 rounded-full"
                     style={{ width: `${Math.min(100, (tenantConfigs.reduce((sum, item) => sum + item.meta.branchLimit, 0) / 1000) * 100)}%` }}
                   ></div>
                 </div>
@@ -3191,19 +3191,25 @@ function StudioPageContent() {
               </div>
             </div>
 
-            {/* Kart 2: API Gateway Trafixi */}
+            {/* Kart 2: API Gateway Trafigi — GERCEK ALTYAPI IZLEME BAGLI DEGIL, sabit ornek deger */}
             <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">API Ax Trafixi</span>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">API Ağ Trafiği</span>
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-black text-slate-500">Demo</span>
+              </div>
               <div className="flex items-center gap-2 mt-2">
-                <span className="text-3xl font-extrabold text-indigo-650 text-indigo-600">4.850 req/min</span>
+                <span className="text-3xl font-extrabold text-indigo-600">4.850 req/min</span>
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
               </div>
-              <span className="text-xs text-slate-500 mt-3 block font-semibold">a Gateway Yuk Dengeli (Healthy)</span>
+              <span className="text-xs text-slate-500 mt-3 block font-semibold">API Gateway Yük Dengeli (Healthy)</span>
             </div>
 
-            {/* Kart 3: Sunucu Yuku (CPU/RAM) */}
+            {/* Kart 3: Sunucu Yuku (CPU/RAM) — GERCEK ALTYAPI IZLEME BAGLI DEGIL, sabit ornek deger */}
             <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Kume CPU / RAM Kullanimi</span>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Küme CPU / RAM Kullanımı</span>
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-black text-slate-500">Demo</span>
+              </div>
               <div className="mt-2 flex items-baseline gap-2">
                 <span className="text-2xl font-extrabold text-slate-900">%34,2</span>
                 <span className="text-xs text-slate-500">CPU</span>
@@ -3216,11 +3222,14 @@ function StudioPageContent() {
               </div>
             </div>
 
-            {/* Kart 4: Aktif Veritabani Havuzlari */}
+            {/* Kart 4: Aktif Veritabani Havuzlari — GERCEK ALTYAPI IZLEME BAGLI DEGIL, sabit ornek deger */}
             <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">PostgreSQL Baxlanti Havuzu</span>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">PostgreSQL Bağlantı Havuzu</span>
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-black text-slate-500">Demo</span>
+              </div>
               <span className="text-3xl font-extrabold text-emerald-600 mt-2 block">28 / 100 Havuz</span>
-              <span className="text-xs text-emerald-650 mt-2 block font-semibold">S 0.4ms Ortalama Yanit Suresi</span>
+              <span className="text-xs text-emerald-600 mt-2 block font-semibold">0.4ms Ortalama Yanıt Süresi</span>
             </div>
           </div>
 
@@ -3254,7 +3263,7 @@ function StudioPageContent() {
                         </div>
                         <div className="w-full bg-slate-100 rounded-full h-3 border border-slate-200 overflow-hidden">
                           <div
-                            className={`bg-gradıent-to-r ${colorClass} h-3 rounded-full transition-all duration-500`}
+                            className={`bg-gradient-to-r ${colorClass} h-3 rounded-full transition-all duration-500`}
                             style={{ width: `${pct}%` }}
                           ></div>
                         </div>
@@ -3293,7 +3302,7 @@ function StudioPageContent() {
                           </div>
                           <div className="w-full bg-slate-100 rounded-full h-3 border border-slate-200 overflow-hidden">
                             <div
-                              className={`bg-gradıent-to-r ${colorClass} h-3 rounded-full transition-all duration-500`}
+                              className={`bg-gradient-to-r ${colorClass} h-3 rounded-full transition-all duration-500`}
                               style={{ width: `${pct}%` }}
                             ></div>
                           </div>
