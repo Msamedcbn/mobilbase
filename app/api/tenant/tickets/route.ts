@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
-import { readLocalStore, writeLocalStore, localId } from "@/lib/local-store";
+import { readLocalStore, writeLocalStore } from "@/lib/local-store";
+import { requireTenant } from "@/lib/tenant-guard";
 
 // SaaS Metadata Defaults & Helper for Tenant Support bot
 const DEFAULT_TENANT_METADATA = {
@@ -35,42 +36,16 @@ const DEFAULT_TENANT_METADATA = {
   billingLedger: []
 };
 
-// Helper to get or create tenant Customer record
-async function getOrCreateTenantCustomer(tenantName: string) {
+// Resolves the caller's own tenant Customer record by id. Every real tenant
+// already has a Customer row created at signup, so this never auto-creates —
+// a miss here means the session's tenantId is stale/invalid, which is a hard
+// failure, not a "make one up" situation.
+async function getTenantCustomerById(tenantId: string) {
   if (isDbDisabledMode()) {
     const store = await readLocalStore();
-    let customer = store.customers.find((c) => c.fullName === tenantName);
-    if (!customer) {
-      customer = {
-        id: localId("cust"),
-        nationalId: null,
-        fullName: tenantName,
-        phone: "5550000000",
-        email: "destek@vibegsm.local",
-        notes: JSON.stringify(DEFAULT_TENANT_METADATA),
-        creditLimit: 0,
-      };
-      store.customers.push(customer);
-      await writeLocalStore(store);
-    }
-    return customer;
-  } else {
-    let customer = await prisma.customer.findFirst({
-      where: { fullName: tenantName }
-    });
-    if (!customer) {
-      customer = await prisma.customer.create({
-        data: {
-          fullName: tenantName,
-          phone: "5550000000",
-          email: "destek@vibegsm.local",
-          notes: JSON.stringify(DEFAULT_TENANT_METADATA),
-          creditLimit: 0,
-        }
-      });
-    }
-    return customer;
+    return store.customers.find((c) => c.id === tenantId) ?? null;
   }
+  return prisma.customer.findUnique({ where: { id: tenantId } });
 }
 
 async function saveTenantCustomerNotes(customerId: string, notesStr: string) {
@@ -110,8 +85,12 @@ function parseMetadata(notes: string | null) {
 
 export async function GET() {
   try {
-    const tenantName = process.env.TENANT_NAME ?? "VibeGSM";
-    const customer = await getOrCreateTenantCustomer(tenantName);
+    const guard = requireTenant();
+    if (guard.error) return guard.error;
+
+    const customer = await getTenantCustomerById(guard.ctx.tenantId);
+    if (!customer) return NextResponse.json({ error: "Tenant bulunamadi" }, { status: 404 });
+
     const metadata = parseMetadata(customer.notes);
     return NextResponse.json({ tickets: metadata.tickets || [] });
   } catch (error: any) {
@@ -121,7 +100,9 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const tenantName = process.env.TENANT_NAME ?? "VibeGSM";
+    const guard = requireTenant();
+    if (guard.error) return guard.error;
+
     const body = await req.json();
     const { title, category, message } = body;
 
@@ -129,7 +110,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Eksik parametreler" }, { status: 400 });
     }
 
-    const customer = await getOrCreateTenantCustomer(tenantName);
+    const customer = await getTenantCustomerById(guard.ctx.tenantId);
+    if (!customer) return NextResponse.json({ error: "Tenant bulunamadi" }, { status: 404 });
+
     const metadata = parseMetadata(customer.notes);
 
     const newTicket = {
@@ -155,7 +138,9 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
-    const tenantName = process.env.TENANT_NAME ?? "VibeGSM";
+    const guard = requireTenant();
+    if (guard.error) return guard.error;
+
     const body = await req.json();
     const { ticketId, message } = body;
 
@@ -163,7 +148,9 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: "Eksik parametreler" }, { status: 400 });
     }
 
-    const customer = await getOrCreateTenantCustomer(tenantName);
+    const customer = await getTenantCustomerById(guard.ctx.tenantId);
+    if (!customer) return NextResponse.json({ error: "Tenant bulunamadi" }, { status: 404 });
+
     const metadata = parseMetadata(customer.notes);
 
     let updatedTicket = null;
