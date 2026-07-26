@@ -4,6 +4,7 @@ import { readLocalStore } from "@/lib/local-store";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { prisma } from "@/lib/prisma";
 import { makeRenewalSuggestion, summarizeLedger } from "@/lib/studio-finance";
+import { PLATFORM_KEYS, readPlatformSetting } from "@/lib/platform-settings";
 import PDFDocument from "pdfkit";
 
 function parseMetadata(notes: string | null) {
@@ -21,11 +22,14 @@ export async function GET(req: Request) {
   const auth = requireRole(["PLATFORM_OWNER", "STUDIO_OPERATOR"]);
   if (auth.error) return auth.error;
 
-  // NOT: resellerPricing/resellerPricingHistory hala sadece local-store'da tutuluyor
-  // (ayrı flag'lenmiş bug — pricing route'un tamami DB-mode kontrolsuz). Tenant/audit
-  // verisi asagida gercek moda gore dallaniyor, pricing config'i degil.
+  // DB modunda pricing artik PlatformSetting tablosunda tutuluyor (bkz.
+  // app/api/studio/pricing/route.ts). Bu route eskiden pricing'i kosulsuz
+  // local-store'dan okuyordu; pricing yazma tarafi DB'ye tasindiktan sonra bu
+  // satir production'da hep bos/eski veri donduren sessiz bir regresyondu.
   const store = await readLocalStore();
-  const pricing = store.resellerPricing;
+  const pricing = isDbDisabledMode()
+    ? store.resellerPricing
+    : await readPlatformSetting<any>(PLATFORM_KEYS.resellerPricing, {});
 
   const tenants = isDbDisabledMode()
     ? (store.customers
@@ -139,6 +143,10 @@ export async function GET(req: Request) {
         createdAt: l.createdAt.toISOString(),
       }));
 
+  const pricingHistory = isDbDisabledMode()
+    ? store.resellerPricingHistory || []
+    : await readPlatformSetting<any[]>(PLATFORM_KEYS.resellerPricingHistory, []);
+
   const payload = {
     asOf: new Date().toISOString(),
     kpis,
@@ -146,7 +154,7 @@ export async function GET(req: Request) {
     riskTenants,
     renewalSuggestions,
     monthly,
-    pricingHistory: (store.resellerPricingHistory || []).slice(0, 20),
+    pricingHistory: pricingHistory.slice(0, 20),
     auditLogs,
   };
 
