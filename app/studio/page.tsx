@@ -178,7 +178,7 @@ const CANNED_REPLIES = [
   {
     id: "sube_limiti",
     title: "Şube Limiti Uyarısı",
-    body: "Sayın yetkili, lisans paketinizdeki şube limitinizi doldurduğunuz tespit edilmixtir. Sisteminizin kesintisiz çalışmaya devam edebilmesi icin bir ust paket olan Enterprise paketine gecmenizi öneririz. Paket yükseltme işlemi icin cari işlemler sekmesini kullanabilir veya bizimle irtibata geçebilirsiniz."
+    body: "Sayın yetkili, lisans paketinizdeki şube limitinizi doldurduğunuz tespit edilmiştir. Sisteminizin kesintisiz çalışmaya devam edebilmesi icin bir ust paket olan Enterprise paketine gecmenizi öneririz. Paket yükseltme işlemi icin cari işlemler sekmesini kullanabilir veya bizimle irtibata geçebilirsiniz."
   },
   {
     id: "sms_aktif",
@@ -535,7 +535,7 @@ function StudioPageContent() {
         toast.error("Ayarlar kaydedilemedi.");
       }
     } catch {
-      toast.error("Baxlanti hatasi oluxtu.");
+      toast.error("Bağlantı hatasi oluştu.");
     } finally {
       setIsSavingPricing(false);
     }
@@ -593,12 +593,12 @@ function StudioPageContent() {
         toast.error("Gider kaydedilemedi.");
       }
     } catch {
-      toast.error("Baxlanti hatasi oluxtu.");
+      toast.error("Bağlantı hatasi oluştu.");
     }
   };
 
   const handleDeleteExpense = async (id: string) => {
-    if (!(await confirm("Bu gider kaydini silmek istedixinize emin misiniz?", { danger: true, confirmLabel: "Sil" }))) return;
+    if (!(await confirm("Bu gider kaydini silmek istediğinize emin misiniz?", { danger: true, confirmLabel: "Sil" }))) return;
     try {
       const res = await fetch(`/api/studio/expenses?id=${id}`, {
         method: "DELETE",
@@ -610,7 +610,7 @@ function StudioPageContent() {
         toast.error("Gider silinemedi.");
       }
     } catch {
-      toast.error("Baxlanti hatasi.");
+      toast.error("Bağlantı hatasi.");
     }
   };
 
@@ -673,17 +673,17 @@ function StudioPageContent() {
       });
 
       if (res.ok) {
-        toast.success("Cari ixlem kaydedildi.");
+        toast.success("Cari işlem kaydedildi.");
         setGlobalLedgerAmount("");
         setGlobalLedgerDesc("");
         setGlobalLedgerDueDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]);
         fetchTenants();
         fetchReports();
       } else {
-        toast.error("Cari ixlem kaydedilemedi.");
+        toast.error("Cari işlem kaydedilemedi.");
       }
     } catch {
-      toast.error("Baxlanti hatasi.");
+      toast.error("Bağlantı hatasi.");
     } finally {
       setIsAddingGlobalLedger(false);
     }
@@ -753,14 +753,14 @@ function StudioPageContent() {
       });
 
       if (res.ok) {
-        toast.success("Tahsilat kaydi oluxturuldu ve fatura kapatildi.");
+        toast.success("Tahsilat kaydi oluşturuldu ve fatura kapatildi.");
         fetchTenants();
         fetchReports();
       } else {
-        toast.error("Tahsilat ixlemi kaydedilemedi.");
+        toast.error("Tahsilat işlemi kaydedilemedi.");
       }
     } catch {
-      toast.error("Baxlanti hatasi.");
+      toast.error("Bağlantı hatasi.");
     }
   };
 
@@ -834,7 +834,7 @@ function StudioPageContent() {
         toast.error("Firma detaylari alinamadı.");
       }
     } catch {
-      toast.error("Firma detaylari yuklenirken hata oluxtu.");
+      toast.error("Firma detaylari yuklenirken hata oluştu.");
     } finally {
       setDetailLoadıng(false);
     }
@@ -1005,7 +1005,7 @@ function StudioPageContent() {
       await fetchReports();
       await fetchTenants();
     } catch {
-      toast.error("Baxlanti hatasi.");
+      toast.error("Bağlantı hatasi.");
     }
   };
 
@@ -1048,7 +1048,7 @@ function StudioPageContent() {
       await fetchTenants();
       await fetchReports();
     } catch {
-      toast.error("Baxlanti hatasi.");
+      toast.error("Bağlantı hatasi.");
     }
   };
 
@@ -1231,8 +1231,8 @@ function StudioPageContent() {
       if (isChurnRisk) {
         const reasons = [];
         if (isLowApiUsage) reasons.push(`API kullanimi %${apiUsagePct.toFixed(1)} < %5`);
-        if (noRecentNote) reasons.push("son 15 gunde goruxme notu girilmemix");
-        churnReason = `Lisans bitixine ${daysRemaining} gun kaldi ve ` + reasons.join(" ve ");
+        if (noRecentNote) reasons.push("son 15 gunde görüşme notu girilmemiş");
+        churnReason = `Lisans bitişine ${daysRemaining} gun kaldi ve ` + reasons.join(" ve ");
       }
 
       return {
@@ -1425,7 +1425,7 @@ function StudioPageContent() {
         toast.error("Bilet güncellenemedi.");
       }
     } catch {
-      toast.error("Baxlanti hatasi.");
+      toast.error("Bağlantı hatasi.");
     }
   };
 
@@ -1472,7 +1472,7 @@ function StudioPageContent() {
         toast.error(errJson.error || "Hızlı güncelleme başarısız.");
       }
     } catch {
-      toast.error("Baxlanti hatasi.");
+      toast.error("Bağlantı hatasi.");
     }
   };
 
@@ -1591,10 +1591,10 @@ function StudioPageContent() {
         setSelectedTenantId(null);
         fetchTenants();
       } else {
-        toast.error("Kaydetme ixlemi başarısız oldu.");
+        toast.error("Kaydetme işlemi başarısız oldu.");
       }
     } catch {
-      toast.error("Baxlanti hatasi.");
+      toast.error("Bağlantı hatasi.");
     }
   };
 
@@ -1703,7 +1703,7 @@ function StudioPageContent() {
         toast.error("Firma eklenemedi.");
       }
     } catch {
-      toast.error("Baxlanti hatasi.");
+      toast.error("Bağlantı hatasi.");
     }
   };
 
@@ -1753,7 +1753,7 @@ function StudioPageContent() {
         leadHistory: [
           {
             date: new Date().toISOString().split("T")[0],
-            note: `Satix axamasi taxindi: ${currentStatus} -> ${nextStatus}`,
+            note: `Satış aşaması taşındı: ${currentStatus} -> ${nextStatus}`,
             author: "SuperAdmin"
           },
           ...(item.meta.leadHistory || [])
@@ -1833,7 +1833,7 @@ function StudioPageContent() {
           <div class="header">
             <div>
               ${logoHtml}
-              <p style="font-size: 12px; color: #78716c; margin: 5px 0 0 0;">VibeGSM Bilixim Teknolojileri A.S.</p>
+              <p style="font-size: 12px; color: #78716c; margin: 5px 0 0 0;">VibeGSM Bilişim Teknolojileri A.S.</p>
             </div>
             <div style="text-align: right;">
               <h2 style="margin: 0; font-size: 20px; color: #1c1917; font-weight: 700;">${title}</h2>
@@ -1843,7 +1843,7 @@ function StudioPageContent() {
           <div class="details">
             <div>
               <h3>Gonderen Firma</h3>
-              <p><strong>VibeGSM Bilixim A.S.</strong></p>
+              <p><strong>VibeGSM Bilişim A.S.</strong></p>
               <p>Teknokent Plaza No: 45/A</p>
               <p>Kadıkoy / Istanbul</p>
               <p>destek@vibegsm.com</p>
@@ -1900,7 +1900,7 @@ function StudioPageContent() {
             </table>
           </div>
           <div class="footer">
-            Bu belge VibeGSM Studio simulasyon sisteminde oluxturulmuxtur. Elektronik arxiv veya resmi fatura nitelixi taximamaktadır.
+            Bu belge VibeGSM Studio simulasyon sisteminde oluşturulmuştur. Elektronik arşiv veya resmi fatura niteliği taşımamaktadır.
           </div>
         </body>
       </html>
@@ -1936,11 +1936,11 @@ function StudioPageContent() {
       status: newTicketStatus,
       createdAt: new Date().toISOString().split("T")[0],
       messages: [],
-      assignee: "Boxta",
+      assignee: "Boşta",
     };
     setEditTickets([...editTickets, newTicket]);
     setNewTicketTitle("");
-    toast.success("Destek talebi oluxturuldu (Kaydet butonuna basmayi unutmayin).");
+    toast.success("Destek talebi oluşturuldu (Kaydet butonuna basmayi unutmayin).");
   };
 
   const addTicketMessage = (ticketId: string) => {
@@ -2043,7 +2043,7 @@ function StudioPageContent() {
       if (selectedTenantId) fetchTenantDetails(selectedTenantId);
       fetchCrmInsights();
     } catch {
-      toast.error("Baxlanti hatasi.");
+      toast.error("Bağlantı hatasi.");
     }
   };
 
@@ -2058,7 +2058,7 @@ function StudioPageContent() {
       if (selectedTenantId) fetchTenantDetails(selectedTenantId);
       fetchCrmInsights();
     } catch {
-      toast.error("Baxlanti hatasi.");
+      toast.error("Bağlantı hatasi.");
     }
   };
 
@@ -2080,7 +2080,7 @@ function StudioPageContent() {
       }
       fetchCrmInsights();
     } catch {
-      toast.error("Baxlanti hatasi.");
+      toast.error("Bağlantı hatasi.");
     }
   };
 
@@ -2127,9 +2127,9 @@ function StudioPageContent() {
   };
 
   const removeLedgerEntry = async (id: string) => {
-    if (await confirm("Bu cari hareketi silmek istedixinize emin misiniz?", { danger: true, confirmLabel: "Sil" })) {
+    if (await confirm("Bu cari hareketi silmek istediğinize emin misiniz?", { danger: true, confirmLabel: "Sil" })) {
       setEditBillingLedger(editBillingLedger.filter((e) => e.id !== id));
-      toast.success("Cari hareket listeden kaldirildi. Dexixiklikleri kalici yapmak icin firma detayini kaydetmeyi unutmayin.");
+      toast.success("Cari hareket listeden kaldirildi. Değişiklikleri kalici yapmak icin firma detayini kaydetmeyi unutmayin.");
     }
   };
 
@@ -2409,7 +2409,7 @@ function StudioPageContent() {
             <span className="text-xs font-bold text-rose-700">Kaybedildi</span>
             <div className="flex items-baseline gap-2 mt-2">
               <span className="text-2xl font-black text-rose-900">{leadPipeline.LOST}</span>
-              <span className="text-xs text-rose-650">arxiv</span>
+              <span className="text-xs text-rose-650">arşiv</span>
             </div>
           </div>
         </div>
@@ -2694,7 +2694,7 @@ function StudioPageContent() {
                           </div>
                         </td>
 
-                        {/* Lisans Bitix / Sure */}
+                        {/* Lisans Bitiş / Sure */}
                         <td className="px-6 py-4 max-w-xs">
                           <div className="space-y-1.5">
                             <div className="text-[11px] font-mono font-bold text-slate-600">
@@ -2807,11 +2807,11 @@ function StudioPageContent() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 overflow-x-auto min-w-[1000px] pb-4">
               {([
-                { id: "LEAD" as const, title: "Muxteri Adayi (Lead)", color: "border-blue-200 bg-blue-50/20 text-blue-800" },
-                { id: "NEGOTIATION" as const, title: "Goruxuluyor", color: "border-violet-200 bg-violet-50/20 text-violet-800" },
+                { id: "LEAD" as const, title: "Müşteri Adayi (Lead)", color: "border-blue-200 bg-blue-50/20 text-blue-800" },
+                { id: "NEGOTIATION" as const, title: "Görüşülüyor", color: "border-violet-200 bg-violet-50/20 text-violet-800" },
                 { id: "OFFER_SENT" as const, title: "Teklif Iletildi", color: "border-amber-200 bg-amber-50/20 text-amber-800" },
                 { id: "WON" as const, title: "Kazanildi (Aktif)", color: "border-emerald-200 bg-emerald-50/20 text-emerald-800" },
-                { id: "LOST" as const, title: "Kaybedildi (Arxiv)", color: "border-rose-200 bg-rose-50/20 text-rose-800" },
+                { id: "LOST" as const, title: "Kaybedildi (Arşiv)", color: "border-rose-200 bg-rose-50/20 text-rose-800" },
               ]).map((col) => {
                 const colTenants = filteredTenants.filter((t) => t.meta.leadStatus === col.id);
                 return (
@@ -2823,7 +2823,7 @@ function StudioPageContent() {
                     <div className="flex-1 space-y-3 overflow-y-auto max-h-[500px] pr-1">
                       {colTenants.length === 0 ? (
                         <div className="h-24 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-xl text-[10px] text-slate-400 italic">
-                          Muxteri Yok
+                          Müşteri Yok
                         </div>
                       ) : (
                         colTenants.map((item) => {
@@ -2899,7 +2899,7 @@ function StudioPageContent() {
                                     onClick={() => handleMoveLeadStatus(item, "right")}
                                     disabled={col.id === "LOST"}
                                     className="p-1 rounded bg-slate-50 hover:bg-slate-100 border border-slate-200 disabled:opacity-40 disabled:hover:bg-slate-50 text-[10px]"
-                                    title="Saxa Taxi"
+                                    title="Sağa Taşı"
                                   >
                                     
                                   </button>
@@ -2995,7 +2995,7 @@ function StudioPageContent() {
                         )}
                         
                         <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[8px] font-semibold">
-                          x {item.ticket.assignee || "Boxta"}
+                          x {item.ticket.assignee || "Boşta"}
                         </span>
                       </div>
                     </button>
@@ -3026,7 +3026,7 @@ function StudioPageContent() {
                   <div className="flex gap-2">
                     <select
                       className="px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                      value={activeGlobalTicket.ticket.assignee || "Boxta"}
+                      value={activeGlobalTicket.ticket.assignee || "Boşta"}
                       onChange={(e) =>
                         handleUpdateGlobalTicket(
                           activeGlobalTicket.tenantId,
@@ -3035,7 +3035,7 @@ function StudioPageContent() {
                         )
                       }
                     >
-                      <option value="Boxta">Temsilci Yok (Boxta)</option>
+                      <option value="Boşta">Temsilci Yok (Boşta)</option>
                       <option value="Ahmet Sevim (SuperAdmin)">Ahmet Sevim (SuperAdmin)</option>
                       <option value="Zeynep Yilmaz (Destek)">Zeynep Yilmaz (Destek)</option>
                     </select>
@@ -3159,7 +3159,7 @@ function StudioPageContent() {
                 <svg className="w-16 h-16 text-slate-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
-                <h4 className="font-extrabold text-sm text-slate-700 font-sans">Destek Goruxme Alani</h4>
+                <h4 className="font-extrabold text-sm text-slate-700 font-sans">Destek Görüşme Alani</h4>
                 <p className="text-xs text-slate-500 mt-1 max-w-sm font-sans">
                   Gelen destek taleplerini okumak, yanitlamak, atamak ve bilet durumunu güncellemek için sol panelden bir destek talebi seçin.
                 </p>
@@ -3235,7 +3235,7 @@ function StudioPageContent() {
 
           {/* Grafikler ve Detayli Analitik */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Grafik 1: Sube Daxilim Grafixi */}
+            {/* Grafik 1: Sube Dağılım Grafiği */}
             <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-4">
               <h4 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider">Bayi Şube Dağılımı</h4>
               <div className="space-y-4 pt-2">
@@ -3273,10 +3273,10 @@ function StudioPageContent() {
               </div>
             </div>
 
-            {/* Grafik 2: Veritabani Daxilimi ve SMS Kotasi */}
+            {/* Grafik 2: Veritabani Dağılımı ve SMS Kotasi */}
             <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-6">
               <div>
-                <h4 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider">Veritabani Boyut Daxilimi (GB)</h4>
+                <h4 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider">Veritabani Boyut Dağılımı (GB)</h4>
                 <div className="space-y-4 pt-4">
                   {tenantConfigs
                     .sort((a, b) => b.meta.databaseSizeGb - a.meta.databaseSizeGb)
@@ -3328,7 +3328,7 @@ function StudioPageContent() {
               <span className="text-3xl font-extrabold text-indigo-600 mt-2 block font-mono">
                 {kpis.totalMRR.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
               </span>
-              <span className="text-[10px] text-slate-500 mt-2 block font-semibold">x Yıllık Exdexer (ARR): {(kpis.totalMRR * 12).toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}</span>
+              <span className="text-[10px] text-slate-500 mt-2 block font-semibold">≈ Yıllık Değer (ARR): {(kpis.totalMRR * 12).toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}</span>
             </div>
 
             {/* Toplam Tahsilat */}
@@ -3341,7 +3341,7 @@ function StudioPageContent() {
                   return totalCollections.toLocaleString("tr-TR", { style: "currency", currency: "TRY" });
                 })()}
               </span>
-              <span className="text-[10px] text-emerald-600 mt-2 block font-bold">S Toplam Nakit Girixi</span>
+              <span className="text-[10px] text-emerald-600 mt-2 block font-bold">S Toplam Nakit Girişi</span>
             </div>
 
             {/* Operasyonel Giderler */}
@@ -3350,7 +3350,7 @@ function StudioPageContent() {
               <span className="text-3xl font-extrabold text-rose-650 mt-2 block font-mono">
                 {expenses.reduce((sum, e) => sum + e.amount, 0).toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
               </span>
-              <span className="text-[10px] text-rose-600 mt-2 block font-bold">R Toplam Nakit !ikixi</span>
+              <span className="text-[10px] text-rose-600 mt-2 block font-bold">R Toplam Nakit Çıkışı</span>
             </div>
 
             {/* Net Kar & Marj */}
@@ -3523,7 +3523,7 @@ function StudioPageContent() {
                     <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
                       <span></span> Bekleyen Alacaklar & Vade Takibi (Acik Faturalar)
                     </h3>
-                    <p className="text-[11px] text-slate-400">Bayilerden tahsil edilmemix, bekleyen vadeli tum faturalar</p>
+                    <p className="text-[11px] text-slate-400">Bayilerden tahsil edilmemiş, bekleyen vadeli tum faturalar</p>
                   </div>
                   <div className="text-[11px] text-rose-650 font-bold bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-lg">
                     Toplam Alacak: {
@@ -3545,7 +3545,7 @@ function StudioPageContent() {
                         <th className="py-2.5">Vade Tarihi</th>
                         <th className="py-2.5 text-center">Durum / Kalan Vade</th>
                         <th className="py-2.5 text-right">Tutar</th>
-                        <th className="py-2.5 text-center">Ixlemler</th>
+                        <th className="py-2.5 text-center">İşlemler</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -3566,7 +3566,7 @@ function StudioPageContent() {
                           return (
                             <tr>
                               <td colSpan={7} className="py-8 text-center text-slate-400 italic">
-                                Bekleyen/vadesi gecmix acik fatura bulunmamaktadır.
+                                Bekleyen/vadesi geçmiş acik fatura bulunmamaktadır.
                               </td>
                             </tr>
                           );
@@ -3692,7 +3692,7 @@ function StudioPageContent() {
                     </div>
                   </div>
 
-                  {/* Sax Tahsilat Listesi */}
+                  {/* Son Tahsilat Listesi */}
                   <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
                     <h4 className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest mb-3">Son Tahsilatlar (SaaS)</h4>
                     <div className="space-y-2.5 max-h-[280px] overflow-y-auto pr-1">
@@ -3737,7 +3737,7 @@ function StudioPageContent() {
                     <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
                       <span>x0</span> Operasyonel Gider Takip Defteri
                     </h3>
-                    <p className="text-[11px] text-slate-400">Sunucu altyapisi, personel maaxlari, pazarlama ve genel yonetim giderleri</p>
+                    <p className="text-[11px] text-slate-400">Sunucu altyapisi, personel maaşları, pazarlama ve genel yonetim giderleri</p>
                   </div>
                 </div>
 
@@ -3749,7 +3749,7 @@ function StudioPageContent() {
                         <th className="py-2.5">Kategori</th>
                         <th className="py-2.5">Aciklama</th>
                         <th className="py-2.5 text-right">Tutar</th>
-                        <th className="py-2.5 text-center">Ixlem</th>
+                        <th className="py-2.5 text-center">İşlem</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -3763,9 +3763,9 @@ function StudioPageContent() {
                           .map((exp) => {
                             let badgeStyle = "bg-slate-50 text-slate-700 border-slate-200";
                             if (exp.category === "Altyapi/Sunucu") badgeStyle = "bg-sky-50 text-sky-700 border-sky-200";
-                            else if (exp.category === "Personel Maaxlari") badgeStyle = "bg-indigo-50 text-indigo-700 border-indigo-200";
+                            else if (exp.category === "Personel Maaşları") badgeStyle = "bg-indigo-50 text-indigo-700 border-indigo-200";
                             else if (exp.category === "Pazarlama/Reklam") badgeStyle = "bg-amber-50 text-amber-700 border-amber-200";
-                            else if (exp.category === "Ofis/Dixer") badgeStyle = "bg-slate-50 text-slate-700 border-slate-200";
+                            else if (exp.category === "Ofis/Diğer") badgeStyle = "bg-slate-50 text-slate-700 border-slate-200";
 
                             return (
                               <tr key={exp.id} className="border-b border-slate-100 hover:bg-slate-50/50">
@@ -3796,12 +3796,12 @@ function StudioPageContent() {
               </div>
             </div>
 
-            {/* Sax Taraf: Cari Ixlem, Gider Ekleme ve Kategori Bazli Daxilim */}
+            {/* Sol Taraf: Cari İşlem, Gider Ekleme ve Kategori Bazli Dağılım */}
             <div className="space-y-6">
-              {/* Bayi Cari Ixlemi Ekle */}
+              {/* Bayi Cari İşlemi Ekle */}
               <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
                 <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                  <span>x`</span> Yeni Bayi Cari Ixlemi Ekle
+                  <span>x`</span> Yeni Bayi Cari İşlemi Ekle
                 </h3>
                 <form onSubmit={handleAddGlobalLedgerEntry} className="space-y-3.5">
                   <div>
@@ -3822,7 +3822,7 @@ function StudioPageContent() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Ixlem Turu</label>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">İşlem Turu</label>
                       <select
                         className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-stone-500 focus:bg-white"
                         value={globalLedgerType}
@@ -3870,7 +3870,7 @@ function StudioPageContent() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Ixlem Tarihi</label>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">İşlem Tarihi</label>
                       <input
                         type="date"
                         className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-stone-500 focus:bg-white"
@@ -3916,9 +3916,9 @@ function StudioPageContent() {
                       onChange={(e) => setExpenseCategory(e.target.value)}
                     >
                       <option value="Altyapi/Sunucu"> Altyapi/Sunucu</option>
-                      <option value="Personel Maaxlari">x Personel Maaxlari</option>
+                      <option value="Personel Maaşları">x Personel Maaşları</option>
                       <option value="Pazarlama/Reklam">x Pazarlama/Reklam</option>
-                      <option value="Ofis/Dixer">x Ofis/Dixer</option>
+                      <option value="Ofis/Diğer">x Ofis/Diğer</option>
                     </select>
                   </div>
 
@@ -3958,28 +3958,28 @@ function StudioPageContent() {
                     type="submit"
                     className="w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold shadow-sm transition-all active:scale-[0.98] mt-2 flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    <span>x</span> Gider Kaydi Oluxtur
+                    <span>x</span> Gider Kaydi Oluştur
                   </button>
                 </form>
               </div>
 
-              {/* Kategori Daxilimi */}
+              {/* Kategori Dağılımı */}
               <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
                 <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                  <span>x`</span> Gider Kategori Daxilimi
+                  <span>x`</span> Gider Kategori Dağılımı
                 </h3>
                 <div className="space-y-3.5">
                   {(() => {
                     const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-                    const cats = ["Altyapi/Sunucu", "Personel Maaxlari", "Pazarlama/Reklam", "Ofis/Dixer"];
+                    const cats = ["Altyapi/Sunucu", "Personel Maaşları", "Pazarlama/Reklam", "Ofis/Diğer"];
                     return cats.map((c) => {
                       const amount = expenses.filter((e) => e.category === c).reduce((sum, e) => sum + e.amount, 0);
                       const pct = totalExpenses > 0 ? (amount / totalExpenses) * 100 : 0;
                       let color = "bg-slate-400";
                       if (c === "Altyapi/Sunucu") color = "bg-sky-500";
-                      else if (c === "Personel Maaxlari") color = "bg-indigo-600";
+                      else if (c === "Personel Maaşları") color = "bg-indigo-600";
                       else if (c === "Pazarlama/Reklam") color = "bg-amber-500";
-                      else if (c === "Ofis/Dixer") color = "bg-slate-500";
+                      else if (c === "Ofis/Diğer") color = "bg-slate-500";
 
                       return (
                         <div key={c}>
@@ -4164,7 +4164,7 @@ function StudioPageContent() {
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">zel Gelir Gelixtirme (Saat)</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">zel Gelir Geliştirme (Saat)</label>
                     <div className="relative mt-1.5 rounded-xl shadow-sm">
                       <input
                         type="number"
@@ -4215,7 +4215,7 @@ function StudioPageContent() {
                     <tbody>
                       {/* POS */}
                       <tr className="border-b border-slate-200/50 font-medium">
-                        <td className="py-3 text-slate-700 font-semibold">POS Kasa Satix & Ciro Modulu</td>
+                        <td className="py-3 text-slate-700 font-semibold">POS Kasa Satış & Ciro Modulu</td>
                         <td className="py-3 text-center">
                           <input
                             type="checkbox"
@@ -4329,7 +4329,7 @@ function StudioPageContent() {
 
                       {/* Invoicing */}
                       <tr className="border-b border-slate-200/50 font-medium">
-                        <td className="py-3 text-slate-700 font-semibold">Resmi E-Fatura / E-Arxiv Modulu</td>
+                        <td className="py-3 text-slate-700 font-semibold">Resmi E-Fatura / E-Arşiv Modulu</td>
                         <td className="py-3 text-center">
                           <input
                             type="checkbox"
@@ -4405,7 +4405,7 @@ function StudioPageContent() {
 
                       {/* Support SLA */}
                       <tr className="font-semibold text-slate-700">
-                        <td className="py-3 text-slate-800">Muxteri Destek & SLA Seviyesi</td>
+                        <td className="py-3 text-slate-800">Müşteri Destek & SLA Seviyesi</td>
                         <td className="py-3 px-2">
                           <input
                             type="text"
@@ -4530,7 +4530,7 @@ function StudioPageContent() {
                   <span>i</span> Sistem Sagligi & Olay Loglari
                 </h3>
                 <p className="text-xs text-slate-500">
-                  SaaS altyapisinda gerceklexen son sistem olaylari, API istekleri ve senkronizasyon kayitlari.
+                  SaaS altyapisinda gerçekleşen son sistem olaylari, API istekleri ve senkronizasyon kayitlari.
                 </p>
               </div>
               {/* Log Filtreleri */}
@@ -4666,8 +4666,8 @@ function StudioPageContent() {
                       if (modalIsChurnRisk) {
                         const reasons = [];
                         if (isLowApiUsage) reasons.push(`API kullanimi %${apiUsagePct.toFixed(1)} < %5`);
-                        if (noRecentNote) reasons.push("son 15 gunde goruxme notu girilmemix");
-                        modalChurnReason = `Lisans bitixine ${daysRemaining} gun kaldi ve ` + reasons.join(" ve ");
+                        if (noRecentNote) reasons.push("son 15 gunde görüşme notu girilmemiş");
+                        modalChurnReason = `Lisans bitişine ${daysRemaining} gun kaldi ve ` + reasons.join(" ve ");
                       }
                     }
 
@@ -4744,7 +4744,7 @@ function StudioPageContent() {
                             />
                           </div>
                           <div>
-                            <label className="text-[10px] font-bold text-slate-500 uppercase">Lisans Baxlangic</label>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase">Lisans Başlangıç</label>
                             <input
                               type="date"
                               className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:bg-white"
@@ -4753,7 +4753,7 @@ function StudioPageContent() {
                             />
                           </div>
                           <div>
-                            <label className="text-[10px] font-bold text-slate-500 uppercase">Lisans Bitix / Yenileme</label>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase">Lisans Bitiş / Yenileme</label>
                             <input
                               type="date"
                               className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:bg-white"
@@ -4802,8 +4802,8 @@ function StudioPageContent() {
                           <div className="max-h-[220px] overflow-y-auto border border-slate-100 rounded-xl divide-y divide-slate-100">
                             {(() => {
                               const branchCount = Math.min(editBranchLimit, 250);
-                              const cities = ["Istanbul", "Ankara", "Izmir", "Bursa", "Antalya", "Adana", "Kocaeli", "Mersin", "Gaziantep", "Konya", "Samsun", "Eskixehir"];
-                              const districts = ["Merkez", "!arxi", "Kizilay", "Alsancak", "Kadıkoy", "Nilufer", "Lara", "Yenixehir", "Ilkadım", "Odunpazari", "Bornova", "Bexiktax"];
+                              const cities = ["Istanbul", "Ankara", "Izmir", "Bursa", "Antalya", "Adana", "Kocaeli", "Mersin", "Gaziantep", "Konya", "Samsun", "Eskişehir"];
+                              const districts = ["Merkez", "Çarşı", "Kizilay", "Alsancak", "Kadıkoy", "Nilufer", "Lara", "Yenişehir", "Ilkadım", "Odunpazari", "Bornova", "Beşiktaş"];
                               
                               const generatedBranches = Array.from({ length: branchCount }).map((_, idx) => {
                                 const city = cities[idx % cities.length];
@@ -4832,7 +4832,7 @@ function StudioPageContent() {
                                         <span className="px-1 py-0.2 rounded bg-rose-50 text-rose-700 text-[8px] font-extrabold border border-rose-200">OFFLINE</span>
                                       )}
                                     </div>
-                                    <span className="text-[10px] text-slate-400 font-mono">Veritabani: {br.dbSize} GB  Son Exitleme: Bugun {br.lastSync}</span>
+                                    <span className="text-[10px] text-slate-400 font-mono">Veritabani: {br.dbSize} GB  Son Eşitleme: Bugun {br.lastSync}</span>
                                   </div>
                                   <div className="flex items-center gap-3">
                                     <span className="font-semibold text-slate-600 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded text-[9px]">{br.terminals} POS</span>
@@ -4875,11 +4875,11 @@ function StudioPageContent() {
                         <div className="flex flex-col gap-2">
                           {Object.keys(editModules).filter((modKey) => modKey !== "buyback").map((modKey) => {
                             const labelMap: Record<string, string> = {
-                              pos: "POS Satix Modulu",
+                              pos: "POS Satış Modulu",
                               repairs: "Teknik Servis",
                               stock: "Stok Yönetimi",
                               buyback: "Ikinci El Alim-Satim",
-                              invoicing: "E-Arxiv Fatura",
+                              invoicing: "E-Arşiv Fatura",
                             };
                             const key = modKey as keyof typeof editModules;
                             return (
@@ -4938,14 +4938,14 @@ function StudioPageContent() {
                     {/* Status selection and Pipeline Position */}
                     <div className="lg:col-span-1 space-y-6">
                       <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-4">
-                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">CRM Satix Durumu</h4>
+                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">CRM Satış Durumu</h4>
                         <div className="space-y-2">
                           {[
-                            { id: "LEAD" as const, label: "Muxteri Adayi (Lead)", color: "border-blue-200 bg-blue-50 text-blue-800" },
-                            { id: "NEGOTIATION" as const, label: "Goruxme Axamasi", color: "border-violet-200 bg-violet-50 text-violet-800" },
+                            { id: "LEAD" as const, label: "Müşteri Adayi (Lead)", color: "border-blue-200 bg-blue-50 text-blue-800" },
+                            { id: "NEGOTIATION" as const, label: "Görüşme Aşaması", color: "border-violet-200 bg-violet-50 text-violet-800" },
                             { id: "OFFER_SENT" as const, label: "Teklif Iletildi", color: "border-amber-200 bg-amber-50 text-amber-800" },
-                            { id: "WON" as const, label: "Kazanildi (Aktif Muxteri)", color: "border-emerald-200 bg-emerald-50 text-emerald-800" },
-                            { id: "LOST" as const, label: "Kaybedildi (Arxiv)", color: "border-rose-200 bg-rose-50 text-rose-800" },
+                            { id: "WON" as const, label: "Kazanildi (Aktif Müşteri)", color: "border-emerald-200 bg-emerald-50 text-emerald-800" },
+                            { id: "LOST" as const, label: "Kaybedildi (Arşiv)", color: "border-rose-200 bg-rose-50 text-rose-800" },
                           ].map((st) => (
                             <button
                               key={st.id}
@@ -4993,11 +4993,11 @@ function StudioPageContent() {
                     {/* Timeline and Notes */}
                     <div className="lg:col-span-2 space-y-6">
                       <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-4">
-                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">Yeni Goruxme / Aktivite Notu</h4>
+                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">Yeni Görüşme / Aktivite Notu</h4>
                         <div className="space-y-3">
                           <textarea
                             className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-805 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white min-h-[80px]"
-                            placeholder="Muxteri ile yapilan goruxme veya aktivite detaylarini buraya not edin..."
+                            placeholder="Müşteri ile yapilan görüşme veya aktivite detaylarini buraya not edin..."
                             value={newLeadNote}
                             onChange={(e) => setNewLeadNote(e.target.value)}
                           />
@@ -5048,10 +5048,10 @@ function StudioPageContent() {
                       </div>
 
                       <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-4">
-                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">Aktivite & Goruxme Gecmixi</h4>
+                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">Aktivite & Görüşme Geçmişi</h4>
                         <div className="space-y-4 max-h-60 overflow-y-auto pr-1">
                           {editLeadHistory.length === 0 ? (
-                            <p className="text-xs text-slate-400 italic">Kayitli goruxme gecmixi bulunmuyor.</p>
+                            <p className="text-xs text-slate-400 italic">Kayitli görüşme geçmişi bulunmuyor.</p>
                           ) : (
                             editLeadHistory.map((h, idx) => (
                               <div key={idx} className="relative pl-6 border-l-2 border-slate-200 pb-2 last:pb-0">
@@ -5081,7 +5081,7 @@ function StudioPageContent() {
                         <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">Yeni Destek Talebi</h4>
                         <div className="space-y-3">
                           <div>
-                            <label className="text-[10px] font-bold text-slate-500 uppercase">Talep Baxlixi</label>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase">Talep Başlığı</label>
                             <input
                               type="text"
                               className="w-full mt-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white"
@@ -5121,16 +5121,16 @@ function StudioPageContent() {
                             onClick={addSupportTicket}
                             className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-all shadow-sm"
                           >
-                            Destek Talebi Oluxtur
+                            Destek Talebi Oluştur
                           </button>
                         </div>
                       </div>
 
                       <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-3 flex-1">
-                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">Bilet Gecmixi</h4>
+                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">Bilet Geçmişi</h4>
                         <div className="space-y-2 max-h-80 overflow-y-auto">
                           {editTickets.length === 0 ? (
-                            <p className="text-xs text-slate-400 italic">Acilmix destek talebi bulunmuyor.</p>
+                            <p className="text-xs text-slate-400 italic">Açılmış destek talebi bulunmuyor.</p>
                           ) : (
                             editTickets.map((t) => {
                               const isSelected = selectedTicketId === t.id;
@@ -5173,7 +5173,7 @@ function StudioPageContent() {
                                       <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 text-[9px] font-extrabold border border-emerald-150 font-bold">!ZSLDS</span>
                                     )}
                                     <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-650 text-[9px] font-bold border border-slate-250">
-                                      x {t.assignee || "Boxta"}
+                                      x {t.assignee || "Boşta"}
                                     </span>
                                   </div>
                                 </button>
@@ -5197,9 +5197,9 @@ function StudioPageContent() {
                                 <div>
                                   <h4 className="text-xs font-extrabold text-slate-800 truncate max-w-[300px]">{ticket.title}</h4>
                                   <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mt-0.5">
-                                    <span>Acilix: {ticket.createdAt}</span>
+                                    <span>Açılış: {ticket.createdAt}</span>
                                     <span></span>
-                                    <span className="font-bold text-indigo-600">Yetkili: {ticket.assignee || "Boxta"}</span>
+                                    <span className="font-bold text-indigo-600">Yetkili: {ticket.assignee || "Boşta"}</span>
                                   </div>
                                 </div>
                                 <div className="flex gap-2">
@@ -5212,10 +5212,10 @@ function StudioPageContent() {
                                   </button>
                                   <select
                                     className="px-2 py-1 bg-white border border-slate-200 rounded text-[10px] font-bold text-slate-705 focus:outline-none"
-                                    value={ticket.assignee || "Boxta"}
+                                    value={ticket.assignee || "Boşta"}
                                     onChange={(e) => handleAssigneeChange(ticket.id, e.target.value)}
                                   >
-                                    <option value="Boxta">Atanmamix (Boxta)</option>
+                                    <option value="Boşta">Atanmamış (Boşta)</option>
                                     <option value="Ahmet Sevim (SuperAdmin)">Ahmet Sevim (SuperAdmin)</option>
                                     <option value="Zeynep Yilmaz (Destek)">Zeynep Yilmaz (Destek)</option>
                                   </select>
@@ -5370,7 +5370,7 @@ function StudioPageContent() {
 
                       {/* Add Ledger Entry Form */}
                       <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-4">
-                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">Yeni Cari Ixlem Ekle</h4>
+                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">Yeni Cari İşlem Ekle</h4>
                         <div className="space-y-3">
                           <div className="flex gap-2">
                             <button
@@ -5399,7 +5399,7 @@ function StudioPageContent() {
 
                           <div className="grid grid-cols-1 gap-2">
                             <div>
-                              <label className="text-[10px] font-bold text-slate-500 uppercase">Ixlem Kategorisi</label>
+                              <label className="text-[10px] font-bold text-slate-500 uppercase">İşlem Kategorisi</label>
                               <select
                                 className="w-full mt-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 focus:outline-none focus:bg-white font-bold"
                                 value={ledgerCategory}
@@ -5440,7 +5440,7 @@ function StudioPageContent() {
                             onClick={addLedgerEntry}
                             className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-all shadow-sm"
                           >
-                            Cari Hareketi Ixle
+                            Cari Hareketi İşle
                           </button>
                         </div>
                       </div>
@@ -5468,7 +5468,7 @@ function StudioPageContent() {
 
                       {/* Gelir Kirilim Analizi */}
                       <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-3">
-                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">Gelir Daxilim Analizi (Toplam Ciro: {erpStats.grandTotal.toLocaleString()} TL)</h4>
+                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">Gelir Dağılım Analizi (Toplam Ciro: {erpStats.grandTotal.toLocaleString()} TL)</h4>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                           {(["LICENSE", "SUPPORT", "CUSTOM_DEV", "SMS_PACK"] as const).map((cat) => {
                             const amount = erpStats.totals[cat] || 0;
@@ -5476,7 +5476,7 @@ function StudioPageContent() {
                             const labelMap = {
                               LICENSE: "Lisans",
                               SUPPORT: "Destek",
-                              CUSTOM_DEV: "Gelixtirme",
+                              CUSTOM_DEV: "Geliştirme",
                               SMS_PACK: "API Istek Paketi"
                             };
                             const colorMap = {
@@ -5583,7 +5583,7 @@ function StudioPageContent() {
                         <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
                           <span>x</span> Rol Bazli Modul ve Yetki Sinirlari
                         </h3>
-                        <p className="text-[11px] text-slate-400">Ixletme bunyesindeki rollerin hangi sistem modullerine erixebilecexini tanımlayın.</p>
+                        <p className="text-[11px] text-slate-400">İşletme bunyesindeki rollerin hangi sistem modullerine erişebileceğini tanımlayın.</p>
                       </div>
 
                       <div className="overflow-x-auto">
@@ -5591,7 +5591,7 @@ function StudioPageContent() {
                           <thead>
                             <tr className="border-b border-slate-200 text-slate-450 font-bold uppercase tracking-wider text-[10px]">
                               <th className="py-3">Rol Adi</th>
-                              <th className="py-3 text-center">POS Hizli Satix</th>
+                              <th className="py-3 text-center">POS Hizli Satış</th>
                               <th className="py-3 text-center">Teknik Servis</th>
                               <th className="py-3 text-center">Stok Yönetimi</th>
                               <th className="py-3 text-center">E-Fatura Entegrasyonu</th>
@@ -5602,13 +5602,13 @@ function StudioPageContent() {
                             {(() => {
                               const roles = [
                                 { key: "MANAGER" as const, label: "Müdür / Yönetici (MANAGER)", desc: "Tüm operasyonel izinlere sahip, şubeleri denetler." },
-                                { key: "CASHIER" as const, label: "Kasiyer / Tezgahtar (CASHIER)", desc: "Satix işlemlerini ve basit kasa tahsilatlarini yapar." },
+                                { key: "CASHIER" as const, label: "Kasiyer / Tezgahtar (CASHIER)", desc: "Satış işlemlerini ve basit kasa tahsilatlarini yapar." },
                                 { key: "TECHNICIAN" as const, label: "Servis Teknisyeni (TECHNICIAN)", desc: "Arıza teşhisi yapar ve tamir kayıtlarını günceller." },
                                 { key: "ACCOUNTANT" as const, label: "Muhasebe Sorumlusu (ACCOUNTANT)", desc: "Giderleri, cari kayitlari ve banka hesaplarini kontrol eder." },
                               ];
 
                               const modules = [
-                                { key: "pos", label: "POS Satix" },
+                                { key: "pos", label: "POS Satış" },
                                 { key: "repairs", label: "Teknik Servis" },
                                 { key: "stock", label: "Stok" },
                                 { key: "invoicing", label: "Faturalama" },
@@ -6079,7 +6079,7 @@ function StudioPageContent() {
                         )}
                         <p>Süre Çarpanı: <span className="font-bold">x{newLicenseDuration} Ay</span></p>
                         {discountPct > 0 && (
-                          <p className="text-emerald-700 font-semibold">Yıllık Pexin deme Indirimi: <span className="font-bold">-%{discountPct}</span> (-{discountAmount.toLocaleString()} TL)</p>
+                          <p className="text-emerald-700 font-semibold">Yıllık Peşin deme Indirimi: <span className="font-bold">-%{discountPct}</span> (-{discountAmount.toLocaleString()} TL)</p>
                         )}
                       </div>
                     </div>
