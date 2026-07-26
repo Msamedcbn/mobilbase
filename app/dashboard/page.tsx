@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore } from "@/lib/local-store";
-import { getSessionUser } from "@/lib/auth";
+import { getSessionUser, getEffectiveTenantId } from "@/lib/auth";
 import Link from "next/link";
 
 type MetricPeriod = "day" | "week" | "month";
@@ -36,7 +36,12 @@ export default async function DashboardPage({
   sixMonthsAgo.setHours(0, 0, 0, 0);
 
   const sessionUser = getSessionUser();
-  const tenantId = sessionUser?.tenantId || null;
+  // A raw session tenantId is null for PLATFORM_OWNER/STUDIO_OPERATOR, which made
+  // every query below match Customer/Transaction rows with tenantId IS NULL —
+  // legacy pre-tenant-scoping rows left over from several different dealers,
+  // not this account's own data. getEffectiveTenantId resolves the same
+  // fallback tenant that /api/customers and friends already use.
+  const tenantId = await getEffectiveTenantId(sessionUser);
 
   let dbUnavailable = false;
   let customerCount = 0;
