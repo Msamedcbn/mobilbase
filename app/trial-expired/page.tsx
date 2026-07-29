@@ -40,7 +40,7 @@ export default function TrialExpiredPage() {
               Abonelik için Ulaşın
             </a>
             <a
-              href="tel:+902120000000"
+              href="tel:+905454403452"
               className="rounded-full border border-white/20 bg-white/5 px-6 py-3 text-sm font-bold text-white transition hover:bg-white/10"
             >
               Telefon ile Görüş
