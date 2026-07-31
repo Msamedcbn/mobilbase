@@ -471,10 +471,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
       </div>
 
       <div className="fixed inset-x-0 top-0 z-[60]">
-        <a
-          href="#pricing"
-          className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 px-4 py-2.5 text-center transition hover:brightness-105"
-        >
+        <div className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 px-4 py-2.5 text-center">
           <span className="text-[12.5px] font-black leading-tight text-white md:text-sm">
             🔥 İlk 20 şubeye özel: Yıllık sadece <span className="underline decoration-2 underline-offset-2">12.000 TL</span> — %50 indirim!
           </span>
@@ -483,10 +480,15 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
               ⏳ {countdown.d}g {pad(countdown.h)}s {pad(countdown.m)}dk
             </span>
           )}
-          <span className="hidden shrink-0 items-center gap-1 rounded-full bg-white px-3 py-1 text-[11px] font-black text-orange-600 sm:inline-flex">
+          <a
+            href={WHATSAPP_HREF}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden shrink-0 items-center gap-1 rounded-full bg-white px-3 py-1 text-[11px] font-black text-orange-600 transition hover:bg-orange-50 sm:inline-flex"
+          >
             Hemen Yakala →
-          </span>
-        </a>
+          </a>
+        </div>
 
         <div className={`overflow-hidden border-b border-slate-200 bg-white transition-all duration-500 ${scrolled ? "max-h-0 opacity-0" : "max-h-12 opacity-100"}`}>
           <div className="mx-auto hidden max-w-6xl items-center justify-end gap-6 px-8 py-2.5 text-[12px] font-semibold text-slate-500 md:flex">
