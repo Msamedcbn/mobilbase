@@ -10,6 +10,7 @@ const PUBLIC_PATHS = [
   "/trial-expired",
   "/yardim",
   "/takas-hesapla",
+  "/blog",
   "/api/auth/login",
   "/api/auth/logout",
   "/api/auth/me",

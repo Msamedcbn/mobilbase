@@ -5,15 +5,45 @@ import { RuntimeGuard } from "@/components/runtime-guard";
 import { AppChrome } from "@/components/app-chrome";
 import { PwaRegister } from "@/components/pwa-register";
 
+const BASE_URL = process.env.APP_BASE_URL ?? "https://vibegsm.com";
+const SITE_TITLE = "VibeGSM | Telefon Bayii, Telefoncu ve Teknik Servis Yönetim Yazılımı";
+const SITE_DESCRIPTION =
+  "Telefon bayileri, telefoncular ve teknik servisler için stok/IMEI takibi, POS, tamir takip ve tahsilatı tek panelde birleştiren bulut otomasyonu.";
+
 export const metadata: Metadata = {
-  title: "VibeGSM | Telefon Bayi Otomasyonu",
-  description: "Telefon bayileri için hepsi bir arada bulut otomasyonu",
+  metadataBase: new URL(BASE_URL),
+  title: { default: SITE_TITLE, template: "%s | VibeGSM" },
+  description: SITE_DESCRIPTION,
+  keywords: [
+    "telefon bayii yazılımı",
+    "telefoncu programı",
+    "telefoncu yönetim yazılımı",
+    "teknik servis yönetim yazılımı",
+    "telefon tamiri takip programı",
+    "IMEI takibi",
+    "telefon stok takip programı",
+  ],
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     title: "VibeGSM",
     statusBarStyle: "default",
   },
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    url: BASE_URL,
+    siteName: "VibeGSM",
+    locale: "tr_TR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
+  robots: { index: true, follow: true },
 };
 
 export const viewport: Viewport = {
@@ -25,10 +55,23 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "VibeGSM",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  description: SITE_DESCRIPTION,
+  url: BASE_URL,
+  offers: { "@type": "Offer", priceCurrency: "TRY" },
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="tr">
       <body>
+        {/* eslint-disable-next-line react/no-danger */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
         <RuntimeGuard />
         <PwaRegister />
         <AppChrome>{children}</AppChrome>

@@ -12,6 +12,7 @@ const NAV_LINKS = [
   { label: "Özellikler", href: "#features" },
   { label: "Çözüm", href: "#solution" },
   { label: "Paketler", href: "#pricing" },
+  { label: "Blog", href: "/blog" },
 ];
 
 const MARQUEE_WORDS = [
@@ -629,6 +630,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
           <div className="flex flex-wrap justify-center gap-6 text-xs text-slate-400">
             <a href="#features" className="hover:text-white transition">Özellikler</a>
             <a href="#pricing" className="hover:text-white transition">Paketler</a>
+            <a href="/blog" className="hover:text-white transition">Blog</a>
             <a href="/yardim" className="hover:text-white transition">Yardım</a>
             <a href="mailto:satis@vibegsm.com" className="hover:text-white transition">İletişim</a>
           </div>

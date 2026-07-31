@@ -8031,6 +8031,42 @@
       "productId": "demo-prod-2",
       "branchId": "branch-besiktas",
       "stock": 10
+    },
+    {
+      "id": "pbs-4h8jb4zg7",
+      "productId": "stock-item-ivc7zhlks",
+      "branchId": "branch-kadikoy",
+      "stock": 1
+    },
+    {
+      "id": "pbs-4bgj5bcfl",
+      "productId": "stock-item-npweogeov",
+      "branchId": "branch-kadikoy",
+      "stock": 1
+    },
+    {
+      "id": "pbs-ri35thb63",
+      "productId": "stock-item-yw1etyrep",
+      "branchId": "branch-kadikoy",
+      "stock": 34
+    },
+    {
+      "id": "pbs-8mg7k1z9o",
+      "productId": "stock-item-elqmxaoia",
+      "branchId": "branch-kadikoy",
+      "stock": 58
+    },
+    {
+      "id": "pbs-l8uhjbtjg",
+      "productId": "stock-item-x2j698cmv",
+      "branchId": "branch-kadikoy",
+      "stock": 6
+    },
+    {
+      "id": "pbs-jau0kfvwx",
+      "productId": "stock-item-saj7j7vf2",
+      "branchId": "branch-kadikoy",
+      "stock": 0
     }
   ],
   "productVariants": [
@@ -8709,7 +8745,14 @@
     "whatsappNumber": null,
     "repairTemplate": null,
     "veresiyeTemplate": null,
-    "installmentTemplate": null
+    "installmentTemplate": null,
+    "expenseTypes": [
+      "Kira",
+      "Fatura",
+      "Maas",
+      "Mal Alimi",
+      "Diger"
+    ]
   },
   "stockItems": [
     {
@@ -8774,10 +8817,304 @@
       "dealerPrice": 32000,
       "wholesalePrice": 31000,
       "images": []
+    },
+    {
+      "id": "stock-item-ivc7zhlks",
+      "sku": "IP15PM-256-TIT-358240051111220",
+      "name": "iPhone 15 Pro Max",
+      "category": "Telefon",
+      "brand": "Apple",
+      "model": "iPhone 15 Pro Max",
+      "variantColor": "Titanyum",
+      "variantStorage": "256GB",
+      "serialNumber": null,
+      "imei": "358240051111220",
+      "quantity": 1,
+      "purchasePrice": 62000,
+      "salePrice": 74999,
+      "purchaseDocType": null,
+      "purchaseDocNo": null,
+      "minThreshold": 0,
+      "isCatalog": false,
+      "condition": null,
+      "isBuybackItem": false,
+      "buybackProcessStatus": null,
+      "buybackSaleEnabled": false,
+      "buybackDealId": null,
+      "purchaseDate": "2026-07-31T06:50:06.887Z",
+      "createdAt": "2026-07-31T06:50:06.887Z",
+      "updatedAt": "2026-07-31T06:50:06.887Z",
+      "tenantId": "cust-5cf78ffe"
+    },
+    {
+      "id": "stock-item-npweogeov",
+      "sku": "S24U-512-GRY-358240051112337",
+      "name": "Samsung Galaxy S24 Ultra",
+      "category": "Telefon",
+      "brand": "Samsung",
+      "model": "Galaxy S24 Ultra",
+      "variantColor": "Gri",
+      "variantStorage": "512GB",
+      "serialNumber": null,
+      "imei": "358240051112337",
+      "quantity": 1,
+      "purchasePrice": 48000,
+      "salePrice": 57999,
+      "purchaseDocType": null,
+      "purchaseDocNo": null,
+      "minThreshold": 0,
+      "isCatalog": false,
+      "condition": null,
+      "isBuybackItem": false,
+      "buybackProcessStatus": null,
+      "buybackSaleEnabled": false,
+      "buybackDealId": null,
+      "purchaseDate": "2026-07-31T06:50:07.179Z",
+      "createdAt": "2026-07-31T06:50:07.179Z",
+      "updatedAt": "2026-07-31T06:50:07.179Z",
+      "tenantId": "cust-5cf78ffe"
+    },
+    {
+      "id": "stock-item-yw1etyrep",
+      "sku": "XCH-20W",
+      "name": "Type-C 20W Hızlı Şarj Adaptörü",
+      "category": "Aksesuar",
+      "brand": null,
+      "model": null,
+      "variantColor": null,
+      "variantStorage": null,
+      "serialNumber": null,
+      "imei": null,
+      "quantity": 34,
+      "purchasePrice": 85,
+      "salePrice": 249,
+      "purchaseDocType": null,
+      "purchaseDocNo": null,
+      "minThreshold": 10,
+      "isCatalog": false,
+      "condition": null,
+      "isBuybackItem": false,
+      "buybackProcessStatus": null,
+      "buybackSaleEnabled": false,
+      "buybackDealId": null,
+      "purchaseDate": "2026-07-31T06:50:07.518Z",
+      "createdAt": "2026-07-31T06:50:07.518Z",
+      "updatedAt": "2026-07-31T06:50:07.518Z",
+      "tenantId": "cust-5cf78ffe"
+    },
+    {
+      "id": "stock-item-elqmxaoia",
+      "sku": "TG-IP15",
+      "name": "iPhone 15 Temperli Cam Ekran Koruyucu",
+      "category": "Aksesuar",
+      "brand": null,
+      "model": null,
+      "variantColor": null,
+      "variantStorage": null,
+      "serialNumber": null,
+      "imei": null,
+      "quantity": 58,
+      "purchasePrice": 25,
+      "salePrice": 149,
+      "purchaseDocType": null,
+      "purchaseDocNo": null,
+      "minThreshold": 15,
+      "isCatalog": false,
+      "condition": null,
+      "isBuybackItem": false,
+      "buybackProcessStatus": null,
+      "buybackSaleEnabled": false,
+      "buybackDealId": null,
+      "purchaseDate": "2026-07-31T06:50:07.729Z",
+      "createdAt": "2026-07-31T06:50:07.729Z",
+      "updatedAt": "2026-07-31T06:50:07.729Z",
+      "tenantId": "cust-5cf78ffe"
+    },
+    {
+      "id": "stock-item-x2j698cmv",
+      "sku": "BAT-IP13",
+      "name": "iPhone 13 Batarya (Yüksek Kapasite)",
+      "category": "Yedek Parça",
+      "brand": null,
+      "model": null,
+      "variantColor": null,
+      "variantStorage": null,
+      "serialNumber": null,
+      "imei": null,
+      "quantity": 6,
+      "purchasePrice": 320,
+      "salePrice": 790,
+      "purchaseDocType": null,
+      "purchaseDocNo": null,
+      "minThreshold": 8,
+      "isCatalog": false,
+      "condition": null,
+      "isBuybackItem": false,
+      "buybackProcessStatus": null,
+      "buybackSaleEnabled": false,
+      "buybackDealId": null,
+      "purchaseDate": "2026-07-31T06:50:08.087Z",
+      "createdAt": "2026-07-31T06:50:08.087Z",
+      "updatedAt": "2026-07-31T06:50:08.087Z",
+      "tenantId": "cust-5cf78ffe"
+    },
+    {
+      "id": "stock-item-saj7j7vf2",
+      "sku": "CASE-S24",
+      "name": "Samsung S24 Silikon Kılıf",
+      "category": "Aksesuar",
+      "brand": null,
+      "model": null,
+      "variantColor": null,
+      "variantStorage": null,
+      "serialNumber": null,
+      "imei": null,
+      "quantity": 0,
+      "purchasePrice": 40,
+      "salePrice": 179,
+      "purchaseDocType": null,
+      "purchaseDocNo": null,
+      "minThreshold": 10,
+      "isCatalog": false,
+      "condition": null,
+      "isBuybackItem": false,
+      "buybackProcessStatus": null,
+      "buybackSaleEnabled": false,
+      "buybackDealId": null,
+      "purchaseDate": "2026-07-31T06:50:08.330Z",
+      "createdAt": "2026-07-31T06:50:08.330Z",
+      "updatedAt": "2026-07-31T06:50:08.330Z",
+      "tenantId": "cust-5cf78ffe"
     }
   ],
   "transferLogs": [],
   "stockLogs": [
+    {
+      "id": "stock-log-qsc8sv5ua",
+      "action": "STOCK_ADD",
+      "entityId": "stock-item-saj7j7vf2",
+      "detail": "Yeni Envanter Girişi: CASE-S24 - Samsung S24 Silikon Kılıf (Adet: 0)",
+      "createdAt": "2026-07-31T06:50:08.330Z"
+    },
+    {
+      "id": "stock-log-sqahzos0z",
+      "action": "STOCK_ADD",
+      "entityId": "stock-item-x2j698cmv",
+      "detail": "Yeni Envanter Girişi: BAT-IP13 - iPhone 13 Batarya (Yüksek Kapasite) (Adet: 6)",
+      "createdAt": "2026-07-31T06:50:08.087Z"
+    },
+    {
+      "id": "stock-log-sw3m29l6o",
+      "action": "STOCK_ADD",
+      "entityId": "stock-item-elqmxaoia",
+      "detail": "Yeni Envanter Girişi: TG-IP15 - iPhone 15 Temperli Cam Ekran Koruyucu (Adet: 58)",
+      "createdAt": "2026-07-31T06:50:07.730Z"
+    },
+    {
+      "id": "stock-log-jg75ft3pr",
+      "action": "STOCK_ADD",
+      "entityId": "stock-item-yw1etyrep",
+      "detail": "Yeni Envanter Girişi: XCH-20W - Type-C 20W Hızlı Şarj Adaptörü (Adet: 34)",
+      "createdAt": "2026-07-31T06:50:07.518Z"
+    },
+    {
+      "id": "stock-log-v8kkp6n8m",
+      "action": "STOCK_ADD",
+      "entityId": "stock-item-npweogeov",
+      "detail": "Yeni Envanter Girişi: S24U-512-GRY-358240051112337 - Samsung Galaxy S24 Ultra (Adet: 1)",
+      "createdAt": "2026-07-31T06:50:07.179Z"
+    },
+    {
+      "id": "stock-log-8jltys3n4",
+      "action": "STOCK_ADD",
+      "entityId": "stock-item-ivc7zhlks",
+      "detail": "Yeni Envanter Girişi: IP15PM-256-TIT-358240051111220 - iPhone 15 Pro Max (Adet: 1)",
+      "createdAt": "2026-07-31T06:50:06.887Z"
+    },
+    {
+      "id": "stock-log-89a3adec",
+      "action": "STOCK_DELETE",
+      "entityId": "stock-item-upi97mroz",
+      "detail": "Stok Karti Silindi: TG-IP15 - iPhone 15 Temperli Cam Ekran Koruyucu",
+      "createdAt": "2026-07-31T06:48:58.034Z"
+    },
+    {
+      "id": "stock-log-3fddc6c3",
+      "action": "STOCK_DELETE",
+      "entityId": "stock-item-k3cbbamaa",
+      "detail": "Stok Karti Silindi: S24U-512-GRY-358240051112337 - Samsung Galaxy S24 Ultra",
+      "createdAt": "2026-07-31T06:48:57.123Z"
+    },
+    {
+      "id": "stock-log-03e46a38",
+      "action": "STOCK_DELETE",
+      "entityId": "stock-item-n355eykpg",
+      "detail": "Stok Karti Silindi: IP15PM-256-TIT-358240051111220 - iPhone 15 Pro Max",
+      "createdAt": "2026-07-31T06:48:56.825Z"
+    },
+    {
+      "id": "stock-log-5o9o4uu7j",
+      "action": "STOCK_ADD",
+      "entityId": "stock-item-upi97mroz",
+      "detail": "Yeni Envanter Girişi: TG-IP15 - iPhone 15 Temperli Cam Ekran Koruyucu (Adet: 58)",
+      "createdAt": "2026-07-31T06:38:03.334Z"
+    },
+    {
+      "id": "stock-log-j9dmt3aiw",
+      "action": "STOCK_ADD",
+      "entityId": "stock-item-k3cbbamaa",
+      "detail": "Yeni Envanter Girişi: S24U-512-GRY-358240051112337 - Samsung Galaxy S24 Ultra (Adet: 1)",
+      "createdAt": "2026-07-31T06:38:02.942Z"
+    },
+    {
+      "id": "stock-log-srblb6m8l",
+      "action": "STOCK_ADD",
+      "entityId": "stock-item-n355eykpg",
+      "detail": "Yeni Envanter Girişi: IP15PM-256-TIT-358240051111220 - iPhone 15 Pro Max (Adet: 1)",
+      "createdAt": "2026-07-31T06:38:02.663Z"
+    },
+    {
+      "id": "stock-log-8170d413",
+      "action": "STOCK_DELETE",
+      "entityId": "stock-item-2fkjflwgd",
+      "detail": "Stok Karti Silindi: TG-IP15 - iPhone 15 Temperli Cam Ekran Koruyucu",
+      "createdAt": "2026-07-31T06:35:14.300Z"
+    },
+    {
+      "id": "stock-log-5ba3d4a8",
+      "action": "STOCK_DELETE",
+      "entityId": "stock-item-hc8sig4xv",
+      "detail": "Stok Karti Silindi: S24U-512-GRY-358240051112337 - Samsung Galaxy S24 Ultra",
+      "createdAt": "2026-07-31T06:35:13.905Z"
+    },
+    {
+      "id": "stock-log-fe18e032",
+      "action": "STOCK_DELETE",
+      "entityId": "stock-item-itdrkfour",
+      "detail": "Stok Karti Silindi: IP15PM-256-TIT-358240051111220 - iPhone 15 Pro Max",
+      "createdAt": "2026-07-31T06:35:13.627Z"
+    },
+    {
+      "id": "stock-log-hmphyekvc",
+      "action": "STOCK_ADD",
+      "entityId": "stock-item-2fkjflwgd",
+      "detail": "Yeni Envanter Girişi: TG-IP15 - iPhone 15 Temperli Cam Ekran Koruyucu (Adet: 58)",
+      "createdAt": "2026-07-31T06:30:02.084Z"
+    },
+    {
+      "id": "stock-log-gsp8d5din",
+      "action": "STOCK_ADD",
+      "entityId": "stock-item-hc8sig4xv",
+      "detail": "Yeni Envanter Girişi: S24U-512-GRY-358240051112337 - Samsung Galaxy S24 Ultra (Adet: 1)",
+      "createdAt": "2026-07-31T06:30:01.663Z"
+    },
+    {
+      "id": "stock-log-wyq9n1vlg",
+      "action": "STOCK_ADD",
+      "entityId": "stock-item-itdrkfour",
+      "detail": "Yeni Envanter Girişi: IP15PM-256-TIT-358240051111220 - iPhone 15 Pro Max (Adet: 1)",
+      "createdAt": "2026-07-31T06:30:01.397Z"
+    },
     {
       "id": "stock-log-1",
       "action": "STOCK_ADD",

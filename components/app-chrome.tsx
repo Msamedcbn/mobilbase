@@ -11,7 +11,12 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
 
-  const isPublicOrStudio = pathname === "/" || pathname === "/login" || pathname?.startsWith("/servis/") || pathname?.startsWith("/studio");
+  const isPublicOrStudio =
+    pathname === "/" ||
+    pathname === "/login" ||
+    pathname?.startsWith("/servis/") ||
+    pathname?.startsWith("/studio") ||
+    pathname?.startsWith("/blog");
 
   if (isPublicOrStudio) {
     return (

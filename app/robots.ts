@@ -1,0 +1,43 @@
+import type { MetadataRoute } from "next";
+
+const BASE_URL = process.env.APP_BASE_URL ?? "https://vibegsm.com";
+
+export default function robots(): MetadataRoute.Robots {
+  return {
+    rules: {
+      userAgent: "*",
+      allow: ["/", "/blog", "/blog/"],
+      disallow: [
+        "/api/",
+        "/dashboard",
+        "/hizli-yonetim",
+        "/pos",
+        "/stok",
+        "/seri-no-takip",
+        "/toptan-alim-satis",
+        "/distributor-ithalat",
+        "/buyback",
+        "/ikinci-el",
+        "/tamir-takip",
+        "/parca-fiyatlari",
+        "/ic-servis-dongusu",
+        "/musteriler-veresiye",
+        "/banka",
+        "/taksit-yonetimi",
+        "/kurumsal-teklifler",
+        "/personel-yonetimi",
+        "/subeler",
+        "/ayarlar",
+        "/veri-analizi",
+        "/studio",
+        // Per-record repair status lookup pages — not content, must never be indexed.
+        "/servis",
+        "/login",
+        "/unauthorized",
+        "/trial-expired",
+        "/takas-hesapla",
+      ],
+    },
+    sitemap: `${BASE_URL}/sitemap.xml`,
+  };
+}
