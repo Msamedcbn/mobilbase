@@ -1032,7 +1032,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
             <a href="/yardim" className="hover:text-slate-900 transition">Yardım</a>
             <a href="mailto:satis@vibegsm.com" className="hover:text-slate-900 transition">İletişim</a>
           </div>
-          <p className="text-[11px] text-slate-400">(c) 2026 VibeGSM Cloud Technologies</p>
+          <p className="text-[11px] text-slate-400">© 2026 VibeGSM Cloud Technologies</p>
         </div>
       </footer>
 
