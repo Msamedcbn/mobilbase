@@ -1458,52 +1458,59 @@ export const BLOG_POSTS: BlogPost[] = [
     ],
   },
   {
-    slug: "ekran-degisince-veriler-silinir-mi-telefon-tamir-rehberi",
-    title: "Ekran Değişince Veriler Silinir mi?",
-    metaTitle: "Ekran Değişince Veriler Silinir mi? Telefon Tamir Rehberi",
-    focusKeyword: "ekran değişince veriler silinir mi",
+    slug: "teknik-servis-cihaz-kabul-veri-guvenligi-formu",
+    title: "Teknik Servis Cihaz Kabul ve Veri Güvenliği Formu",
+    metaTitle: "Teknik Servis Cihaz Kabul ve Veri Güvenliği Formu Rehberi",
+    focusKeyword: "teknik servis cihaz kabul formu",
     description:
-      "Ekran değişince veriler silinir mi sorusunun cevabı, telefon tamir öncesi yedekleme ve teknik servis müşteri bilgilendirme rehberi.",
+      "Teknik servisler için cihaz kabul formu, veri güvenliği muvafakatnamesi ve otomatik WhatsApp bilgilendirmeli servis takip yazılımı.",
     keywords: [
-      "ekran değişince veriler silinir mi",
-      "telefon tamiri veri kaybı",
-      "batarya değişimi veriler silinir mi",
-      "teknik servis müşteri bilgilendirme",
-      "ekran değişimi ne kadar sürer",
+      "teknik servis cihaz kabul formu",
+      "teknik servis veri muvafakatnamesi",
+      "telefon tamir sorumluluk formu",
+      "servis cihaz kabul yazılımı",
+      "teknik servis whatsapp bilgilendirme",
     ],
-    tags: ["Teknik Servis", "İstanbul", "Türkiye"],
+    tags: ["Teknik Servis", "IMEI & Güvenlik", "Yazılım Seçimi"],
     date: "2026-12-29",
-    readingMinutes: 5,
+    readingMinutes: 6,
     excerpt:
-      "Akıllı telefon kullanıcılarının teknik servislere en çok sorduğu 'ekran değişince veriler silinir mi' sorusunun teknik cevabı ve servis yöneticileri için bilgilendirme rehberi.",
+      "Teknik servise gelen cihazlarda sonradan yaşanabilecek veri kaybı veya kozmetik arıza uyuşmazlıklarına karşı yasal cihaz kabul formu ve WhatsApp otomasyonu rehberi.",
     sections: [
       {
         paragraphs: [
-          "Ekranı kırılan veya dokunmatiği çalışmayan bir telefon kullanıcısının teknik servise ilk sorusu şudur: 'Ekran değişince veriler silinir mi?' Bu soru hem müşteriler hem de teknik servis işletmeleri için kritik bir iletişim ve güven noktasıdır.",
+          "Teknik servis dükkanlarında en sık yaşanan hukuki ve operasyonel uyuşmazlıklar, cihaz kabulü sırasında eksik tutanak tutulmasından kaynaklanır. Müşterinin tamir sonrasında 'fotoğraflarım silindi' veya 'kasa çiziği dükkanınızda oluştu' iddialarına karşı servisinizi korumanın yolu profesyonel bir teknik servis cihaz kabul formu kullanmaktır.",
         ],
       },
       {
-        heading: "Teknik Cevap: Ekran Değişimi Verileri Etkiler mi?",
+        heading: "Teknik Servis Cihaz Kabul Formunda Olması Gereken 5 Yasal Madde",
         paragraphs: [
-          "Normal şartlarda yalnızca ön cam, dokunmatik veya amoled/lcd panel değişimi yapıldığında anakart üzerindeki flash hafıza (NAND) etkilenmez; dolayısıyla fotoğraflar, rehber ve WhatsApp mesajları silinmez. Ancak anakart hasarı içeren ağır darbelerde veya sıfırlama gerektiren durumlarda veri kaybı riski oluşabilir.",
+          "Müşteriyle ileride yaşanabilecek anlaşmazlıkları önlemek için dijital cihaz kabul formunda şu maddelerin yer alması gerekir:",
+        ],
+        list: [
+          "Müşteri T.C. kimlik numarası, ad-soyadı ve iletişim bilgileri,",
+          "Cihazın tekil IMEI numarası, marka, model ve renk bilgisi,",
+          "Kabul anında yapılan kozmetik ön kontrol (kasa çizikleri, cam çatlakları, kamera ve tuş durumu),",
+          "Müşterinin beyan ettiği arıza ve onaylanan tahmini tamir ücreti,",
+          "Veri yedekleme sorumluluğunun müşteriye ait olduğunu belirten yasal veri muvafakatnamesi.",
         ],
       },
       {
-        heading: "Teknik Servisler İçin Veri Sorumluluk Muvafakatnamesi",
+        heading: "Sözlü Beyan Yerine Dijital Kayıt ve Barkodlu Teslim Fişi",
         paragraphs: [
-          "Müşteriye 'verileriniz silinmez' garantisi sözlü olarak verildiğinde, cihaz anakartındaki olası gizli bir arıza nedeniyle veri kaybı yaşanırsa servis işletmesi zor durumda kalabilir. Bu yüzden cihaz kabul anında doldurulan formda 'Veri Güvenliği ve Muvafakat Maddesi' bulunmalıdır.",
+          "Sözlü olarak verilen 'verileriniz silinmez' garantisi, anakarttaki gizli bir arıza ortaya çıktığında işletmenizi zor durumda bırakır. VibeGSM servis yazılımında cihaz kabul edildiği an veri güvenliği maddesini içeren barkodlu teslim fişi tek tıkla yazdırılır.",
         ],
       },
       {
-        heading: "VibeGSM Otomatik WhatsApp Bilgilendirme Çözümü",
+        heading: "Otomatik WhatsApp Bildirimi ile Müşteri İletişimi",
         paragraphs: [
-          "VibeGSM servis takip yazılımı, cihaz kabul edildiğinde otomatik olarak bilgilendirme metnini SMS/WhatsApp ile müşteriye iletir. Böylece müşteri 'ekran değişince veriler silinir mi' endişesini yenerek cihazını güvenle teslim eder.",
+          "VibeGSM servis takip yazılımı, cihaz kabul edildiğinde ve tamir durumu değiştiğinde ('Onarımda', 'Parça Bekliyor', 'Hazır') müşterinin WhatsApp hesabına otomatik bilgi mesajı iletir. Bu sayede dükkan içi telefon trafiği %70 azalır.",
         ],
       },
       {
-        heading: "Sonuç: Servisinizi Dijitalleştirin",
+        heading: "Sonuç: Servisinizi Yasal Korumaya Alın",
         paragraphs: [
-          "Teknik servisinize gelen müşterilere profesyonel bir deneyim sunmak ve cihaz kabul süreçlerinizi şeffaflaştırmak için VibeGSM'in teknik servis yönetim modülünü hemen kullanmaya başlayın.",
+          "Teknik servisinize gelen tüm cihazları yasal standartlara uygun kabul etmek ve müşteri memnuniyetini artırmak için VibeGSM'in teknik servis yönetim modülünü hemen 14 gün ücretsiz deneyin.",
         ],
       },
     ],
