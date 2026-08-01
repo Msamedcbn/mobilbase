@@ -35,6 +35,8 @@ const TAG_COLORS: Record<string, string> = {
   "Kurumsal Satış": "border-cyan-200 bg-cyan-50 text-cyan-700",
   "Personel & Prim": "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-700",
   "Raporlama": "border-indigo-200 bg-indigo-50 text-indigo-700",
+  "İstanbul": "border-red-200 bg-red-50 text-red-700",
+  "Türkiye": "border-sky-200 bg-sky-50 text-sky-700",
 };
 
 function tagClass(tag: string) {

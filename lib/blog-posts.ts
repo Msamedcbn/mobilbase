@@ -1087,8 +1087,542 @@ export const BLOG_POSTS: BlogPost[] = [
       },
     ],
   },
+  {
+    slug: "istanbul-telefoncu-teknik-servis-stok-programi",
+    title: "İstanbul Telefoncu Stok Programı",
+    metaTitle: "İstanbul Telefoncu Stok Programı — Kadıköy & Tahtakale POS",
+    focusKeyword: "istanbul telefoncu stok programı",
+    description:
+      "İstanbul telefoncu stok programı ile Kadıköy, Tahtakale ve Şişli'deki dükkanlar için IMEI takibi, teknik servis ve POS sistemini yönetin. Ücretsiz deneyin.",
+    keywords: [
+      "istanbul telefoncu stok programı",
+      "istanbul teknik servis yazılımı",
+      "kadıköy telefoncu programı",
+      "tahtakale gsm bayii yazılımı",
+      "istanbul IMEI takip programı",
+      "şişli telefon tamir programı",
+    ],
+    tags: ["İstanbul", "Stok Yönetimi", "Teknik Servis", "Yazılım Seçimi"],
+    date: "2026-11-10",
+    readingMinutes: 7,
+    excerpt:
+      "Kadıköy Yazıcıoğlu'ndan Tahtakale toptancılarına, Şişli ve Ümraniye'deki tamircilere kadar İstanbul GSM ekosisteminde stok ve servis takibini 10 saniyede dijitalleştirin.",
+    sections: [
+      {
+        paragraphs: [
+          "İstanbul, Türkiye'nin GSM ve akıllı telefon pazarının kalbidir. Günlük binlerce cihaz alış-satışının yapıldığı, yüzlerce teknik servisin cihaz kabul ettiği Kadıköy, Tahtakale, Mecidiyeköy, Ümraniye, Bakırköy ve Avcılar gibi lokasyonlarda telefon bayilerinin operasyonel temposu diğer şehirlerden çok daha yüksektir. Böyle yoğun bir trafikte istanbul telefoncu stok programı kullanmadan stok ve tamir takibi yapmak ayda ortalama 15.000 TL ila 40.000 TL arası mali kayba ve müşteri memnuniyetsizliğine yol açar.",
+        ],
+      },
+      {
+        heading: "İstanbul GSM Piyasasının Kendine Has Zorlukları",
+        paragraphs: [
+          "İstanbul'daki telefon bayileri ve teknik servisler aynı gün içinde birden fazla toptancıdan parça tedarik eder, çok sayıda ikinci el (buyback) cihaz alır ve yüksek sayıda müşteri kabul eder. Bu durum şu pratik zorlukları beraberinde getirir:",
+        ],
+        list: [
+          "Dükkan içi stok ile depodaki veya şubedeki IMEI'lerin anlık çakışması ve çift satış riski.",
+          "Tahtakale ve Sirkeci toptancılarından alınan ekran, batarya ve aksesuarların gün içindeki fiyat değişikliklerinin takibi.",
+          "Teknik serviste 'cihazım hazır mı' diye arayan müşterilerin dükkandaki telefon trafiğini kilitlemesi.",
+          "Farklı lokasyonlardaki şubeler arasında gün sonu nakit ve kredi kartı kasasını eşitleme zorluğu.",
+        ],
+      },
+      {
+        heading: "Kadıköy ve Tahtakale Aksında IMEI Bazlı Stok Takibi",
+        paragraphs: [
+          "İstanbul'da sıfır ve 2. el cihaz sirkülasyonu son derece hızlıdır. Bir cihaz Kadıköy'deki mağazanızda stoğa eklendiğinde, o cihazın IMEI numarası sistemde tekilleştirilmelidir. Aynı IMEI'nin yanlışlıkla iki defa stoğa girilmesi veya satıldıktan sonra stokta aktif kalması, stok sayımını tamamen bozar.",
+          "VibeGSM'in istanbul telefoncu stok programı modülü, IMEI kaydedildiği anda veritabanını doğrular. Satış gerçekleştiğinde IMEI kaydı otomatik kapanır; böylece stoktaki cihaz sayısı fiziksel vitrindeki cihaz sayısı ile daima birebir örtüşür.",
+        ],
+      },
+      {
+        heading: "10 Saniyede Excel Stok Yükleme ve WhatsApp Bildirimi",
+        paragraphs: [
+          "Eski programınızdan veya Excel tablolarınızdan kurtulmak VibeGSM ile sadece 10 saniye sürer. Sürükle-bırak Excel aktarım aracı ile tüm aksesuar ve IMEI stoklarınız anında sisteme aktarılır.",
+          "Ayrıca teknik serviste cihaz durumunu 'Parça Bekliyor', 'Onarımda' veya 'Hazır' yaptığınız anda müşterinizin telefonuna otomatik WhatsApp bilgilendirmesi gider; telefonla aranma yükünüz %70 azalır.",
+        ],
+      },
+      {
+        heading: "Sonuç: İstanbul Bayinize Özel 14 Gün Ücretsiz Deneme",
+        paragraphs: [
+          "VibeGSM, İstanbul'un yüksek tempolu GSM mağazaları ve teknik servisleri düşünülerek geliştirildi. Kadıköy'den Tahtakale'ye, Avcılar'dan Pendik'e kadar işletmenizi tek bir bulut panelden yönetmek ve istanbul telefoncu stok programı avantajlarından yararlanmak için 14 gün boyunca tamamen ücretsiz deneyin.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "tahtakale-telefoncu-yazilimi",
+    title: "Tahtakale Telefoncu Yazılımı",
+    metaTitle: "Tahtakale Telefoncu Yazılımı — Kadıköy & İstanbul POS Programı",
+    focusKeyword: "tahtakale telefoncu yazılımı",
+    description:
+      "Tahtakale telefoncu yazılımı ile toptan aksesuar satışı, IMEI stok takibi ve Kadıköy teknik servis süreçlerini tek bulut panelde birleştirin.",
+    keywords: [
+      "tahtakale telefoncu yazılımı",
+      "tahtakale gsm pos programı",
+      "kadıköy teknik servis programı",
+      "istanbul telefon bayii programı",
+      "toptan telefon stok takibi",
+    ],
+    tags: ["İstanbul", "POS & Satış", "Şube Yönetimi", "Tedarik"],
+    date: "2026-11-17",
+    readingMinutes: 6,
+    excerpt:
+      "Tahtakale'nin toptan aksesuar ve parça trafiği ile Kadıköy'ün yoğun teknik servis müşteri ağını tek bir bulut yazılımda yönetmenin satış kârlılığına etkisi.",
+    sections: [
+      {
+        paragraphs: [
+          "İstanbul GSM pazarının iki dev merkezi vardır: Toptan parça ve aksesuar tedariğinin kalbi olan Tahtakale / Eminönü bölgesi ve tüketiciye yönelik teknik servis ile ikinci el satışın odak noktası olan Kadıköy. Bu iki bölgede faaliyet gösteren bayiler için tahtakale telefoncu yazılımı ihtiyacı, genel perakende programlarından çok daha fazlasını gerektirir.",
+        ],
+      },
+      {
+        heading: "Tahtakale Toptan Alımlarında Hızlı Barkodlu POS Kullanımı",
+        paragraphs: [
+          "Tahtakale'den toplu olarak alınan yüzlerce kılıf, şarj kablosu ve ekran koruyucu stoğa tek tek işlenirse saatler kaybolur. Otomatik barkod eşleştirmeli tahtakale telefoncu yazılımı sayesinde faturadaki tüm ürünler saniyeler içinde mağaza stoğunuza aktarılır.",
+          "Hızlı POS ekranı ile satışı yapılan aksesuarlar kasadan nakit, pos veya veresiye seçeneğiyle saniyeler içinde düşer; gün sonunda kasa eksikliği riski sıfırlanır.",
+        ],
+      },
+      {
+        heading: "Kadıköy Teknik Servislerinde Anlık Cihaz Durum Takibi",
+        paragraphs: [
+          "Kadıköy bölgesindeki telefon tamircileri günde onlarca iPhone ve Android cihaz kabul eder. Cihaz kabul anında ekran durumu, kasa çiziği ve kameradaki mevcut arızalar dijital kabul formuna işlenmediğinde teslim anında müşteri uyuşmazlıkları yaşanır.",
+          "Kadıköy telefoncu servis yazılımı ile cihaz kabul formu dijital ortamda doldurulur, müşteriye teslim fişi barkodlu şekilde sunulur ve tamir durum güncellemeleri otomatik gönderilir.",
+        ],
+      },
+      {
+        heading: "Veresiye ve Cari Hesap Takibinde Tahtakale Usulü Güveni Dijitale Taşımak",
+        paragraphs: [
+          "Toptancı-bayi ilişkilerinde veya daimi müşterilerle yapılan alışverişlerde cari veresiye hesabı sıkça kullanılır. Kağıt defterde tutulan cari hesaplar unutulmaya, karışmaya veya silinmeye açıktır. VibeGSM tahtakale telefoncu yazılımı, müşteri bazlı kredi limiti ve otomatik vade hatırlatıcıları ile alacak riskinizi kontrol altında tutar.",
+        ],
+      },
+      {
+        heading: "Sonuç: Mağazanızı Dijitalleştirin",
+        paragraphs: [
+          "Tahtakale'nin toptan hızına ve Kadıköy'ün servis kalitesine yakışan bir yönetim paneli için tahtakale telefoncu yazılımı olarak VibeGSM'i tercih edin. Bulut tabanlı mimarimizle mağazanızın cirosunu ve stok durumunu cebinizden takip edin.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "turkiye-teknik-servis-programi-telefoncu-yazilimi",
+    title: "Türkiye Teknik Servis Programı",
+    metaTitle: "Türkiye Teknik Servis Programı — Telefoncu ve GSM Takip Sistemi",
+    focusKeyword: "türkiye teknik servis programı",
+    description:
+      "Türkiye teknik servis programı ile Ankara, İzmir, Bursa ve tüm şehirlerdeki telefoncular için IMEI stok takibi, bulut tamir yönetimi ve veresiye hesabı.",
+    keywords: [
+      "türkiye teknik servis programı",
+      "ankara telefoncu programı",
+      "izmir gsm stok takibi",
+      "bursa teknik servis yazılımı",
+      "antalya telefoncu pos",
+    ],
+    tags: ["Türkiye", "Büyüme", "Yazılım Seçimi", "Teknik Servis"],
+    date: "2026-11-24",
+    readingMinutes: 7,
+    excerpt:
+      "Ankara Çankaya'dan İzmir Kordon'a, Bursa Osmangazi'den Antalya ve Adana'ya Türkiye genelindeki tüm GSM bayileri için uçtan uca satış ve servis dijital dönüşümü.",
+    sections: [
+      {
+        paragraphs: [
+          "Türkiye'nin 81 ilinde hizmet veren binlerce telefon bayiisi, GSM dükkanı ve cep telefonu teknik servisi, günlük operasyonlarında ortak bir ihtiyaç duyar: Güvenilir, kesintisiz ve Türkiye şartlarına uygun bir türkiye teknik servis programı. İster Ankara Kızılay'da bir cep telefonu satış mağazası olun, ister İzmir Alsancak'ta uzman bir teknik servis, bulut altyapılı bir program kullanmak işinizi büyütmenin en kestirme yoludur.",
+        ],
+      },
+      {
+        heading: "Ankara, İzmir ve Bursa Metropollerinde GSM Bayii İhtiyaçları",
+        paragraphs: [
+          "Büyükşehirlerde çalışan telefon bayileri için zaman en değerli sermayedir. Günde onlarca sıfır ve ikinci el telefon alım-satımı yapılan bu mağazalarda:",
+        ],
+        list: [
+          "IMEI seri no bazlı stok takibinin eksiksiz yürümesi,",
+          "Yedek parça (ekran, batarya, şarj soketi vb.) stoklarının minimum seviyeye düştüğünde sistemin uyarması,",
+          "Aynı anda birden fazla kasa ve pos cihazının gün sonunda otomatik kapatılabilmesi zorunludur.",
+        ],
+      },
+      {
+        heading: "Anadolu Şehirlerinde Veresiye ve Cari Hesabın Önemi",
+        paragraphs: [
+          "Anadolu'daki telefoncular için müşteri ilişkileri ve veresiye takibi ticari başarının kilit noktasıdır. Müşterilerin geçmiş borçlarını, aldığı ürünleri ve ödeme vaat tarihlerini kağıt defterler yerine türkiye teknik servis programı içinde müşteri kartına işlemek, hem hesap hatalarını sıfırlar hem de tahsilat oranını yükseltir.",
+        ],
+      },
+      {
+        heading: "Bulut Altyapının Sunduğu Mekandan Bağımsız Erişim Kolaylığı",
+        paragraphs: [
+          "Geleneksel, tek bir masaüstü bilgisayara kurulan eski nesil programlar bilgisayar çöktüğünde tüm verinin kaybolmasına neden olur. VibeGSM bulut mimarisi sayesinde dükkanda olmasanız bile cep telefonunuzdan veya evdeki bilgisayarınızdan tüm satışları, kasa bakiyelerini ve teknisyen performanslarını anlık izleyebilirsiniz.",
+        ],
+      },
+      {
+        heading: "Tüm Türkiye'deki Teknik Servisler İçin Standart Cihaz Kabul Süreci",
+        paragraphs: [
+          "Cihaz kabul anında doldurulan 15 noktalı kontrol listesi (dokunmatik testi, kasa çiziği, şarj soketi vb.), Türkiye'nin neresinde olursanız olun müşteriyle yaşanabilecek haklı/haksız tartışmaların önüne geçer. Müşteriye sunulan barkodlu teslim tutanağı profesyonel bir imaj yaratır.",
+        ],
+      },
+      {
+        heading: "Sonuç",
+        paragraphs: [
+          "Türkiye'nin dört bir yanındaki telefoncuların güvendiği VibeGSM ile siz de mağazanızı dijitalleştirin. türkiye teknik servis programı demomuz için hemen başvurun, 14 gün boyunca ücretsiz deneyin.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "ikinci-el-telefon-alim-takip-programi",
+    title: "İkinci El Telefon Alım Takip Programı",
+    metaTitle: "İkinci El Telefon Alım Takip Programı — Türkiye Buyback Yazılımı",
+    focusKeyword: "ikinci el telefon alım takip programı",
+    description:
+      "İkinci el telefon alım takip programı ile Türkiye genelinde 2. el cihaz alım-satımı, e-Devlet IMEI sorgulama, test formu ve sözleşme üretimi.",
+    keywords: [
+      "ikinci el telefon alım takip programı",
+      "türkiye buyback yazılımı",
+      "telefon tamir imei takibi",
+      "çalıntı telefon imei kontrolü",
+    ],
+    tags: ["Türkiye", "İkinci El", "IMEI & Güvenlik", "Teknik Servis"],
+    date: "2026-12-01",
+    readingMinutes: 6,
+    excerpt:
+      "İkinci el (buyback) telefon alımında resmi kimlik doğrulama, IMEI eşleştirmesi ve revizyon/tamir sürecinin yasal ve operasyonel standartları.",
+    sections: [
+      {
+        paragraphs: [
+          "Türkiye'de ikinci el (buyback) akıllı telefon alım-satımı, telefon bayileri için kâr marjı en yüksek olan ama aynı zamanda risk barındıran ticari faaliyetlerden biridir. Yanlış fiyatlandırılan veya yasal olarak sorunlu bir cihazın alınması işletmeye ciddi maddi ve hukuki zarar verebilir. Doğru bir ikinci el telefon alım takip programı kullanmak bu riskleri tamamen ortadan kaldırır.",
+        ],
+      },
+      {
+        heading: "İkinci El Telefon Alımında IMEI Doğrulamanın Önemi",
+        paragraphs: [
+          "Cihaz alımı yapılırken IMEI numarasının e-Devlet sorgusu ile çalıntı veya kayıp durumunun kontrol edilmesi yasal bir gerekliliktir. Ayrıca aynı IMEI numarasının geçmişte sizin dükkanınızdan satılıp satılmadığı veya sistemde başka bir müşteri kaydında bulunup bulunmadığı ikinci el telefon alım takip programı veritabanında anında taranır.",
+        ],
+      },
+      {
+        heading: "Cihaz Değerlendirme ve 20 Noktalı Ekspertiz Formu",
+        paragraphs: [
+          "İkinci el telefon alırken her personelin kafasına göre teklif vermesi kârlılığı bozar. VibeGSM ikinci el telefon alım takip programı üzerindeki ekspertiz modülü ile cihaz markası, modeli, hafızası, ekran durumu, batarya sağlığı (%80 altı/üstü), TrueTone/FaceID çalışırlığı gibi parametreler seçildiğinde sistem önerilen alış ve satış fiyatını otomatik çıkarır.",
+        ],
+      },
+      {
+        heading: "Alınan Cihazın Stok ve Servis Sürecine Otomatik Aktarımı",
+        paragraphs: [
+          "Müşteriden satın alınan 2. el cihaz iki yoldan birine yönlendirilir:",
+        ],
+        list: [
+          "Cihaz sorunsuzsa: Doğrudan IMEI stok kartı açılarak 'İkinci El Satış' vitrin stoklarına eklenir.",
+          "Cihazda ekran/batarya değişimi gerekiyorsa: Otomatik olarak iç servis iş emri (tamir kaydı) açılır, parça değişimi yapıldıktan sonra maliyet üzerine eklenerek vitrine çıkarılır.",
+        ],
+      },
+      {
+        heading: "Yasal Alım-Satım Sözleşmesi ve Muvafakatname Üretimi",
+        paragraphs: [
+          "Satın alınan her ikinci el cihaz için müşterinin T.C. kimlik numarası, ad-soyadı ve IMEI bilgisini içeren yasal alım-satım sözleşmesinin otomatik üretilip yazıcıdan tek tıkla bastırılabilmesi, olası hukuki incelemelerde bayinizin en büyük güvencesidir.",
+        ],
+      },
+      {
+        heading: "Sonuç",
+        paragraphs: [
+          "İkinci el alım-satım işlemlerinizi yasal güvenceye almak, stok ve maliyet takibinizi kusursuz hale getirmek için VibeGSM'in ikinci el telefon alım takip programı modülünü hemen kullanmaya başlayın.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "gsm-bayii-zinciri-yonetim-yazilimi",
+    title: "GSM Bayii Zinciri Yönetim Yazılımı",
+    metaTitle: "GSM Bayii Zinciri Yönetim Yazılımı — Merkezi Stok & Kasa",
+    focusKeyword: "gsm bayii zinciri yönetim yazılımı",
+    description:
+      "GSM bayii zinciri yönetim yazılımı ile şubeler arası stok transferi, konsolide kasa mutabakatı ve veresiye takibi süreçlerini yönetin.",
+    keywords: [
+      "gsm bayii zinciri yönetim yazılımı",
+      "çoklu şube stok takibi türkiye",
+      "gsm bayii cari hesap programı",
+    ],
+    tags: ["Türkiye", "Şube Yönetimi", "Tahsilat & Cari", "Büyüme"],
+    date: "2026-12-08",
+    readingMinutes: 6,
+    excerpt:
+      "Birden fazla ilde veya aynı şehrin farklı ilçelerinde şubeleri bulunan GSM zincirlerinde stok kayıplarını engellemenin ve merkezi kârlılığı artırmanın yolları.",
+    sections: [
+      {
+        paragraphs: [
+          "Büyüyen telefon bayileri için 2., 3. veya 5. şubeyi açmak heyecan verici bir adımdır; fakat merkezi bir gsm bayii zinciri yönetim yazılımı kullanılmadığında operasyonel karmaşa kaçınılmaz hale gelir. Şubelerin kendi başlarına stok tutması, kasa hesaplarının birbirinden habersiz olması işletme sahibinin kontrolü kaybetmesine neden olur.",
+        ],
+      },
+      {
+        heading: "Şubeler Arası Anlık Stok Transferi ve Barkodlu Teslimat",
+        paragraphs: [
+          "Bir şubenizde stoğu tükenen popüler bir akıllı telefon veya aksesuar modelinin diğer şubenizde boşta beklemesi ciddi bir ciro kaybıdır. Gelişmiş gsm bayii zinciri yönetim yazılımı ile şubeler arası transfer talebi oluşturulur, yoldaki stok durumu izlenir ve alıcı şube barkodu okutarak ürünü kendi stoğuna dahil eder.",
+        ],
+      },
+      {
+        heading: "Konsolide ve Şube Bazlı Kasa Mutabakatı",
+        paragraphs: [
+          "Merkezi yönetim panelinde her şubenin günlük nakit, kredi kartı, veresiye ve banka havalesi tahsilatları ayrı ayrı listelenirken, şirketin toplam gün sonu cirosu ve kârlılığı tek grafik üzerinde konsolide olarak sunulur. Böylece hangi şubenin hedeflerinin altında kaldığı anında tespit edilir.",
+        ],
+      },
+      {
+        heading: "Personel Yetkilendirme ve Prim Hakediş Yönetimi",
+        paragraphs: [
+          "Şube çalışanlarının sadece kendi dükkanındaki stokları ve satış ekranını görebilmesi, yetkisi dışındaki finansal raporlara erişememesi güvenlik açısından şarttır. Aynı zamanda personellerin yaptığı satış ve tamir işlemlerinden otomatik prim hesaplanması mağaza içi motivasyonu yükseltir.",
+          "VibeGSM gsm bayii zinciri yönetim yazılımı, Türkiye'nin neresinde olursa olsun tüm şubelerinizi tek ekrandan yönetme gücü sunar.",
+        ],
+      },
+      {
+        heading: "Sonuç",
+        paragraphs: [
+          "Türkiye genelinde şubeleşen GSM mağaza zincirleri için VibeGSM, kurumsal düzeyde gsm bayii zinciri yönetim yazılımı ile merkezi stok, POS, cari ve teknik servis yönetimini en kolay arayüzle sunar. İşletmenizi ölçeklendirmek için bizimle iletişime geçin.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "telefon-tamir-teslim-tutanagi-ve-imei-sorgulama-rehberi",
+    title: "Telefon Tamir Teslim Tutanağı",
+    metaTitle: "Telefon Tamir Teslim Tutanağı & IMEI Sorgulama Rehberi 2026",
+    focusKeyword: "telefon tamir teslim tutanağı",
+    description:
+      "Telefon tamir teslim tutanağı örneği, cihaz kabul formu ve e-Devlet IMEI sorgulama ile teknik servisinizi yasal korumaya alın. Ücretsiz demoyu inceleyin.",
+    keywords: [
+      "telefon tamir teslim tutanağı",
+      "cihaz kabul formu",
+      "imei sorgulama rehberi",
+      "telefon tamiri garanti formu",
+    ],
+    tags: ["Teknik Servis", "IMEI & Güvenlik", "Yazılım Seçimi"],
+    date: "2026-12-15",
+    readingMinutes: 6,
+    excerpt:
+      "Cihaz kabul edilirken telefon tamir teslim tutanağı düzenlenmediğinde teslim anında müşteri uyuşmazlıkları kaçınılmazdır. Dijital tutanak ve IMEI sorgu rehberi.",
+    sections: [
+      {
+        paragraphs: [
+          "Teknik servislerde en çok karşılaşılan sorunlardan biri, müşterinin tamir sonrası 'bu çizik dükkanınızda oluştu' veya 'kameram çalışıyordu' iddialarıdır. Bu tür haklı veya haksız tartışmaların önüne geçmenin tek yolu cihaz kabul anında eksiksiz bir telefon tamir teslim tutanağı düzenlemek ve cihazın IMEI numarasını sistemde doğrulamaktır.",
+        ],
+      },
+      {
+        heading: "Telefon Tamir Teslim Tutanağında Bulunması Gereken Maddeler",
+        list: [
+          "Müşteri iletişim bilgileri ve T.C. kimlik numarası,",
+          "Cihaz markası, modeli, renk bilgisi ve tekil IMEI numarası,",
+          "Müşterinin beyan ettiği arıza tanımı (şarj almıyor, ekran kırık, ses gitmiyor vb.),",
+          "Kabul anındaki kozmetik durum (kasa çizikleri, ekran çatlağı, kamera camı durumu),",
+          "Tahmini teslim tarihi ve onaylanan ön fiyat teklifi.",
+        ],
+      },
+      {
+        heading: "Sonuç",
+        paragraphs: [
+          "VibeGSM teknik servis modülü ile telefon tamir teslim tutanağı oluşturmak ve IMEI kayıtlarını dijitalde saklamak sadece 30 saniye sürer. Servisinizi güvenceye almak için hemen ücretsiz deneyin.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "telefoncu-dukkani-acmak-ve-gsm-bayii-kar-marji-hesaplama",
+    title: "Telefoncu Dükkani Açmak",
+    metaTitle: "Telefoncu Dükkanı Açmak ve GSM Bayii Kâr Marjı Rehberi",
+    focusKeyword: "telefoncu dükkanı açmak",
+    description:
+      "Telefoncu dükkanı açmak isteyenler için gerekli sermaye, aksesuar marjları, teknik servis kârlılığı ve stok yazılımı seçim rehberi.",
+    keywords: [
+      "telefoncu dükkanı açmak",
+      "gsm bayii kar marjı",
+      "telefon dükkanı maliyeti",
+      "telefoncu ne kadar kazanır",
+    ],
+    tags: ["Büyüme", "Fiyatlandırma", "Raporlama"],
+    date: "2026-12-22",
+    readingMinutes: 7,
+    excerpt:
+      "Yeni bir telefoncu dükkanı açmak için ne kadar sermaye gerekir? Aksesuar, 2. el cihaz alım-satımı ve teknik servis kalemlerindeki gerçek kâr marjları analizi.",
+    sections: [
+      {
+        paragraphs: [
+          "Türkiye'de perakende sektörünün en dinamik kollarından biri telefoncu dükkanı açmak ve GSM aksesuar/tamir hizmeti sunmaktır. Doğru konumlandırma, doğru stok yönetimi ve verimli bir POS yazılımı ile telefon dükkanları yüksek kârlılık potansiyeline sahiptir.",
+        ],
+      },
+      {
+        heading: "Telefon Dükkanlarında Gelir Kalemleri ve Kâr Marjları",
+        paragraphs: [
+          "Bir GSM mağazasında cironun ve kârın dağılımı 3 ana grupta toplanır:",
+        ],
+        list: [
+          "Telefon Aksesuarları (Kılıf, Şarj Kablosu, Ekran Koruyucu): %100 ile %300 arasında en yüksek kâr marjına sahip gruptur.",
+          "Teknik Servis ve İşçilik (Ekran, Batarya Değişimi): %50 - %150 arası kâr marjı sunar.",
+          "Sıfır ve İkinci El Cihaz Satışı: Marjı %5 - %15 arasında daha düşük ama ciro hacmi yüksek gruptur.",
+        ],
+      },
+      {
+        heading: "Sonuç",
+        paragraphs: [
+          "Yeni bir telefoncu dükkanı açmak planınız varsa veya mevcut mağazanızı büyütmek istiyorsanız, VibeGSM stok, POS ve teknik servis yazılımı ile ilk günden profesyonel adımlarla ilerleyin.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "ekran-degisince-veriler-silinir-mi-telefon-tamir-rehberi",
+    title: "Ekran Değişince Veriler Silinir mi?",
+    metaTitle: "Ekran Değişince Veriler Silinir mi? Telefon Tamir Rehberi",
+    focusKeyword: "ekran değişince veriler silinir mi",
+    description:
+      "Ekran değişince veriler silinir mi sorusunun cevabı, telefon tamir öncesi yedekleme ve teknik servis müşteri bilgilendirme rehberi.",
+    keywords: [
+      "ekran değişince veriler silinir mi",
+      "telefon tamiri veri kaybı",
+      "batarya değişimi veriler silinir mi",
+      "teknik servis müşteri bilgilendirme",
+      "ekran değişimi ne kadar sürer",
+    ],
+    tags: ["Teknik Servis", "İstanbul", "Türkiye"],
+    date: "2026-12-29",
+    readingMinutes: 5,
+    excerpt:
+      "Akıllı telefon kullanıcılarının teknik servislere en çok sorduğu 'ekran değişince veriler silinir mi' sorusunun teknik cevabı ve servis yöneticileri için bilgilendirme rehberi.",
+    sections: [
+      {
+        paragraphs: [
+          "Ekranı kırılan veya dokunmatiği çalışmayan bir telefon kullanıcısının teknik servise ilk sorusu şudur: 'Ekran değişince veriler silinir mi?' Bu soru hem müşteriler hem de teknik servis işletmeleri için kritik bir iletişim ve güven noktasıdır.",
+        ],
+      },
+      {
+        heading: "Teknik Cevap: Ekran Değişimi Verileri Etkiler mi?",
+        paragraphs: [
+          "Normal şartlarda yalnızca ön cam, dokunmatik veya amoled/lcd panel değişimi yapıldığında anakart üzerindeki flash hafıza (NAND) etkilenmez; dolayısıyla fotoğraflar, rehber ve WhatsApp mesajları silinmez. Ancak anakart hasarı içeren ağır darbelerde veya sıfırlama gerektiren durumlarda veri kaybı riski oluşabilir.",
+        ],
+      },
+      {
+        heading: "Teknik Servisler İçin Veri Sorumluluk Muvafakatnamesi",
+        paragraphs: [
+          "Müşteriye 'verileriniz silinmez' garantisi sözlü olarak verildiğinde, cihaz anakartındaki olası gizli bir arıza nedeniyle veri kaybı yaşanırsa servis işletmesi zor durumda kalabilir. Bu yüzden cihaz kabul anında doldurulan formda 'Veri Güvenliği ve Muvafakat Maddesi' bulunmalıdır.",
+        ],
+      },
+      {
+        heading: "VibeGSM Otomatik WhatsApp Bilgilendirme Çözümü",
+        paragraphs: [
+          "VibeGSM servis takip yazılımı, cihaz kabul edildiğinde otomatik olarak bilgilendirme metnini SMS/WhatsApp ile müşteriye iletir. Böylece müşteri 'ekran değişince veriler silinir mi' endişesini yenerek cihazını güvenle teslim eder.",
+        ],
+      },
+      {
+        heading: "Sonuç: Servisinizi Dijitalleştirin",
+        paragraphs: [
+          "Teknik servisinize gelen müşterilere profesyonel bir deneyim sunmak ve cihaz kabul süreçlerinizi şeffaflaştırmak için VibeGSM'in teknik servis yönetim modülünü hemen kullanmaya başlayın.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "ikinci-el-telefon-alim-sozlesmesi-ornegi-ve-buyback-muvafakatname",
+    title: "İkinci El Telefon Alım Sözleşmesi Örneği ve Buyback Muvafakatname",
+    metaTitle: "İkinci El Telefon Alım Sözleşmesi Örneği & Muvafakatname",
+    focusKeyword: "ikinci el telefon alım sözleşmesi örneği",
+    description:
+      "İkinci el telefon alım sözleşmesi örneği, T.C. kimlik muvafakatnamesi ve çalıntı cihaz riskine karşı yasal koruma yazılımı. Detayları inceleyin.",
+    keywords: [
+      "ikinci el telefon alım sözleşmesi örneği",
+      "2. el cep telefonu alım formu",
+      "buyback muvafakatname örneği",
+      "çalıntı telefon imei sorumluluk",
+      "ikinci el telefon alım satım hukuki boyutu",
+    ],
+    tags: ["İkinci El", "IMEI & Güvenlik", "Türkiye"],
+    date: "2027-01-05",
+    readingMinutes: 6,
+    excerpt:
+      "İkinci el telefon alımı yapan bayilerin hukuki olarak korunması için doldurması gereken ikinci el telefon alım sözleşmesi örneği ve dijital muvafakatname rehberi.",
+    sections: [
+      {
+        paragraphs: [
+          "İkinci el (buyback) telefon alımı yapan mağazaların karşılaştığı en büyük risk, satıcının beyan ettiği cihazın çalıntı, kayıp veya klonlu çıkmasıdır. Bu tür durumlarda işletme sahibinin adli makamlara karşı kendini savunabilmesi için elinde ikinci el telefon alım sözleşmesi örneği kriterlerine uygun ıslak imzalı veya dijital onaylı bir belge bulunmalıdır.",
+        ],
+      },
+      {
+        heading: "İkinci El Telefon Alım Sözleşmesinde Olması Gereken Yasal Maddeler",
+        list: [
+          "Satıcının Ad-Soyadı, T.C. Kimlik Numarası ve İkametgah Adresi,",
+          "Cihazın Markası, Modeli, Rengi ve Tekil IMEI Numarası,",
+          "Satıcının cihazın tek yasal sahibi olduğuna ve mülkiyet devrettiğine dair beyanı,",
+          "Cihazın çalıntı veya suç unsuru çıkması halinde hukuki ve cezai sorumluluğun satıcıya ait olduğuna dair beyan maddesi,",
+          "Ödenen tutar ve ödeme yöntemi (Nakit / Banka IBAN transferi).",
+        ],
+      },
+      {
+        heading: "Dijital Muvafakatname ve Otomatik Sözleşme Basımı",
+        paragraphs: [
+          "Elle hazırlanan sözleşmeler zaman alır ve arşivlenmesi zordur. VibeGSM buyback modülü üzerinden müşterinin bilgileri girildiği an yasal standartlara uygun ikinci el telefon alım sözleşmesi örneği otomatik üretilir ve termal/lazer yazıcıdan tek tıkla yazdırılır.",
+        ],
+      },
+      {
+        heading: "IBAN Üzerinden Yapılan Ödemelerde Açıklama Kısmı",
+        paragraphs: [
+          "Bankadan ödeme yaparken açıklama kısmına 'IMEI XXXXXXXXXXXXXXX cihaz alım bedeli' yazılması, yasal ispat gücünü en üst seviyeye çıkarır.",
+        ],
+      },
+      {
+        heading: "Sonuç",
+        paragraphs: [
+          "İkinci el telefon alım-satım işlemlerinizi yasal güvenceye almak ve sözleşme süreçlerinizi otomatikleştirmek için VibeGSM'i tercih edin.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "iphone-ekran-degisimi-maliyeti-ve-yedek-parca-kar-hesaplama",
+    title: "iPhone Ekran Değişimi Maliyeti ve Yedek Parça Kâr Hesaplama",
+    metaTitle: "iPhone Ekran Değişimi Maliyeti & Yedek Parça Kâr Hesaplama",
+    focusKeyword: "iphone ekran değişimi maliyeti",
+    description:
+      "iPhone ekran değişimi maliyeti hesaplama, orijinal vs revize parça farkları ve teknik servis işçilik kârlılık takibi. Detayları okuyun.",
+    keywords: [
+      "iphone ekran değişimi maliyeti",
+      "telefon tamiri parça kârı",
+      "ekran değişimi işçilik fiyatı",
+      "yedek parça stok maliyeti",
+      "iphone 11 12 13 14 ekran değişimi fiyatı",
+    ],
+    tags: ["Fiyatlandırma", "Stok Yönetimi", "Teknik Servis"],
+    date: "2027-01-12",
+    readingMinutes: 6,
+    excerpt:
+      "Teknik servislerde en çok yapılan tamir işlemi olan iPhone ekran değişimi maliyeti nasıl hesaplanır? Orijinal, GX, OLED ve muadil ekran kârlılık analizi.",
+    sections: [
+      {
+        paragraphs: [
+          "Teknik servislerin en yüksek ciro getiren kalemi iPhone ekran değişimleridir. Ancak döviz kuru hareketleri ve farklı kalitedeki ekran seçenekleri (Orijinal Sökme, GX OLED, Incell, Revize) nedeniyle iphone ekran değişimi maliyeti doğru hesaplanmazsa servisin kâr marjı erir.",
+        ],
+      },
+      {
+        heading: "Ekran Çeşitleri ve Maliyet / Kâr Dengesi",
+        paragraphs: [
+          "Teknik servis stokunda tutulan ekran kalitelerine göre kârlılık şu şekilde değişir:",
+        ],
+        list: [
+          "Orijinal Sökme / Servis Ekranı: Yüksek maliyet, yüksek müşteri memnuniyeti, sabit işçilik marjı.",
+          "OLED / GX Kalite Ekran: Fiyat/performans dengesi yüksek, en popüler müşteri tercihi.",
+          "Incell / Muadil Ekran: Düşük parça maliyeti, yüksek yüzdesel kâr marjı ama daha dikkatli garanti takibi gerektirir.",
+        ],
+      },
+      {
+        heading: "İşçilik Ücreti ve Net Tamir Kârının Takibi",
+        paragraphs: [
+          "Bir ekran değişiminde müşteriye verilen toplam fiyattan parçanın güncel alış maliyeti çıkarıldığında kalan tutar net işçilik kârıdır. VibeGSM Parça ve Onarım Fiyatları modülü, döviz kuru ile güncellenen parça fiyatlarını tutar ve net kârlılığınızı ekranda gösterir.",
+        ],
+      },
+      {
+        heading: "Teknisyen Prim Hesaplamasına Parça Maliyetinin Etkisi",
+        paragraphs: [
+          "Teknisyen primi sadece ciro üzerinden hesaplanırsa parça maliyeti gözden kaçabilir. Net tamir kârı üzerinden prim hesaplanması servis işletmesinin finansal dengesini korur.",
+        ],
+      },
+      {
+        heading: "Sonuç",
+        paragraphs: [
+          "iPhone ekran değişimi maliyeti ve yedek parça stoklarınızı doğru fiyatlandırmak, kârlılığınızı anlık izlemek için VibeGSM'i hemen kullanmaya başlayın.",
+        ],
+      },
+    ],
+  },
 ];
 
 export function getBlogPost(slug: string) {
   return BLOG_POSTS.find((p) => p.slug === slug) ?? null;
 }
+
+
