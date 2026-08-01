@@ -11,6 +11,7 @@ const PUBLIC_PATHS = [
   "/yardim",
   "/takas-hesapla",
   "/blog",
+  "/story-preview",
   // Next.js metadata image conventions — social/crawler bots (WhatsApp, Twitter,
   // Google) fetch these unauthenticated. Without this they'd get redirected to
   // /login instead of the image, breaking every link-preview and rich result.
