@@ -66,14 +66,14 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
   };
 
   return (
-    <main className="relative min-h-[100dvh] bg-[#030712] px-5 py-16 text-white md:px-8" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <main className="relative min-h-[100dvh] bg-[#fbfcfe] px-5 py-16 text-slate-900 md:px-8">
       {/* eslint-disable-next-line react/no-danger */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {/* eslint-disable-next-line react/no-danger */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       <article className="mx-auto max-w-3xl">
-        <Link href="/blog" className="text-xs font-bold text-blue-400 hover:text-blue-300 transition">
+        <Link href="/blog" className="text-xs font-bold text-blue-600 hover:text-blue-700 transition">
           ← Tüm yazılar
         </Link>
 
@@ -85,33 +85,33 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
 
         <div className="mt-3 flex flex-wrap gap-2">
           {post.tags.map((tag) => (
-            <span key={tag} className="rounded-full border border-blue-400/20 bg-blue-500/10 px-3 py-1 text-[11px] font-bold text-blue-300">
+            <span key={tag} className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-bold text-blue-700">
               {tag}
             </span>
           ))}
         </div>
 
-        <h1 className="mt-4 text-[clamp(1.75rem,3.5vw,2.75rem)] font-black leading-[1.15] tracking-[-0.02em]">
+        <h1 className="mt-4 text-[clamp(1.75rem,3.5vw,2.75rem)] font-black leading-[1.15] tracking-[-0.02em] text-slate-900">
           {post.title}
         </h1>
-        <p className="mt-4 text-base leading-relaxed text-slate-400">{post.excerpt}</p>
+        <p className="mt-4 text-base leading-relaxed text-slate-600">{post.excerpt}</p>
 
         <div className="mt-10 flex flex-col gap-8">
           {post.sections.map((section, idx) => (
             <div key={idx}>
               {section.heading && (
-                <h2 className="text-lg font-black text-white md:text-xl">{section.heading}</h2>
+                <h2 className="text-lg font-black text-slate-900 md:text-xl">{section.heading}</h2>
               )}
               {section.paragraphs?.map((p, pIdx) => (
-                <p key={pIdx} className={`text-[15px] leading-[1.8] text-slate-300 ${section.heading ? "mt-3" : ""} ${pIdx > 0 ? "mt-3" : ""}`}>
+                <p key={pIdx} className={`text-[15px] leading-[1.8] text-slate-600 ${section.heading ? "mt-3" : ""} ${pIdx > 0 ? "mt-3" : ""}`}>
                   {p}
                 </p>
               ))}
               {section.list && (
                 <ul className="mt-3 flex flex-col gap-2">
                   {section.list.map((item, lIdx) => (
-                    <li key={lIdx} className="flex gap-2 text-[15px] leading-relaxed text-slate-300">
-                      <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-blue-400" />
+                    <li key={lIdx} className="flex gap-2 text-[15px] leading-relaxed text-slate-600">
+                      <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-blue-500" />
                       {item}
                     </li>
                   ))}
@@ -121,22 +121,22 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
           ))}
         </div>
 
-        <div className="mt-14 rounded-3xl border border-white/[0.08] bg-gradient-to-br from-blue-500/[0.08] via-white/[0.02] to-transparent p-6 text-center md:p-10">
-          <p className="text-sm font-bold text-blue-400">VibeGSM</p>
-          <h3 className="mt-2 text-xl font-black md:text-2xl">Bayinizi tek panelden yönetmeye hazır mısınız?</h3>
-          <p className="mx-auto mt-2 max-w-lg text-sm text-slate-400">
+        <div className="mt-14 rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-white p-6 text-center md:p-10">
+          <p className="text-sm font-bold text-blue-600">VibeGSM</p>
+          <h3 className="mt-2 text-xl font-black text-slate-900 md:text-2xl">Bayinizi tek panelden yönetmeye hazır mısınız?</h3>
+          <p className="mx-auto mt-2 max-w-lg text-sm text-slate-600">
             Stok, POS, teknik servis ve tahsilatı tek sistemde birleştirin.
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <a
               href="mailto:satis@vibegsm.com?subject=VibeGSM%20Demo%20Talebi"
-              className="rounded-full bg-white px-6 py-3 text-sm font-black text-[#030712] transition hover:opacity-90"
+              className="rounded-full bg-blue-600 px-6 py-3 text-sm font-black text-white shadow-md shadow-blue-600/25 transition hover:bg-blue-700"
             >
               Demo Talep Et
             </a>
             <a
               href="tel:+905454403452"
-              className="rounded-full border border-white/20 bg-white/5 px-6 py-3 text-sm font-bold text-white transition hover:bg-white/10"
+              className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
             >
               Hemen Ara
             </a>
@@ -151,10 +151,10 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
                 <Link
                   key={p.slug}
                   href={`/blog/${p.slug}`}
-                  className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5 transition hover:border-white/20 hover:bg-white/[0.04]"
+                  className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
                 >
-                  <h4 className="text-sm font-bold leading-snug text-white">{p.title}</h4>
-                  <p className="mt-2 text-xs leading-relaxed text-slate-400">{p.excerpt}</p>
+                  <h4 className="text-sm font-bold leading-snug text-slate-900">{p.title}</h4>
+                  <p className="mt-2 text-xs leading-relaxed text-slate-500">{p.excerpt}</p>
                 </Link>
               ))}
             </div>

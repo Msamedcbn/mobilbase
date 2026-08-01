@@ -20,21 +20,25 @@ function formatDate(iso: string) {
 }
 
 const TAG_COLORS: Record<string, string> = {
-  "Stok Yönetimi": "border-blue-400/20 bg-blue-500/10 text-blue-300",
-  "Teknik Servis": "border-emerald-400/20 bg-emerald-500/10 text-emerald-300",
-  "IMEI & Güvenlik": "border-amber-400/20 bg-amber-500/10 text-amber-300",
-  "Büyüme": "border-violet-400/20 bg-violet-500/10 text-violet-300",
-  "Yazılım Seçimi": "border-rose-400/20 bg-rose-500/10 text-rose-300",
-  "İkinci El": "border-cyan-400/20 bg-cyan-500/10 text-cyan-300",
-  "POS & Satış": "border-blue-400/20 bg-blue-500/10 text-blue-300",
-  "Tahsilat & Cari": "border-amber-400/20 bg-amber-500/10 text-amber-300",
-  "Şube Yönetimi": "border-violet-400/20 bg-violet-500/10 text-violet-300",
-  "Fiyatlandırma": "border-rose-400/20 bg-rose-500/10 text-rose-300",
-  "Tedarik": "border-emerald-400/20 bg-emerald-500/10 text-emerald-300",
+  "Stok Yönetimi": "border-blue-200 bg-blue-50 text-blue-700",
+  "Teknik Servis": "border-emerald-200 bg-emerald-50 text-emerald-700",
+  "IMEI & Güvenlik": "border-amber-200 bg-amber-50 text-amber-700",
+  "Büyüme": "border-violet-200 bg-violet-50 text-violet-700",
+  "Yazılım Seçimi": "border-rose-200 bg-rose-50 text-rose-700",
+  "İkinci El": "border-cyan-200 bg-cyan-50 text-cyan-700",
+  "POS & Satış": "border-blue-200 bg-blue-50 text-blue-700",
+  "Tahsilat & Cari": "border-amber-200 bg-amber-50 text-amber-700",
+  "Şube Yönetimi": "border-violet-200 bg-violet-50 text-violet-700",
+  "Fiyatlandırma": "border-rose-200 bg-rose-50 text-rose-700",
+  "Tedarik": "border-emerald-200 bg-emerald-50 text-emerald-700",
+  "Muhasebe & Fatura": "border-indigo-200 bg-indigo-50 text-indigo-700",
+  "Kurumsal Satış": "border-cyan-200 bg-cyan-50 text-cyan-700",
+  "Personel & Prim": "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-700",
+  "Raporlama": "border-indigo-200 bg-indigo-50 text-indigo-700",
 };
 
 function tagClass(tag: string) {
-  return TAG_COLORS[tag] ?? "border-slate-400/20 bg-slate-500/10 text-slate-300";
+  return TAG_COLORS[tag] ?? "border-slate-200 bg-slate-50 text-slate-600";
 }
 
 export default function BlogIndexPage() {
@@ -42,15 +46,15 @@ export default function BlogIndexPage() {
   const allTags = Array.from(new Set(posts.flatMap((p) => p.tags)));
 
   return (
-    <main className="relative min-h-[100dvh] bg-[#030712] px-5 py-16 text-white md:px-8" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <main className="relative min-h-[100dvh] bg-[#fbfcfe] px-5 py-16 text-slate-900 md:px-8">
       <div className="mx-auto max-w-6xl">
-        <Link href="/" className="text-xs font-bold text-blue-400 hover:text-blue-300 transition">
+        <Link href="/" className="text-xs font-bold text-blue-600 hover:text-blue-700 transition">
           ← VibeGSM Ana Sayfa
         </Link>
-        <h1 className="mt-6 text-[clamp(2rem,4vw,3rem)] font-black leading-[1.1] tracking-[-0.03em]">
+        <h1 className="mt-6 text-[clamp(2rem,4vw,3rem)] font-black leading-[1.1] tracking-[-0.03em] text-slate-900">
           Telefon Bayii ve Teknik Servis Rehberi
         </h1>
-        <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-slate-400">
+        <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-slate-600">
           Stok takibi, IMEI yönetimi, teknik servis süreçleri ve ikinci el alım-satım üzerine bayilerin gerçek
           ihtiyaçlarına dayanan pratik yazılar.
         </p>
@@ -68,7 +72,7 @@ export default function BlogIndexPage() {
             <Link
               key={post.slug}
               href={`/blog/${post.slug}`}
-              className="group flex flex-col rounded-3xl border border-white/[0.08] bg-white/[0.02] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.04]"
+              className="group flex flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-md"
             >
               <div className="flex flex-wrap gap-2">
                 {post.tags.map((tag) => (
@@ -78,12 +82,12 @@ export default function BlogIndexPage() {
                 ))}
               </div>
 
-              <h2 className="mt-4 flex-1 text-lg font-black leading-snug text-white group-hover:text-blue-300 transition-colors">
+              <h2 className="mt-4 flex-1 text-lg font-black leading-snug text-slate-900 group-hover:text-blue-600 transition-colors">
                 {post.title}
               </h2>
-              <p className="mt-3 text-sm leading-relaxed text-slate-400">{post.excerpt}</p>
+              <p className="mt-3 text-sm leading-relaxed text-slate-500">{post.excerpt}</p>
 
-              <div className="mt-5 flex items-center justify-between border-t border-white/[0.06] pt-4 text-xs text-slate-500">
+              <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4 text-xs text-slate-400">
                 <span>{formatDate(post.date)}</span>
                 <span>{post.readingMinutes} dk okuma</span>
               </div>
