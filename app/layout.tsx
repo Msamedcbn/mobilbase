@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { RuntimeGuard } from "@/components/runtime-guard";
 import { AppChrome } from "@/components/app-chrome";
@@ -82,6 +83,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <PwaRegister />
         <AppChrome>{children}</AppChrome>
         <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   );
