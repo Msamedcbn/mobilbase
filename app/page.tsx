@@ -1,4 +1,7 @@
-export const dynamic = "force-dynamic";
+// Pricing comes from an admin-editable store, but it changes rarely — statically
+// generate the page and refresh it in the background instead of rendering on
+// every request (force-dynamic tanked TTFB and crawl efficiency for no reason).
+export const revalidate = 300;
 
 import { readLocalStore } from "@/lib/local-store";
 import { LandingPage } from "@/components/landing-page";

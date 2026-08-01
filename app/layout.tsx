@@ -63,7 +63,13 @@ const organizationJsonLd = {
   operatingSystem: "Web",
   description: SITE_DESCRIPTION,
   url: BASE_URL,
-  offers: { "@type": "Offer", priceCurrency: "TRY" },
+  offers: {
+    "@type": "Offer",
+    price: "750",
+    priceCurrency: "TRY",
+    availability: "https://schema.org/InStock",
+    url: BASE_URL,
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

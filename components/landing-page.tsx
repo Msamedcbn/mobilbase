@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
@@ -514,7 +515,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
               : "border-transparent bg-transparent"
           }`}>
             <a href="/" className="flex items-center gap-2.5">
-              <img src="/icon-square.png" alt="VibeGSM" className="h-9 w-9 rounded-xl shadow-lg shadow-blue-500/20 object-cover" />
+              <Image src="/icon-square.png" alt="VibeGSM" width={36} height={36} priority className="h-9 w-9 rounded-xl shadow-lg shadow-blue-500/20 object-cover" />
               <span className="text-base font-black tracking-tight text-slate-900">VibeGSM</span>
             </a>
             <div className="hidden items-center gap-8 md:flex">
@@ -679,7 +680,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
                 Excel ve WhatsApp karmaşasını <span className="text-blue-600">tek sistemde</span> bitirin
               </h1>
               <p className="hero-anim mt-8 max-w-lg text-[17px] leading-relaxed text-slate-600">
-                VibeGSM; satış, teknik servis, stok, ikinci el ve tahsilatı aynı akışta toplayan telefon bayi otomasyonudur.
+                Telefon bayileri ve telefoncular için tasarlanan VibeGSM; satış, teknik servis, stok, ikinci el ve tahsilatı aynı teknik servis yönetim yazılımında birleştirir.
               </p>
 
               <div className="hero-anim mt-7 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:gap-x-6 sm:gap-y-2.5">
@@ -957,6 +958,21 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
       </section>
 
       <section className="relative z-10 py-32 md:py-44">
+        {/* eslint-disable-next-line react/no-danger */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              mainEntity: FAQ_ITEMS.map((item) => ({
+                "@type": "Question",
+                name: item.q,
+                acceptedAnswer: { "@type": "Answer", text: item.a },
+              })),
+            }),
+          }}
+        />
         <div className="mx-auto max-w-3xl px-5 md:px-8">
           <div className="reveal md:text-center">
             <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-600">Sık Sorulan Sorular</p>
@@ -1024,7 +1040,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
       <footer className="relative z-10 border-t border-slate-200 bg-white px-5 py-12 md:px-8">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 text-center">
           <a href="/" className="flex items-center gap-2.5">
-            <img src="/icon-square.png" alt="VibeGSM" className="h-9 w-9 rounded-xl object-cover" />
+            <Image src="/icon-square.png" alt="VibeGSM" width={36} height={36} className="h-9 w-9 rounded-xl object-cover" />
             <span className="text-base font-black text-slate-900">VibeGSM</span>
           </a>
           <div className="flex flex-wrap justify-center gap-6 text-xs text-slate-500">

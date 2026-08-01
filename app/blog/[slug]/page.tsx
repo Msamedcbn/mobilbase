@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BLOG_POSTS, getBlogPost } from "@/lib/blog-posts";
 
+const BASE_URL = process.env.APP_BASE_URL ?? "https://vibegsm.com";
+
 export function generateStaticParams() {
   return BLOG_POSTS.map((post) => ({ slug: post.slug }));
 }
@@ -53,10 +55,22 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
     publisher: { "@type": "Organization", name: "VibeGSM" },
   };
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Ana Sayfa", item: BASE_URL },
+      { "@type": "ListItem", position: 2, name: "Blog", item: `${BASE_URL}/blog` },
+      { "@type": "ListItem", position: 3, name: post.title, item: `${BASE_URL}/blog/${post.slug}` },
+    ],
+  };
+
   return (
     <main className="relative min-h-[100dvh] bg-[#030712] px-5 py-16 text-white md:px-8" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
       {/* eslint-disable-next-line react/no-danger */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      {/* eslint-disable-next-line react/no-danger */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       <article className="mx-auto max-w-3xl">
         <Link href="/blog" className="text-xs font-bold text-blue-400 hover:text-blue-300 transition">
