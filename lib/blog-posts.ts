@@ -600,6 +600,493 @@ export const BLOG_POSTS: BlogPost[] = [
       },
     ],
   },
+  {
+    slug: "telefon-bayii-yazilim-maliyeti-ve-getirisi",
+    title: "Telefon Bayii Yazılımı Maliyeti: Yatırımın Kendini Ne Kadar Sürede Çıkarır?",
+    focusKeyword: "telefon bayii yazılımı fiyatları",
+    description:
+      "Telefon bayii yazılımına yapılan aylık ödeme, stok hatası, unutulan tahsilat ve kaybedilen zamanın maliyetiyle karşılaştırıldığında genelde kendini hızlıca amorti eder. Maliyet-getiri analizi.",
+    keywords: ["telefon bayii yazılımı fiyatları", "telefoncu programı maliyeti", "yazılım yatırım getirisi"],
+    tags: ["Yazılım Seçimi", "Büyüme"],
+    date: "2026-09-02",
+    readingMinutes: 6,
+    excerpt:
+      "Aylık yazılım ücretine bakıp 'gerekli mi' diye sormak yanlış soru. Doğru soru: yazılımsız çalışmanın gerçek maliyeti ne kadar?",
+    sections: [
+      {
+        paragraphs: [
+          "Bir telefon bayii yazılımına bakarken ilk soru genelde \"aylık kaça mal olur\" olur. Oysa doğru soru bu değil: Excel, WhatsApp ve kağıt fişle çalışmaya devam etmenin gerçek maliyeti ne kadar? Bu maliyet fatura olarak gelmediği için görünmez, ama stok hatası, unutulan tahsilat ve kaybedilen zaman şeklinde her ay cebinizden çıkar.",
+        ],
+      },
+      {
+        heading: "Excel'in görünmeyen maliyeti",
+        paragraphs: ["\"Ücretsiz\" görünen Excel'in asıl maliyeti, harcanan zamanda ve kaçan fırsatta saklıdır:"],
+        list: [
+          "Gün sonu stok sayımı için harcanan saatler.",
+          "Aynı bilgiyi (satış, stok, cari) birden fazla dosyaya elle işlemenin zaman kaybı.",
+          "Dosya çakışması veya yanlışlıkla silinen bir satırın yol açtığı veri kaybı.",
+          "Raporlama için ayrı ayrı dosyaların bir araya toplanma süresi.",
+        ],
+      },
+      {
+        heading: "Bir stok hatasının gerçek bedeli",
+        paragraphs: [
+          "Aynı IMEI'nin iki kez satılmaya çalışılması, ya da stokta göründüğü halde fiziken bulunmayan bir üründen dolayı müşteriye \"yok\" denmesi — bunların her biri somut bir gelir kaybı veya müşteri memnuniyetsizliğidir. Bu tür hatalar ayda birkaç kez bile yaşansa, biriken maliyet çoğu zaman bir yazılım aboneliğinin çok üzerine çıkar.",
+        ],
+      },
+      {
+        heading: "Unutulan tahsilatın maliyeti",
+        paragraphs: [
+          "Vadesi geçmiş bir veresiye borcunun hatırlatılmaması, doğrudan nakit akışını etkiler. Sistematik bir vade takibi olmadan, kaç TL'lik tahsilatın gecikmiş olduğunu ay sonuna kadar fark etmeyebilirsiniz — bu gecikme bazen aylık yazılım maliyetinin kat kat üzerinde bir tutara denk gelir.",
+        ],
+      },
+      {
+        heading: "Yatırımın geri dönüş süresini hesaplamanın basit yolu",
+        paragraphs: [
+          "Bir ayda kaç saatin stok sayımı, dosya birleştirme ve manuel takibe gittiğini, kaç TL'lik stok/tahsilat hatasıyla karşılaşıldığını kabaca toplayın. Çoğu bayide bu rakam, doğru kurgulanmış bir sistemin aylık maliyetini birkaç haftada karşılar; kalan süre net kazanca dönüşür.",
+        ],
+      },
+      {
+        heading: "Sonuç",
+        paragraphs: [
+          "VibeGSM'in paketleri, işletme büyüklüğüne göre kademeli fiyatlandırılır; hangi paketin sizin operasyonunuz için en hızlı geri dönüşü sağlayacağını birlikte hesaplayabiliriz. Mevcut sürecinizi anlatırsanız size uygun paketi önerelim.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "telefon-tamiri-garanti-takip-sistemi",
+    title: "Telefon Tamirinde Garanti Takibi Nasıl Yapılır?",
+    focusKeyword: "garanti takip sistemi",
+    description:
+      "Yapılan tamirin garanti süresi kağıtta kaldığında, tekrar gelen arızalarda ne zaman ücretsiz ne zaman ücretli olduğu tartışma konusu olur. Dijital garanti takibi bunu netleştirir.",
+    keywords: ["garanti takip sistemi", "telefon tamiri garanti süresi", "servis garanti yönetimi"],
+    tags: ["Teknik Servis"],
+    date: "2026-09-09",
+    readingMinutes: 5,
+    excerpt:
+      "Müşteri 'bu arıza garanti kapsamında değil miydi' dediğinde elinizde tarih ve işlem geçmişi yoksa, tartışmayı kaybedersiniz.",
+    sections: [
+      {
+        paragraphs: [
+          "Bir cihaz aynı arızayla ikinci kez servise geldiğinde ilk soru şudur: bu, önceki tamirin garanti süresi içinde mi? Bu sorunun cevabı teknisyenin hafızasına veya elle tutulan bir deftere bağlıysa, hem müşteriyle tartışma riski doğar hem de işletme haksız yere ücretsiz tamir yapabilir ya da tam tersi, garanti kapsamındaki bir işi ücretli görebilir.",
+        ],
+      },
+      {
+        heading: "Garanti tartışmalarının kök nedeni",
+        paragraphs: [
+          "Sorun genelde kötü niyetten değil, kayıt eksikliğinden kaynaklanır. Hangi tarihte hangi işlem yapıldığı, hangi parçanın kullanıldığı ve garanti süresinin ne zaman dolduğu net tutulmadığında, aynı konuşma her seferinde sıfırdan ve güvene dayalı olarak yürür.",
+        ],
+      },
+      {
+        heading: "Hangi bilgiler kayıt altında olmalı",
+        list: [
+          "Tamirin yapıldığı tarih ve uygulanan işlem.",
+          "Kullanılan parça (varsa) ve bu parçanın kendi garanti süresi.",
+          "İşlemi yapan teknisyen.",
+          "Garanti süresinin başlangıç ve bitiş tarihi.",
+        ],
+      },
+      {
+        heading: "Tekrarlayan arızayı fark etmek",
+        paragraphs: [
+          "Aynı müşterinin veya aynı cihazın geçmiş servis kayıtlarına hızlıca ulaşabilmek, sadece garanti sorularını değil, tekrarlayan bir arızanın (örneğin kötü değiştirilmiş bir batarya) fark edilmesini de kolaylaştırır. Bu, hem kalite kontrolü hem de müşteri güveni açısından değerlidir.",
+        ],
+      },
+      {
+        heading: "Garanti süresi dolan cihazlarda şeffaflık",
+        paragraphs: [
+          "Garanti süresi dolmuş bir cihaz için ücretli işlem gerektiğinde, önceki işlemin tarihini ve garanti süresini müşteriye net gösterebilmek, \"neden ücretli\" tartışmasını en aza indirir.",
+        ],
+      },
+      {
+        heading: "Sonuç",
+        paragraphs: [
+          "VibeGSM'in Tamir Takip modülünde müşteri ve cihaz geçmişi tek aramayla sorgulanabilir; hangi tarihte ne yapıldığı kayıt altındadır. Garanti süreçlerinizi netleştirmek isterseniz bize yazabilirsiniz.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "taksitli-telefon-satisi-takip-yonetimi",
+    title: "Taksitli Telefon Satışında Takip ve Tahsilat Yönetimi",
+    focusKeyword: "taksitli satış takibi",
+    description:
+      "Taksitli telefon satışında her ayın ödemesini elle takip etmek, gecikmeleri fark etmeyi geciktirir. Taksit takvimi ve otomatik hatırlatmanın önemi.",
+    keywords: ["taksitli satış takibi", "telefon taksit yönetimi", "taksit ödeme takvimi"],
+    tags: ["Tahsilat & Cari", "POS & Satış"],
+    date: "2026-09-16",
+    readingMinutes: 5,
+    excerpt:
+      "Bir müşteriye 12 taksitte satış yaptığınızda, o 12 ayın her birinde 'ödedi mi' sorusunu hatırlamak size değil sisteme ait olmalı.",
+    sections: [
+      {
+        paragraphs: [
+          "Taksitli telefon satışı, özellikle yüksek fiyatlı cihazlarda satışı kapatmanın en pratik yollarından biridir. Ama her taksitin vadesini, ödenip ödenmediğini elle takip etmeye kalkışmak, müşteri sayısı arttıkça sürdürülemez hale gelir.",
+        ],
+      },
+      {
+        heading: "Taksit takviminin elle takibi neden zorlaşır",
+        list: [
+          "Onlarca müşterinin farklı vade tarihleri tek bir defterde karışır.",
+          "Bir taksidin ödendiği unutulup tekrar hatırlatma yapılabilir, bu da müşteri güvenini sarsar.",
+          "Gecikmiş taksitler ancak müşteri aranınca ya da hiç fark edilmeden geç anlaşılır.",
+        ],
+      },
+      {
+        heading: "Gecikmiş taksidi erken görmek",
+        paragraphs: [
+          "Taksit takviminin vadeye göre sıralanabildiği bir görünüm, hangi müşterinin ödemesinin geciktiğini ay beklemeden, gününde görmenizi sağlar. Bu erken görünürlük, tahsilat sürecini bir hatırlatmaya değil bir alışkanlığa dönüştürür.",
+        ],
+      },
+      {
+        heading: "Taksitli satışın kâr ve nakit akışı üzerindeki etkisi",
+        paragraphs: [
+          "Taksitli satış cironuzu büyütebilir, ama nakit akışınızı da geciktirir — satışı bugün yaparsınız, parası aylara yayılır. Bu yüzden açık taksit toplamının ve tahsil edilmemiş tutarın anlık görülebilmesi, önümüzdeki ayların nakit planlamasını yapabilmeniz için gereklidir.",
+        ],
+      },
+      {
+        heading: "Sonuç",
+        paragraphs: [
+          "VibeGSM'in Taksit Yönetimi modülü, her satışın taksit takvimini otomatik oluşturur ve gecikmiş ödemeleri tek ekranda gösterir. Taksitli satış sürecinizi düzenlemek isterseniz bize ulaşabilirsiniz.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "teknik-servis-personel-prim-sistemi",
+    title: "Teknik Serviste Personel Prim ve Hakediş Sistemi Nasıl Kurulur?",
+    focusKeyword: "personel prim sistemi teknik servis",
+    description:
+      "Sabit maaş + satış veya kâr payı şeklinde kurulan prim sistemleri, doğru hesaplanmadığında personel güvenini sarsar. Adil bir prim/hakediş sistemi nasıl kurulur?",
+    keywords: ["personel prim sistemi teknik servis", "hakediş hesaplama", "telefoncu personel maaş sistemi"],
+    tags: ["Personel & Prim"],
+    date: "2026-09-23",
+    readingMinutes: 6,
+    excerpt:
+      "Prim hesaplaması elle, ay sonunda hafızadan yapıldığında hem personel hem işveren için şeffaflık kaybolur.",
+    sections: [
+      {
+        paragraphs: [
+          "Sabit maaşa ek olarak satış cirosundan veya kârından pay veren bir prim sistemi, personeli doğru şekilde motive eder — ama bu hesaplama ay sonunda hafızadan, kağıt üzerinde yapılıyorsa, hem hata payı yüksektir hem de personel \"bu rakam nereden çıktı\" diye sorduğunda net bir cevap veremezsiniz.",
+        ],
+      },
+      {
+        heading: "Sabit maaş + prim modelleri",
+        paragraphs: [
+          "En yaygın iki model, kâr payı (satılan ürün/hizmetin maliyeti düşüldükten sonraki kârdan yüzde) ve ciro payı (toplam satış tutarından yüzde) şeklindedir. Hangi model seçilirse seçilsin, oranın ve hangi satışların dahil edildiğinin net tanımlanması gerekir.",
+        ],
+      },
+      {
+        heading: "Prim hesaplamasının şeffaf olması neden önemli",
+        paragraphs: [
+          "Personel kendi yaptığı satışı, bu satıştan doğan kârı ve buna karşılık gelen primi görebildiğinde, sisteme güveni artar. Hesaplama sadece işveren tarafında, görünmez bir şekilde yapılıyorsa, en adil hesaplama bile şüpheyle karşılanabilir.",
+        ],
+      },
+      {
+        heading: "Avans ve hakedişin aynı hesapta netleşmesi",
+        paragraphs: [
+          "Personele ay içinde verilen avanslar ile ay sonunda hesaplanan hakediş aynı cari hesapta tutulduğunda, \"ne kadar borcu var, ne kadar alacağı var\" sorusunun cevabı otomatik netleşir — ayrıca bir \"avansı düş\" hesaplaması yapmaya gerek kalmaz.",
+        ],
+      },
+      {
+        heading: "Personel bazlı performansı günlük görmek",
+        paragraphs: [
+          "Hakediş raporunu sadece ay sonunda değil, günlük ciro ve satış adedi olarak da görebilmek, hem personeli hem işletme sahibini ay bitmeden bilgilendirir — sürpriz bir ay sonu rakamıyla karşılaşılmaz.",
+        ],
+      },
+      {
+        heading: "Sonuç",
+        paragraphs: [
+          "VibeGSM'in Personel Yönetimi modülünde sabit maaş, kâr/ciro payı oranı ve ek haklar personel bazında tanımlanır; hakediş dönemsel hesaplanıp cari hesaba işlenir, avanslar aynı hesapta otomatik netleşir. Prim sisteminizi kurmak isterseniz bize yazabilirsiniz.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "kurumsal-telefon-satisi-teklif-hazirlama",
+    title: "Kurumsal Telefon Satışında Teklif Hazırlama Süreci",
+    focusKeyword: "kurumsal teklif hazırlama",
+    description:
+      "Kurumsal müşterilere toplu telefon satışında hızlı, profesyonel teklif hazırlamak satışı kapatma hızını doğrudan etkiler.",
+    keywords: ["kurumsal teklif hazırlama", "toplu telefon satışı", "b2b telefon satışı"],
+    tags: ["Kurumsal Satış"],
+    date: "2026-09-30",
+    readingMinutes: 5,
+    excerpt:
+      "Kurumsal bir müşteri fiyat teklifi istediğinde, o teklifi bir gün içinde profesyonel bir PDF olarak gönderemiyorsanız, rakibiniz sizden önce davranır.",
+    sections: [
+      {
+        paragraphs: [
+          "Kurumsal müşteriler genelde birden fazla tedarikçiden teklif ister ve karşılaştırma yapar. Bu ortamda hızlı ve profesyonel görünen bir teklif, fiyat kadar belirleyici olabilir — teklifi bir gün geç gönderen bayi, çoğu zaman listeden çıkar.",
+        ],
+      },
+      {
+        heading: "Kurumsal satışta hız neden belirleyici",
+        paragraphs: [
+          "Kurumsal alım süreçleri genelde birkaç teklifi yan yana koyarak karar verir. Teklifi elle, Word/Excel'de hazırlayıp göndermek hem zaman kaybettirir hem de son anda fiyat/adet hatası riski taşır.",
+        ],
+      },
+      {
+        heading: "Teklif içeriğinde olması gerekenler",
+        list: [
+          "Model, adet ve birim fiyat bazında net döküm.",
+          "Toplu alım indirimi varsa bunun ayrıca gösterilmesi.",
+          "Teklifin geçerlilik süresi.",
+          "Ödeme koşulları (peşin, vadeli, taksitli).",
+        ],
+      },
+      {
+        heading: "Teklifin takibi ve onay süreci",
+        paragraphs: [
+          "Gönderilen bir teklifin hangi aşamada olduğunu (beklemede, onaylandı, reddedildi) takip edebilmek, kurumsal müşteri sayısı arttıkça hangi fırsatların takipte kalması gerektiğini unutmamanızı sağlar.",
+        ],
+      },
+      {
+        heading: "Sonuç",
+        paragraphs: [
+          "VibeGSM'in Kurumsal Teklifler modülü, model/adet bazlı teklifleri hızlıca PDF olarak hazırlar ve onay durumunu takip etmenizi sağlar. Kurumsal satış sürecinizi hızlandırmak isterseniz bize ulaşabilirsiniz.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "telefon-bayii-e-fatura-muhasebe-entegrasyonu",
+    title: "Telefon Bayii İçin E-Fatura ve Muhasebe Entegrasyonu",
+    focusKeyword: "telefon bayii e-fatura",
+    description:
+      "Satış sisteminden çıkan verinin muhasebeye elle aktarılması hem zaman kaybettirir hem hata riski taşır. E-fatura ve muhasebe entegrasyonunun sağladığı fark.",
+    keywords: ["telefon bayii e-fatura", "muhasebe entegrasyonu", "e-arşiv fatura telefoncu"],
+    tags: ["Muhasebe & Fatura"],
+    date: "2026-10-07",
+    readingMinutes: 5,
+    excerpt:
+      "Satışı POS'ta yapıp faturayı ayrı bir muhasebe programında elle kesmek, aynı bilgiyi iki kez yazmak demektir.",
+    sections: [
+      {
+        paragraphs: [
+          "Satış anında POS'a girilen bilgi (müşteri, ürün, tutar) ile faturanın kesildiği program birbirinden bağımsızsa, aynı veriyi iki kez, iki farklı yerde girmiş olursunuz. Bu hem zaman kaybıdır hem de iki kayıt arasında tutarsızlık çıkma riskidir.",
+        ],
+      },
+      {
+        heading: "Elle fatura kesmenin biriken riski",
+        list: [
+          "Satış ile fatura arasında tutar veya müşteri bilgisi uyuşmazlığı oluşabilir.",
+          "Bir satışın faturasının kesilmesi unutulabilir.",
+          "Ay sonunda satış raporu ile kesilen fatura toplamı birbirini tutmayabilir.",
+        ],
+      },
+      {
+        heading: "Satış ve fatura verisinin tek kaynaktan gelmesi",
+        paragraphs: [
+          "Satış anında girilen bilgiden doğrudan fatura üretilebildiğinde, iki ayrı kayıt tutma ihtiyacı ortadan kalkar; satış raporu ile kesilen faturalar otomatik olarak birbiriyle tutarlı kalır.",
+        ],
+      },
+      {
+        heading: "Mali müşavirle veri paylaşımı",
+        paragraphs: [
+          "Ay sonunda mali müşavirinize gönderdiğiniz verinin, satış sisteminizle birebir örtüşmesi, hem sizin hem onun zamandan tasarruf etmesini sağlar; ayrı ayrı Excel dosyaları hazırlama ihtiyacı azalır.",
+        ],
+      },
+      {
+        heading: "Sonuç",
+        paragraphs: [
+          "VibeGSM'de satış ve fatura kayıtları aynı sistemde tutulur, e-arşiv fatura süreciyle entegre çalışır. Muhasebe akışınızı sadeleştirmek isterseniz bize yazabilirsiniz.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "telefonculukta-kasa-banka-yonetimi",
+    title: "Telefonculukta Çoklu Kasa ve Banka Hesabı Yönetimi",
+    focusKeyword: "kasa banka yönetimi telefoncu",
+    description:
+      "Nakit kasa, POS hesabı ve banka hesapları ayrı ayrı takip edildiğinde gün sonu mutabakatı saatler alır. Çoklu kasa/banka yönetimini tek ekranda birleştirmek.",
+    keywords: ["kasa banka yönetimi telefoncu", "çoklu kasa takibi", "gün sonu kasa mutabakatı"],
+    tags: ["Tahsilat & Cari"],
+    date: "2026-10-14",
+    readingMinutes: 5,
+    excerpt:
+      "Nakit kasanız, banka hesabınız ve POS cihazınızın hesabı üç ayrı yerde tutuluyorsa, gün sonunda üç ayrı sayım yapıyorsunuz demektir.",
+    sections: [
+      {
+        paragraphs: [
+          "Bir telefon bayisinde para tek bir yerden akmaz: nakit kasa, kredi kartı POS hesabı, banka havale/EFT hesabı ve bazen birden fazla banka şubesi aynı anda kullanılır. Bunlar ayrı ayrı defterlerde tutulduğunda, gün sonunda \"toplamda ne kadar paramız var\" sorusuna cevap vermek zaman alır.",
+        ],
+      },
+      {
+        heading: "Neden birden fazla kasa/hesap gerekir",
+        paragraphs: [
+          "Farklı ödeme yöntemleri farklı hesaplara düşer ve her birinin kendi bakiyesi, kendi hareket geçmişi olmalıdır. Bunları tek bir \"kasa\" gibi düşünmek, hangi hesapta ne kadar olduğunu bulanıklaştırır.",
+        ],
+      },
+      {
+        heading: "Her satışın doğru hesaba düşmesi",
+        paragraphs: [
+          "POS ekranından yapılan bir satışta ödeme yöntemi seçildiğinde, tutarın otomatik olarak ilgili kasa/banka hesabına işlenmesi, gün içinde elle hesap aktarımı yapma ihtiyacını ortadan kaldırır.",
+        ],
+      },
+      {
+        heading: "Gün sonu mutabakatını hızlandırmak",
+        paragraphs: [
+          "Her hesabın güncel bakiyesi ve hareket dökümü anlık görülebildiğinde, gün sonu kapanışı saatler değil dakikalar alır; fiziksel kasadaki nakit ile sistemdeki rakamı karşılaştırmak yeterlidir.",
+        ],
+      },
+      {
+        heading: "Sonuç",
+        paragraphs: [
+          "VibeGSM'in Banka & Kasa modülü, birden fazla kasa/banka hesabını ayrı ayrı takip eder; her satış ödeme yöntemine göre doğru hesaba otomatik işlenir. Kasa sürecinizi sadeleştirmek isterseniz bize ulaşabilirsiniz.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "whatsapptan-telefon-satisi-yonetmenin-riskleri",
+    title: "WhatsApp'tan Telefon Satışı Yönetmenin 5 Riski",
+    focusKeyword: "whatsapp ile satış takibi riskleri",
+    description:
+      "WhatsApp hızlı iletişim için harika ama sipariş, stok ve tahsilat takibi için tasarlanmadı. WhatsApp üzerinden satış yönetmenin beş somut riski.",
+    keywords: ["whatsapp ile satış takibi riskleri", "whatsapp sipariş takibi", "telefon bayii whatsapp"],
+    tags: ["Büyüme", "POS & Satış"],
+    date: "2026-10-21",
+    readingMinutes: 5,
+    excerpt:
+      "'Ayarladık hocam' mesajının altında hangi sipariş, hangi stoktan, ne zaman teslim edilecek — bu bilgi bir sohbet balonunda kaybolmaya çok müsait.",
+    sections: [
+      {
+        paragraphs: [
+          "WhatsApp, müşteriyle hızlı iletişim kurmak için mükemmel bir araç — ama bir sipariş, stok ve tahsilat yönetim sistemi olarak tasarlanmadı. Satış sürecinin tamamını WhatsApp sohbetlerine yaymak, kısa vadede pratik görünse de büyüdükçe ciddi riskler biriktirir.",
+        ],
+      },
+      {
+        heading: "Risk 1: Sipariş geçmişi aranabilir değil",
+        paragraphs: [
+          "Bir müşterinin \"geçen ay aldığım telefon\" dediği siparişi bulmak için yüzlerce mesajı kaydırmak gerekir. Bu bilgi bir veritabanında değil, dağınık sohbet geçmişinde yaşar.",
+        ],
+      },
+      {
+        heading: "Risk 2: Stok bilgisi güncel değil",
+        paragraphs: [
+          "\"Stokta var mı\" sorusuna cevap verirken elinizdeki bilgi güncel olmayabilir — aynı ürün başka bir müşteriye de \"var\" denmiş olabilir, bu da çift satış riskini doğurur.",
+        ],
+      },
+      {
+        heading: "Risk 3: Ödeme ve veresiye takibi dağınıklaşır",
+        paragraphs: [
+          "\"Kalanını sonra öderim\" şeklindeki anlaşmalar mesaj geçmişinde kalır; kimin ne kadar borcu olduğunu görmek için tek tek sohbetleri kontrol etmek gerekir.",
+        ],
+      },
+      {
+        heading: "Risk 4: Personel değiştiğinde bilgi de gider",
+        paragraphs: [
+          "Satışı yürüten personelin telefonundaki WhatsApp'a bağımlı bir süreçte, o kişi işten ayrıldığında müşteri geçmişi ve devam eden görüşmeler de işletmeden kopar.",
+        ],
+      },
+      {
+        heading: "Risk 5: Raporlama neredeyse imkansız",
+        paragraphs: [
+          "Bu ay kaç sipariş alındığı, hangi ürünlerin en çok satıldığı gibi sorulara WhatsApp sohbetlerinden cevap üretmek pratikte mümkün değildir.",
+        ],
+      },
+      {
+        heading: "Sonuç",
+        paragraphs: [
+          "WhatsApp'ı müşteriyle iletişim için kullanmaya devam edin — ama siparişi, stoğu ve tahsilatı ayrı bir sistemde kayıt altına alın. VibeGSM bu ayrımı net tutar: iletişim WhatsApp'ta kalır, kayıt sistemde. Geçiş sürecinizi konuşmak isterseniz bize yazabilirsiniz.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "cihaz-teslim-tutanagi-hasar-tespit-formu",
+    title: "Cihaz Teslim Tutanağı ve Hasar Tespit Formunu Dijitalleştirmek",
+    focusKeyword: "cihaz teslim tutanağı",
+    description:
+      "Cihaz servise gelirken mevcut hasarların kayıt altına alınmaması, teslim anında 'bu çizik zaten var mıydı' tartışmasına yol açar. Dijital ön kontrol formu bunu önler.",
+    keywords: ["cihaz teslim tutanağı", "hasar tespit formu", "servis ön kontrol listesi"],
+    tags: ["Teknik Servis"],
+    date: "2026-10-28",
+    readingMinutes: 5,
+    excerpt:
+      "Cihazı kabul ederken ekranda çizik var mıydı, kamerada leke var mıydı — bu sorunun cevabı kabul anında kayıt altına alınmadıysa, teslimde ispat sizde olur.",
+    sections: [
+      {
+        paragraphs: [
+          "Bir cihaz servise geldiğinde, sadece bildirilen arıza değil, cihazın genel kozmetik ve fonksiyonel durumu da kayıt altına alınmalıdır. Bu yapılmazsa, teslim anında \"bu çizik siz de mi yaptınız\" tartışması işletmenin aleyhine sonuçlanabilir — çünkü ispat yükü elinizde değildir.",
+        ],
+      },
+      {
+        heading: "Tutanaksız kabul neden risklidir",
+        paragraphs: [
+          "Kabul anında not alınmayan bir hasar, teslim anında fark edildiğinde kimin sorumlu olduğu belirsizleşir. Bu belirsizlik hem müşteri güvenini zedeler hem de haksız yere işletmenin tazminat ödemesine yol açabilir.",
+        ],
+      },
+      {
+        heading: "Ön yüz / arka yüz kontrol listesinin mantığı",
+        paragraphs: [
+          "Cihazın ön ve arka yüzü üzerinde ekran, kamera, hoparlör, şarj soketi gibi bileşenlerin kabul anında \"çalışıyor / sorunlu / kontrol edilmedi\" olarak işaretlenmesi, hem teknisyene hem müşteriye net bir başlangıç noktası sağlar. Bu liste sonradan yorumlanmaya değil, kabul anındaki gözleme dayanmalıdır.",
+        ],
+      },
+      {
+        heading: "Teslimde karşılaştırma",
+        paragraphs: [
+          "Cihaz teslim edilirken kabul anındaki kontrol listesiyle mevcut durumun karşılaştırılabilmesi, olası bir anlaşmazlıkta somut bir referans noktası sunar — sözlü hafızaya değil, kayıtlı veriye dayanan bir tartışma çok daha hızlı çözülür.",
+        ],
+      },
+      {
+        heading: "Sonuç",
+        paragraphs: [
+          "VibeGSM'in Tamir Takip modülünde her cihaz kabul edilirken ön/arka yüz üzerinden görsel bir kontrol listesi doldurulur ve bu kayıt cihazın dosyasında kalıcı olarak tutulur. Kabul-teslim sürecinizi netleştirmek isterseniz bize yazabilirsiniz.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "telefon-bayii-karlilik-analizi-kar-zarar-raporu",
+    title: "Telefon Bayii İçin Kârlılık Analizi ve Kâr-Zarar Raporlama",
+    focusKeyword: "telefon bayii kârlılık analizi",
+    description:
+      "Ciro yüksek görünse de gerçek kârlılık maliyetler düşülmeden bilinmez. Telefon bayii için doğru kâr-zarar raporlamasının temel bileşenleri.",
+    keywords: ["telefon bayii kârlılık analizi", "kâr zarar raporu", "işletme maliyeti analizi telefoncu"],
+    tags: ["Raporlama", "Büyüme"],
+    date: "2026-11-04",
+    readingMinutes: 6,
+    excerpt:
+      "Bu ay 500 bin TL ciro yaptınız — peki kaç TL kâr kaldı? Çoğu bayi bu sorunun cevabını ancak yıl sonunda, muhasebeciyle konuşunca öğrenir.",
+    sections: [
+      {
+        paragraphs: [
+          "Ciro, bir işletmenin sağlığını gösteren tek başına yanıltıcı bir rakamdır. Yüksek ciroya rağmen düşük kârla, hatta zararla çalışan bayiler vardır — çünkü ürün maliyeti, parça maliyeti, personel gideri ve işletme giderleri ciro rakamının içinde görünmez.",
+        ],
+      },
+      {
+        heading: "Ciro ile kâr karıştırılınca ne olur",
+        paragraphs: [
+          "Bir işletme sahibi \"bu ay iyi geçti\" derken genelde ciroyu kastediyordur. Ama satılan ürünlerin maliyeti, verilen primler ve sabit giderler düşülmeden yapılan bu değerlendirme, gerçek durumu yansıtmayabilir — ciro artarken kâr aynı oranda artmayabilir, hatta düşebilir.",
+        ],
+      },
+      {
+        heading: "Maliyetin doğru bileşenleri",
+        list: [
+          "Satılan ürünün gerçek alış maliyeti (güncel liste fiyatı değil, o an alınan fiyat).",
+          "Tamirlerde kullanılan yedek parçanın maliyeti.",
+          "Personel sabit maaş ve prim/hakediş ödemeleri.",
+          "Kira, fatura gibi sabit işletme giderleri.",
+        ],
+      },
+      {
+        heading: "Günlük/haftalık kârlılığı görmek neden önemli",
+        paragraphs: [
+          "Kârlılığı sadece ay sonunda, muhasebeciyle görüşünce öğrenmek, o ay içinde alınabilecek düzeltici kararları (fiyat güncellemesi, gider kısma, kampanya) kaçırmak demektir. Ciro, maliyet ve kârın gün/hafta bazında görülebilmesi, karar almayı ay sonunu beklemeden mümkün kılar.",
+        ],
+      },
+      {
+        heading: "Sonuç",
+        paragraphs: [
+          "VibeGSM'in Veri Analizi ve P&L raporlama ekranları, satılan ürünün maliyetini, ödeme yöntemini ve personel bazlı dağılımı bir araya getirerek gerçek kârlılığı gösterir. Kârlılık raporlamanızı netleştirmek isterseniz bize ulaşabilirsiniz.",
+        ],
+      },
+    ],
+  },
 ];
 
 export function getBlogPost(slug: string) {
