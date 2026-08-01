@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/auth";
+import { getSessionUser, getEffectiveTenantId } from "@/lib/auth";
 import { pickFields } from "@/lib/tenant-guard";
 
 // Device has no tenantId of its own — it inherits the tenant through customerId,
@@ -19,7 +19,7 @@ const DEVICE_EDITABLE = [
 export async function GET(_: Request, { params }: { params: { id: string } }) {
   const user = getSessionUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const tenantId = user.tenantId;
+  const tenantId = await getEffectiveTenantId(user);
 
   const item = await prisma.device.findFirst({
     where: {
@@ -36,7 +36,7 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   const user = getSessionUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const tenantId = user.tenantId;
+  const tenantId = await getEffectiveTenantId(user);
 
   const existing = await prisma.device.findFirst({
     where: {
@@ -59,7 +59,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {
   const user = getSessionUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const tenantId = user.tenantId;
+  const tenantId = await getEffectiveTenantId(user);
 
   const existing = await prisma.device.findFirst({
     where: {

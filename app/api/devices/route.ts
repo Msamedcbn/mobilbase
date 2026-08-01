@@ -1,7 +1,7 @@
 ﻿import { prisma } from "@/lib/prisma";
 import { deviceSchema } from "@/lib/validations";
 import { getErrorCode, getErrorMessage } from "@/lib/errors";
-import { requireRole, getSessionUser } from "@/lib/auth";
+import { requireRole, getSessionUser, getEffectiveTenantId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import { fail, ok } from "@/lib/api-response";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
@@ -11,7 +11,7 @@ import { NextResponse } from "next/server";
 export async function GET() {
   const user = getSessionUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const tenantId = user.tenantId;
+  const tenantId = await getEffectiveTenantId(user);
 
   if (isDbDisabledMode()) {
     const store = await readLocalStore();
@@ -38,7 +38,7 @@ export async function GET() {
 export async function POST(req: Request) {
   const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN", "MANAGER"]);
   if (auth.error) return auth.error;
-  const tenantId = auth.user.tenantId;
+  const tenantId = await getEffectiveTenantId(auth.user);
 
   try {
     const body = await req.json();
@@ -79,7 +79,7 @@ export async function POST(req: Request) {
       entityType: "Device",
       entityId: item.id,
       actorUserId: auth.user?.userId,
-      tenantId: auth.user?.tenantId ?? null,
+      tenantId,
       detail: `${item.brand} ${item.model}`,
     });
 

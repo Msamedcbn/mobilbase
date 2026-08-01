@@ -315,6 +315,14 @@ export default function RepairPage() {
 
   const [deviceMode, setDeviceMode] = useState<"SELECT" | "CREATE">("SELECT");
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
+
+  // A brand-new customer can never have registered devices, so "Kayıtlı Cihaz
+  // Seç" is disabled for them (see the tab button below) — keep deviceMode in
+  // sync so step-2 validation doesn't still expect a device SELECTion that the
+  // UI no longer offers.
+  useEffect(() => {
+    if (customerMode === "CREATE") setDeviceMode("CREATE");
+  }, [customerMode]);
   const [newDevBrand, setNewDevBrand] = useState("");
   const [newDevModel, setNewDevModel] = useState("");
   const [newDevStorage, setNewDevStorage] = useState("128GB");

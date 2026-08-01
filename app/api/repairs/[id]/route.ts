@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore, writeLocalStore } from "@/lib/local-store";
-import { getSessionUser, requireRole } from "@/lib/auth";
+import { getSessionUser, requireRole, getEffectiveTenantId } from "@/lib/auth";
 
 // DELIVERED and CANCELED are terminal: once a repair is delivered it has already
 // created an Invoice/Transaction/bank-balance effect with no reliable link back to
@@ -27,7 +27,7 @@ function isValidRepairStatusTransition(from: string, to: string) {
 export async function GET(_: Request, { params }: { params: { id: string } }) {
   const user = getSessionUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const tenantId = user.tenantId;
+  const tenantId = await getEffectiveTenantId(user);
 
   if (isDbDisabledMode()) {
     const store = await readLocalStore();
@@ -71,7 +71,7 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN", "MANAGER"]);
   if (auth.error) return auth.error;
-  const tenantId = auth.user.tenantId;
+  const tenantId = await getEffectiveTenantId(auth.user);
 
   const body = await req.json();
 
@@ -265,7 +265,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {
   const auth = requireRole(["ADMIN"]);
   if (auth.error) return auth.error;
-  const tenantId = auth.user.tenantId;
+  const tenantId = await getEffectiveTenantId(auth.user);
 
   if (isDbDisabledMode()) {
     const store = await readLocalStore();

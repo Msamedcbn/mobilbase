@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { localId, readLocalStore, writeLocalStore } from "@/lib/local-store";
-import { getSessionUser, requireRole } from "@/lib/auth";
+import { getSessionUser, requireRole, getEffectiveTenantId } from "@/lib/auth";
 import { fail } from "@/lib/api-response";
 import { pickFields } from "@/lib/tenant-guard";
 
@@ -20,7 +20,7 @@ const REPAIR_CREATABLE = [
 export async function GET() {
   const user = getSessionUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const tenantId = user.tenantId;
+  const tenantId = await getEffectiveTenantId(user);
 
   if (isDbDisabledMode()) {
     const store = await readLocalStore();
@@ -65,7 +65,7 @@ export async function GET() {
 export async function POST(req: Request) {
   const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN", "MANAGER"]);
   if (auth.error) return auth.error;
-  const tenantId = auth.user.tenantId;
+  const tenantId = await getEffectiveTenantId(auth.user);
 
   const body = await req.json();
 
