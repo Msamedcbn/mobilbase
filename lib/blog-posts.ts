@@ -961,128 +961,68 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         heading: "Risk 1: Sipariş geçmişi aranabilir değil",
         paragraphs: [
-          "Bir müşterinin \"geçen ay aldığım telefon\" dediği siparişi bulmak için yüzlerce mesajı kaydırmak gerekir. Bu bilgi bir veritabanında değil, dağınık sohbet geçmişinde yaşar.",
+          "Bir müşterinin 'geçen ay aldığım telefon' dediği siparişi bulmak için yüzlerce mesajı kaydırmak gerekir. Bu bilgi bir veritabanında değil, dağınık sohbet geçmişinde yaşar.",
         ],
       },
       {
         heading: "Risk 2: Stok bilgisi güncel değil",
         paragraphs: [
-          "\"Stokta var mı\" sorusuna cevap verirken elinizdeki bilgi güncel olmayabilir — aynı ürün başka bir müşteriye de \"var\" denmiş olabilir, bu da çift satış riskini doğurur.",
-        ],
-      },
-      {
-        heading: "Risk 3: Ödeme ve veresiye takibi dağınıklaşır",
-        paragraphs: [
-          "\"Kalanını sonra öderim\" şeklindeki anlaşmalar mesaj geçmişinde kalır; kimin ne kadar borcu olduğunu görmek için tek tek sohbetleri kontrol etmek gerekir.",
-        ],
-      },
-      {
-        heading: "Risk 4: Personel değiştiğinde bilgi de gider",
-        paragraphs: [
-          "Satışı yürüten personelin telefonundaki WhatsApp'a bağımlı bir süreçte, o kişi işten ayrıldığında müşteri geçmişi ve devam eden görüşmeler de işletmeden kopar.",
-        ],
-      },
-      {
-        heading: "Risk 5: Raporlama neredeyse imkansız",
-        paragraphs: [
-          "Bu ay kaç sipariş alındığı, hangi ürünlerin en çok satıldığı gibi sorulara WhatsApp sohbetlerinden cevap üretmek pratikte mümkün değildir.",
+          "Stokta var mı sorusuna cevap verirken elinizdeki bilgi güncel olmayabilir — aynı ürün başka bir müşteriye de var denmiş olabilir, bu da çift satış riskini doğurur.",
         ],
       },
       {
         heading: "Sonuç",
         paragraphs: [
-          "WhatsApp'ı müşteriyle iletişim için kullanmaya devam edin — ama siparişi, stoğu ve tahsilatı ayrı bir sistemde kayıt altına alın. VibeGSM bu ayrımı net tutar: iletişim WhatsApp'ta kalır, kayıt sistemde. Geçiş sürecinizi konuşmak isterseniz bize yazabilirsiniz.",
+          "WhatsApp'ı müşteriyle iletişim için kullanmaya devam edin — ama siparişi, stoğu ve tahsilatı ayrı bir sistemde kayıt altına alın. VibeGSM bu ayrımı net tutar.",
         ],
       },
     ],
   },
   {
-    slug: "cihaz-teslim-tutanagi-hasar-tespit-formu",
-    title: "Cihaz Teslim Tutanağı ve Hasar Tespit Formunu Dijitalleştirmek",
-    focusKeyword: "cihaz teslim tutanağı",
+    slug: "ikinci-el-telefon-alim-sozlesmesi-ornegi-ve-buyback-muvafakatname",
+    title: "İkinci El Telefon Alım Sözleşmesi Örneği ve Buyback Muvafakatname",
+    metaTitle: "İkinci El Telefon Alım Sözleşmesi Örneği & Muvafakatname",
+    focusKeyword: "ikinci el telefon alım sözleşmesi örneği",
     description:
-      "Cihaz servise gelirken mevcut hasarların kayıt altına alınmaması, teslim anında 'bu çizik zaten var mıydı' tartışmasına yol açar. Dijital ön kontrol formu bunu önler.",
-    keywords: ["cihaz teslim tutanağı", "hasar tespit formu", "servis ön kontrol listesi"],
-    tags: ["Teknik Servis"],
-    date: "2026-10-28",
-    readingMinutes: 5,
-    excerpt:
-      "Cihazı kabul ederken ekranda çizik var mıydı, kamerada leke var mıydı — bu sorunun cevabı kabul anında kayıt altına alınmadıysa, teslimde ispat sizde olur.",
-    sections: [
-      {
-        paragraphs: [
-          "Bir cihaz servise geldiğinde, sadece bildirilen arıza değil, cihazın genel kozmetik ve fonksiyonel durumu da kayıt altına alınmalıdır. Bu yapılmazsa, teslim anında \"bu çizik siz de mi yaptınız\" tartışması işletmenin aleyhine sonuçlanabilir — çünkü ispat yükü elinizde değildir.",
-        ],
-      },
-      {
-        heading: "Tutanaksız kabul neden risklidir",
-        paragraphs: [
-          "Kabul anında not alınmayan bir hasar, teslim anında fark edildiğinde kimin sorumlu olduğu belirsizleşir. Bu belirsizlik hem müşteri güvenini zedeler hem de haksız yere işletmenin tazminat ödemesine yol açabilir.",
-        ],
-      },
-      {
-        heading: "Ön yüz / arka yüz kontrol listesinin mantığı",
-        paragraphs: [
-          "Cihazın ön ve arka yüzü üzerinde ekran, kamera, hoparlör, şarj soketi gibi bileşenlerin kabul anında \"çalışıyor / sorunlu / kontrol edilmedi\" olarak işaretlenmesi, hem teknisyene hem müşteriye net bir başlangıç noktası sağlar. Bu liste sonradan yorumlanmaya değil, kabul anındaki gözleme dayanmalıdır.",
-        ],
-      },
-      {
-        heading: "Teslimde karşılaştırma",
-        paragraphs: [
-          "Cihaz teslim edilirken kabul anındaki kontrol listesiyle mevcut durumun karşılaştırılabilmesi, olası bir anlaşmazlıkta somut bir referans noktası sunar — sözlü hafızaya değil, kayıtlı veriye dayanan bir tartışma çok daha hızlı çözülür.",
-        ],
-      },
-      {
-        heading: "Sonuç",
-        paragraphs: [
-          "VibeGSM'in Tamir Takip modülünde her cihaz kabul edilirken ön/arka yüz üzerinden görsel bir kontrol listesi doldurulur ve bu kayıt cihazın dosyasında kalıcı olarak tutulur. Kabul-teslim sürecinizi netleştirmek isterseniz bize yazabilirsiniz.",
-        ],
-      },
+      "İkinci el telefon alım sözleşmesi örneği, T.C. kimlik muvafakatnamesi ve çalıntı cihaz riskine karşı yasal koruma yazılımı. Detayları inceleyin.",
+    keywords: [
+      "ikinci el telefon alım sözleşmesi örneği",
+      "2. el cep telefonu alım formu",
+      "buyback muvafakatname örneği",
+      "çalıntı telefon imei sorumluluk",
+      "ikinci el telefon alım satım hukuki boyutu",
     ],
-  },
-  {
-    slug: "telefon-bayii-karlilik-analizi-kar-zarar-raporu",
-    title: "Telefon Bayii İçin Kârlılık Analizi ve Kâr-Zarar Raporlama",
-    focusKeyword: "telefon bayii kârlılık analizi",
-    description:
-      "Ciro yüksek görünse de gerçek kârlılık maliyetler düşülmeden bilinmez. Telefon bayii için doğru kâr-zarar raporlamasının temel bileşenleri.",
-    keywords: ["telefon bayii kârlılık analizi", "kâr zarar raporu", "işletme maliyeti analizi telefoncu"],
-    tags: ["Raporlama", "Büyüme"],
-    date: "2026-11-04",
+    tags: ["İkinci El", "IMEI & Güvenlik", "Türkiye"],
+    date: "2026-08-01",
     readingMinutes: 6,
     excerpt:
-      "Bu ay 500 bin TL ciro yaptınız — peki kaç TL kâr kaldı? Çoğu bayi bu sorunun cevabını ancak yıl sonunda, muhasebeciyle konuşunca öğrenir.",
+      "İkinci el telefon alımı yapan bayilerin hukuki olarak korunması için doldurması gereken ikinci el telefon alım sözleşmesi örneği ve dijital muvafakatname rehberi.",
     sections: [
       {
         paragraphs: [
-          "Ciro, bir işletmenin sağlığını gösteren tek başına yanıltıcı bir rakamdır. Yüksek ciroya rağmen düşük kârla, hatta zararla çalışan bayiler vardır — çünkü ürün maliyeti, parça maliyeti, personel gideri ve işletme giderleri ciro rakamının içinde görünmez.",
+          "İkinci el (buyback) telefon alımı yapan mağazaların karşılaştığı en büyük risk, satıcının beyan ettiği cihazın çalıntı, kayıp veya klonlu çıkmasıdır. Bu tür durumlarda işletme sahibinin adli makamlara karşı kendini savunabilmesi için elinde ikinci el telefon alım sözleşmesi örneği kriterlerine uygun ıslak imzalı veya dijital onaylı bir belge bulunmalıdır.",
         ],
       },
       {
-        heading: "Ciro ile kâr karıştırılınca ne olur",
-        paragraphs: [
-          "Bir işletme sahibi \"bu ay iyi geçti\" derken genelde ciroyu kastediyordur. Ama satılan ürünlerin maliyeti, verilen primler ve sabit giderler düşülmeden yapılan bu değerlendirme, gerçek durumu yansıtmayabilir — ciro artarken kâr aynı oranda artmayabilir, hatta düşebilir.",
-        ],
-      },
-      {
-        heading: "Maliyetin doğru bileşenleri",
+        heading: "İkinci El Telefon Alım Sözleşmesinde Olması Gereken Yasal Maddeler",
         list: [
-          "Satılan ürünün gerçek alış maliyeti (güncel liste fiyatı değil, o an alınan fiyat).",
-          "Tamirlerde kullanılan yedek parçanın maliyeti.",
-          "Personel sabit maaş ve prim/hakediş ödemeleri.",
-          "Kira, fatura gibi sabit işletme giderleri.",
+          "Satıcının Ad-Soyadı, T.C. Kimlik Numarası ve İkametgah Adresi,",
+          "Cihazın Markası, Modeli, Rengi ve Tekil IMEI Numarası,",
+          "Satıcının cihazın tek yasal sahibi olduğuna ve mülkiyet devrettiğine dair beyanı,",
+          "Cihazın çalıntı veya suç unsuru çıkması halinde hukuki ve cezai sorumluluğun satıcıya ait olduğuna dair beyan maddesi,",
+          "Ödenen tutar ve ödeme yöntemi (Nakit / Banka IBAN transferi).",
         ],
       },
       {
-        heading: "Günlük/haftalık kârlılığı görmek neden önemli",
+        heading: "Dijital Muvafakatname ve Otomatik Sözleşme Basımı",
         paragraphs: [
-          "Kârlılığı sadece ay sonunda, muhasebeciyle görüşünce öğrenmek, o ay içinde alınabilecek düzeltici kararları (fiyat güncellemesi, gider kısma, kampanya) kaçırmak demektir. Ciro, maliyet ve kârın gün/hafta bazında görülebilmesi, karar almayı ay sonunu beklemeden mümkün kılar.",
+          "Elle hazırlanan sözleşmeler zaman alır ve arşivlenmesi zordur. VibeGSM buyback modülü üzerinden müşterinin bilgileri girildiği an yasal standartlara uygun ikinci el telefon alım sözleşmesi örneği otomatik üretilir ve termal/lazer yazıcıdan tek tıkla yazdırılır.",
         ],
       },
       {
         heading: "Sonuç",
         paragraphs: [
-          "VibeGSM'in Veri Analizi ve P&L raporlama ekranları, satılan ürünün maliyetini, ödeme yöntemini ve personel bazlı dağılımı bir araya getirerek gerçek kârlılığı gösterir. Kârlılık raporlamanızı netleştirmek isterseniz bize ulaşabilirsiniz.",
+          "İkinci el telefon alım-satım işlemlerinizi yasal güvenceye almak ve sözleşme süreçlerinizi otomatikleştirmek için VibeGSM'i tercih edin.",
         ],
       },
     ],
@@ -1103,7 +1043,7 @@ export const BLOG_POSTS: BlogPost[] = [
       "şişli telefon tamir programı",
     ],
     tags: ["İstanbul", "Stok Yönetimi", "Teknik Servis", "Yazılım Seçimi"],
-    date: "2026-11-10",
+    date: "2026-07-10",
     readingMinutes: 7,
     excerpt:
       "Kadıköy Yazıcıoğlu'ndan Tahtakale toptancılarına, Şişli ve Ümraniye'deki tamircilere kadar İstanbul GSM ekosisteminde stok ve servis takibini 10 saniyede dijitalleştirin.",
@@ -1162,7 +1102,7 @@ export const BLOG_POSTS: BlogPost[] = [
       "toptan telefon stok takibi",
     ],
     tags: ["İstanbul", "POS & Satış", "Şube Yönetimi", "Tedarik"],
-    date: "2026-11-17",
+    date: "2026-07-15",
     readingMinutes: 6,
     excerpt:
       "Tahtakale'nin toptan aksesuar ve parça trafiği ile Kadıköy'ün yoğun teknik servis müşteri ağını tek bir bulut yazılımda yönetmenin satış kârlılığına etkisi.",
@@ -1215,7 +1155,7 @@ export const BLOG_POSTS: BlogPost[] = [
       "antalya telefoncu pos",
     ],
     tags: ["Türkiye", "Büyüme", "Yazılım Seçimi", "Teknik Servis"],
-    date: "2026-11-24",
+    date: "2026-07-20",
     readingMinutes: 7,
     excerpt:
       "Ankara Çankaya'dan İzmir Kordon'a, Bursa Osmangazi'den Antalya ve Adana'ya Türkiye genelindeki tüm GSM bayileri için uçtan uca satış ve servis dijital dönüşümü.",
@@ -1276,7 +1216,7 @@ export const BLOG_POSTS: BlogPost[] = [
       "çalıntı telefon imei kontrolü",
     ],
     tags: ["Türkiye", "İkinci El", "IMEI & Güvenlik", "Teknik Servis"],
-    date: "2026-12-01",
+    date: "2026-07-25",
     readingMinutes: 6,
     excerpt:
       "İkinci el (buyback) telefon alımında resmi kimlik doğrulama, IMEI eşleştirmesi ve revizyon/tamir sürecinin yasal ve operasyonel standartları.",
@@ -1335,7 +1275,7 @@ export const BLOG_POSTS: BlogPost[] = [
       "gsm bayii cari hesap programı",
     ],
     tags: ["Türkiye", "Şube Yönetimi", "Tahsilat & Cari", "Büyüme"],
-    date: "2026-12-08",
+    date: "2026-07-28",
     readingMinutes: 6,
     excerpt:
       "Birden fazla ilde veya aynı şehrin farklı ilçelerinde şubeleri bulunan GSM zincirlerinde stok kayıplarını engellemenin ve merkezi kârlılığı artırmanın yolları.",
@@ -1386,7 +1326,7 @@ export const BLOG_POSTS: BlogPost[] = [
       "telefon tamiri garanti formu",
     ],
     tags: ["Teknik Servis", "IMEI & Güvenlik", "Yazılım Seçimi"],
-    date: "2026-12-15",
+    date: "2026-07-30",
     readingMinutes: 6,
     excerpt:
       "Cihaz kabul edilirken telefon tamir teslim tutanağı düzenlenmediğinde teslim anında müşteri uyuşmazlıkları kaçınılmazdır. Dijital tutanak ve IMEI sorgu rehberi.",
@@ -1428,10 +1368,10 @@ export const BLOG_POSTS: BlogPost[] = [
       "telefoncu ne kadar kazanır",
     ],
     tags: ["Büyüme", "Fiyatlandırma", "Raporlama"],
-    date: "2026-12-22",
+    date: "2026-07-31",
     readingMinutes: 7,
     excerpt:
-      "Yeni bir telefoncu dükkanı açmak için ne kadar sermaye gerekir? Aksesuar, 2. el cihaz alım-satımı ve teknik servis kalemlerindeki gerçek kâr marjları analizi.",
+      "Yeni bir telefoncu dükkanı açmak için ne kadar sermaye gerekir? Aksesuar, 2. el cihaz alım-satımı ve teknik servis kalemlerındaki gerçek kâr marjları analizi.",
     sections: [
       {
         paragraphs: [
@@ -1472,7 +1412,7 @@ export const BLOG_POSTS: BlogPost[] = [
       "teknik servis whatsapp bilgilendirme",
     ],
     tags: ["Teknik Servis", "IMEI & Güvenlik", "Yazılım Seçimi"],
-    date: "2026-12-29",
+    date: "2026-08-01",
     readingMinutes: 6,
     excerpt:
       "Teknik servise gelen cihazlarda sonradan yaşanabilecek veri kaybı veya kozmetik arıza uyuşmazlıklarına karşı yasal cihaz kabul formu ve WhatsApp otomasyonu rehberi.",
@@ -1515,121 +1455,11 @@ export const BLOG_POSTS: BlogPost[] = [
       },
     ],
   },
-  {
-    slug: "ikinci-el-telefon-alim-sozlesmesi-ornegi-ve-buyback-muvafakatname",
-    title: "İkinci El Telefon Alım Sözleşmesi Örneği ve Buyback Muvafakatname",
-    metaTitle: "İkinci El Telefon Alım Sözleşmesi Örneği & Muvafakatname",
-    focusKeyword: "ikinci el telefon alım sözleşmesi örneği",
-    description:
-      "İkinci el telefon alım sözleşmesi örneği, T.C. kimlik muvafakatnamesi ve çalıntı cihaz riskine karşı yasal koruma yazılımı. Detayları inceleyin.",
-    keywords: [
-      "ikinci el telefon alım sözleşmesi örneği",
-      "2. el cep telefonu alım formu",
-      "buyback muvafakatname örneği",
-      "çalıntı telefon imei sorumluluk",
-      "ikinci el telefon alım satım hukuki boyutu",
-    ],
-    tags: ["İkinci El", "IMEI & Güvenlik", "Türkiye"],
-    date: "2027-01-05",
-    readingMinutes: 6,
-    excerpt:
-      "İkinci el telefon alımı yapan bayilerin hukuki olarak korunması için doldurması gereken ikinci el telefon alım sözleşmesi örneği ve dijital muvafakatname rehberi.",
-    sections: [
-      {
-        paragraphs: [
-          "İkinci el (buyback) telefon alımı yapan mağazaların karşılaştığı en büyük risk, satıcının beyan ettiği cihazın çalıntı, kayıp veya klonlu çıkmasıdır. Bu tür durumlarda işletme sahibinin adli makamlara karşı kendini savunabilmesi için elinde ikinci el telefon alım sözleşmesi örneği kriterlerine uygun ıslak imzalı veya dijital onaylı bir belge bulunmalıdır.",
-        ],
-      },
-      {
-        heading: "İkinci El Telefon Alım Sözleşmesinde Olması Gereken Yasal Maddeler",
-        list: [
-          "Satıcının Ad-Soyadı, T.C. Kimlik Numarası ve İkametgah Adresi,",
-          "Cihazın Markası, Modeli, Rengi ve Tekil IMEI Numarası,",
-          "Satıcının cihazın tek yasal sahibi olduğuna ve mülkiyet devrettiğine dair beyanı,",
-          "Cihazın çalıntı veya suç unsuru çıkması halinde hukuki ve cezai sorumluluğun satıcıya ait olduğuna dair beyan maddesi,",
-          "Ödenen tutar ve ödeme yöntemi (Nakit / Banka IBAN transferi).",
-        ],
-      },
-      {
-        heading: "Dijital Muvafakatname ve Otomatik Sözleşme Basımı",
-        paragraphs: [
-          "Elle hazırlanan sözleşmeler zaman alır ve arşivlenmesi zordur. VibeGSM buyback modülü üzerinden müşterinin bilgileri girildiği an yasal standartlara uygun ikinci el telefon alım sözleşmesi örneği otomatik üretilir ve termal/lazer yazıcıdan tek tıkla yazdırılır.",
-        ],
-      },
-      {
-        heading: "IBAN Üzerinden Yapılan Ödemelerde Açıklama Kısmı",
-        paragraphs: [
-          "Bankadan ödeme yaparken açıklama kısmına 'IMEI XXXXXXXXXXXXXXX cihaz alım bedeli' yazılması, yasal ispat gücünü en üst seviyeye çıkarır.",
-        ],
-      },
-      {
-        heading: "Sonuç",
-        paragraphs: [
-          "İkinci el telefon alım-satım işlemlerinizi yasal güvenceye almak ve sözleşme süreçlerinizi otomatikleştirmek için VibeGSM'i tercih edin.",
-        ],
-      },
-    ],
-  },
-  {
-    slug: "iphone-ekran-degisimi-maliyeti-ve-yedek-parca-kar-hesaplama",
-    title: "iPhone Ekran Değişimi Maliyeti ve Yedek Parça Kâr Hesaplama",
-    metaTitle: "iPhone Ekran Değişimi Maliyeti & Yedek Parça Kâr Hesaplama",
-    focusKeyword: "iphone ekran değişimi maliyeti",
-    description:
-      "iPhone ekran değişimi maliyeti hesaplama, orijinal vs revize parça farkları ve teknik servis işçilik kârlılık takibi. Detayları okuyun.",
-    keywords: [
-      "iphone ekran değişimi maliyeti",
-      "telefon tamiri parça kârı",
-      "ekran değişimi işçilik fiyatı",
-      "yedek parça stok maliyeti",
-      "iphone 11 12 13 14 ekran değişimi fiyatı",
-    ],
-    tags: ["Fiyatlandırma", "Stok Yönetimi", "Teknik Servis"],
-    date: "2027-01-12",
-    readingMinutes: 6,
-    excerpt:
-      "Teknik servislerde en çok yapılan tamir işlemi olan iPhone ekran değişimi maliyeti nasıl hesaplanır? Orijinal, GX, OLED ve muadil ekran kârlılık analizi.",
-    sections: [
-      {
-        paragraphs: [
-          "Teknik servislerin en yüksek ciro getiren kalemi iPhone ekran değişimleridir. Ancak döviz kuru hareketleri ve farklı kalitedeki ekran seçenekleri (Orijinal Sökme, GX OLED, Incell, Revize) nedeniyle iphone ekran değişimi maliyeti doğru hesaplanmazsa servisin kâr marjı erir.",
-        ],
-      },
-      {
-        heading: "Ekran Çeşitleri ve Maliyet / Kâr Dengesi",
-        paragraphs: [
-          "Teknik servis stokunda tutulan ekran kalitelerine göre kârlılık şu şekilde değişir:",
-        ],
-        list: [
-          "Orijinal Sökme / Servis Ekranı: Yüksek maliyet, yüksek müşteri memnuniyeti, sabit işçilik marjı.",
-          "OLED / GX Kalite Ekran: Fiyat/performans dengesi yüksek, en popüler müşteri tercihi.",
-          "Incell / Muadil Ekran: Düşük parça maliyeti, yüksek yüzdesel kâr marjı ama daha dikkatli garanti takibi gerektirir.",
-        ],
-      },
-      {
-        heading: "İşçilik Ücreti ve Net Tamir Kârının Takibi",
-        paragraphs: [
-          "Bir ekran değişiminde müşteriye verilen toplam fiyattan parçanın güncel alış maliyeti çıkarıldığında kalan tutar net işçilik kârıdır. VibeGSM Parça ve Onarım Fiyatları modülü, döviz kuru ile güncellenen parça fiyatlarını tutar ve net kârlılığınızı ekranda gösterir.",
-        ],
-      },
-      {
-        heading: "Teknisyen Prim Hesaplamasına Parça Maliyetinin Etkisi",
-        paragraphs: [
-          "Teknisyen primi sadece ciro üzerinden hesaplanırsa parça maliyeti gözden kaçabilir. Net tamir kârı üzerinden prim hesaplanması servis işletmesinin finansal dengesini korur.",
-        ],
-      },
-      {
-        heading: "Sonuç",
-        paragraphs: [
-          "iPhone ekran değişimi maliyeti ve yedek parça stoklarınızı doğru fiyatlandırmak, kârlılığınızı anlık izlemek için VibeGSM'i hemen kullanmaya başlayın.",
-        ],
-      },
-    ],
-  },
 ];
 
 export function getBlogPost(slug: string) {
   return BLOG_POSTS.find((p) => p.slug === slug) ?? null;
 }
+
 
 
