@@ -3,12 +3,18 @@ import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore } from "@/lib/local-store";
 import { ok, fail } from "@/lib/api-response";
 import { getErrorMessage } from "@/lib/errors";
-import { getSessionUser } from "@/lib/auth";
+import { getSessionUser, getEffectiveTenantId } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(req: Request) {
   const user = getSessionUser();
   if (!user) return fail("Oturum bulunamadı", "UNAUTHORIZED", 401);
-  const tenantId = user.tenantId;
+  const tenantId = await getEffectiveTenantId(user);
+
+  const { searchParams } = new URL(req.url);
+  const from = searchParams.get("from");
+  const to = searchParams.get("to");
+  const periodStart = from ? new Date(`${from}T00:00:00`) : null;
+  const periodEnd = from ? (to ? new Date(`${to}T23:59:59.999`) : new Date()) : null;
 
   try {
     let branches: Array<{ id: string; name: string }> = [];
@@ -19,6 +25,7 @@ export async function GET() {
       branches = (store.branches || []).filter((b) => b.tenantId === tenantId);
       transactions = (store.transactions || [])
         .filter((t) => t.tenantId === tenantId)
+        .filter((t) => !periodStart || (new Date(t.createdAt) >= periodStart && new Date(t.createdAt) <= periodEnd!))
         .map(t => ({
           branchId: t.branchId,
           totalAmount: Number(t.totalAmount),
@@ -27,7 +34,11 @@ export async function GET() {
     } else {
       branches = await prisma.branch.findMany({ where: { tenantId }, select: { id: true, name: true } });
       const dbTransactions = await prisma.transaction.findMany({
-        where: { type: "INCOME", tenantId },
+        where: {
+          type: "INCOME",
+          tenantId,
+          ...(periodStart ? { createdAt: { gte: periodStart, lte: periodEnd! } } : {}),
+        },
         select: { branchId: true, totalAmount: true, type: true }
       });
       transactions = dbTransactions.map(t => ({

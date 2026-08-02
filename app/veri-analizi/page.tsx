@@ -1,10 +1,9 @@
-export const dynamic = "force-dynamic";
-
 import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore } from "@/lib/local-store";
-import { getSessionUser } from "@/lib/auth";
+import { getSessionUser, getEffectiveTenantId } from "@/lib/auth";
 import { VeriAnaliziFilters } from "@/components/veri-analizi-filters";
+import { ExportCsvButton } from "@/components/export-csv-button";
 
 type Period = "day" | "week" | "month" | "all";
 
@@ -307,7 +306,7 @@ export default async function VeriAnaliziPage({
   }
 
   const sessionUser = getSessionUser();
-  const tenantId = sessionUser?.tenantId || null;
+  const tenantId = await getEffectiveTenantId(sessionUser);
 
   const data = await loadFinancials(tenantId, periodStart, periodEnd);
 
@@ -441,7 +440,22 @@ export default async function VeriAnaliziPage({
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="panel p-6 bg-white rounded-2xl border border-slate-200/80">
-          <h3 className="text-sm font-bold text-slate-800 mb-1">Ne Sattım?</h3>
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <h3 className="text-sm font-bold text-slate-800">Ne Sattım?</h3>
+            <ExportCsvButton
+              rows={soldItemRows}
+              filename={`ne-sattim-${periodLabel.replace(/\s/g, "-")}`}
+              columns={[
+                { header: "Tarih", accessor: (r) => r.createdAt.toLocaleDateString("tr-TR") },
+                { header: "Ürün", accessor: (r) => r.productName },
+                { header: "Adet", accessor: (r) => r.quantity },
+                { header: "Tutar (TL)", accessor: (r) => r.lineTotal },
+                { header: "Tahmini Kâr (TL)", accessor: (r) => r.lineTotal - r.estCost },
+                { header: "Ödeme", accessor: (r) => PAYMENT_LABELS[r.paymentMethod] ?? r.paymentMethod },
+                { header: "Personel", accessor: (r) => r.staffName ?? "" },
+              ]}
+            />
+          </div>
           <p className="text-xs text-slate-500 mb-4">Ürün bazlı satış detayı, satış anındaki maliyete göre tahmini kâr, ödeme yöntemi ve satışı yapan personel ile.</p>
           <div className="overflow-x-auto max-h-[420px] overflow-y-auto">
             {soldItemRows.length === 0 ? (
@@ -568,7 +582,19 @@ export default async function VeriAnaliziPage({
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="panel p-6 bg-white rounded-2xl border border-slate-200/80">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">Gelir Tablosu</h3>
+          <div className="flex items-start justify-between gap-2 mb-4">
+            <h3 className="text-sm font-bold text-slate-800">Gelir Tablosu</h3>
+            <ExportCsvButton
+              rows={incomeRows}
+              filename={`gelir-tablosu-${periodLabel.replace(/\s/g, "-")}`}
+              columns={[
+                { header: "Tarih", accessor: (r) => r.createdAt.toLocaleDateString("tr-TR") },
+                { header: "Şube", accessor: (r) => r.branchName ?? "Şubesiz" },
+                { header: "Ödeme", accessor: (r) => PAYMENT_LABELS[r.paymentMethod] ?? r.paymentMethod },
+                { header: "Tutar (TL)", accessor: (r) => r.totalAmount },
+              ]}
+            />
+          </div>
           <div className="overflow-x-auto max-h-[420px] overflow-y-auto">
             {incomeRows.length === 0 ? (
               <p className="text-sm text-slate-400">Bu dönemde gelir kaydı yok.</p>
@@ -598,7 +624,19 @@ export default async function VeriAnaliziPage({
         </div>
 
         <div className="panel p-6 bg-white rounded-2xl border border-slate-200/80">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">Gider Tablosu</h3>
+          <div className="flex items-start justify-between gap-2 mb-4">
+            <h3 className="text-sm font-bold text-slate-800">Gider Tablosu</h3>
+            <ExportCsvButton
+              rows={expenseRows}
+              filename={`gider-tablosu-${periodLabel.replace(/\s/g, "-")}`}
+              columns={[
+                { header: "Tarih", accessor: (r) => r.createdAt.toLocaleDateString("tr-TR") },
+                { header: "Şube", accessor: (r) => r.branchName ?? "Şubesiz" },
+                { header: "Açıklama", accessor: (r) => r.note ?? "" },
+                { header: "Tutar (TL)", accessor: (r) => r.totalAmount },
+              ]}
+            />
+          </div>
           <div className="overflow-x-auto max-h-[420px] overflow-y-auto">
             {expenseRows.length === 0 ? (
               <p className="text-sm text-slate-400">Bu dönemde gider kaydı yok.</p>

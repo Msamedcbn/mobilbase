@@ -114,6 +114,23 @@ export async function POST(req: Request) {
     const soldByUserId = auth.user?.userId ?? null;
     const primaryMethod = isSplit ? "MIXED" : legs[0].method;
 
+    // Per-staff veresiye approval ceiling — ADMIN/MANAGER/PLATFORM_OWNER bypass
+    // by design (requireRole already restricted who reaches this point to
+    // ADMIN/CASHIER/MANAGER, so the only role this can actually gate is CASHIER).
+    if (debtPortion > 0 && auth.user?.role === "CASHIER" && soldByUserId) {
+      const actingStaff = isDbDisabledMode()
+        ? (await readLocalStore()).users?.find((u) => u.id === soldByUserId)
+        : await prisma.appUser.findUnique({ where: { id: soldByUserId }, select: { maxCreditApprovalLimit: true } });
+      const staffLimit = actingStaff ? Number((actingStaff as any).maxCreditApprovalLimit) : NaN;
+      if (!Number.isNaN(staffLimit) && staffLimit > 0 && debtPortion > staffLimit) {
+        return fail(
+          `Bu tutar (${debtPortion.toLocaleString("tr-TR")} TL) veresiye onay limitinizi (${staffLimit.toLocaleString("tr-TR")} TL) aşıyor. Bir yöneticiden onay isteyin.`,
+          "VALIDATION",
+          403,
+        );
+      }
+    }
+
     let installmentsToReturn: any[] | undefined = undefined;
 
     if (isDbDisabledMode()) {

@@ -528,6 +528,12 @@ model AppUser {
   soldTransactions Transaction[]       @relation("TransactionsSoldBy")
   staffPayouts     StaffPayoutRecord[]
 
+  /// Max single ON_ACCOUNT (veresiye) transaction amount this staff member can
+  /// approve at POS without a manager/admin doing it themselves. Null = no
+  /// personal ceiling (still bounded by the customer's own creditLimit).
+  /// ADMIN/MANAGER/PLATFORM_OWNER always bypass this check regardless of value.
+  maxCreditApprovalLimit Decimal? @db.Decimal(10, 2)
+
   /// Bumped to invalidate every session cookie already issued to this user.
   /// The signed token carries the epoch it was minted with; middleware compares
   /// it against this column and rejects on mismatch. Without it a cookie stayed

@@ -291,6 +291,8 @@ export default function RepairPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [historyQuery, setHistoryQuery] = useState("");
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyResults, setHistoryResults] = useState<CustomerHistoryResult[]>([]);
@@ -475,9 +477,13 @@ export default function RepairPage() {
 
       const matchStatus = statusFilter === "ALL" || r.status === statusFilter;
 
-      return matchSearch && matchStatus;
+      const receivedDate = new Date(r.receivedAt);
+      const matchFrom = !dateFrom || receivedDate >= new Date(`${dateFrom}T00:00:00`);
+      const matchTo = !dateTo || receivedDate <= new Date(`${dateTo}T23:59:59.999`);
+
+      return matchSearch && matchStatus && matchFrom && matchTo;
     });
-  }, [repairs, search, statusFilter]);
+  }, [repairs, search, statusFilter, dateFrom, dateTo]);
 
   // Statistics
   const stats = useMemo(() => {
@@ -1053,6 +1059,34 @@ export default function RepairPage() {
               </button>
             );
           })}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            type="date"
+            className="field text-xs py-1.5 px-2"
+            style={{ width: "8.5rem" }}
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            title="Kayıt tarihi başlangıç"
+          />
+          <span className="text-xs text-slate-400">–</span>
+          <input
+            type="date"
+            className="field text-xs py-1.5 px-2"
+            style={{ width: "8.5rem" }}
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            title="Kayıt tarihi bitiş"
+          />
+          {(dateFrom || dateTo) && (
+            <button
+              type="button"
+              onClick={() => { setDateFrom(""); setDateTo(""); }}
+              className="field text-xs py-1.5 px-3 cursor-pointer"
+            >
+              Temizle
+            </button>
+          )}
         </div>
         <div className="w-full md:w-80 shrink-0">
           <input

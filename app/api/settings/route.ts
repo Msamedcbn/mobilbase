@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/auth";
+import { requireRole, getEffectiveTenantId } from "@/lib/auth";
 import { fail, ok } from "@/lib/api-response";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore, writeLocalStore } from "@/lib/local-store";
@@ -8,7 +8,7 @@ import { writeAuditLog } from "@/lib/audit";
 export async function GET() {
   const auth = requireRole(["ADMIN", "CASHIER", "TECHNICIAN", "MANAGER"]);
   if (auth.error) return auth.error;
-  const tenantId = auth.user.tenantId || "default";
+  const tenantId = (await getEffectiveTenantId(auth.user)) || "default";
 
   try {
     if (isDbDisabledMode()) {
@@ -63,7 +63,7 @@ export async function GET() {
 export async function PUT(req: Request) {
   const auth = requireRole(["ADMIN", "MANAGER"]);
   if (auth.error) return auth.error;
-  const tenantId = auth.user.tenantId || "default";
+  const tenantId = (await getEffectiveTenantId(auth.user)) || "default";
 
   try {
     const body = await req.json();

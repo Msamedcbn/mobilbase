@@ -18,6 +18,7 @@ const navSections: Array<{ title: string; items: NavItem[] }> = [
     items: [
       { href: "/hizli-yonetim", label: "Hızlı Yönetim" },
       { href: "/dashboard", label: "Dashboard" },
+      { href: "/uyarilar", label: "Uyarılar" },
       { href: "/veri-analizi", label: "P&L Finans & Analiz", module: "invoicing" },
     ],
   },
@@ -55,6 +56,7 @@ const navSections: Array<{ title: string; items: NavItem[] }> = [
       { href: "/giderler", label: "İşletme Giderleri", module: "invoicing" },
       { href: "/banka", label: "Kasa & Banka", module: "invoicing" },
       { href: "/personel-yonetimi", label: "Personel & Hakediş", module: "branches" },
+      { href: "/denetim-kayitlari", label: "Denetim Kayıtları", module: "branches" },
       { href: "/subeler", label: "Şube Yönetimi", module: "branches" },
       { href: "/ayarlar", label: "Sistem Ayarları", module: "branches" },
       { href: "/yardim", label: "Yardım & Destek" },
@@ -80,6 +82,12 @@ const getIcon = (href: string) => {
       return (
         <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+        </svg>
+      );
+    case "/uyarilar":
+      return (
+        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
         </svg>
       );
     case "/tamir-takip":
@@ -190,6 +198,12 @@ const getIcon = (href: string) => {
       return (
         <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+        </svg>
+      );
+    case "/denetim-kayitlari":
+      return (
+        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
       );
     case "/ayarlar":

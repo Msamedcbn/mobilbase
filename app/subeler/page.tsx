@@ -53,6 +53,9 @@ export default function BranchesPage() {
   const [performance, setPerformance] = useState<any[]>([]);
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [transferHistory, setTransferHistory] = useState<any[]>([]);
+  const [perfFrom, setPerfFrom] = useState("");
+  const [perfTo, setPerfTo] = useState("");
+  const [showPerfRangeForm, setShowPerfRangeForm] = useState(false);
 
   // Personnel roster — kept read-only here just for branch card staff counts;
   // full personnel management now lives on its own /personel-yonetimi page.
@@ -89,10 +92,14 @@ export default function BranchesPage() {
     }
   }
 
-  async function loadPerformanceAndHistory() {
+  async function loadPerformanceAndHistory(from?: string, to?: string) {
     try {
+      const perfParams = new URLSearchParams();
+      if (from) perfParams.set("from", from);
+      if (to) perfParams.set("to", to);
+      const perfUrl = `/api/branches/performance${perfParams.toString() ? `?${perfParams.toString()}` : ""}`;
       const [perfRes, histRes] = await Promise.all([
-        fetch("/api/branches/performance"),
+        fetch(perfUrl),
         fetch("/api/products/transfer/history")
       ]);
       const perfJson = await perfRes.json();
@@ -397,7 +404,43 @@ export default function BranchesPage() {
 
           {/* Right Column: Performance and stats */}
           <div className="space-y-4">
-            <h3 className="text-lg font-bold text-slate-900">Konsolide Performans</h3>
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="text-lg font-bold text-slate-900">Konsolide Performans</h3>
+              <button
+                type="button"
+                onClick={() => setShowPerfRangeForm((v) => !v)}
+                className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-all cursor-pointer shrink-0 ${
+                  showPerfRangeForm ? "bg-blue-600 border-blue-600 text-white" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                📅 Tarih
+              </button>
+            </div>
+            {showPerfRangeForm && (
+              <form
+                onSubmit={(e) => { e.preventDefault(); void loadPerformanceAndHistory(perfFrom, perfTo); }}
+                className="flex flex-wrap items-end gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
+              >
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Başlangıç</label>
+                  <input type="date" value={perfFrom} onChange={(e) => setPerfFrom(e.target.value)} required className="field text-xs py-1.5 px-2" style={{ width: "8.5rem" }} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Bitiş</label>
+                  <input type="date" value={perfTo} onChange={(e) => setPerfTo(e.target.value)} className="field text-xs py-1.5 px-2" style={{ width: "8.5rem" }} />
+                </div>
+                <button type="submit" className="primary-btn text-xs py-1.5 px-3">Uygula</button>
+                {perfFrom && (
+                  <button
+                    type="button"
+                    onClick={() => { setPerfFrom(""); setPerfTo(""); void loadPerformanceAndHistory(); }}
+                    className="field text-xs py-1.5 px-3 cursor-pointer"
+                  >
+                    Temizle
+                  </button>
+                )}
+              </form>
+            )}
             <div className="panel p-5 space-y-4">
               <div>
                 <h4 className="text-sm font-bold text-slate-900">Hesap Guvenligi</h4>

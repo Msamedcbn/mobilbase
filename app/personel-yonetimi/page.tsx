@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { useConfirm } from "@/components/confirm-modal";
+import { ExportCsvButton } from "@/components/export-csv-button";
 
 type Branch = { id: string; name: string };
 
@@ -20,6 +21,7 @@ type AppUser = {
   commissionBasis?: "NONE" | "PROFIT" | "REVENUE";
   commissionPct?: number | string;
   benefits?: StaffBenefit[] | null;
+  maxCreditApprovalLimit?: number | string | null;
   tenantId?: string | null;
   createdAt: string;
 };
@@ -77,12 +79,17 @@ export default function PersonnelPage() {
   const [userCommissionBasis, setUserCommissionBasis] = useState<"NONE" | "PROFIT" | "REVENUE">("NONE");
   const [userCommissionPct, setUserCommissionPct] = useState("0");
   const [userBenefits, setUserBenefits] = useState<Array<{ label: string; amount: string }>>([]);
+  const [userMaxCreditApprovalLimit, setUserMaxCreditApprovalLimit] = useState("");
 
   // Staff performance / hakediş report state
   const [performancePeriod, setPerformancePeriod] = useState<"day" | "week" | "month" | "all">("month");
   const [staffPerformance, setStaffPerformance] = useState<StaffPerformanceRow[]>([]);
   const [staffPerformanceLoading, setStaffPerformanceLoading] = useState(false);
   const [postingPayoutUserId, setPostingPayoutUserId] = useState<string | null>(null);
+  const [useCustomRange, setUseCustomRange] = useState(false);
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
+  const [showCustomRangeForm, setShowCustomRangeForm] = useState(false);
 
   // Today's at-a-glance performance for the roster table (independent of the
   // period selector on the Hakediş Raporu tab — always "today").
@@ -156,9 +163,34 @@ export default function PersonnelPage() {
   }
 
   async function loadStaffPerformance(period: "day" | "week" | "month" | "all") {
+    setUseCustomRange(false);
     setStaffPerformanceLoading(true);
     try {
       const res = await fetch(`/api/reports/staff-performance?period=${period}`);
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Hakediş raporu getirilemedi");
+      setStaffPerformance(Array.isArray(json.staff) ? json.staff : []);
+      if (json.dbUnavailable) {
+        toast.warning("Bu rapor gerçek veritabanı gerektirir, veriler eksik olabilir.");
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Hakediş raporu getirilemedi");
+    } finally {
+      setStaffPerformanceLoading(false);
+    }
+  }
+
+  async function loadStaffPerformanceCustomRange(from: string, to: string) {
+    if (!from) {
+      toast.warning("Başlangıç tarihi seçin");
+      return;
+    }
+    setUseCustomRange(true);
+    setStaffPerformanceLoading(true);
+    try {
+      const params = new URLSearchParams({ from });
+      if (to) params.set("to", to);
+      const res = await fetch(`/api/reports/staff-performance?${params.toString()}`);
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Hakediş raporu getirilemedi");
       setStaffPerformance(Array.isArray(json.staff) ? json.staff : []);
@@ -319,6 +351,7 @@ export default function PersonnelPage() {
       benefits: userBenefits
         .filter((b) => b.label.trim())
         .map((b) => ({ label: b.label.trim(), amount: Number(b.amount) || 0 })),
+      maxCreditApprovalLimit: userMaxCreditApprovalLimit.trim() === "" ? null : Number(userMaxCreditApprovalLimit),
     };
     if (!editingUser) {
       payload.email = userEmail;
@@ -349,6 +382,7 @@ export default function PersonnelPage() {
       setUserCommissionBasis("NONE");
       setUserCommissionPct("0");
       setUserBenefits([]);
+      setUserMaxCreditApprovalLimit("");
       setEditingUser(null);
       setShowUserModal(false);
       loadData();
@@ -384,12 +418,15 @@ export default function PersonnelPage() {
       const res = await fetch("/api/reports/staff-performance/payout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: row.userId, period: performancePeriod }),
+        body: JSON.stringify(
+          useCustomRange ? { userId: row.userId, from: customFrom, to: customTo || undefined } : { userId: row.userId, period: performancePeriod }
+        ),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Hakediş işlenemedi");
       toast.success(data.message || "Hakediş cari hesaba işlendi");
-      void loadStaffPerformance(performancePeriod);
+      if (useCustomRange) void loadStaffPerformanceCustomRange(customFrom, customTo);
+      else void loadStaffPerformance(performancePeriod);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Hakediş işlenemedi");
     } finally {
@@ -470,6 +507,7 @@ export default function PersonnelPage() {
                 setUserCommissionBasis("NONE");
                 setUserCommissionPct("0");
                 setUserBenefits([]);
+                setUserMaxCreditApprovalLimit("");
                 setShowUserModal(true);
               }}
               className="primary-btn shrink-0"
@@ -636,6 +674,7 @@ export default function PersonnelPage() {
                                   setUserCommissionBasis(u.commissionBasis ?? "NONE");
                                   setUserCommissionPct(String(u.commissionPct ?? 0));
                                   setUserBenefits((u.benefits ?? []).map((b) => ({ label: b.label, amount: String(b.amount) })));
+                                  setUserMaxCreditApprovalLimit(u.maxCreditApprovalLimit != null ? String(u.maxCreditApprovalLimit) : "");
                                   setShowUserModal(true);
                                 }}
                                 className="field py-1.5 px-3 text-xs font-semibold hover:border-blue-500 hover:text-blue-600 transition-colors flex items-center gap-1 cursor-pointer"
@@ -675,18 +714,62 @@ export default function PersonnelPage() {
               <h3 className="text-lg font-bold text-slate-900">Personel Hakediş Raporu</h3>
               <p className="text-xs sm:text-sm text-slate-500">Sabit maaş + kâr/ciro payına göre dönemsel hakediş ve personel cari hesabına işleme.</p>
             </div>
-            <div className="inline-flex rounded-2xl border border-slate-200 bg-white p-1 text-xs font-bold shadow-sm">
-              {(["day", "week", "month", "all"] as const).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => { setPerformancePeriod(p); void loadStaffPerformance(p); }}
-                  className={`px-4 py-2 rounded-xl transition-all ${performancePeriod === p ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100"}`}
-                >
-                  {p === "day" ? "Günlük" : p === "week" ? "Haftalık" : p === "month" ? "Aylık" : "Tümü"}
-                </button>
-              ))}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex rounded-2xl border border-slate-200 bg-white p-1 text-xs font-bold shadow-sm">
+                {(["day", "week", "month", "all"] as const).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => { setPerformancePeriod(p); setShowCustomRangeForm(false); void loadStaffPerformance(p); }}
+                    className={`px-4 py-2 rounded-xl transition-all cursor-pointer ${!useCustomRange && performancePeriod === p ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100"}`}
+                  >
+                    {p === "day" ? "Günlük" : p === "week" ? "Haftalık" : p === "month" ? "Aylık" : "Tümü"}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCustomRangeForm((v) => !v)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                  showCustomRangeForm ? "bg-blue-600 border-blue-600 text-white shadow-sm" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                📅 Manuel Tarih Aralığı
+              </button>
+              <ExportCsvButton
+                rows={staffPerformance}
+                filename="hakedis-raporu"
+                columns={[
+                  { header: "Personel", accessor: (r) => r.fullName },
+                  { header: "Satış Adedi", accessor: (r) => r.salesCount },
+                  { header: "Ciro (TL)", accessor: (r) => r.revenue },
+                  { header: "Maliyet (TL)", accessor: (r) => r.cost },
+                  { header: "Kâr (TL)", accessor: (r) => r.profit },
+                  { header: "Prim Bazı", accessor: (r) => COMMISSION_BASIS_LABELS[r.commissionBasis] },
+                  { header: "Prim (TL)", accessor: (r) => r.commissionAmount },
+                  { header: "Sabit Maaş (TL)", accessor: (r) => r.baseSalary },
+                  { header: "Ek Haklar (TL)", accessor: (r) => r.benefitsAmount },
+                  { header: "Toplam Hakediş (TL)", accessor: (r) => r.totalPayout },
+                ]}
+              />
             </div>
           </div>
+
+          {showCustomRangeForm && (
+            <form
+              onSubmit={(e) => { e.preventDefault(); void loadStaffPerformanceCustomRange(customFrom, customTo); }}
+              className="flex flex-wrap items-end gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
+            >
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Başlangıç</label>
+                <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} required className="field text-xs py-1.5 px-2" style={{ width: "9.5rem" }} />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Bitiş</label>
+                <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="field text-xs py-1.5 px-2" style={{ width: "9.5rem" }} />
+              </div>
+              <button type="submit" className="primary-btn text-xs py-1.5 px-4">Uygula</button>
+            </form>
+          )}
 
           <div className="panel overflow-hidden">
             {staffPerformanceLoading ? (
@@ -730,7 +813,7 @@ export default function PersonnelPage() {
                         </td>
                         <td className="px-4 py-3 text-right font-mono font-bold text-blue-700">{row.totalPayout.toLocaleString("tr-TR")} TL</td>
                         <td className="px-4 py-3 text-right">
-                          {performancePeriod === "all" ? (
+                          {!useCustomRange && performancePeriod === "all" ? (
                             <span className="text-[10px] text-slate-400">Dönem seçin</span>
                           ) : row.alreadyPosted ? (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">İşlendi ✓</span>
@@ -894,6 +977,21 @@ export default function PersonnelPage() {
                     />
                   </div>
                 </div>
+              </div>
+
+              <div className="space-y-2 bg-slate-50 border border-slate-100 rounded-2xl p-3">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">POS Veresiye Onay Limiti</label>
+                <p className="text-[11px] text-slate-400 -mt-1">Bu personelin tek işlemde onaysız yapabileceği maksimum veresiye tutarı. Boş = sınırsız (yalnızca müşteri kredi limiti geçerli olur).</p>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  className="field"
+                  placeholder="Sınırsız"
+                  value={userMaxCreditApprovalLimit}
+                  onChange={(e) => setUserMaxCreditApprovalLimit(e.target.value)}
+                  style={{ maxWidth: "12rem" }}
+                />
               </div>
 
               <div className="space-y-2 bg-slate-50 border border-slate-100 rounded-2xl p-3">

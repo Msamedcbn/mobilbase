@@ -38,6 +38,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       if (parsed.data.commissionBasis !== undefined) u.commissionBasis = parsed.data.commissionBasis;
       if (parsed.data.commissionPct !== undefined) u.commissionPct = parsed.data.commissionPct;
       if (parsed.data.benefits !== undefined) u.benefits = parsed.data.benefits;
+      if (parsed.data.maxCreditApprovalLimit !== undefined) u.maxCreditApprovalLimit = parsed.data.maxCreditApprovalLimit;
       u.updatedAt = new Date().toISOString();
 
       await writeLocalStore(store);
@@ -61,6 +62,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (parsed.data.commissionBasis !== undefined) updateData.commissionBasis = parsed.data.commissionBasis as any;
     if (parsed.data.commissionPct !== undefined) updateData.commissionPct = parsed.data.commissionPct;
     if (parsed.data.benefits !== undefined) updateData.benefits = parsed.data.benefits as any;
+    if (parsed.data.maxCreditApprovalLimit !== undefined) updateData.maxCreditApprovalLimit = parsed.data.maxCreditApprovalLimit;
 
     // Role, deactivation and password are all baked into the signed session
     // cookie, so an already-issued token would keep the old privileges until it
@@ -85,6 +87,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         commissionBasis: true,
         commissionPct: true,
         benefits: true,
+        maxCreditApprovalLimit: true,
         createdAt: true,
         updatedAt: true,
       },

@@ -148,6 +148,7 @@ export const appUserCreateSchema = z.object({
   commissionBasis: z.enum(["NONE", "PROFIT", "REVENUE"]).optional(),
   commissionPct: z.number().min(0).max(100).optional(),
   benefits: z.array(benefitSchema).optional(),
+  maxCreditApprovalLimit: z.number().nonnegative().nullable().optional(),
 });
 
 export const appUserUpdateSchema = z.object({
@@ -159,6 +160,7 @@ export const appUserUpdateSchema = z.object({
   commissionBasis: z.enum(["NONE", "PROFIT", "REVENUE"]).optional(),
   commissionPct: z.number().min(0).max(100).optional(),
   benefits: z.array(benefitSchema).optional(),
+  maxCreditApprovalLimit: z.number().nonnegative().nullable().optional(),
 });
 
 export const pdfSettingsSchema = z.object({

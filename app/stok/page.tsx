@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ProductCardModal } from "@/components/product-card-modal";
 import { ErpProductMatrixCreator } from "@/components/erp-product-matrix-creator";
 import { useConfirm } from "@/components/confirm-modal";
+import { ExportCsvButton } from "@/components/export-csv-button";
 
 
 type StockItem = {
@@ -1039,6 +1040,23 @@ export default function StockPage() {
                 />
                 Stokta olmayanları da göster
               </label>
+
+              <ExportCsvButton
+                rows={filtered}
+                filename="stok-listesi"
+                columns={[
+                  { header: "SKU", accessor: (r) => r.sku },
+                  { header: "Ürün", accessor: (r) => r.name },
+                  { header: "Kategori", accessor: (r) => r.category },
+                  { header: "Marka", accessor: (r) => r.brand ?? "" },
+                  { header: "Model", accessor: (r) => r.model ?? "" },
+                  { header: "IMEI/Seri No", accessor: (r) => r.imei ?? r.serialNumber ?? "" },
+                  { header: "Adet", accessor: (r) => r.quantity },
+                  { header: "Alış Fiyatı (TL)", accessor: (r) => r.purchasePrice },
+                  { header: "Satış Fiyatı (TL)", accessor: (r) => r.salePrice },
+                  { header: "Kritik Stok Eşiği", accessor: (r) => r.minThreshold },
+                ]}
+              />
             </div>
 
             {selectedIds.size > 0 && (
