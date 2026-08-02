@@ -137,22 +137,6 @@ export default function NedenVibeGsmPage() {
           </div>
         </section>
 
-        {/* Testimonial / Story */}
-        <section className="mt-20 rounded-[2rem] border border-blue-500/20 bg-gradient-to-br from-blue-950/40 via-slate-900/60 to-slate-950 p-8 md:p-12">
-          <p className="text-sm italic leading-relaxed text-slate-300">
-            &quot;Kadıköy&apos;deki dükkanımda günde 15-20 telefon tamir edip aksesuar satışı yapıyorduk. Deftere yazılan küçük borçların, yedek parçadaki kayıpların ve en çok da &apos;cihazımın TrueTone&apos;u çalışıyordu&apos; diyen müşterilerle tartışmanın maliyetini VibeGSM&apos;e geçince anladık. Sistem dükkana profesyonellik kattı ve kasa kaçaklarımızı tamamen sıfırladı.&quot;
-          </p>
-          <div className="mt-6 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center font-black text-xs">
-              YE
-            </div>
-            <div>
-              <h4 className="text-xs font-black text-white">Yusuf Erez</h4>
-              <p className="text-[10px] text-slate-500">Kadıköy GSM Bayii Sahibi</p>
-            </div>
-          </div>
-        </section>
-
         {/* CTA Conversion Box */}
         <section className="mt-20 text-center">
           <h2 className="text-2xl font-black md:text-4xl bg-gradient-to-r from-white to-blue-400 bg-clip-text text-transparent">
