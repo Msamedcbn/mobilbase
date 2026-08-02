@@ -13,8 +13,10 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
     const store = await readLocalStore();
     const q = (store.corporateQuotes || []).find((x) => x.id === params.id && x.tenantId === tenantId);
     if (!q) return new Response(JSON.stringify({ error: "Teklif bulunamadi." }), { status: 404 });
+    const tenant = store.customers.find((c) => c.id === tenantId);
     const file = await generateCorporateQuotePdf({
       quoteNo: q.quoteNo,
+      tenantName: tenant?.fullName || null,
       companyName: q.companyName,
       contactName: q.contactName,
       contactPhone: q.contactPhone,
@@ -40,9 +42,11 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
 
   const q = await prisma.corporateQuote.findFirst({ where: { id: params.id, tenantId } });
   if (!q) return new Response(JSON.stringify({ error: "Teklif bulunamadi." }), { status: 404 });
+  const tenant = tenantId ? await prisma.customer.findUnique({ where: { id: tenantId }, select: { fullName: true } }) : null;
 
   const file = await generateCorporateQuotePdf({
     quoteNo: q.quoteNo,
+    tenantName: tenant?.fullName || null,
     companyName: q.companyName,
     contactName: q.contactName,
     contactPhone: q.contactPhone,

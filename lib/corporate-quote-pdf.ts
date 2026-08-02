@@ -2,6 +2,7 @@ import PDFDocument from "pdfkit";
 
 export type CorporateQuotePdfInput = {
   quoteNo: string;
+  tenantName?: string | null;
   companyName: string;
   contactName?: string | null;
   contactPhone?: string | null;
@@ -21,7 +22,12 @@ export async function generateCorporateQuotePdf(input: CorporateQuotePdfInput) {
   const chunks: Buffer[] = [];
   doc.on("data", (c) => chunks.push(c as Buffer));
 
-  doc.fontSize(18).text("Kurumsal Teklif", { align: "center" });
+  if (input.tenantName) {
+    doc.fontSize(16).text(input.tenantName, { align: "center" });
+    doc.fontSize(14).text("Kurumsal Teklif", { align: "center" });
+  } else {
+    doc.fontSize(18).text("Kurumsal Teklif", { align: "center" });
+  }
   doc.moveDown(0.6);
   doc.fontSize(10).text(`Teklif No: ${input.quoteNo}`);
   doc.text(`Tarih: ${new Date(input.createdAt).toLocaleDateString("tr-TR")}`);

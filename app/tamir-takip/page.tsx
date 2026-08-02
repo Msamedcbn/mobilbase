@@ -398,6 +398,7 @@ export default function RepairPage() {
   const [editLabor, setEditLabor] = useState("0");
   const [editPart, setEditPart] = useState("0");
   const [editIssue, setEditIssue] = useState("");
+  const [tenantName, setTenantName] = useState("");
   const [editChecklist, setEditChecklist] = useState<Record<string, "OK" | "BAD" | "NA">>({});
   const [editCustomNote, setEditCustomNote] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
@@ -409,21 +410,23 @@ export default function RepairPage() {
   async function fetchData() {
     setLoading(true);
     try {
-      const [repRes, custRes, devRes, modelRes, settingsRes, bankRes] = await Promise.all([
+      const [repRes, custRes, devRes, modelRes, settingsRes, bankRes, meRes] = await Promise.all([
         fetch("/api/repairs"),
         fetch("/api/customers"),
         fetch("/api/devices"),
         fetch("/api/device-models").catch(() => null),
         fetch("/api/settings").catch(() => null),
         fetch("/api/banks").catch(() => null),
+        fetch("/api/auth/me").catch(() => null),
       ]);
-      const [repData, custData, devData, modelData, settingsData, bankData] = await Promise.all([
+      const [repData, custData, devData, modelData, settingsData, bankData, meData] = await Promise.all([
         repRes.json(),
         custRes.json(),
         devRes.json(),
         modelRes ? modelRes.json() : [],
         settingsRes ? settingsRes.json() : null,
         bankRes ? bankRes.json() : null,
+        meRes ? meRes.json() : null,
       ]);
 
       setRepairs(Array.isArray(repData) ? repData : []);
@@ -431,6 +434,7 @@ export default function RepairPage() {
       setDevices(devData.data ?? (Array.isArray(devData) ? devData : []));
       setAvailableModels(Array.isArray(modelData) ? modelData : []);
       setSettings(settingsData?.data || settingsData || null);
+      if (meData?.tenantName) setTenantName(meData.tenantName);
 
       const loadedBanksRaw = bankData?.data ?? bankData;
       const loadedBanks = Array.isArray(loadedBanksRaw) ? loadedBanksRaw : [];
@@ -825,6 +829,7 @@ export default function RepairPage() {
       </head>
       <body>
         <div class="header text-center">
+          <div style="font-size: 15px; font-weight: 800; margin-bottom: 2px;">${(settings?.storeName || tenantName || "Teknik Servis").toUpperCase()}</div>
           <div class="title">SERVIS KABUL BELGESI</div>
           <div style="font-size: 10px; font-weight: 600;">Teknik Servis Giris Formu</div>
           <div class="mono" style="font-size: 11px; margin-top: 4px;">No: ${serviceNo}</div>
@@ -930,6 +935,7 @@ export default function RepairPage() {
       </head>
       <body>
         <div class="header text-center">
+          <div style="font-size: 15px; font-weight: 800; margin-bottom: 2px;">${(settings?.storeName || tenantName || "Teknik Servis").toUpperCase()}</div>
           <div class="title">SERVIS TESLIM BELGESI</div>
           <div style="font-size: 10px; font-weight: 600;">Onarim Sonrasi Teslim Formu</div>
           <div class="mono" style="font-size: 11px; margin-top: 4px;">No: ${serviceNo}</div>

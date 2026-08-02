@@ -130,6 +130,7 @@ export default function PosPage() {
   const [installmentCount, setInstallmentCount] = useState(6);
   const [interestRate, setInterestRate] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [tenantName, setTenantName] = useState("VibeGSM");
   const [receipt, setReceipt] = useState<Receipt | null>(null);
 
   // e-Archive Invoice Simulation State
@@ -254,6 +255,7 @@ export default function PosPage() {
         setProducts(Array.isArray(pData) ? pData : []);
         setCustomers(Array.isArray(cData) ? cData : []);
         setSession(sData.user ?? null);
+        if (sData.tenantName) setTenantName(sData.tenantName);
         const loadedBranches = Array.isArray(bData) ? bData : [];
         setBranches(loadedBranches);
         const loadedBanksRaw = bankData?.data ?? bankData;
@@ -668,7 +670,7 @@ export default function PosPage() {
       </head>
       <body>
         <div class="header text-center">
-          <div class="title">VIBEGSM</div>
+          <div class="title">${(tenantName || "VibeGSM").toUpperCase()}</div>
           <div>${branchName}</div>
           <div style="font-size: 10px; margin-top: 4px;">Tel: +90 555 123 4567</div>
         </div>

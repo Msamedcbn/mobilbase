@@ -30,6 +30,7 @@ export default function CorporateQuotesPage() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tenantName, setTenantName] = useState("");
 
   const [companyName, setCompanyName] = useState("");
   const [contactName, setContactName] = useState("");
@@ -82,7 +83,16 @@ export default function CorporateQuotesPage() {
     }
   }
 
-  useEffect(() => { void fetchQuotes(); void fetchProducts(); }, []);
+  useEffect(() => {
+    void fetchQuotes();
+    void fetchProducts();
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.tenantName) setTenantName(d.tenantName);
+      })
+      .catch(() => null);
+  }, []);
 
   function selectProduct(productId: string) {
     setLineProductId(productId);
@@ -219,8 +229,8 @@ export default function CorporateQuotesPage() {
           <div style={{ margin: "0 auto", width: "100%", maxWidth: 560, minHeight: 760, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 10, padding: 16, display: "grid", gap: 10 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: "2px solid #0f172a", paddingBottom: 10 }}>
             <div>
-              <strong style={{ fontSize: 18, letterSpacing: 0.3 }}>KURUMSAL TEKLIF</strong>
-              <p style={{ margin: "4px 0 0", fontSize: 12, color: "#64748b" }}>VibeGSM Teknik ve Magazacilik Hizmetleri</p>
+              <strong style={{ fontSize: 18, letterSpacing: 0.3 }}>KURUMSAL TEKLİF</strong>
+              <p style={{ margin: "4px 0 0", fontSize: 12, color: "#64748b" }}>{tenantName || "Kurumsal Mağaza / Servis"}</p>
             </div>
             <div style={{ textAlign: "right", fontSize: 12 }}>
               <div><strong>No:</strong> {previewQuoteNo}</div>

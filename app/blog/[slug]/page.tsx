@@ -121,25 +121,35 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
           ))}
         </div>
 
-        <div className="mt-14 rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-white p-6 text-center md:p-10">
-          <p className="text-sm font-bold text-blue-600">VibeGSM</p>
-          <h3 className="mt-2 text-xl font-black text-slate-900 md:text-2xl">Bayinizi tek panelden yönetmeye hazır mısınız?</h3>
-          <p className="mx-auto mt-2 max-w-lg text-sm text-slate-600">
-            Stok, POS, teknik servis ve tahsilatı tek sistemde birleştirin.
+        <div className="mt-14 rounded-3xl border border-blue-200 bg-gradient-to-br from-blue-900 via-slate-900 to-slate-950 p-6 text-white text-center shadow-xl md:p-10">
+          <span className="rounded-full bg-blue-500/20 px-3.5 py-1 text-xs font-black text-blue-300 border border-blue-400/30">
+            VibeGSM Hibrit Yönetim Platformu
+          </span>
+          <h3 className="mt-3 text-xl font-black md:text-3xl">Teknik Servisinizi ve Mağazanızı Tek Panelden Yönetmeye Başlayın</h3>
+          <p className="mx-auto mt-2 max-w-xl text-sm text-slate-300 leading-relaxed">
+            Stok, IMEI takibi, 15 noktalı servis kabul formu, canli WhatsApp bildirimleri, 2. el buyback ve veresiyeleri tek sistemde birleştirin.
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <a
-              href="mailto:satis@vibegsm.com?subject=VibeGSM%20Demo%20Talebi"
-              className="rounded-full bg-blue-600 px-6 py-3 text-sm font-black text-white shadow-md shadow-blue-600/25 transition hover:bg-blue-700"
+              href={`https://wa.me/905454403452?text=${encodeURIComponent(`Merhaba, "${post.title}" blog yazınızı okudum. VibeGSM hakkında bilgi almak istiyorum.`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 rounded-full bg-[#25D366] px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-[#25D366]/25 transition hover:brightness-105"
             >
-              Demo Talep Et
+              WhatsApp ile Ulaşın
             </a>
-            <a
-              href="tel:+905454403452"
-              className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+            <Link
+              href="/kayit"
+              className="rounded-full bg-blue-600 px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-blue-600/30 transition hover:bg-blue-500"
             >
-              Hemen Ara
-            </a>
+              14 Gün Ücretsiz Deneyin
+            </Link>
+            <Link
+              href="/araclar/ikinci-el-alim-sozlesmesi"
+              className="rounded-full border border-white/20 bg-white/10 px-5 py-3.5 text-sm font-bold text-white transition hover:bg-white/20"
+            >
+              Ücretsiz Sözleşme Oluştur
+            </Link>
           </div>
         </div>
 
