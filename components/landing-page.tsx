@@ -494,17 +494,12 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
 
         <div className={`overflow-hidden border-b border-slate-200 bg-white transition-all duration-500 ${scrolled ? "max-h-0 opacity-0" : "max-h-12 opacity-100"}`}>
           <div className="mx-auto hidden max-w-6xl items-center justify-end gap-6 px-8 py-2.5 text-[12px] font-semibold text-slate-500 md:flex">
-            <a href="mailto:satis@vibegsm.com" className="flex items-center gap-1.5 transition hover:text-slate-900">
-              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.75} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
-              satis@vibegsm.com
+            <a href="tel:+905454403452" className="flex items-center gap-1.5 transition hover:text-slate-900 font-bold">
+              <svg className="h-3.5 w-3.5 text-blue-600" fill="none" stroke="currentColor" strokeWidth={1.75} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h1.5a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>
+              Destek &amp; Bilgi Hattı: 0545 440 34 52
             </a>
-            <a href="tel:+905454403452" className="flex items-center gap-1.5 transition hover:text-slate-900">
-              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.75} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h1.5a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>
-              +90 545 440 34 52
-            </a>
-            <a href="mailto:satis@vibegsm.com?subject=VibeGSM%20-%20Sizi%20Arayalım" className="flex items-center gap-1.5 rounded-full bg-blue-50 px-3.5 py-1.5 font-black text-blue-600 transition hover:bg-blue-100">
-              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.75} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.348 14.652a3.75 3.75 0 010-5.304m5.304 0a3.75 3.75 0 010 5.304m-7.425 2.121a6.75 6.75 0 010-9.546m9.546 0a6.75 6.75 0 010 9.546M12 12h.008v.008H12V12z" /></svg>
-              Sizi Arayalım
+            <a href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 rounded-full bg-[#25D366]/10 px-3.5 py-1.5 font-black text-[#1da851] transition hover:bg-[#25D366]/20">
+              💬 WhatsApp&apos;tan Yazın
             </a>
           </div>
         </div>
@@ -654,10 +649,12 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
       >
         <div className="flex items-center gap-2.5">
           <a
-            href="mailto:satis@vibegsm.com?subject=VibeGSM%20Demo%20Talebi"
-            className="flex flex-1 items-center justify-center rounded-full bg-blue-600 py-3 text-sm font-black text-white shadow-md shadow-blue-600/25"
+            href={WHATSAPP_HREF}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-1 items-center justify-center rounded-full bg-[#25D366] py-3 text-sm font-black text-white shadow-md shadow-[#25D366]/25"
           >
-            Demo Talep Et
+            WhatsApp ile Bilgi Alın
           </a>
           <a
             href="tel:+905454403452"
@@ -1014,10 +1011,12 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
                       ))}
                     </div>
                     <a
-                      href={`mailto:satis@vibegsm.com?subject=VibeGSM%20${encodeURIComponent(plan.key)}%20Paket%20Talebi`}
+                      href={WHATSAPP_HREF}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="group/cta mt-7 inline-flex w-full items-center justify-between rounded-full border border-slate-200 bg-slate-50 pl-5 pr-2 py-2 text-[13px] font-bold text-slate-800 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-slate-300 hover:bg-slate-100"
                     >
-                      {plan.key} paketini tercih et
+                      {plan.key} paketini WhatsApp&apos;tan inceleyin
                       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white shadow-sm transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover/cta:translate-x-1 group-hover/cta:-translate-y-[1px]">
                         <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                       </span>
@@ -1094,10 +1093,12 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
               </p>
               <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
                 <a
-                  href="mailto:satis@vibegsm.com?subject=VibeGSM%20Demo%20Talebi"
-                  className="group inline-flex items-center gap-3 rounded-full bg-blue-600 pl-8 pr-2 py-2 text-sm font-black text-white shadow-lg shadow-blue-600/25 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/30 active:scale-[0.98]"
+                  href={WHATSAPP_HREF}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group inline-flex items-center gap-3 rounded-full bg-[#25D366] pl-8 pr-2 py-2 text-sm font-black text-white shadow-lg shadow-[#25D366]/25 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:brightness-105 active:scale-[0.98]"
                 >
-                  Demo Talep Et
+                  WhatsApp ile İletişime Geçin
                   <TrailingIcon />
                 </a>
                 <a href="tel:+905454403452" className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-8 py-3.5 text-sm font-bold text-slate-800 shadow-sm transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]">
@@ -1124,7 +1125,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
             <a href="/araclar/cihaz-kabul-formu" className="hover:text-slate-900 transition">Cihaz Kabul Formu</a>
             <a href="/blog" className="hover:text-slate-900 transition">Blog</a>
             <a href="/yardim" className="hover:text-slate-900 transition">Yardım</a>
-            <a href="mailto:satis@vibegsm.com" className="hover:text-slate-900 transition">İletişim</a>
+            <a href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer" className="hover:text-slate-900 transition">İletişim (WhatsApp)</a>
           </div>
           <div className="flex flex-wrap justify-center gap-2 text-[11px] text-slate-400">
             <span>Yerel Şehir Çözümleri:</span>

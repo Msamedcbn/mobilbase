@@ -34,22 +34,24 @@ export default function TrialExpiredPage() {
           </p>
           <div className="mt-5 flex flex-wrap justify-center gap-3">
             <a
-              href="mailto:satis@vibegsm.com?subject=VibeGSM%20Abonelik%20Talebi%20-%20Deneme%20Suresi%20Doldu"
-              className="rounded-full bg-blue-200 px-6 py-3 text-sm font-black text-[#06111f] transition hover:bg-white"
+              href="https://wa.me/905454403452?text=Merhaba,%20VibeGSM%20deneme%20s%C3%BCremi%20uzatmak/abonelik%20ba%C5%9Flatmak%20istiyorum."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-full bg-[#25D366] px-6 py-3 text-sm font-black text-white shadow-lg transition hover:brightness-105"
             >
-              Abonelik için Ulaşın
+              WhatsApp ile Abonelik Alın
             </a>
             <a
               href="tel:+905454403452"
               className="rounded-full border border-white/20 bg-white/5 px-6 py-3 text-sm font-bold text-white transition hover:bg-white/10"
             >
-              Telefon ile Görüş
+              Hemen Ara: 0545 440 34 52
             </a>
           </div>
         </div>
 
         <p className="mt-6 text-xs text-slate-500">
-          Hesabınızla ilgili sorularınız için: <a href="mailto:destek@vibegsm.com" className="text-blue-200 hover:underline">destek@vibegsm.com</a>
+          Hesabınızla ilgili sorularınız için WhatsApp hattımızdan veya telefonla ulaşabilirsiniz.
         </p>
       </div>
     </div>
