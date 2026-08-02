@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore } from "@/lib/local-store";
 import { getSessionUser } from "@/lib/auth";
-import Link from "next/link";
+import { VeriAnaliziFilters } from "@/components/veri-analizi-filters";
 
 type Period = "day" | "week" | "month" | "all";
 
@@ -15,45 +15,65 @@ const PAYMENT_LABELS: Record<string, string> = {
   BANK_TRANSFER: "Havale/EFT",
 };
 
-export default async function VeriAnaliziPage({
-  searchParams,
-}: {
-  searchParams?: { period?: string };
-}) {
-  const selectedPeriod: Period =
-    searchParams?.period === "day" || searchParams?.period === "week" || searchParams?.period === "month" || searchParams?.period === "all"
-      ? (searchParams.period as Period)
-      : "month";
+type Row = {
+  id: string;
+  transactionNo: string;
+  type: "INCOME" | "EXPENSE";
+  paymentMethod: string;
+  totalAmount: number;
+  note: string | null;
+  createdAt: Date;
+  branchId: string | null;
+  branchName: string | null;
+  customerName: string | null;
+  staffUserId: string | null;
+  staffName: string | null;
+};
 
-  const startOfDay = new Date();
-  startOfDay.setHours(0, 0, 0, 0);
-  const startOfWeek = new Date();
-  startOfWeek.setDate(startOfWeek.getDate() - 6);
-  startOfWeek.setHours(0, 0, 0, 0);
-  const startOfMonth = new Date();
-  startOfMonth.setDate(1);
-  startOfMonth.setHours(0, 0, 0, 0);
+type SoldItemRow = {
+  id: string;
+  createdAt: Date;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  lineTotal: number;
+  estCost: number;
+  paymentMethod: string;
+  staffName: string | null;
+};
 
-  const periodStart =
-    selectedPeriod === "day" ? startOfDay : selectedPeriod === "week" ? startOfWeek : selectedPeriod === "month" ? startOfMonth : null;
+type PurchaseRow = {
+  id: string;
+  purchaseDate: Date;
+  name: string;
+  sku: string;
+  quantity: number;
+  purchasePrice: number;
+  totalCost: number;
+};
 
-  const sessionUser = getSessionUser();
-  const tenantId = sessionUser?.tenantId || null;
+type Financials = {
+  rows: Row[];
+  soldItemRows: SoldItemRow[];
+  purchaseRows: PurchaseRow[];
+  dbUnavailable: boolean;
+  totalIncome: number;
+  totalExpense: number;
+  netProfit: number;
+  totalSoldRevenue: number;
+  totalEstCost: number;
+  grossProfit: number;
+  totalPurchaseCost: number;
+  branchBreakdown: { name: string; total: number; count: number }[];
+  unassignedIncome: number;
+  staffBreakdown: { name: string; total: number; count: number }[];
+  unassignedStaffIncome: number;
+};
 
-  type Row = {
-    id: string;
-    transactionNo: string;
-    type: "INCOME" | "EXPENSE";
-    paymentMethod: string;
-    totalAmount: number;
-    note: string | null;
-    createdAt: Date;
-    branchId: string | null;
-    branchName: string | null;
-    customerName: string | null;
-    staffUserId: string | null;
-    staffName: string | null;
-  };
+// Shared by the primary window and (optionally) the comparison window, so the
+// two always agree on exactly how each number is derived.
+async function loadFinancials(tenantId: string | null, periodStart: Date | null, periodEnd: Date | null): Promise<Financials> {
+  const dateWhere = periodStart ? { gte: periodStart, ...(periodEnd ? { lte: periodEnd } : {}) } : undefined;
 
   let rows: Row[] = [];
   let dbUnavailable = false;
@@ -68,6 +88,7 @@ export default async function VeriAnaliziPage({
       rows = (store.transactions || [])
         .filter((t) => t.tenantId === tenantId && (t.type === "INCOME" || t.type === "EXPENSE"))
         .filter((t) => !periodStart || new Date(t.createdAt) >= periodStart)
+        .filter((t) => !periodEnd || new Date(t.createdAt) <= periodEnd)
         .map((t) => ({
           id: t.id,
           transactionNo: t.transactionNo,
@@ -87,7 +108,7 @@ export default async function VeriAnaliziPage({
         where: {
           tenantId,
           type: { in: ["INCOME", "EXPENSE"] },
-          ...(periodStart ? { createdAt: { gte: periodStart } } : {}),
+          ...(dateWhere ? { createdAt: dateWhere } : {}),
         },
         orderBy: { createdAt: "desc" },
         include: { branch: true, customer: true, soldByUser: { select: { fullName: true } } },
@@ -111,38 +132,16 @@ export default async function VeriAnaliziPage({
     dbUnavailable = true;
   }
 
-  type SoldItemRow = {
-    id: string;
-    createdAt: Date;
-    productName: string;
-    quantity: number;
-    unitPrice: number;
-    lineTotal: number;
-    estCost: number;
-    paymentMethod: string;
-    staffName: string | null;
-  };
-
-  type PurchaseRow = {
-    id: string;
-    purchaseDate: Date;
-    name: string;
-    sku: string;
-    quantity: number;
-    purchasePrice: number;
-    totalCost: number;
-  };
-
   let soldItemRows: SoldItemRow[] = [];
   let purchaseRows: PurchaseRow[] = [];
 
   try {
     if (isDbDisabledMode()) {
-      // Local-store mode doesn't persist per-line sale items, only stock intake.
       const store = await readLocalStore();
       purchaseRows = (store.stockItems || [])
         .filter((s) => s.tenantId === tenantId && !s.isCatalog && s.quantity > 0)
         .filter((s) => !periodStart || new Date(s.purchaseDate || s.createdAt || Date.now()) >= periodStart)
+        .filter((s) => !periodEnd || new Date(s.purchaseDate || s.createdAt || Date.now()) <= periodEnd)
         .map((s) => ({
           id: s.id,
           purchaseDate: new Date(s.purchaseDate || s.createdAt || Date.now()),
@@ -158,7 +157,7 @@ export default async function VeriAnaliziPage({
           transaction: {
             type: "INCOME",
             tenantId,
-            ...(periodStart ? { createdAt: { gte: periodStart } } : {}),
+            ...(dateWhere ? { createdAt: dateWhere } : {}),
           },
         },
         include: {
@@ -169,8 +168,6 @@ export default async function VeriAnaliziPage({
         take: 300,
       });
       soldItemRows = soldItems.map((ti) => {
-        // Prefer the cost snapshot taken at sale time; older rows (written before this
-        // field existed) fall back to the product's current purchase price.
         const unitCost = Number(ti.unitCost) > 0 ? Number(ti.unitCost) : Number(ti.product?.purchasePrice ?? 0);
         return {
           id: ti.id,
@@ -189,7 +186,7 @@ export default async function VeriAnaliziPage({
         where: {
           tenantId,
           isCatalog: false,
-          ...(periodStart ? { purchaseDate: { gte: periodStart } } : {}),
+          ...(dateWhere ? { purchaseDate: dateWhere } : {}),
         },
         orderBy: { purchaseDate: "desc" },
         take: 300,
@@ -219,8 +216,6 @@ export default async function VeriAnaliziPage({
   const totalExpense = expenseRows.reduce((sum, r) => sum + r.totalAmount, 0);
   const netProfit = totalIncome - totalExpense;
 
-  // Branch breakdown for income — surfaces sales that never got a branch assigned,
-  // which is why branch-level ciro reports can undercount vs. this page's totals.
   const branchMap = new Map<string, { name: string; total: number; count: number }>();
   for (const r of incomeRows) {
     const key = r.branchId ?? "__unassigned__";
@@ -233,8 +228,6 @@ export default async function VeriAnaliziPage({
   const branchBreakdown = Array.from(branchMap.values()).sort((a, b) => b.total - a.total);
   const unassignedIncome = branchMap.get("__unassigned__")?.total ?? 0;
 
-  // Staff breakdown for income — which personnel produced how much ciro/kaç işlem,
-  // keyed by user id so two staff with the same display name never collapse together.
   const staffMap = new Map<string, { name: string; total: number; count: number }>();
   for (const r of incomeRows) {
     const key = r.staffUserId ?? "__unassigned__";
@@ -247,8 +240,117 @@ export default async function VeriAnaliziPage({
   const staffBreakdown = Array.from(staffMap.values()).sort((a, b) => b.total - a.total);
   const unassignedStaffIncome = staffMap.get("__unassigned__")?.total ?? 0;
 
-  const periodLabel =
-    selectedPeriod === "day" ? "Günlük" : selectedPeriod === "week" ? "Haftalık" : selectedPeriod === "month" ? "Aylık" : "Tüm Zamanlar";
+  return {
+    rows,
+    soldItemRows,
+    purchaseRows,
+    dbUnavailable,
+    totalIncome,
+    totalExpense,
+    netProfit,
+    totalSoldRevenue,
+    totalEstCost,
+    grossProfit,
+    totalPurchaseCost,
+    branchBreakdown,
+    unassignedIncome,
+    staffBreakdown,
+    unassignedStaffIncome,
+  };
+}
+
+function DeltaBadge({ current, previous }: { current: number; previous: number }) {
+  if (previous === 0) {
+    if (current === 0) return null;
+    return <span className="ml-2 text-[11px] font-bold text-emerald-600">yeni</span>;
+  }
+  const pct = ((current - previous) / Math.abs(previous)) * 100;
+  const up = pct >= 0;
+  return (
+    <span className={`ml-2 text-[11px] font-bold ${up ? "text-emerald-600" : "text-red-600"}`}>
+      {up ? "▲" : "▼"} {Math.abs(pct).toFixed(1)}%
+    </span>
+  );
+}
+
+export default async function VeriAnaliziPage({
+  searchParams,
+}: {
+  searchParams?: { period?: string; from?: string; to?: string; compare?: string };
+}) {
+  const rawFrom = searchParams?.from;
+  const isCustomRange = !!rawFrom;
+
+  const selectedPeriod: Period =
+    searchParams?.period === "day" || searchParams?.period === "week" || searchParams?.period === "month" || searchParams?.period === "all"
+      ? (searchParams.period as Period)
+      : "month";
+
+  let periodStart: Date | null;
+  let periodEnd: Date | null = null;
+
+  if (isCustomRange) {
+    periodStart = new Date(`${rawFrom}T00:00:00`);
+    periodEnd = searchParams?.to ? new Date(`${searchParams.to}T23:59:59.999`) : new Date();
+  } else {
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const startOfWeek = new Date();
+    startOfWeek.setDate(startOfWeek.getDate() - 6);
+    startOfWeek.setHours(0, 0, 0, 0);
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    periodStart =
+      selectedPeriod === "day" ? startOfDay : selectedPeriod === "week" ? startOfWeek : selectedPeriod === "month" ? startOfMonth : null;
+  }
+
+  const sessionUser = getSessionUser();
+  const tenantId = sessionUser?.tenantId || null;
+
+  const data = await loadFinancials(tenantId, periodStart, periodEnd);
+
+  const compareEnabled = isCustomRange && searchParams?.compare === "1" && !!periodStart;
+  let compareData: Financials | null = null;
+  let comparePeriodStart: Date | null = null;
+  let comparePeriodEnd: Date | null = null;
+  if (compareEnabled && periodStart) {
+    const effectiveEnd = periodEnd ?? new Date();
+    const durationMs = effectiveEnd.getTime() - periodStart.getTime();
+    comparePeriodEnd = new Date(periodStart.getTime() - 1);
+    comparePeriodStart = new Date(comparePeriodEnd.getTime() - durationMs);
+    compareData = await loadFinancials(tenantId, comparePeriodStart, comparePeriodEnd);
+  }
+
+  const {
+    rows,
+    soldItemRows,
+    purchaseRows,
+    dbUnavailable,
+    totalIncome,
+    totalExpense,
+    netProfit,
+    grossProfit,
+    totalPurchaseCost,
+    branchBreakdown,
+    unassignedIncome,
+    staffBreakdown,
+    unassignedStaffIncome,
+  } = data;
+
+  const incomeRows = rows.filter((r) => r.type === "INCOME");
+  const expenseRows = rows.filter((r) => r.type === "EXPENSE");
+
+  const periodLabel = isCustomRange
+    ? `${periodStart!.toLocaleDateString("tr-TR")} – ${(periodEnd ?? new Date()).toLocaleDateString("tr-TR")}`
+    : selectedPeriod === "day"
+    ? "Günlük"
+    : selectedPeriod === "week"
+    ? "Haftalık"
+    : selectedPeriod === "month"
+    ? "Aylık"
+    : "Tüm Zamanlar";
 
   return (
     <div className="space-y-6">
@@ -268,31 +370,49 @@ export default async function VeriAnaliziPage({
             Satışlar, satılan malın maliyeti (COGS), işletme giderleri ve personel ödemeleriyle hesaplanan konsolide ERP Finans Tablosu.
           </p>
         </div>
-        <div className="inline-flex rounded-2xl border border-slate-200 bg-white p-1 text-xs font-bold shadow-sm">
-          <Link href="/veri-analizi?period=day" className={`px-4 py-2 rounded-xl transition-all ${selectedPeriod === "day" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100"}`}>Günlük</Link>
-          <Link href="/veri-analizi?period=week" className={`px-4 py-2 rounded-xl transition-all ${selectedPeriod === "week" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100"}`}>Haftalık</Link>
-          <Link href="/veri-analizi?period=month" className={`px-4 py-2 rounded-xl transition-all ${selectedPeriod === "month" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100"}`}>Aylık</Link>
-          <Link href="/veri-analizi?period=all" className={`px-4 py-2 rounded-xl transition-all ${selectedPeriod === "all" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100"}`}>Tümü</Link>
-        </div>
+        <VeriAnaliziFilters
+          selectedPeriod={selectedPeriod}
+          isCustomRange={isCustomRange}
+          fromValue={searchParams?.from ?? ""}
+          toValue={searchParams?.to ?? ""}
+          compareEnabled={compareEnabled}
+        />
       </div>
+
+      {compareEnabled && compareData && comparePeriodStart && comparePeriodEnd && (
+        <div className="rounded-2xl border border-blue-200 bg-blue-50/60 p-4 text-xs text-blue-800">
+          <strong>Karşılaştırma dönemi:</strong> {comparePeriodStart.toLocaleDateString("tr-TR")} – {comparePeriodEnd.toLocaleDateString("tr-TR")}{" "}
+          (seçili dönemle aynı uzunlukta, hemen öncesi)
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="relative overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-6 shadow-sm">
           <div className="absolute top-0 left-0 w-full h-[3px] bg-blue-600 opacity-80" />
           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Toplam Hasılat (Gelir)</p>
-          <h3 className="mt-3 text-2xl font-black text-slate-800 font-mono tracking-tight">{totalIncome.toLocaleString("tr-TR")} TL</h3>
+          <h3 className="mt-3 text-2xl font-black text-slate-800 font-mono tracking-tight">
+            {totalIncome.toLocaleString("tr-TR")} TL
+            {compareData && <DeltaBadge current={totalIncome} previous={compareData.totalIncome} />}
+          </h3>
           <p className="mt-1 text-xs text-slate-400">POS Satışları + Teknik Servis Tahsilatları</p>
         </div>
         <div className="relative overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-6 shadow-sm">
           <div className="absolute top-0 left-0 w-full h-[3px] bg-rose-500 opacity-85" />
           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} İşletme Giderleri</p>
-          <h3 className="mt-3 text-2xl font-black text-rose-600 font-mono tracking-tight">{totalExpense > 0 ? "-" : ""}{totalExpense.toLocaleString("tr-TR")} TL</h3>
+          <h3 className="mt-3 text-2xl font-black text-rose-600 font-mono tracking-tight">
+            {totalExpense > 0 ? "-" : ""}
+            {totalExpense.toLocaleString("tr-TR")} TL
+            {compareData && <DeltaBadge current={totalExpense} previous={compareData.totalExpense} />}
+          </h3>
           <p className="mt-1 text-xs text-slate-400">Kira, Fatura, Yemek, Kargo vb. Harcamalar</p>
         </div>
         <div className="relative overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-6 shadow-sm">
           <div className="absolute top-0 left-0 w-full h-[3px] bg-amber-500 opacity-85" />
           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Net Faaliyet Kârı</p>
-          <h3 className={`mt-3 text-2xl font-black font-mono tracking-tight ${netProfit >= 0 ? "text-emerald-600" : "text-red-600"}`}>{netProfit.toLocaleString("tr-TR")} TL</h3>
+          <h3 className={`mt-3 text-2xl font-black font-mono tracking-tight ${netProfit >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+            {netProfit.toLocaleString("tr-TR")} TL
+            {compareData && <DeltaBadge current={netProfit} previous={compareData.netProfit} />}
+          </h3>
           <p className="mt-1 text-xs text-slate-400">Konsolide Net Nakit Dengesi</p>
         </div>
       </div>
@@ -301,13 +421,19 @@ export default async function VeriAnaliziPage({
         <div className="relative overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-6 shadow-sm">
           <div className="absolute top-0 left-0 w-full h-[3px] bg-emerald-500 opacity-85" />
           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Brüt Kâr Marjı (COGS Düşülmüş)</p>
-          <h3 className={`mt-3 text-2xl font-black font-mono tracking-tight ${grossProfit >= 0 ? "text-emerald-600" : "text-red-600"}`}>{grossProfit.toLocaleString("tr-TR")} TL</h3>
+          <h3 className={`mt-3 text-2xl font-black font-mono tracking-tight ${grossProfit >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+            {grossProfit.toLocaleString("tr-TR")} TL
+            {compareData && <DeltaBadge current={grossProfit} previous={compareData.grossProfit} />}
+          </h3>
           <p className="mt-1 text-xs text-slate-400">Satılan ürün geliri − güncel/kayıtlı alış maliyeti (COGS).</p>
         </div>
         <div className="relative overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-6 shadow-sm">
           <div className="absolute top-0 left-0 w-full h-[3px] bg-indigo-500 opacity-85" />
           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Girişi Yapılan Ürün / Stok Değeri</p>
-          <h3 className="mt-3 text-2xl font-black text-slate-800 font-mono tracking-tight">{totalPurchaseCost.toLocaleString("tr-TR")} TL</h3>
+          <h3 className="mt-3 text-2xl font-black text-slate-800 font-mono tracking-tight">
+            {totalPurchaseCost.toLocaleString("tr-TR")} TL
+            {compareData && <DeltaBadge current={totalPurchaseCost} previous={compareData.totalPurchaseCost} />}
+          </h3>
           <p className="mt-1 text-xs text-slate-400">Bu dönemde stok girişi / toptan alımı yapılan ürünlerin toplam maliyeti.</p>
         </div>
       </div>
