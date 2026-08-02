@@ -47,6 +47,7 @@ const NAV_LINKS = [
   { label: "Özellikler", href: "#features" },
   { label: "Çözüm", href: "#solution" },
   { label: "Paketler", href: "#pricing" },
+  { label: "Neden VibeGSM?", href: "/neden-vibegsm" },
   { label: "Blog", href: "/blog" },
 ];
 
@@ -1047,6 +1048,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
           <div className="flex flex-wrap justify-center gap-6 text-xs text-slate-500">
             <a href="#features" className="hover:text-slate-900 transition">Özellikler</a>
             <a href="#pricing" className="hover:text-slate-900 transition">Paketler</a>
+            <a href="/neden-vibegsm" className="hover:text-slate-900 transition">Neden VibeGSM?</a>
             <a href="/blog" className="hover:text-slate-900 transition">Blog</a>
             <a href="/yardim" className="hover:text-slate-900 transition">Yardım</a>
             <a href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer" className="hover:text-slate-900 transition">İletişim (WhatsApp)</a>
