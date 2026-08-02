@@ -30,6 +30,8 @@ const PUBLIC_PATHS = [
   "/_next",
   "/favicon.ico",
   "/servis",
+  "/neden-vibegsm",
+  "/sehirler",
 ];
 
 /**
