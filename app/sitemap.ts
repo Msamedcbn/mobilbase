@@ -8,8 +8,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: BASE_URL, changeFrequency: "weekly", priority: 1 },
     { url: `${BASE_URL}/blog`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${BASE_URL}/takas-hesapla`, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${BASE_URL}/araclar/ikinci-el-alim-sozlesmesi`, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${BASE_URL}/araclar/cihaz-kabul-formu`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/yardim`, changeFrequency: "monthly", priority: 0.3 },
   ];
 

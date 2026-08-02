@@ -46,7 +46,6 @@ function pad(n: number) {
 const NAV_LINKS = [
   { label: "Özellikler", href: "#features" },
   { label: "Çözüm", href: "#solution" },
-  { label: "Ücretsiz Araçlar", href: "#free-tools" },
   { label: "Paketler", href: "#pricing" },
   { label: "Blog", href: "/blog" },
 ];
@@ -908,78 +907,6 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
         </div>
       </section>
 
-      <section id="free-tools" className="relative z-10 py-24 bg-gradient-to-b from-slate-50 to-white border-y border-slate-200">
-        <div className="mx-auto max-w-6xl px-5 md:px-8">
-          <div className="reveal text-center max-w-2xl mx-auto">
-            <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-black text-blue-700">
-              %100 Ücretsiz Hizmetler
-            </span>
-            <h2 className="mt-4 text-[clamp(2rem,3.5vw,3rem)] font-black leading-[1.05] tracking-[-0.03em] text-slate-900">
-              GSM Bayileri &amp; Tamirciler İçin Ücretsiz Dijital Araçlar
-            </h2>
-            <p className="mt-3 text-sm text-slate-600">
-              Üye olmadan veya ücret ödemeden anında kullanabileceğiniz yasal sözleşme ve kabul formu jeneratörleri.
-            </p>
-          </div>
-
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            <a
-              href="/araclar/ikinci-el-alim-sozlesmesi"
-              className="reveal group rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-xl hover:border-blue-300 hover:-translate-y-1"
-            >
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 font-bold mb-4 group-hover:bg-blue-600 group-hover:text-white transition">
-                📄
-              </div>
-              <h3 className="text-lg font-black text-slate-900 group-hover:text-blue-600 transition">
-                İkinci El Alım Sözleşmesi &amp; Muvafakatname
-              </h3>
-              <p className="mt-2 text-xs leading-relaxed text-slate-500">
-                2. el (buyback) cihaz alımlarında satıcının T.C. Kimlik ve IMEI sorumluluğunu belgeleyen yasal alım sözleşmesi oluşturucu.
-              </p>
-              <span className="mt-4 inline-flex items-center gap-1 text-xs font-black text-blue-600">
-                Hemen Sözleşme Oluştur →
-              </span>
-            </a>
-
-            <a
-              href="/araclar/cihaz-kabul-formu"
-              className="reveal group rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-xl hover:border-blue-300 hover:-translate-y-1"
-            >
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 font-bold mb-4 group-hover:bg-emerald-600 group-hover:text-white transition">
-                🛠️
-              </div>
-              <h3 className="text-lg font-black text-slate-900 group-hover:text-emerald-600 transition">
-                Teknik Servis Cihaz Kabul Formu
-              </h3>
-              <p className="mt-2 text-xs leading-relaxed text-slate-500">
-                15 noktalı fiziki kontrol listesi, şifre kaydı ve teslim fişi ile servisinizi uyuşmazlıklara karşı koruyun.
-              </p>
-              <span className="mt-4 inline-flex items-center gap-1 text-xs font-black text-emerald-600">
-                Ücretsiz Form Hazırla →
-              </span>
-            </a>
-
-            <a
-              href="/takas-hesapla"
-              className="reveal group rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-xl hover:border-violet-300 hover:-translate-y-1"
-            >
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-50 text-violet-600 font-bold mb-4 group-hover:bg-violet-600 group-hover:text-white transition">
-                💰
-              </div>
-              <h3 className="text-lg font-black text-slate-900 group-hover:text-violet-600 transition">
-                İkinci El Cihaz Takas &amp; Değerleme
-              </h3>
-              <p className="mt-2 text-xs leading-relaxed text-slate-500">
-                Marka, model ve kozmetik duruma göre ikinci el alış/satış teklif fiyatını anında hesaplayan ekspertiz aracı.
-              </p>
-              <span className="mt-4 inline-flex items-center gap-1 text-xs font-black text-violet-600">
-                Takas Teklifi Hesapla →
-              </span>
-            </a>
-          </div>
-        </div>
-      </section>
-
       <section id="pricing" className="relative z-10 py-32 md:py-44">
         <div className="mx-auto max-w-5xl px-5 md:px-8">
           <div className="reveal md:max-w-xl">
@@ -1120,9 +1047,6 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
           <div className="flex flex-wrap justify-center gap-6 text-xs text-slate-500">
             <a href="#features" className="hover:text-slate-900 transition">Özellikler</a>
             <a href="#pricing" className="hover:text-slate-900 transition">Paketler</a>
-            <a href="#free-tools" className="hover:text-slate-900 transition">Ücretsiz Araçlar</a>
-            <a href="/araclar/ikinci-el-alim-sozlesmesi" className="hover:text-slate-900 transition">İkinci El Sözleşmesi</a>
-            <a href="/araclar/cihaz-kabul-formu" className="hover:text-slate-900 transition">Cihaz Kabul Formu</a>
             <a href="/blog" className="hover:text-slate-900 transition">Blog</a>
             <a href="/yardim" className="hover:text-slate-900 transition">Yardım</a>
             <a href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer" className="hover:text-slate-900 transition">İletişim (WhatsApp)</a>

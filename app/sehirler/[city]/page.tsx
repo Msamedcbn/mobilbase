@@ -179,27 +179,7 @@ export default function CitySeoPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Free Tools Banner */}
-        <div className="mt-10 rounded-3xl border border-slate-200 bg-slate-50 p-6 text-center">
-          <h3 className="text-base font-black text-slate-900">
-            {cityInfo.name}&apos;deki GSM Bayileri İçin Ücretsiz İşletme Araçları
-          </h3>
-          <p className="mt-2 text-xs text-slate-600">Üye olmadan anında kullanabileceğiniz yasal form jeneratörleri:</p>
-          <div className="mt-4 flex flex-wrap justify-center gap-3">
-            <Link
-              href="/araclar/ikinci-el-alim-sozlesmesi"
-              className="rounded-full bg-white border border-slate-300 px-4 py-2 text-xs font-bold text-slate-800 shadow-sm transition hover:bg-slate-100"
-            >
-              📄 Ücretsiz İkinci El Sözleşmesi
-            </Link>
-            <Link
-              href="/araclar/cihaz-kabul-formu"
-              className="rounded-full bg-white border border-slate-300 px-4 py-2 text-xs font-bold text-slate-800 shadow-sm transition hover:bg-slate-100"
-            >
-              🛠️ Ücretsiz Cihaz Kabul Formu
-            </Link>
-          </div>
-        </div>
+
 
         {/* CTA Conversion Box */}
         <div className="mt-12 rounded-3xl border border-blue-200 bg-gradient-to-br from-blue-900 via-slate-900 to-slate-950 p-6 text-white text-center shadow-xl md:p-10">

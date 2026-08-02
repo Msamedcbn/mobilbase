@@ -144,12 +144,6 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
             >
               14 Gün Ücretsiz Deneyin
             </Link>
-            <Link
-              href="/araclar/ikinci-el-alim-sozlesmesi"
-              className="rounded-full border border-white/20 bg-white/10 px-5 py-3.5 text-sm font-bold text-white transition hover:bg-white/20"
-            >
-              Ücretsiz Sözleşme Oluştur
-            </Link>
           </div>
         </div>
 
