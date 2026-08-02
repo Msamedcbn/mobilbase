@@ -23,7 +23,7 @@ VibeGSM, telefon bayileri için tasarlanmış bir işletim sistemidir. Satış, 
 1. **Dashboard'ı tanıyın:** Ana sayfanızda günlük satış, gider, kâr ve tahsilat özetini görürsünüz.
 2. **İlk satışınızı yapın:** Sol menüden "Hızlı Satış (POS)" bölümüne gidin.
 3. **Servis kaydı açın:** "Tamir Takip" menüsünden cihaz kabulü yapabilirsiniz.
-4. **Personel ekleyin:** Ayarlar bölümünden kullanıcı ve yetki yönetimi yapabilirsiniz.
+4. **Personel ekleyin:** "Personel & Hakediş" menüsünden kullanıcı, maaş ve yetki yönetimi yapabilirsiniz.
 
 ### Destek
 
@@ -135,6 +135,98 @@ VibeGSM dört farklı paket sunar. Her paket bayi ölçeğine göre farklı mod�
   },
 ];
 
+// Small, correct block-aware markdown-to-HTML renderer for the fixed set of
+// KB article bodies above. The previous version chained global regex
+// .replace() calls over the whole string — that breaks structured content
+// (list items need a <ul>/<ol> wrapper, table rows need a <table> wrapper;
+// browsers silently drop bare <tr>/<td> outside a <table>) and had a wrong
+// capture-group reference ($2 on a single-group regex) that printed the
+// literal text "$2" instead of each bullet's content.
+function inline(text: string) {
+  return text.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+}
+
+function renderMarkdown(body: string): string {
+  const lines = body.split("\n");
+  const html: string[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    if (!line.trim()) {
+      i++;
+      continue;
+    }
+
+    const h2 = line.match(/^## (.+)$/);
+    if (h2) {
+      html.push(`<h2 class="text-xl font-black text-slate-900 mt-8 mb-3">${inline(h2[1])}</h2>`);
+      i++;
+      continue;
+    }
+
+    const h3 = line.match(/^### (.+)$/);
+    if (h3) {
+      html.push(`<h3 class="text-lg font-bold text-slate-900 mt-6 mb-2">${inline(h3[1])}</h3>`);
+      i++;
+      continue;
+    }
+
+    if (line.startsWith("|")) {
+      const rows: string[][] = [];
+      while (i < lines.length && lines[i].startsWith("|")) {
+        const cells = lines[i].split("|").filter((_, idx, arr) => idx > 0 && idx < arr.length - 1).map((c) => c.trim());
+        if (!cells.every((c) => /^-+$/.test(c))) rows.push(cells);
+        i++;
+      }
+      const [headerRow, ...bodyRows] = rows;
+      html.push('<table class="w-full border-collapse my-4">');
+      if (headerRow) {
+        html.push(
+          "<thead><tr>" +
+            headerRow.map((c) => `<th class="border border-slate-200 bg-slate-50 px-3 py-2 text-left text-sm font-bold">${inline(c)}</th>`).join("") +
+            "</tr></thead>"
+        );
+      }
+      html.push(
+        "<tbody>" +
+          bodyRows
+            .map((row) => "<tr>" + row.map((c) => `<td class="border border-slate-200 px-3 py-2 text-sm">${inline(c)}</td>`).join("") + "</tr>")
+            .join("") +
+          "</tbody>"
+      );
+      html.push("</table>");
+      continue;
+    }
+
+    if (/^- /.test(line)) {
+      const items: string[] = [];
+      while (i < lines.length && /^- /.test(lines[i])) {
+        items.push(lines[i].replace(/^- /, ""));
+        i++;
+      }
+      html.push('<ul class="my-3 space-y-1">' + items.map((it) => `<li class="ml-5 list-disc">${inline(it)}</li>`).join("") + "</ul>");
+      continue;
+    }
+
+    if (/^\d+\. /.test(line)) {
+      const items: string[] = [];
+      while (i < lines.length && /^\d+\. /.test(lines[i])) {
+        items.push(lines[i].replace(/^\d+\. /, ""));
+        i++;
+      }
+      html.push('<ol class="my-3 space-y-1">' + items.map((it) => `<li class="ml-5 list-decimal">${inline(it)}</li>`).join("") + "</ol>");
+      continue;
+    }
+
+    html.push(`<p class="mt-3">${inline(line)}</p>`);
+    i++;
+  }
+
+  return html.join("\n");
+}
+
 export default function KnowledgeBasePage() {
   const [search, setSearch] = useState("");
   const [activeArticle, setActiveArticle] = useState<KbArticle | null>(null);
@@ -167,24 +259,7 @@ export default function KnowledgeBasePage() {
               <h1 className="text-2xl font-black text-slate-900 md:text-3xl">{activeArticle.title}</h1>
               <div
                 className="mt-6 text-slate-700 leading-7"
-                dangerouslySetInnerHTML={{
-                  __html: activeArticle.body
-                    .replace(/^### (.+)$/gm, '<h3 class="text-lg font-bold text-slate-900 mt-6 mb-2">$1</h3>')
-                    .replace(/^## (.+)$/gm, '<h2 class="text-xl font-black text-slate-900 mt-8 mb-3">$1</h2>')
-                    .replace(/^(\d+)\. (.+)$/gm, '<li class="ml-5 list-decimal">$2</li>')
-                    .replace(/^- (.+)$/gm, '<li class="ml-5 list-disc">$2</li>')
-                    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/\n\n/g, '</p><p class="mt-3">')
-                    .replace(/^\|(.+)\|$/gm, (match) => {
-                      const cells = match.split("|").filter(Boolean).map((c) => c.trim());
-                      if (cells.every((c) => /^-+$/.test(c))) return "";
-                      return (
-                        '<tr>' +
-                        cells.map((c, i) => `<${cells[0] ? "td" : "th"} class="border border-slate-200 px-3 py-2 text-sm">${c}</${cells[0] ? "td" : "th"}>`).join("") +
-                        "</tr>"
-                      );
-                    }),
-                }}
+                dangerouslySetInnerHTML={{ __html: renderMarkdown(activeArticle.body) }}
               />
             </article>
           </div>
