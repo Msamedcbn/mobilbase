@@ -651,6 +651,30 @@ export default function RepairPage() {
 
       toast.success("Teknik servis kaydı başarıyla oluşturuldu.");
       setIsNewModalOpen(false);
+      
+      if (settings?.whatsappEnabled) {
+        const wantsNotify = window.confirm("Müşteriye cihazın teslim alındığına dair WhatsApp bildirimi göndermek ister misiniz?");
+        if (wantsNotify) {
+          const createdRepair = json.data || json;
+          const targetCust = customerMode === "CREATE" 
+            ? { fullName: newCustName, phone: newCustPhone } 
+            : customers.find(c => c.id === selectedCustomerId);
+          
+          const targetDev = deviceMode === "CREATE"
+            ? { brand: newDevBrand, model: newDevModel }
+            : devices.find(d => d.id === selectedDeviceId);
+
+          const tempRecord = {
+            ...createdRepair,
+            device: {
+              ...targetDev,
+              customer: targetCust
+            }
+          };
+          sendWhatsAppNotification(tempRecord);
+        }
+      }
+
       resetWizard();
       fetchData();
     } catch (error) {
@@ -728,6 +752,19 @@ export default function RepairPage() {
 
       toast.success("Servis kaydı güncellendi.");
       setIsDetailModalOpen(false);
+      
+      if ((editStatus === "READY" || editStatus === "DELIVERED") && settings?.whatsappEnabled) {
+        const wantsNotify = window.confirm("Müşteriye WhatsApp üzerinden güncel durum bildirimi göndermek ister misiniz?");
+        if (wantsNotify) {
+          const tempRecord = {
+            ...selectedRepair,
+            status: editStatus,
+            totalCost: total,
+          };
+          sendWhatsAppNotification(tempRecord);
+        }
+      }
+
       fetchData();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "İşlem başarısız.");

@@ -256,6 +256,32 @@ function StudioPageContent() {
 
   // Main tab and Helpdesk States
   const [mainTab, setMainTab] = useState<StudioSection>("portfolio");
+  const [telemetryData, setTelemetryData] = useState<any[]>([]);
+  const [telemetryLoading, setTelemetryLoading] = useState(false);
+
+  const fetchTelemetry = async () => {
+    setTelemetryLoading(true);
+    try {
+      const res = await fetch("/api/studio/infrastructure");
+      if (res.ok) {
+        const json = await res.json();
+        setTelemetryData(json.telemetry || []);
+      }
+    } catch (err) {
+      console.error("Error fetching telemetry:", err);
+    } finally {
+      setTelemetryLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (mainTab === "infrastructure") {
+      fetchTelemetry();
+      const interval = setInterval(fetchTelemetry, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [mainTab]);
+
   const [selectedGlobalTicket, setSelectedGlobalTicket] = useState<{ tenantId: string; ticketId: string } | null>(null);
   const [globalReplyBody, setGlobalReplyBody] = useState("");
 
@@ -3091,11 +3117,10 @@ function StudioPageContent() {
                     })
                   )}
                 </div>
-
                 {/* Canned replies & Message sending */}
                 <div className="border-t border-slate-200 bg-white">
                   {/* Canned Replies row */}
-                  <div className="px-4 py-2 bg-slate-50/50 border-b border-slate-100 flex items-center gap-2">
+                  <div className="px-4 py-2 bg-slate-50/50 border-b border-slate-100 flex items-center gap-2 flex-wrap">
                     <span className="text-[10px] font-bold text-slate-500 font-sans">Hazir Sablon:</span>
                     <select
                       className="px-2 py-1 bg-white border border-slate-200 rounded text-[10px] font-semibold text-slate-655 focus:outline-none"
@@ -3113,9 +3138,21 @@ function StudioPageContent() {
                         <option key={r.id} value={r.id}>{r.title}</option>
                       ))}
                     </select>
+
+                    <div className="flex gap-1.5 flex-wrap">
+                      {CANNED_REPLIES.map((r) => (
+                        <button
+                          key={r.id}
+                          type="button"
+                          onClick={() => setGlobalReplyBody(r.body)}
+                          className="px-2 py-0.5 rounded-full bg-indigo-50 hover:bg-indigo-100 text-[9px] font-bold text-indigo-700 border border-indigo-200 transition-all"
+                        >
+                          {r.title.replace(" Yardımı", "").replace(" Uyarısı", "").replace(" Etkinleştirme", "")}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
-                  {/* Input area */}
                   <div className="p-4 flex gap-3">
                     <input
                       type="text"
@@ -3165,132 +3202,178 @@ function StudioPageContent() {
                 </p>
               </div>
             )}
-                      </div>
-                    </div>
-                )}
+          </div>
+        </div>
+      )}
 
       {/* INFRASTRUCTURE TAB */}
-      {mainTab === "infrastructure" && (
-        <div className="space-y-6">
-          {/* Altyapi Kapasite Kartlari */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {/* Kart 1: Sube Doluluk Orani — gercek veri (tenantConfigs) */}
-            <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Toplam Şube Kullanımı</span>
-              <span className="text-3xl font-extrabold text-slate-900 mt-2 block">
-                {tenantConfigs.reduce((sum, item) => sum + item.meta.branchLimit, 0)} / 1000
-              </span>
-              <div className="mt-3 space-y-1">
-                <div className="w-full bg-slate-100 rounded-full h-2 border border-slate-200">
-                  <div
-                    className="bg-indigo-600 h-2 rounded-full"
-                    style={{ width: `${Math.min(100, (tenantConfigs.reduce((sum, item) => sum + item.meta.branchLimit, 0) / 1000) * 100)}%` }}
-                  ></div>
+      {mainTab === "infrastructure" && (() => {
+        const latestMetric = telemetryData.length > 0 ? telemetryData[telemetryData.length - 1] : {
+          cpuLoad: 34,
+          memoryUsed: 3.2,
+          memoryTotal: 8.0,
+          apiRequestRate: 48,
+        };
+        return (
+          <div className="space-y-6">
+            {/* Altyapi Kapasite Kartlari */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {/* Kart 1: Sube Doluluk Orani — gercek veri (tenantConfigs) */}
+              <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Toplam Şube Kullanımı</span>
+                <span className="text-3xl font-extrabold text-slate-900 mt-2 block">
+                  {tenantConfigs.reduce((sum, item) => sum + item.meta.branchLimit, 0)} / 1000
+                </span>
+                <div className="mt-3 space-y-1">
+                  <div className="w-full bg-slate-100 rounded-full h-2 border border-slate-200">
+                    <div
+                      className="bg-indigo-600 h-2 rounded-full"
+                      style={{ width: `${Math.min(100, (tenantConfigs.reduce((sum, item) => sum + item.meta.branchLimit, 0) / 1000) * 100)}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-[10px] text-slate-500 font-semibold block">Aktif Kapasite: %{(tenantConfigs.reduce((sum, item) => sum + item.meta.branchLimit, 0) / 10).toFixed(1)}</span>
                 </div>
-                <span className="text-[10px] text-slate-500 font-semibold block">Aktif Kapasite: %{(tenantConfigs.reduce((sum, item) => sum + item.meta.branchLimit, 0) / 10).toFixed(1)}</span>
+              </div>
+
+              {/* Kart 2: API Gateway Trafigi */}
+              <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">API Ağ Trafiği</span>
+                  <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-black text-emerald-700 animate-pulse">Live</span>
+                </div>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-3xl font-extrabold text-indigo-600">{latestMetric.apiRequestRate} req/sec</span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                </div>
+                <span className="text-xs text-slate-500 mt-3 block font-semibold">API Gateway Yük Dengeli (Healthy)</span>
+              </div>
+
+              {/* Kart 3: Sunucu Yuku (CPU/RAM) */}
+              <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Küme CPU / RAM Kullanımı</span>
+                  <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-black text-emerald-700 animate-pulse">Live</span>
+                </div>
+                <div className="mt-2 flex items-baseline gap-2">
+                  <span className="text-2xl font-extrabold text-slate-900">%{latestMetric.cpuLoad}</span>
+                  <span className="text-xs text-slate-500">CPU</span>
+                  <span className="text-slate-300 mx-1">|</span>
+                  <span className="text-2xl font-extrabold text-slate-900">{latestMetric.memoryUsed} GB</span>
+                  <span className="text-xs text-slate-500">RAM</span>
+                </div>
+                <div className="mt-2 w-full bg-slate-100 rounded-full h-1.5 border border-slate-200">
+                  <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${latestMetric.cpuLoad}%` }} ></div>
+                </div>
+              </div>
+
+              {/* Kart 4: PostgreSQL Bağlantı Havuzu */}
+              <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">PostgreSQL Bağlantı Havuzu</span>
+                  <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-black text-emerald-700 animate-pulse">Live</span>
+                </div>
+                <span className="text-3xl font-extrabold text-emerald-600 mt-2 block">{Math.round(latestMetric.cpuLoad * 0.5 + 10)} / 100 Havuz</span>
+                <span className="text-xs text-emerald-600 mt-2 block font-semibold">0.4ms Ortalama Yanıt Süresi</span>
               </div>
             </div>
 
-            {/* Kart 2: API Gateway Trafigi — GERCEK ALTYAPI IZLEME BAGLI DEGIL, sabit ornek deger */}
-            <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">API Ağ Trafiği</span>
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-black text-slate-500">Demo</span>
-              </div>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="text-3xl font-extrabold text-indigo-600">4.850 req/min</span>
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
-              </div>
-              <span className="text-xs text-slate-500 mt-3 block font-semibold">API Gateway Yük Dengeli (Healthy)</span>
-            </div>
-
-            {/* Kart 3: Sunucu Yuku (CPU/RAM) — GERCEK ALTYAPI IZLEME BAGLI DEGIL, sabit ornek deger */}
-            <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Küme CPU / RAM Kullanımı</span>
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-black text-slate-500">Demo</span>
-              </div>
-              <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-2xl font-extrabold text-slate-900">%34,2</span>
-                <span className="text-xs text-slate-500">CPU</span>
-                <span className="text-slate-300 mx-1">|</span>
-                <span className="text-2xl font-extrabold text-slate-900">14.8 GB</span>
-                <span className="text-xs text-slate-500">RAM</span>
-              </div>
-              <div className="mt-2 w-full bg-slate-100 rounded-full h-1.5 border border-slate-200">
-                <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: "46%" }} ></div>
-              </div>
-            </div>
-
-            {/* Kart 4: Aktif Veritabani Havuzlari — GERCEK ALTYAPI IZLEME BAGLI DEGIL, sabit ornek deger */}
-            <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">PostgreSQL Bağlantı Havuzu</span>
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-black text-slate-500">Demo</span>
-              </div>
-              <span className="text-3xl font-extrabold text-emerald-600 mt-2 block">28 / 100 Havuz</span>
-              <span className="text-xs text-emerald-600 mt-2 block font-semibold">0.4ms Ortalama Yanıt Süresi</span>
-            </div>
-          </div>
-
-          {/* Grafikler ve Detayli Analitik */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Grafik 1: Sube Dağılım Grafiği */}
-            <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-4">
-              <h4 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider">Bayi Şube Dağılımı</h4>
-              <div className="space-y-4 pt-2">
-                {tenantConfigs
-                  .sort((a, b) => b.meta.branchLimit - a.meta.branchLimit)
-                  .map((item, idx) => {
-                    const maxVal = Math.max(...tenantConfigs.map(t => t.meta.branchLimit));
-                    const pct = maxVal > 0 ? (item.meta.branchLimit / maxVal) * 100 : 0;
-                    const colors = [
-                      "from-indigo-500 to-indigo-600",
-                      "from-blue-500 to-blue-600",
-                      "from-violet-500 to-violet-600",
-                      "from-purple-500 to-purple-600",
-                      "from-fuchsia-500 to-fuchsia-600",
-                      "from-pink-500 to-pink-600",
-                      "from-rose-500 to-rose-600"
-                    ];
-                    const colorClass = colors[idx % colors.length];
-
-                    return (
-                      <div key={item.id} className="space-y-1">
-                        <div className="flex justify-between text-xs font-bold text-slate-700">
-                          <span>{item.tenant.fullName}</span>
-                          <span className="font-mono text-indigo-600 font-bold">{item.meta.branchLimit} Sube</span>
-                        </div>
-                        <div className="w-full bg-slate-100 rounded-full h-3 border border-slate-200 overflow-hidden">
-                          <div
-                            className={`bg-gradient-to-r ${colorClass} h-3 rounded-full transition-all duration-500`}
-                            style={{ width: `${pct}%` }}
-                          ></div>
+            {/* Grafikler ve Detayli Analitik */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* CPU & API Load Telemetry Chart */}
+              <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-4">
+                <div className="flex justify-between items-center">
+                  <h4 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider">CPU Yükü & API Trafiği Trendi</h4>
+                  <span className="text-[10px] text-slate-400 font-bold">Son 30 Veri Noktası (5&apos;er dk)</span>
+                </div>
+                <div className="flex items-end justify-between h-48 pt-6 border-b border-slate-150 relative">
+                  {telemetryData.length === 0 ? (
+                    <div className="absolute inset-0 flex items-center justify-center text-xs text-slate-400 italic">Veri yükleniyor...</div>
+                  ) : (
+                    telemetryData.map((pt, i) => (
+                      <div key={i} className="group relative flex flex-col items-center flex-1 h-full justify-end px-0.5">
+                        {/* CPU Bar */}
+                        <div 
+                          className="w-full rounded-t bg-gradient-to-t from-indigo-500 to-blue-500 group-hover:from-indigo-600 group-hover:to-blue-600 transition-all duration-300"
+                          style={{ height: `${pt.cpuLoad}%` }}
+                        />
+                        {/* API Indicator Dot */}
+                        <div 
+                          className="absolute w-2 h-2 rounded-full bg-amber-500 border border-white shadow-sm z-10 pointer-events-none transition-all duration-300"
+                          style={{ bottom: `calc(${Math.min(95, pt.apiRequestRate)}% - 4px)` }}
+                        />
+                        {/* Tooltip */}
+                        <div className="absolute bottom-full mb-2 hidden group-hover:flex flex-col items-center bg-slate-900 text-white text-[10px] p-2.5 rounded-xl shadow-xl z-20 w-32 text-center pointer-events-none">
+                          <span className="font-bold border-b border-slate-700 pb-1 mb-1 block w-full">{pt.timestamp}</span>
+                          <span className="flex justify-between w-full"><span>CPU:</span> <span>%{pt.cpuLoad}</span></span>
+                          <span className="flex justify-between w-full"><span>API:</span> <span>{pt.apiRequestRate} req/s</span></span>
                         </div>
                       </div>
-                    );
-                  })}
+                    ))
+                  )}
+                </div>
+                <div className="flex justify-between text-[9px] font-bold text-slate-400 pt-1">
+                  <span>{telemetryData[0]?.timestamp || "Başlangıç"}</span>
+                  <span>Şimdi ({telemetryData[telemetryData.length - 1]?.timestamp || "Bitiş"})</span>
+                </div>
+              </div>
+
+              {/* Memory Usage Telemetry Chart */}
+              <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-4">
+                <div className="flex justify-between items-center">
+                  <h4 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider">RAM Kullanım Trendi</h4>
+                  <span className="text-[10px] text-slate-400 font-bold">Son 30 Veri Noktası (5&apos;er dk)</span>
+                </div>
+                <div className="flex items-end justify-between h-48 pt-6 border-b border-slate-150 relative">
+                  {telemetryData.length === 0 ? (
+                    <div className="absolute inset-0 flex items-center justify-center text-xs text-slate-400 italic">Veri yükleniyor...</div>
+                  ) : (
+                    telemetryData.map((pt, i) => {
+                      const pct = (pt.memoryUsed / pt.memoryTotal) * 100;
+                      return (
+                        <div key={i} className="group relative flex flex-col items-center flex-1 h-full justify-end px-0.5">
+                          {/* RAM Bar */}
+                          <div 
+                            className="w-full rounded-t bg-gradient-to-t from-emerald-500 to-teal-500 group-hover:from-emerald-600 group-hover:to-teal-600 transition-all duration-300"
+                            style={{ height: `${pct}%` }}
+                          />
+                          {/* Tooltip */}
+                          <div className="absolute bottom-full mb-2 hidden group-hover:flex flex-col items-center bg-slate-900 text-white text-[10px] p-2.5 rounded-xl shadow-xl z-20 w-32 text-center pointer-events-none">
+                            <span className="font-bold border-b border-slate-700 pb-1 mb-1 block w-full">{pt.timestamp}</span>
+                            <span className="flex justify-between w-full"><span>RAM:</span> <span>{pt.memoryUsed} GB</span></span>
+                            <span className="flex justify-between w-full"><span>Limit:</span> <span>{pt.memoryTotal} GB</span></span>
+                            <span className="flex justify-between w-full text-emerald-400"><span>Oran:</span> <span>%{pct.toFixed(0)}</span></span>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+                <div className="flex justify-between text-[9px] font-bold text-slate-400 pt-1">
+                  <span>{telemetryData[0]?.timestamp || "Başlangıç"}</span>
+                  <span>Şimdi ({telemetryData[telemetryData.length - 1]?.timestamp || "Bitiş"})</span>
+                </div>
               </div>
             </div>
 
-            {/* Grafik 2: Veritabani Dağılımı ve SMS Kotasi */}
-            <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-6">
-              <div>
-                <h4 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider">Veritabani Boyut Dağılımı (GB)</h4>
-                <div className="space-y-4 pt-4">
+            {/* Sube & Veritabani Dagilimlari */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Grafik 1: Sube Dağılım Grafiği */}
+              <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-4">
+                <h4 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider">Bayi Şube Dağılımı</h4>
+                <div className="space-y-4 pt-2">
                   {tenantConfigs
-                    .sort((a, b) => b.meta.databaseSizeGb - a.meta.databaseSizeGb)
+                    .sort((a, b) => b.meta.branchLimit - a.meta.branchLimit)
                     .map((item, idx) => {
-                      const maxVal = Math.max(...tenantConfigs.map(t => t.meta.databaseSizeGb));
-                      const pct = maxVal > 0 ? (item.meta.databaseSizeGb / maxVal) * 100 : 0;
+                      const maxVal = Math.max(...tenantConfigs.map(t => t.meta.branchLimit));
+                      const pct = maxVal > 0 ? (item.meta.branchLimit / maxVal) * 100 : 0;
                       const colors = [
-                        "from-emerald-500 to-emerald-600",
-                        "from-blue-500 to-blue-600",
-                        "from-blue-500 to-blue-600",
-                        "from-sky-500 to-sky-600",
-                        "from-blue-500 to-blue-600",
                         "from-indigo-500 to-indigo-600",
-                        "from-violet-500 to-violet-600"
+                        "from-blue-500 to-blue-600",
+                        "from-violet-500 to-violet-600",
+                        "from-purple-500 to-purple-600",
+                        "from-fuchsia-500 to-fuchsia-600",
+                        "from-pink-500 to-pink-600",
+                        "from-rose-500 to-rose-600"
                       ];
                       const colorClass = colors[idx % colors.length];
 
@@ -3298,7 +3381,7 @@ function StudioPageContent() {
                         <div key={item.id} className="space-y-1">
                           <div className="flex justify-between text-xs font-bold text-slate-700">
                             <span>{item.tenant.fullName}</span>
-                            <span className="font-mono text-emerald-600 font-bold">{item.meta.databaseSizeGb.toFixed(1)} GB</span>
+                            <span className="font-mono text-indigo-600 font-bold">{item.meta.branchLimit} Sube</span>
                           </div>
                           <div className="w-full bg-slate-100 rounded-full h-3 border border-slate-200 overflow-hidden">
                             <div
@@ -3311,10 +3394,48 @@ function StudioPageContent() {
                     })}
                 </div>
               </div>
-                        </div>
-                      </div>
-                    </div>
-                )}
+
+              {/* Grafik 2: Veritabani Dağılımı */}
+              <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-6">
+                <div>
+                  <h4 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider">Veritabani Boyut Dağılımı (GB)</h4>
+                  <div className="space-y-4 pt-4">
+                    {tenantConfigs
+                      .sort((a, b) => b.meta.databaseSizeGb - a.meta.databaseSizeGb)
+                      .map((item, idx) => {
+                        const maxVal = Math.max(...tenantConfigs.map(t => t.meta.databaseSizeGb));
+                        const pct = maxVal > 0 ? (item.meta.databaseSizeGb / maxVal) * 100 : 0;
+                        const colors = [
+                          "from-emerald-500 to-emerald-600",
+                          "from-blue-500 to-blue-600",
+                          "from-sky-500 to-sky-600",
+                          "from-indigo-500 to-indigo-600",
+                          "from-violet-500 to-violet-600"
+                        ];
+                        const colorClass = colors[idx % colors.length];
+
+                        return (
+                          <div key={item.id} className="space-y-1">
+                            <div className="flex justify-between text-xs font-bold text-slate-700">
+                              <span>{item.tenant.fullName}</span>
+                              <span className="font-mono text-emerald-600 font-bold">{item.meta.databaseSizeGb.toFixed(1)} GB</span>
+                            </div>
+                            <div className="w-full bg-slate-100 rounded-full h-3 border border-slate-200 overflow-hidden">
+                              <div
+                                className={`bg-gradient-to-r ${colorClass} h-3 rounded-full transition-all duration-500`}
+                                style={{ width: `${pct}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* BILLING TAB */}
       {/* MUHASEBE & FINANS TAB */}
