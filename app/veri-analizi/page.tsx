@@ -3,7 +3,8 @@ import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore } from "@/lib/local-store";
 import { getSessionUser, getEffectiveTenantId } from "@/lib/auth";
 import { VeriAnaliziFilters } from "@/components/veri-analizi-filters";
-import { ExportCsvButton } from "@/components/export-csv-button";
+import { DownloadCsvButton } from "@/components/export-csv-button";
+import { rowsToCsv } from "@/lib/csv-export";
 
 type Period = "day" | "week" | "month" | "all";
 
@@ -341,6 +342,28 @@ export default async function VeriAnaliziPage({
   const incomeRows = rows.filter((r) => r.type === "INCOME");
   const expenseRows = rows.filter((r) => r.type === "EXPENSE");
 
+  const soldItemsCsv = rowsToCsv(soldItemRows, [
+    { header: "Tarih", accessor: (r) => r.createdAt.toLocaleDateString("tr-TR") },
+    { header: "Ürün", accessor: (r) => r.productName },
+    { header: "Adet", accessor: (r) => r.quantity },
+    { header: "Tutar (TL)", accessor: (r) => r.lineTotal },
+    { header: "Tahmini Kâr (TL)", accessor: (r) => r.lineTotal - r.estCost },
+    { header: "Ödeme", accessor: (r) => PAYMENT_LABELS[r.paymentMethod] ?? r.paymentMethod },
+    { header: "Personel", accessor: (r) => r.staffName ?? "" },
+  ]);
+  const incomeCsv = rowsToCsv(incomeRows, [
+    { header: "Tarih", accessor: (r) => r.createdAt.toLocaleDateString("tr-TR") },
+    { header: "Şube", accessor: (r) => r.branchName ?? "Şubesiz" },
+    { header: "Ödeme", accessor: (r) => PAYMENT_LABELS[r.paymentMethod] ?? r.paymentMethod },
+    { header: "Tutar (TL)", accessor: (r) => r.totalAmount },
+  ]);
+  const expenseCsv = rowsToCsv(expenseRows, [
+    { header: "Tarih", accessor: (r) => r.createdAt.toLocaleDateString("tr-TR") },
+    { header: "Şube", accessor: (r) => r.branchName ?? "Şubesiz" },
+    { header: "Açıklama", accessor: (r) => r.note ?? "" },
+    { header: "Tutar (TL)", accessor: (r) => r.totalAmount },
+  ]);
+
   const periodLabel = isCustomRange
     ? `${periodStart!.toLocaleDateString("tr-TR")} – ${(periodEnd ?? new Date()).toLocaleDateString("tr-TR")}`
     : selectedPeriod === "day"
@@ -442,18 +465,10 @@ export default async function VeriAnaliziPage({
         <div className="panel p-6 bg-white rounded-2xl border border-slate-200/80">
           <div className="flex items-start justify-between gap-2 mb-1">
             <h3 className="text-sm font-bold text-slate-800">Ne Sattım?</h3>
-            <ExportCsvButton
-              rows={soldItemRows}
+            <DownloadCsvButton
+              csv={soldItemsCsv}
+              rowCount={soldItemRows.length}
               filename={`ne-sattim-${periodLabel.replace(/\s/g, "-")}`}
-              columns={[
-                { header: "Tarih", accessor: (r) => r.createdAt.toLocaleDateString("tr-TR") },
-                { header: "Ürün", accessor: (r) => r.productName },
-                { header: "Adet", accessor: (r) => r.quantity },
-                { header: "Tutar (TL)", accessor: (r) => r.lineTotal },
-                { header: "Tahmini Kâr (TL)", accessor: (r) => r.lineTotal - r.estCost },
-                { header: "Ödeme", accessor: (r) => PAYMENT_LABELS[r.paymentMethod] ?? r.paymentMethod },
-                { header: "Personel", accessor: (r) => r.staffName ?? "" },
-              ]}
             />
           </div>
           <p className="text-xs text-slate-500 mb-4">Ürün bazlı satış detayı, satış anındaki maliyete göre tahmini kâr, ödeme yöntemi ve satışı yapan personel ile.</p>
@@ -584,15 +599,10 @@ export default async function VeriAnaliziPage({
         <div className="panel p-6 bg-white rounded-2xl border border-slate-200/80">
           <div className="flex items-start justify-between gap-2 mb-4">
             <h3 className="text-sm font-bold text-slate-800">Gelir Tablosu</h3>
-            <ExportCsvButton
-              rows={incomeRows}
+            <DownloadCsvButton
+              csv={incomeCsv}
+              rowCount={incomeRows.length}
               filename={`gelir-tablosu-${periodLabel.replace(/\s/g, "-")}`}
-              columns={[
-                { header: "Tarih", accessor: (r) => r.createdAt.toLocaleDateString("tr-TR") },
-                { header: "Şube", accessor: (r) => r.branchName ?? "Şubesiz" },
-                { header: "Ödeme", accessor: (r) => PAYMENT_LABELS[r.paymentMethod] ?? r.paymentMethod },
-                { header: "Tutar (TL)", accessor: (r) => r.totalAmount },
-              ]}
             />
           </div>
           <div className="overflow-x-auto max-h-[420px] overflow-y-auto">
@@ -626,15 +636,10 @@ export default async function VeriAnaliziPage({
         <div className="panel p-6 bg-white rounded-2xl border border-slate-200/80">
           <div className="flex items-start justify-between gap-2 mb-4">
             <h3 className="text-sm font-bold text-slate-800">Gider Tablosu</h3>
-            <ExportCsvButton
-              rows={expenseRows}
+            <DownloadCsvButton
+              csv={expenseCsv}
+              rowCount={expenseRows.length}
               filename={`gider-tablosu-${periodLabel.replace(/\s/g, "-")}`}
-              columns={[
-                { header: "Tarih", accessor: (r) => r.createdAt.toLocaleDateString("tr-TR") },
-                { header: "Şube", accessor: (r) => r.branchName ?? "Şubesiz" },
-                { header: "Açıklama", accessor: (r) => r.note ?? "" },
-                { header: "Tutar (TL)", accessor: (r) => r.totalAmount },
-              ]}
             />
           </div>
           <div className="overflow-x-auto max-h-[420px] overflow-y-auto">

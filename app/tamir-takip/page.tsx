@@ -1708,7 +1708,7 @@ export default function RepairPage() {
       {isDetailModalOpen && selectedRepair && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 p-3 backdrop-blur-sm animate-fade-in sm:p-4">
           <div className="flex h-full w-full items-center justify-center">
-            <div className="panel translate-y-[200px] flex w-full max-w-5xl max-h-[calc(100vh-1.5rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white/95 p-0 shadow-2xl backdrop-blur-md sm:max-h-[calc(100vh-2rem)]">
+            <div className="panel flex w-full max-w-5xl max-h-[calc(100vh-1.5rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white/95 p-0 shadow-2xl backdrop-blur-md sm:max-h-[calc(100vh-2rem)]">
             {/* Header */}
             <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
               <div>
