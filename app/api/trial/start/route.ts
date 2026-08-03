@@ -84,11 +84,14 @@ export async function POST(req: Request) {
     if (!email || typeof email !== "string" || !email.includes("@")) {
       return NextResponse.json({ error: "Geçerli bir email adresi giriniz" }, { status: 400 });
     }
+    if (!phone || typeof phone !== "string" || !phone.trim()) {
+      return NextResponse.json({ error: "Telefon numarası zorunludur" }, { status: 400 });
+    }
 
     const name = shopName.trim();
     const ownerName = (fullName || name).trim();
     const ownerEmail = email.trim().toLowerCase();
-    const ownerPhone = typeof phone === "string" && phone.trim() ? phone.trim() : "5XXXXXXXXX";
+    const ownerPhone = phone.trim();
     const trialExpires = new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
     // The account is provisioned without a usable password — the trial session

@@ -24,6 +24,10 @@ export function TrialSignupForm({ className }: { className?: string }) {
       toast.error("Bayi adı zorunludur");
       return;
     }
+    if (!phone.trim()) {
+      toast.error("Telefon numarası zorunludur");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -34,7 +38,7 @@ export function TrialSignupForm({ className }: { className?: string }) {
           shopName: shopName.trim(),
           fullName: fullName.trim() || shopName.trim(),
           email: trimmedEmail,
-          phone: phone.trim() || undefined,
+          phone: phone.trim(),
         }),
       });
 
@@ -105,8 +109,9 @@ export function TrialSignupForm({ className }: { className?: string }) {
         <input
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          placeholder="Telefon (opsiyonel)"
+          placeholder="Telefon (zorunlu)"
           type="tel"
+          required
           className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white placeholder-slate-500 focus:border-blue-200/50 focus:outline-none focus:ring-2 focus:ring-blue-200/20 transition"
         />
       </div>
