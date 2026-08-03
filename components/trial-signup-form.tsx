@@ -3,6 +3,17 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
+function normalizeTrPhone(input: string) {
+  let digits = input.replace(/\D/g, "");
+  if (digits.startsWith("90") && digits.length === 12) digits = digits.slice(2);
+  else if (digits.startsWith("0") && digits.length === 11) digits = digits.slice(1);
+  return digits;
+}
+
+function isValidTrMobile(digits: string) {
+  return /^5\d{9}$/.test(digits);
+}
+
 export function TrialSignupForm({ className }: { className?: string }) {
   const [shopName, setShopName] = useState("");
   const [fullName, setFullName] = useState("");
@@ -24,8 +35,9 @@ export function TrialSignupForm({ className }: { className?: string }) {
       toast.error("Bayi adı zorunludur");
       return;
     }
-    if (!phone.trim()) {
-      toast.error("Telefon numarası zorunludur");
+    const normalizedPhone = normalizeTrPhone(phone);
+    if (!isValidTrMobile(normalizedPhone)) {
+      toast.error("Telefon numarası 5 ile başlayan 10 haneli olmalıdır (örn: 5XX XXX XX XX)");
       return;
     }
 
@@ -38,7 +50,7 @@ export function TrialSignupForm({ className }: { className?: string }) {
           shopName: shopName.trim(),
           fullName: fullName.trim() || shopName.trim(),
           email: trimmedEmail,
-          phone: phone.trim(),
+          phone: normalizedPhone,
         }),
       });
 
@@ -106,14 +118,18 @@ export function TrialSignupForm({ className }: { className?: string }) {
           required
           className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white placeholder-slate-500 focus:border-blue-200/50 focus:outline-none focus:ring-2 focus:ring-blue-200/20 transition"
         />
-        <input
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="Telefon (zorunlu)"
-          type="tel"
-          required
-          className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white placeholder-slate-500 focus:border-blue-200/50 focus:outline-none focus:ring-2 focus:ring-blue-200/20 transition"
-        />
+        <div className="flex items-center rounded-xl border border-white/15 bg-white/5 pl-4 focus-within:border-blue-200/50 focus-within:ring-2 focus-within:ring-blue-200/20 transition">
+          <span className="shrink-0 text-sm font-semibold text-slate-400">+90</span>
+          <input
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="5XX XXX XX XX"
+            type="tel"
+            inputMode="numeric"
+            required
+            className="w-full bg-transparent px-2 py-3 text-sm font-semibold text-white placeholder-slate-500 focus:outline-none"
+          />
+        </div>
       </div>
 
       <button
