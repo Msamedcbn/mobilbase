@@ -131,7 +131,7 @@ VibeGSM dört farklı paket sunar. Her paket bayi ölçeğine göre farklı mod�
 
 ### Deneme Sürümü
 
-14 günlük ücretsiz deneme sürümünde tüm Pro özelliklerine erişebilirsiniz. Kredi kartı gerekmez.`,
+7 günlük ücretsiz deneme sürümünde tüm Pro özelliklerine erişebilirsiniz. Kredi kartı gerekmez.`,
   },
 ];
 

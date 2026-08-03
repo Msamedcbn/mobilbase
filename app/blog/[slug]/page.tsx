@@ -49,6 +49,7 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
     "@type": "Article",
     headline: post.title,
     description: post.description,
+    image: `${BASE_URL}/blog/${post.slug}/opengraph-image`,
     keywords: [post.focusKeyword, ...post.tags].join(", "),
     datePublished: post.date,
     author: { "@type": "Organization", name: "VibeGSM" },
@@ -142,7 +143,7 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
               href="/kayit"
               className="rounded-full bg-blue-600 px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-blue-600/30 transition hover:bg-blue-500"
             >
-              14 Gün Ücretsiz Deneyin
+              7 Gün Ücretsiz Deneyin
             </Link>
           </div>
         </div>

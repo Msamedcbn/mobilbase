@@ -10,6 +10,7 @@ const PUBLIC_PATHS = [
   "/trial-expired",
   "/yardim",
   "/takas-hesapla",
+  "/kayit",
   "/blog",
   "/story-preview",
   // Next.js metadata image conventions — social/crawler bots (WhatsApp, Twitter,

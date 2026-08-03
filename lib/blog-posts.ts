@@ -83,7 +83,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         heading: "Sonuç: İşletmenizi Büyütecek Doğru Altyapıyı Kurun",
         paragraphs: [
-          "Telefon dükkanınızın stok takibini riske atmamak, IMEI karmaşasını bitirmek ve kârlılığınızı korumak için VibeGSM bulut yönetim yazılımını 14 gün boyunca tamamen ücretsiz deneyebilirsiniz.",
+          "Telefon dükkanınızın stok takibini riske atmamak, IMEI karmaşasını bitirmek ve kârlılığınızı korumak için VibeGSM bulut yönetim yazılımını 7 gün boyunca tamamen ücretsiz deneyebilirsiniz.",
         ],
       },
     ],
@@ -151,7 +151,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         heading: "Sonuç: Teknik Servisinizi Dijitalleştirmeye Başlayın",
         paragraphs: [
-          "Kağıt fişlerden, kaybolan cihazlardan ve müşteri tartışmalarından kurtulmak için VibeGSM Teknik Servis yönetim yazılımını 14 gün boyunca ücretsiz deneyin.",
+          "Kağıt fişlerden, kaybolan cihazlardan ve müşteri tartışmalarından kurtulmak için VibeGSM Teknik Servis yönetim yazılımını 7 gün boyunca ücretsiz deneyin.",
         ],
       },
     ],
@@ -211,7 +211,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         heading: "Sonuç: Envanter Güvenliğinizi Riske Atmayın",
         paragraphs: [
-          "IMEI bazlı kusursuz stok ve güvenlik takibi için VibeGSM'in gelişmiş modülünü 14 gün boyunca ücretsiz deneyebilirsiniz.",
+          "IMEI bazlı kusursuz stok ve güvenlik takibi için VibeGSM'in gelişmiş modülünü 7 gün boyunca ücretsiz deneyebilirsiniz.",
         ],
       },
     ],
@@ -1122,9 +1122,9 @@ export const BLOG_POSTS: BlogPost[] = [
         ],
       },
       {
-        heading: "Sonuç: İstanbul Bayinize Özel 14 Gün Ücretsiz Deneme",
+        heading: "Sonuç: İstanbul Bayinize Özel 7 Gün Ücretsiz Deneme",
         paragraphs: [
-          "VibeGSM, İstanbul'un yüksek tempolu GSM mağazaları ve teknik servisleri düşünülerek geliştirildi. Kadıköy'den Tahtakale'ye, Avcılar'dan Pendik'e kadar işletmenizi tek bir bulut panelden yönetmek ve istanbul telefoncu stok programı avantajlarından yararlanmak için 14 gün boyunca tamamen ücretsiz deneyin.",
+          "VibeGSM, İstanbul'un yüksek tempolu GSM mağazaları ve teknik servisleri düşünülerek geliştirildi. Kadıköy'den Tahtakale'ye, Avcılar'dan Pendik'e kadar işletmenizi tek bir bulut panelden yönetmek ve istanbul telefoncu stok programı avantajlarından yararlanmak için 7 gün boyunca tamamen ücretsiz deneyin.",
         ],
       },
     ],
@@ -1239,7 +1239,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         heading: "Sonuç",
         paragraphs: [
-          "Türkiye'nin dört bir yanındaki telefoncuların güvendiği VibeGSM ile siz de mağazanızı dijitalleştirin. türkiye teknik servis programı demomuz için hemen başvurun, 14 gün boyunca ücretsiz deneyin.",
+          "Türkiye'nin dört bir yanındaki telefoncuların güvendiği VibeGSM ile siz de mağazanızı dijitalleştirin. türkiye teknik servis programı demomuz için hemen başvurun, 7 gün boyunca ücretsiz deneyin.",
         ],
       },
     ],
@@ -1492,7 +1492,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         heading: "Sonuç: Servisinizi Yasal Korumaya Alın",
         paragraphs: [
-          "Teknik servisinize gelen tüm cihazları yasal standartlara uygun kabul etmek ve müşteri memnuniyetini artırmak için VibeGSM'in teknik servis yönetim modülünü hemen 14 gün ücretsiz deneyin.",
+          "Teknik servisinize gelen tüm cihazları yasal standartlara uygun kabul etmek ve müşteri memnuniyetini artırmak için VibeGSM'in teknik servis yönetim modülünü hemen 7 gün ücretsiz deneyin.",
         ],
       },
     ],
@@ -1554,7 +1554,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         heading: "Sonuç: VibeGSM ile GSMP Backoffice Gücünü Keşfedin",
         paragraphs: [
-          "Telefon dükkanınızın stok, POS, veresiye ve teknik servis süreçlerini tek platformda buluşturan VibeGSM, karmaşık kurulum gerektirmeden 10 saniyede kullanıma hazır hale gelir. İşletmenizi büyütmek ve kârlılığınızı artırmak için 14 gün ücretsiz deneyebilirsiniz.",
+          "Telefon dükkanınızın stok, POS, veresiye ve teknik servis süreçlerini tek platformda buluşturan VibeGSM, karmaşık kurulum gerektirmeden 10 saniyede kullanıma hazır hale gelir. İşletmenizi büyütmek ve kârlılığınızı artırmak için 7 gün ücretsiz deneyebilirsiniz.",
         ],
       },
     ],
@@ -1615,7 +1615,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         heading: "Sonuç: Dükkanınızı Geleceğe Taşıyın",
         paragraphs: [
-          "Kağıt defterlerden, kaybolan fişlerden ve karmaşık Excel tablolarından kurtulmak için VibeGSM telefoncu otomasyon yazılımını 14 gün boyunca tamamen ücretsiz deneyebilirsiniz.",
+          "Kağıt defterlerden, kaybolan fişlerden ve karmaşık Excel tablolarından kurtulmak için VibeGSM telefoncu otomasyon yazılımını 7 gün boyunca tamamen ücretsiz deneyebilirsiniz.",
         ],
       },
     ],
@@ -1675,7 +1675,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         heading: "Sonuç: Mağazanızı ve Servisinizi Tek Bir Merkezden Yönetin",
         paragraphs: [
-          "VibeGSM, sadece bir yazarkasa veya basit bir POS programı değildir — telefon bayileri için özel olarak inşa edilmiş tam teşekküllü bir **Teknik Servis ve Mağaza Yönetim Platformudur**. İşletmenizin tüm gücünü tek bulut panelde birleştirmek için 14 gün boyunca tamamen ücretsiz deneyebilirsiniz.",
+          "VibeGSM, sadece bir yazarkasa veya basit bir POS programı değildir — telefon bayileri için özel olarak inşa edilmiş tam teşekküllü bir **Teknik Servis ve Mağaza Yönetim Platformudur**. İşletmenizin tüm gücünü tek bulut panelde birleştirmek için 7 gün boyunca tamamen ücretsiz deneyebilirsiniz.",
         ],
       },
     ],
@@ -1727,7 +1727,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         heading: "Sonuç: İşletmenizi Büyütmek İçin Profesyonel Altyapı Şart",
         paragraphs: [
-          "Sermayenizi ve zamanınızı riskli Excel dosyalarında harcamak yerine VibeGSM'in sunduğu profesyonel bulut altyapısını 14 gün ücretsiz deneyebilirsiniz.",
+          "Sermayenizi ve zamanınızı riskli Excel dosyalarında harcamak yerine VibeGSM'in sunduğu profesyonel bulut altyapısını 7 gün ücretsiz deneyebilirsiniz.",
         ],
       },
     ],
@@ -1829,15 +1829,15 @@ export const BLOG_POSTS: BlogPost[] = [
   {
     slug: "gsm-bayilerinde-veresiye-takibi-ve-whatsapp-hatirlatma",
     title: "GSM Bayilerinde Veresiye Borç Kayıplarını Sıfırlama ve Otomatik WhatsApp Hatırlatma",
-    metaTitle: "GSM Bayilerinde Veresiye Takip Programı & WhatsApp Hatırlatma",
-    focusKeyword: "telefoncu veresiye takip programı",
+    metaTitle: "GSM Bayilerinde Otomatik Veresiye Borç Hatırlatma (WhatsApp)",
+    focusKeyword: "veresiye borç hatırlatma",
     description:
       "Telefon dükkanlarında kağıt defterlerde unutulan veresiye borçlarını sıfırlayın. Kredi limiti, otomatik vade uyarısı ve tek tıkla WhatsApp borç hatırlatma sistemi.",
     keywords: [
-      "telefoncu veresiye takip programı",
+      "veresiye borç hatırlatma",
+      "whatsapp borç hatırlatma programı",
       "gsm dükkanı cari takip",
       "müşteri veresiye defteri yazılımı",
-      "whatsapp borç hatırlatma programı",
       "telefoncu cari alacak yönetimi",
     ],
     tags: ["Tahsilat & Cari", "POS & Satış", "Büyüme"],

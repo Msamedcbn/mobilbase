@@ -75,7 +75,7 @@ export function TrialSignupForm({ className }: { className?: string }) {
 
   return (
     <form onSubmit={handleSubmit} className={className}>
-      <h2 className="text-xl font-black text-white md:text-2xl">14 Gün Ücretsiz Deneyin</h2>
+      <h2 className="text-xl font-black text-white md:text-2xl">7 Gün Ücretsiz Deneyin</h2>
       <p className="mt-2 text-sm text-slate-300">
         Kredi kartı gerekmez. Bayinize özel sanal alan hemen açılır.
       </p>
@@ -120,7 +120,7 @@ export function TrialSignupForm({ className }: { className?: string }) {
       </button>
 
       <p className="mt-3 text-center text-[11px] text-slate-500">
-        14 gün tam erişim. Süre sonunda verileriniz 30 gün saklanır.
+        7 gün tam erişim. Süre sonunda ekibimiz WhatsApp&apos;tan sizinle iletişime geçer.
       </p>
     </form>
   );

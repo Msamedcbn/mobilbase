@@ -29,9 +29,9 @@ export default function NedenVibeGsmPage() {
     },
     offers: {
       "@type": "Offer",
-      url: `${BASE_URL}/pricing`,
+      url: `${BASE_URL}/kayit`,
       priceCurrency: "TRY",
-      price: "299",
+      price: "750",
       valueAddedTaxIncluded: true,
     },
   };

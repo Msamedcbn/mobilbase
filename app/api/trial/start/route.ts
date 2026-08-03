@@ -8,7 +8,7 @@ import { createSignedSessionToken } from "@/lib/session";
 import { logStudioAction } from "@/lib/studio-audit";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
-const TRIAL_DAYS = 14;
+const TRIAL_DAYS = 7;
 
 const TRIAL_ROLE_PERMISSIONS = {
   CASHIER: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],

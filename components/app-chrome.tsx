@@ -14,6 +14,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
   const isPublicOrStudio =
     pathname === "/" ||
     pathname === "/login" ||
+    pathname === "/kayit" ||
     pathname === "/story-preview" ||
     pathname === "/neden-vibegsm" ||
     pathname?.startsWith("/sehirler") ||

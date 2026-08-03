@@ -35,7 +35,9 @@ export default function robots(): MetadataRoute.Robots {
         "/login",
         "/unauthorized",
         "/trial-expired",
-        "/takas-hesapla",
+        // Internal screenshot/asset-generation tool, not real content — inherits
+        // the homepage title/description verbatim, so keep it out of the index.
+        "/story-preview",
       ],
     },
     sitemap: `${BASE_URL}/sitemap.xml`,

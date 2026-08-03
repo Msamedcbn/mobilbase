@@ -10,6 +10,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/takas-hesapla`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/yardim`, changeFrequency: "monthly", priority: 0.3 },
     { url: `${BASE_URL}/neden-vibegsm`, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/kayit`, changeFrequency: "monthly", priority: 0.9 },
   ];
 
   const cityRoutes: MetadataRoute.Sitemap = [

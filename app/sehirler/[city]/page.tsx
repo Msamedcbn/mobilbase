@@ -187,7 +187,7 @@ export default function CitySeoPage({ params }: Props) {
             {cityInfo.name}&apos;deki Dükkanınızı VibeGSM ile Dijitalleştirin
           </h3>
           <p className="mx-auto mt-2 max-w-xl text-sm text-slate-300 leading-relaxed">
-            10 saniyede hesabınızı oluşturun, 14 gün boyunca hiçbir ücret ödemeden tüm özellikleri sınırsız test edin.
+            10 saniyede hesabınızı oluşturun, 7 gün boyunca hiçbir ücret ödemeden tüm özellikleri sınırsız test edin.
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <a
@@ -202,7 +202,7 @@ export default function CitySeoPage({ params }: Props) {
               href="/kayit"
               className="rounded-full bg-blue-600 px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-blue-600/30 transition hover:bg-blue-500"
             >
-              14 Gün Ücretsiz Deneyin
+              7 Gün Ücretsiz Deneyin
             </Link>
           </div>
         </div>
