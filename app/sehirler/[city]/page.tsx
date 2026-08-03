@@ -72,13 +72,6 @@ export function generateMetadata({ params }: Props): Metadata {
   return {
     title: `${cityInfo.name} Telefoncu Yönetim Programı & Teknik Servis Yazılımı | VibeGSM`,
     description: `${cityInfo.name} şehrindeki GSM dükkanları ve telefon tamircileri için bulut tabanlı stok, POS, veresiye ve 2. el alım sözleşmesi otomasyonu.`,
-    keywords: [
-      `${cityInfo.name.toLowerCase()} telefoncu yönetim programı`,
-      `${cityInfo.name.toLowerCase()} gsm dükkanı otomasyonu`,
-      `${cityInfo.name.toLowerCase()} telefon teknik servis yazılımı`,
-      `${cityInfo.name.toLowerCase()} ikinci el telefon alım sözleşmesi`,
-      `${cityInfo.name.toLowerCase()} telefoncu veresiye takip`,
-    ],
     alternates: { canonical: `/sehirler/${params.city}` },
     openGraph: {
       title: `${cityInfo.name} Telefoncu Yönetim Programı | VibeGSM`,

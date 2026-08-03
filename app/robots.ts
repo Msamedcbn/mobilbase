@@ -29,6 +29,10 @@ export default function robots(): MetadataRoute.Robots {
         "/subeler",
         "/ayarlar",
         "/veri-analizi",
+        "/giderler",
+        "/denetim-kayitlari",
+        "/uyarilar",
+        "/vadeli-alis-borclari",
         "/studio",
         // Per-record repair status lookup pages — not content, must never be indexed.
         "/servis",

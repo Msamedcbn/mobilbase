@@ -66,7 +66,7 @@ const HERO_CHECKS = [
 const PAIN_POINTS = [
   {
     title: "Excel'de kaybolan stok",
-    desc: "Kaç üründen kaç adet kaldığını bulmak için sekiz farklı sekmeye bakıyorsunuz.",
+    desc: "Adedi güncellersiniz ama kaydetmeyi unutursunuz; ertesi gün stok yine eski haliyle karşınıza çıkar.",
     icon: "M9 12h6m-6 4h6m-7 5h8a2 2 0 002-2V7.414a2 2 0 00-.586-1.414l-3.414-3.414A2 2 0 0012.586 2H6a2 2 0 00-2 2v14a2 2 0 002 2z",
   },
   {
@@ -485,7 +485,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
           <a
             href={WHATSAPP_HREF}
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noopener noreferrer nofollow"
             className="hidden shrink-0 items-center gap-1 rounded-full bg-white px-3 py-1 text-[11px] font-black text-orange-600 transition hover:bg-orange-50 sm:inline-flex"
           >
             Hemen Yakala →
@@ -498,7 +498,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
               <svg className="h-3.5 w-3.5 text-blue-600" fill="none" stroke="currentColor" strokeWidth={1.75} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h1.5a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>
               Destek &amp; Bilgi Hattı: 0545 440 34 52
             </a>
-            <a href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 rounded-full bg-[#25D366]/10 px-3.5 py-1.5 font-black text-[#1da851] transition hover:bg-[#25D366]/20">
+            <a href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer nofollow" className="flex items-center gap-1.5 rounded-full bg-[#25D366]/10 px-3.5 py-1.5 font-black text-[#1da851] transition hover:bg-[#25D366]/20">
               💬 WhatsApp&apos;tan Yazın
             </a>
           </div>
@@ -516,12 +516,12 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
             </a>
             <div className="hidden items-center gap-8 md:flex">
               {NAV_LINKS.map((link) => (
-                <a key={link.label} href={link.href} className="text-[13px] font-semibold text-slate-600 transition hover:text-slate-900">{link.label}</a>
+                <a key={link.label} href={link.href} title={link.label} className="text-[13px] font-semibold text-slate-600 transition hover:text-slate-900">{link.label}</a>
               ))}
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
-              <a href="/login" className="hidden sm:inline-block rounded-full bg-slate-100 px-5 py-2 text-[13px] font-bold text-slate-800 transition hover:bg-slate-200 border border-slate-200">Giriş</a>
-              <a href="/kayit" className="inline-block rounded-full bg-blue-600 px-5 py-2 text-[13px] font-bold text-white shadow-md shadow-blue-600/20 transition hover:bg-blue-700">Ücretsiz Dene</a>
+              <a href="/login" title="VibeGSM'e Giriş Yap" className="hidden sm:inline-block rounded-full bg-slate-100 px-5 py-2 text-[13px] font-bold text-slate-800 transition hover:bg-slate-200 border border-slate-200">Giriş</a>
+              <a href="/kayit" title="Ücretsiz Demo Kaydı Oluştur" className="inline-block rounded-full bg-blue-600 px-5 py-2 text-[13px] font-bold text-white shadow-md shadow-blue-600/20 transition hover:bg-blue-700">Ücretsiz Dene</a>
               <button
                 onClick={() => setMenuOpen((v) => !v)}
                 aria-label="Menü"
@@ -547,6 +547,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
           <a
             key={link.label}
             href={link.href}
+            title={link.label}
             onClick={() => setMenuOpen(false)}
             style={{ transitionDelay: menuOpen ? `${100 + i * 70}ms` : "0ms" }}
             className={`px-6 py-3 text-2xl font-black tracking-tight text-slate-900 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
@@ -613,7 +614,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
               <a
                 href={WHATSAPP_HREF}
                 target="_blank"
-                rel="noopener noreferrer"
+                rel="noopener noreferrer nofollow"
                 onClick={closePromo}
                 className="flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-3 text-sm font-black text-white shadow-lg shadow-[#25D366]/25 transition hover:brightness-105"
               >
@@ -642,7 +643,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
       <a
         href={WHATSAPP_HREF}
         target="_blank"
-        rel="noopener noreferrer"
+        rel="noopener noreferrer nofollow"
         aria-label="WhatsApp'tan yazın"
         className="group fixed bottom-20 right-5 z-[80] flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] shadow-[0_10px_30px_-8px_rgba(37,211,102,0.6)] transition-transform hover:scale-105 active:scale-95 md:bottom-6 md:right-6"
       >
@@ -659,7 +660,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
           <a
             href={WHATSAPP_HREF}
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noopener noreferrer nofollow"
             className="flex flex-1 items-center justify-center rounded-full bg-[#25D366] py-3 text-sm font-black text-white shadow-md shadow-[#25D366]/25"
           >
             WhatsApp ile Bilgi Alın
@@ -699,12 +700,12 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
               </div>
 
               <div className="hero-anim mt-10 flex flex-wrap gap-4">
-                <a href="/kayit" className="group inline-flex items-center gap-3 rounded-full bg-blue-600 pl-8 pr-2 py-2 text-sm font-black text-white shadow-lg shadow-blue-600/25 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/30 active:scale-[0.98]">
+                <a href="/kayit" title="Ücretsiz Demo Kaydı Oluştur" className="group inline-flex items-center gap-3 rounded-full bg-blue-600 pl-8 pr-2 py-2 text-sm font-black text-white shadow-lg shadow-blue-600/25 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/30 active:scale-[0.98]">
                   Ücretsiz Dene
                   <TrailingIcon />
                 </a>
-                <a href="#pricing" className="rounded-full border border-slate-200 bg-white px-8 py-3.5 text-sm font-bold text-slate-800 shadow-sm transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]">Paketleri Gör</a>
-                <a href="#iletisim" className="rounded-full border border-slate-200 bg-white px-8 py-3.5 text-sm font-bold text-slate-800 shadow-sm transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]">Bize Ulaşın</a>
+                <a href="#pricing" title="Fiyatlandırma Paketlerini Gör" className="rounded-full border border-slate-200 bg-white px-8 py-3.5 text-sm font-bold text-slate-800 shadow-sm transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]">Paketleri Gör</a>
+                <a href="#iletisim" title="Bize Ulaşın" className="rounded-full border border-slate-200 bg-white px-8 py-3.5 text-sm font-bold text-slate-800 shadow-sm transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]">Bize Ulaşın</a>
               </div>
             </div>
 
@@ -755,7 +756,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
 
       <section className="relative z-10 pb-20 md:pb-28">
         <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <p className="reveal text-xs font-black uppercase tracking-[0.2em] text-slate-400">Bugünkü durum tanıdık geliyor mu?</p>
+          <h2 className="reveal text-xs font-black uppercase tracking-[0.2em] text-slate-400">Bugünkü durum tanıdık geliyor mu?</h2>
           <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {PAIN_POINTS.map((p) => (
               <div key={p.title} className="reveal rounded-[1.75rem] border border-dashed border-slate-200 bg-white p-1.5">
@@ -950,7 +951,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
                     <a
                       href={WHATSAPP_HREF}
                       target="_blank"
-                      rel="noopener noreferrer"
+                      rel="noopener noreferrer nofollow"
                       className="group/cta mt-7 inline-flex w-full items-center justify-between rounded-full border border-slate-200 bg-slate-50 pl-5 pr-2 py-2 text-[13px] font-bold text-slate-800 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-slate-300 hover:bg-slate-100"
                     >
                       {plan.key} paketini WhatsApp&apos;tan inceleyin
@@ -1032,7 +1033,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
                 <a
                   href={WHATSAPP_HREF}
                   target="_blank"
-                  rel="noopener noreferrer"
+                  rel="noopener noreferrer nofollow"
                   className="group inline-flex items-center gap-3 rounded-full bg-[#25D366] pl-8 pr-2 py-2 text-sm font-black text-white shadow-lg shadow-[#25D366]/25 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:brightness-105 active:scale-[0.98]"
                 >
                   WhatsApp ile İletişime Geçin
@@ -1055,12 +1056,12 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
             <span className="text-base font-black text-slate-900">VibeGSM</span>
           </a>
           <div className="flex flex-wrap justify-center gap-6 text-xs text-slate-500">
-            <a href="#features" className="hover:text-slate-900 transition">Özellikler</a>
-            <a href="#pricing" className="hover:text-slate-900 transition">Paketler</a>
-            <a href="/neden-vibegsm" className="hover:text-slate-900 transition">Neden VibeGSM?</a>
-            <a href="/blog" className="hover:text-slate-900 transition">Blog</a>
-            <a href="/yardim" className="hover:text-slate-900 transition">Yardım</a>
-            <a href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer" className="hover:text-slate-900 transition">İletişim (WhatsApp)</a>
+            <a href="#features" title="Özellikler" className="hover:text-slate-900 transition">Özellikler</a>
+            <a href="#pricing" title="Paketler" className="hover:text-slate-900 transition">Paketler</a>
+            <a href="/neden-vibegsm" title="Neden VibeGSM?" className="hover:text-slate-900 transition">Neden VibeGSM?</a>
+            <a href="/blog" title="Blog" className="hover:text-slate-900 transition">Blog</a>
+            <a href="/yardim" title="Yardım" className="hover:text-slate-900 transition">Yardım</a>
+            <a href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer nofollow" title="WhatsApp'tan İletişime Geçin" className="hover:text-slate-900 transition">İletişim (WhatsApp)</a>
           </div>
           <div className="flex flex-wrap justify-center gap-2 text-[11px] text-slate-400">
             <span>Yerel Şehir Çözümleri:</span>

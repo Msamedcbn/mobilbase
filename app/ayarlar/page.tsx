@@ -19,12 +19,23 @@ const DEFAULT_SETTINGS: SettingsState = {
   installmentTemplate: "Merhaba {ad_soyad}, {islem_no} numaralı alışverişinize ait {taksit_no}. taksit ödemeniz ({tutar} TL) vadesi ({vade}) gelmiştir. Ödemenizi en kısa sürede tamamlamanızı rica ederiz. İyi günler dileriz.",
 };
 
+const MODULE_LABELS: { key: string; label: string; description: string }[] = [
+  { key: "pos", label: "Satış (POS)", description: "Satış ekranı ve hızlı satış işlemleri." },
+  { key: "repairs", label: "Teknik Servis", description: "Servis kayıtları ve tamir takibi." },
+  { key: "stock", label: "Stok Yönetimi", description: "Ürün ve IMEI bazlı stok kayıtları." },
+  { key: "invoicing", label: "Faturalama", description: "Fatura oluşturma ve cari işlemler." },
+  { key: "buyback", label: "İkinci El Alım (Takas)", description: "Cihaz takas ve geri alım akışı." },
+];
+
 export default function SettingsPage() {
   const [settings, setSettings] = useState<SettingsState>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [canManageSettings, setCanManageSettings] = useState(false);
   const [activeTab, setActiveTab] = useState<"repair" | "veresiye" | "installment">("repair");
+  const [modules, setModules] = useState<Record<string, boolean>>({});
+  const [modulesLoading, setModulesLoading] = useState(true);
+  const [togglingModule, setTogglingModule] = useState<string | null>(null);
 
   useEffect(() => {
     // Check user auth role
@@ -58,7 +69,42 @@ export default function SettingsPage() {
       .finally(() => {
         setLoading(false);
       });
+
+    // Fetch module visibility toggles
+    fetch("/api/settings/modules")
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then((json) => setModules(json.modules ?? {}))
+      .catch(() => {
+        // Non-fatal: modules default to visible when unset.
+      })
+      .finally(() => setModulesLoading(false));
   }, []);
+
+  const handleToggleModule = async (moduleKey: string, enabled: boolean) => {
+    setTogglingModule(moduleKey);
+    const previous = modules;
+    setModules((prev) => ({ ...prev, [moduleKey]: enabled }));
+    try {
+      const res = await fetch("/api/settings/modules", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ module: moduleKey, enabled }),
+      });
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error ?? "Modül güncellenemedi.");
+      }
+      toast.success(`${MODULE_LABELS.find((m) => m.key === moduleKey)?.label ?? moduleKey} ${enabled ? "açıldı" : "kapatıldı"}.`);
+    } catch (error) {
+      setModules(previous);
+      toast.error(error instanceof Error ? error.message : "Sistem hatası.");
+    } finally {
+      setTogglingModule(null);
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,6 +183,45 @@ export default function SettingsPage() {
           Görüntüleme Modu: Sistem ayarlarını sadece yetkili roller (ADMIN/MANAGER) düzenleyebilir.
         </div>
       )}
+
+      <div className="panel bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <div>
+          <h3 className="font-bold text-slate-900">Modül Görünürlüğü</h3>
+          <p className="text-xs text-slate-500 mt-1">
+            İşletmenizde kullanmadığınız modülleri kapatarak menüyü sadeleştirebilirsiniz. Kapatılan modüllere ekip üyeleriniz erişemez.
+          </p>
+        </div>
+        {modulesLoading ? (
+          <div className="text-sm text-slate-400">Yükleniyor...</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {MODULE_LABELS.map((mod) => {
+              const enabled = modules[mod.key] !== false;
+              return (
+                <div
+                  key={mod.key}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-slate-800">{mod.label}</p>
+                    <p className="text-[11px] text-slate-500">{mod.description}</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={enabled}
+                      disabled={!canManageSettings || togglingModule === mod.key}
+                      onChange={(e) => handleToggleModule(mod.key, e.target.checked)}
+                    />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                  </label>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       <form onSubmit={handleSave} className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

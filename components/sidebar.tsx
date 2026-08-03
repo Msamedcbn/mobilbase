@@ -54,6 +54,7 @@ const navSections: Array<{ title: string; items: NavItem[] }> = [
     title: "💼 Finans & İK & Şubeler",
     items: [
       { href: "/giderler", label: "İşletme Giderleri", module: "invoicing" },
+      { href: "/vadeli-alis-borclari", label: "Vadeli Alış Borçları", module: "invoicing" },
       { href: "/banka", label: "Kasa & Banka", module: "invoicing" },
       { href: "/personel-yonetimi", label: "Personel & Hakediş", module: "branches" },
       { href: "/denetim-kayitlari", label: "Denetim Kayıtları", module: "branches" },
@@ -68,6 +69,8 @@ const navSections: Array<{ title: string; items: NavItem[] }> = [
 type SessionUser = {
   fullName: string;
   role: "PLATFORM_OWNER" | "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT";
+  isTrial?: boolean;
+  trialExpiresAt?: string;
 };
 
 const getIcon = (href: string) => {
@@ -168,6 +171,12 @@ const getIcon = (href: string) => {
           <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
       );
+    case "/vadeli-alis-borclari":
+      return (
+        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m-6 4h6m-6 4h4m5-13H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2z" />
+        </svg>
+      );
     case "/veri-analizi":
       return (
         <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -265,6 +274,10 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
 
   if (pathname === "/login") return null;
 
+  const trialDaysLeft = user?.isTrial && user.trialExpiresAt
+    ? Math.max(0, Math.ceil((new Date(user.trialExpiresAt).getTime() - Date.now()) / 86_400_000))
+    : null;
+
   return (
     <aside className={`sidebar-shell flex flex-col justify-between ${className}`}>
       <div>
@@ -284,6 +297,20 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
           )}
         </div>
 
+        {trialDaysLeft !== null && (
+          <a
+            href="https://wa.me/905454403452?text=Merhaba%2C%20VibeGSM%20deneme%20s%C3%BCremi%20abonelie%20%C3%A7evirmek%20istiyorum."
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mb-4 flex items-center justify-between gap-2 rounded-2xl border border-amber-400/25 bg-amber-400/10 px-3.5 py-2.5 text-xs transition hover:bg-amber-400/15"
+          >
+            <span className="font-bold text-amber-300">
+              Demo · {trialDaysLeft > 0 ? `${trialDaysLeft} gün kaldı` : "son gün"}
+            </span>
+            <span className="rounded-full bg-amber-400 px-2.5 py-1 text-[10px] font-black text-slate-900">Öde</span>
+          </a>
+        )}
+
         {user && (
           <div className="mb-6 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-xs text-slate-300 flex items-center gap-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center font-black text-white text-sm shrink-0 shadow-lg shadow-blue-900/30">
@@ -300,8 +327,8 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
           {navSections.map((section) => {
             const visibleItems = section.items.filter((item) => {
               if (!user) return false;
-              if (user.role === "ADMIN" || user.role === "PLATFORM_OWNER" || user.role === "MANAGER") return true;
-              if (item.adminOnly) return false;
+              if (user.role === "PLATFORM_OWNER") return true;
+              if (item.adminOnly && user.role !== "ADMIN") return false;
               if (item.module) {
                 const isModuleActive = activeModules[item.module] !== false;
                 const userPerms = rolePermissions[user.role] || [];

@@ -16,7 +16,6 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   return {
     title: seoTitle,
     description: post.description,
-    keywords: Array.from(new Set([post.focusKeyword, ...post.keywords])),
     alternates: { canonical: `/blog/${post.slug}` },
     openGraph: {
       title: seoTitle,

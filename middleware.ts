@@ -80,11 +80,13 @@ function getModuleFromPath(path: string): "pos" | "repairs" | "stock" | "invoici
     cleanPath.startsWith("/banka") ||
     cleanPath.startsWith("/taksit-yonetimi") ||
     cleanPath.startsWith("/giderler") ||
+    cleanPath.startsWith("/vadeli-alis-borclari") ||
     cleanPath.startsWith("/api/invoices") ||
     cleanPath.startsWith("/api/banks") ||
     cleanPath.startsWith("/api/expenses") ||
     cleanPath.startsWith("/api/installments") ||
-    cleanPath.startsWith("/api/account-entries")
+    cleanPath.startsWith("/api/account-entries") ||
+    cleanPath.startsWith("/api/supplier-debts")
   ) {
     return "invoicing";
   }

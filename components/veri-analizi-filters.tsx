@@ -41,6 +41,26 @@ export function VeriAnaliziFilters({
     router.push(`/veri-analizi?period=${period}`);
   }
 
+  function goToQuickCompare(kind: "week" | "year") {
+    setShowCustom(false);
+    const today = new Date();
+    let start: Date;
+    if (kind === "week") {
+      // Monday of the current week.
+      const day = today.getDay();
+      const diffToMonday = day === 0 ? 6 : day - 1;
+      start = new Date(today);
+      start.setDate(today.getDate() - diffToMonday);
+    } else {
+      start = new Date(today.getFullYear(), 0, 1);
+    }
+    const params = new URLSearchParams();
+    params.set("from", toInputDate(start));
+    params.set("to", toInputDate(today));
+    params.set("compare", "1");
+    router.push(`/veri-analizi?${params.toString()}`);
+  }
+
   function applyCustomRange(e: React.FormEvent) {
     e.preventDefault();
     if (!from) return;
@@ -76,6 +96,20 @@ export function VeriAnaliziFilters({
           }`}
         >
           📅 Manuel Tarih Aralığı
+        </button>
+        <button
+          type="button"
+          onClick={() => goToQuickCompare("week")}
+          className="px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-all cursor-pointer"
+        >
+          📈 Bu Hafta vs Geçen Hafta
+        </button>
+        <button
+          type="button"
+          onClick={() => goToQuickCompare("year")}
+          className="px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-all cursor-pointer"
+        >
+          📈 Bu Yıl vs Geçen Yıl
         </button>
       </div>
 

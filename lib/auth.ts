@@ -14,6 +14,8 @@ export type SessionUser = {
   expiresAt: number;
   rolePermissions?: Record<string, string[]>;
   activeModules?: Record<string, boolean>;
+  isTrial?: boolean;
+  trialExpiresAt?: string;
 };
 
 export function getSessionUser(): SessionUser | null {
