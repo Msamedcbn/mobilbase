@@ -6,7 +6,7 @@ import { RuntimeGuard } from "@/components/runtime-guard";
 import { AppChrome } from "@/components/app-chrome";
 import { PwaRegister } from "@/components/pwa-register";
 
-const BASE_URL = process.env.APP_BASE_URL ?? "https://vibegsm.com";
+const BASE_URL = process.env.APP_BASE_URL ?? "https://www.vibegsm.com.tr";
 const SITE_TITLE = "VibeGSM | Telefoncu Yazılımı ve Teknik Servis Programı";
 const SITE_DESCRIPTION =
   "Telefon bayileri ve telefoncular için stok/IMEI takibi, POS, tamir takibi ve tahsilatı tek panelde birleştiren telefoncu yazılımı ve GSM teknik servis programı.";

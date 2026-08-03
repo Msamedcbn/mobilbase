@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-const BASE_URL = process.env.APP_BASE_URL ?? "https://vibegsm.com";
+const BASE_URL = process.env.APP_BASE_URL ?? "https://www.vibegsm.com.tr";
 const WHATSAPP_HREF = "https://wa.me/905454403452?text=Merhaba,%20VibeGSM%20hakk%C4%B1nda%20detayl%C4%B1%20bilgi%20almak%20istiyorum.";
 
 export const metadata: Metadata = {

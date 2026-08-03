@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-const BASE_URL = process.env.APP_BASE_URL ?? "https://vibegsm.com";
+const BASE_URL = process.env.APP_BASE_URL ?? "https://www.vibegsm.com.tr";
 
 const CITIES: Record<string, { name: string; region: string; description: string }> = {
   istanbul: {

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BLOG_POSTS, getBlogPost } from "@/lib/blog-posts";
 
-const BASE_URL = process.env.APP_BASE_URL ?? "https://vibegsm.com";
+const BASE_URL = process.env.APP_BASE_URL ?? "https://www.vibegsm.com.tr";
 
 export function generateStaticParams() {
   return BLOG_POSTS.map((post) => ({ slug: post.slug }));
