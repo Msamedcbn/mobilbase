@@ -519,8 +519,9 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
                 <a key={link.label} href={link.href} className="text-[13px] font-semibold text-slate-600 transition hover:text-slate-900">{link.label}</a>
               ))}
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <a href="/login" className="hidden sm:inline-block rounded-full bg-slate-100 px-5 py-2 text-[13px] font-bold text-slate-800 transition hover:bg-slate-200 border border-slate-200">Giriş</a>
+              <a href="/kayit" className="inline-block rounded-full bg-blue-600 px-5 py-2 text-[13px] font-bold text-white shadow-md shadow-blue-600/20 transition hover:bg-blue-700">Ücretsiz Dene</a>
               <button
                 onClick={() => setMenuOpen((v) => !v)}
                 aria-label="Menü"
@@ -542,7 +543,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
           menuOpen ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
       >
-        {[...NAV_LINKS, { label: "Giriş", href: "/login" }].map((link, i) => (
+        {[...NAV_LINKS, { label: "Ücretsiz Dene", href: "/kayit" }, { label: "Giriş", href: "/login" }].map((link, i) => (
           <a
             key={link.label}
             href={link.href}
@@ -620,6 +621,13 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
                 WhatsApp&apos;tan Yaz
               </a>
               <a
+                href="/kayit"
+                onClick={closePromo}
+                className="flex items-center justify-center rounded-full bg-blue-600 px-6 py-3 text-sm font-black text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700"
+              >
+                Ücretsiz Demo Kaydı Oluştur
+              </a>
+              <a
                 href="#pricing"
                 onClick={closePromo}
                 className="rounded-full border border-slate-200 px-6 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
@@ -691,10 +699,11 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
               </div>
 
               <div className="hero-anim mt-10 flex flex-wrap gap-4">
-                <a href="#pricing" className="group inline-flex items-center gap-3 rounded-full bg-blue-600 pl-8 pr-2 py-2 text-sm font-black text-white shadow-lg shadow-blue-600/25 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/30 active:scale-[0.98]">
-                  Paketleri Gör
+                <a href="/kayit" className="group inline-flex items-center gap-3 rounded-full bg-blue-600 pl-8 pr-2 py-2 text-sm font-black text-white shadow-lg shadow-blue-600/25 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/30 active:scale-[0.98]">
+                  Ücretsiz Dene
                   <TrailingIcon />
                 </a>
+                <a href="#pricing" className="rounded-full border border-slate-200 bg-white px-8 py-3.5 text-sm font-bold text-slate-800 shadow-sm transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]">Paketleri Gör</a>
                 <a href="#iletisim" className="rounded-full border border-slate-200 bg-white px-8 py-3.5 text-sm font-bold text-slate-800 shadow-sm transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]">Bize Ulaşın</a>
               </div>
             </div>
