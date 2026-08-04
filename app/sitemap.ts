@@ -11,6 +11,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/yardim`, changeFrequency: "monthly", priority: 0.3 },
     { url: `${BASE_URL}/neden-vibegsm`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/kayit`, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${BASE_URL}/karsilastir/excel`, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE_URL}/en-iyi-telefoncu-yazilimlari-2026`, changeFrequency: "monthly", priority: 0.85 },
   ];
 
   const cityRoutes: MetadataRoute.Sitemap = [

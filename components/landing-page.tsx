@@ -1059,6 +1059,8 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
             <a href="#features" title="Özellikler" className="hover:text-slate-900 transition">Özellikler</a>
             <a href="#pricing" title="Paketler" className="hover:text-slate-900 transition">Paketler</a>
             <a href="/neden-vibegsm" title="Neden VibeGSM?" className="hover:text-slate-900 transition">Neden VibeGSM?</a>
+            <a href="/karsilastir/excel" title="Excel ile Karşılaştır" className="hover:text-slate-900 transition">Excel ile Karşılaştır</a>
+            <a href="/en-iyi-telefoncu-yazilimlari-2026" title="En İyi Telefoncu Yazılımları 2026" className="hover:text-slate-900 transition">Yazılım Seçim Rehberi</a>
             <a href="/blog" title="Blog" className="hover:text-slate-900 transition">Blog</a>
             <a href="/yardim" title="Yardım" className="hover:text-slate-900 transition">Yardım</a>
             <a href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer nofollow" title="WhatsApp'tan İletişime Geçin" className="hover:text-slate-900 transition">İletişim (WhatsApp)</a>
