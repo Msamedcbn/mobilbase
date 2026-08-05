@@ -125,7 +125,8 @@ export default function PosPage() {
   
   const [query, setQuery] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [checkoutStep, setCheckoutStep] = useState<"cart" | "payment">("cart");
+  const [checkoutStep, setCheckoutStep] = useState<"cart" | "customer" | "payment">("cart");
+  const [customerSearchQuery, setCustomerSearchQuery] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"CASH" | "CREDIT_CARD" | "ON_ACCOUNT" | "INSTALLMENT">("CASH");
   const [customerId, setCustomerId] = useState("");
   const [installmentCount, setInstallmentCount] = useState(6);
@@ -531,6 +532,7 @@ export default function PosPage() {
       setCart([]);
       setCustomerId("");
       setCheckoutStep("cart");
+      setCustomerSearchQuery("");
       setSelectedCardBrand(null);
       setInstallmentCount(6);
       setInterestRate(0);
@@ -1179,16 +1181,16 @@ export default function PosPage() {
             {checkoutStep === "cart" ? (
               <button
                 type="button"
-                onClick={() => setCheckoutStep("payment")}
+                onClick={() => setCheckoutStep("customer")}
                 disabled={cart.length === 0}
                 className="w-full py-3.5 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/20 active:scale-[0.99] transition duration-200 text-sm flex items-center justify-center gap-2"
               >
-                Ödemeye Geç
+                Müşteriyi Seç
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                 </svg>
               </button>
-            ) : (
+            ) : checkoutStep === "customer" ? (
             <>
             <button
               type="button"
@@ -1199,6 +1201,81 @@ export default function PosPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
               </svg>
               Sepete Dön
+            </button>
+
+            {/* Customer lookup / create — mandatory before payment so every
+                sale/invoice is attributed to the right customer. */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                  Müşteri Ara (Ad veya Telefon)
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowQuickAddCustomer(true)}
+                  className="text-[10px] font-bold text-blue-600 hover:text-blue-800 transition"
+                >
+                  + Yeni Müşteri
+                </button>
+              </div>
+              <input
+                type="text"
+                autoFocus
+                value={customerSearchQuery}
+                onChange={(e) => setCustomerSearchQuery(e.target.value)}
+                placeholder="Örn: Ahmet ya da 0532..."
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+
+              <div className="max-h-[32vh] overflow-y-auto space-y-1.5 pr-1">
+                {(() => {
+                  const q = customerSearchQuery.trim().toLowerCase();
+                  const filtered = q
+                    ? customers.filter(
+                        (c) => c.fullName.toLowerCase().includes(q) || c.phone.replace(/\D/g, "").includes(q.replace(/\D/g, ""))
+                      )
+                    : customers;
+                  if (filtered.length === 0) {
+                    return (
+                      <div className="py-8 text-center text-xs text-slate-400">
+                        {q ? "Eşleşen müşteri bulunamadı. \"+ Yeni Müşteri\" ile ekleyin." : "Kayıtlı müşteri yok."}
+                      </div>
+                    );
+                  }
+                  return filtered.slice(0, 30).map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => {
+                        setCustomerId(c.id);
+                        setCheckoutStep("payment");
+                      }}
+                      className="w-full flex items-center justify-between gap-2 p-3 bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 rounded-xl transition text-left"
+                    >
+                      <div>
+                        <p className="text-xs font-bold text-slate-800">{c.fullName}</p>
+                        <p className="text-[10px] text-slate-400 font-mono">{c.phone}</p>
+                      </div>
+                      <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                      </svg>
+                    </button>
+                  ));
+                })()}
+              </div>
+            </div>
+            </>
+            ) : (
+            <>
+            <button
+              type="button"
+              onClick={() => setCheckoutStep("customer")}
+              className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              </svg>
+              Müşteriyi Değiştir
             </button>
 
             {/* Payment Segment Selector */}
@@ -1446,38 +1523,23 @@ export default function PosPage() {
               </div>
             )}
 
-            {/* Customer Selector — mandatory for every sale. */}
+            {/* Selected customer summary — actual selection happens in the
+                dedicated "customer" step so every sale is attributed correctly. */}
             <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">
-                  Müşteri *
-                </label>
+              <div className="flex items-center justify-between p-2.5 bg-blue-50/60 border border-blue-100 rounded-xl">
+                <div>
+                  <p className="text-[9px] font-bold text-blue-500 uppercase tracking-wider">Müşteri</p>
+                  <p className="text-xs font-bold text-slate-800">
+                    {customers.find((c) => c.id === customerId)?.fullName ?? "Seçilmedi"}
+                  </p>
+                </div>
                 <button
                   type="button"
-                  onClick={() => setShowQuickAddCustomer(true)}
+                  onClick={() => setCheckoutStep("customer")}
                   className="text-[10px] font-bold text-blue-600 hover:text-blue-800 transition"
                 >
-                  + Yeni Müşteri
+                  Değiştir
                 </button>
-              </div>
-              <div className="relative">
-                <select
-                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none cursor-pointer font-semibold"
-                  value={customerId}
-                  onChange={(e) => { setCustomerId(e.target.value); setCustomerHistoryOpen(false); setCustomerHistory(null); }}
-                >
-                  <option value="">Müşteri Seçiniz...</option>
-                  {customers.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.fullName} ({c.phone})
-                    </option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-3.5 flex items-center pointer-events-none text-slate-400">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
               </div>
               {customerId && (
                 <button
@@ -1592,6 +1654,7 @@ export default function PosPage() {
                 onClick={() => {
                   setCart([]);
                   setCheckoutStep("cart");
+                  setCustomerSearchQuery("");
                   setReceivedCash("");
                   setPayments([]);
                   setLegAmount("");
@@ -1612,6 +1675,7 @@ export default function PosPage() {
             setCustomers((prev) => [{ id: created.id, fullName: created.fullName, phone: created.phone }, ...prev]);
             setCustomerId(created.id);
             setShowQuickAddCustomer(false);
+            setCheckoutStep("payment");
           }}
         />
       )}
