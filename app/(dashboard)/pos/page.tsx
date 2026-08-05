@@ -90,6 +90,7 @@ type HeldCart = {
   items: CartItem[];
   createdAt: string;
   branchId: string;
+  customerId?: string;
 };
 
 const getBrandStyle = (brandId: string) => {
@@ -188,11 +189,15 @@ export default function PosPage() {
       label: label.trim() || `Sepet #${heldCarts.length + 1}`,
       items: cart,
       createdAt: new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }),
-      branchId: selectedBranchId
+      branchId: selectedBranchId,
+      customerId: customerId || undefined,
     };
-    
+
     saveHeldCarts([...heldCarts, newCart]);
     setCart([]);
+    setCheckoutStep("cart");
+    setCustomerId("");
+    setCustomerSearchQuery("");
     setReceivedCash("");
     toast.success("Sepet beklemeye alındı.");
   };
@@ -1045,6 +1050,13 @@ export default function PosPage() {
                             if (hc.branchId !== undefined && hc.branchId !== selectedBranchId) {
                               setSelectedBranchId(hc.branchId);
                               toast.info("Şube seçimi sepetin şubesi ile senkronize edildi.");
+                            }
+                            if (hc.customerId && customers.some((c) => c.id === hc.customerId)) {
+                              setCustomerId(hc.customerId);
+                              setCheckoutStep("payment");
+                            } else {
+                              setCustomerId("");
+                              setCheckoutStep("cart");
                             }
                             saveHeldCarts(heldCarts.filter((c) => c.id !== hc.id));
                             toast.success("Sepet geri yüklendi.");
