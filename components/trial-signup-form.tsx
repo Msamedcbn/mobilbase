@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { trackConversion } from "@/components/google-analytics";
 
 function normalizeTrPhone(input: string) {
   let digits = input.replace(/\D/g, "");
@@ -63,6 +64,7 @@ export function TrialSignupForm({ className }: { className?: string }) {
 
       setDone(true);
       toast.success("Deneme sürümünüz hazır! Yönlendiriliyorsunuz...");
+      trackConversion("trial_signup", { shop_name: shopName.trim() });
 
       setTimeout(() => {
         window.location.href = json.redirect || "/dashboard";

@@ -44,6 +44,7 @@ export async function GET() {
   let tenantName = "VibeGSM";
   let rolePermissions = DEFAULT_ROLE_PERMISSIONS;
   let activeModules = DEFAULT_ACTIVE_MODULES;
+  let branding: { accentColor?: string; logoUrl?: string } = {};
 
   try {
     if (isDbDisabledMode()) {
@@ -57,6 +58,7 @@ export async function GET() {
           const parsed = JSON.parse(customer.notes);
           if (parsed.rolePermissions) rolePermissions = parsed.rolePermissions;
           if (parsed.modules) activeModules = { ...parsed.modules };
+          if (parsed.branding) branding = parsed.branding;
         }
       }
     } else {
@@ -69,6 +71,7 @@ export async function GET() {
           const parsed = JSON.parse(customer.notes);
           if (parsed.rolePermissions) rolePermissions = parsed.rolePermissions;
           if (parsed.modules) activeModules = { ...parsed.modules };
+          if (parsed.branding) branding = parsed.branding;
         }
       }
     }
@@ -111,6 +114,7 @@ export async function GET() {
     user,
     tenantName,
     rolePermissions,
-    activeModules
+    activeModules,
+    branding,
   });
 }

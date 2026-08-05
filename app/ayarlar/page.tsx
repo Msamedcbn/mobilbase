@@ -27,6 +27,24 @@ const MODULE_LABELS: { key: string; label: string; description: string }[] = [
   { key: "buyback", label: "İkinci El Alım (Takas)", description: "Cihaz takas ve geri alım akışı." },
 ];
 
+const ROLE_MODULE_KEYS = ["pos", "repairs", "stock", "invoicing", "buyback", "branches"] as const;
+const ROLE_MODULE_LABELS: Record<string, string> = {
+  pos: "POS",
+  repairs: "Servis",
+  stock: "Stok",
+  invoicing: "Fatura",
+  buyback: "İkinci El",
+  branches: "Şubeler",
+};
+const EDITABLE_ROLES = ["ADMIN", "MANAGER", "CASHIER", "TECHNICIAN", "ACCOUNTANT"] as const;
+const ROLE_LABELS: Record<string, string> = {
+  ADMIN: "Yönetici",
+  MANAGER: "Müdür",
+  CASHIER: "Kasiyer",
+  TECHNICIAN: "Teknisyen",
+  ACCOUNTANT: "Muhasebeci",
+};
+
 export default function SettingsPage() {
   const [settings, setSettings] = useState<SettingsState>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
@@ -38,6 +56,17 @@ export default function SettingsPage() {
   const [togglingModule, setTogglingModule] = useState<string | null>(null);
   const [cardCommissionRate, setCardCommissionRate] = useState("0");
   const [savingCommission, setSavingCommission] = useState(false);
+
+  const [accentColor, setAccentColor] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
+  const [savingBranding, setSavingBranding] = useState(false);
+
+  const [invoiceTemplate, setInvoiceTemplate] = useState({ businessName: "", taxOffice: "", taxNo: "", footerNote: "" });
+  const [savingInvoiceTemplate, setSavingInvoiceTemplate] = useState(false);
+
+  const [rolePermissions, setRolePermissions] = useState<Record<string, string[]>>({});
+  const [rolePermissionsLoading, setRolePermissionsLoading] = useState(true);
+  const [savingRole, setSavingRole] = useState<string | null>(null);
 
   useEffect(() => {
     // Check user auth role
@@ -94,7 +123,101 @@ export default function SettingsPage() {
       .catch(() => {
         // Non-fatal: defaults to 0%.
       });
+
+    // Fetch brand theme
+    fetch("/api/settings/branding")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (json?.branding) {
+          setAccentColor(json.branding.accentColor ?? "");
+          setLogoUrl(json.branding.logoUrl ?? "");
+        }
+      })
+      .catch(() => {});
+
+    // Fetch invoice/receipt template
+    fetch("/api/settings/invoice-template")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (json?.invoiceTemplate) setInvoiceTemplate(json.invoiceTemplate);
+      })
+      .catch(() => {});
+
+    // Fetch role -> module permission matrix
+    fetch("/api/settings/role-permissions")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (json?.rolePermissions) setRolePermissions(json.rolePermissions);
+      })
+      .catch(() => {})
+      .finally(() => setRolePermissionsLoading(false));
   }, []);
+
+  const handleSaveBranding = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingBranding(true);
+    try {
+      const res = await fetch("/api/settings/branding", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accentColor, logoUrl }),
+      });
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error ?? "Kaydedilemedi.");
+      }
+      toast.success("Marka teması kaydedildi. Değişiklik sayfa yenilenince görünür.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Sistem hatası.");
+    } finally {
+      setSavingBranding(false);
+    }
+  };
+
+  const handleSaveInvoiceTemplate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingInvoiceTemplate(true);
+    try {
+      const res = await fetch("/api/settings/invoice-template", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(invoiceTemplate),
+      });
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error ?? "Kaydedilemedi.");
+      }
+      toast.success("Fiş şablonu kaydedildi.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Sistem hatası.");
+    } finally {
+      setSavingInvoiceTemplate(false);
+    }
+  };
+
+  const handleToggleRoleModule = async (role: string, moduleKey: string, enabled: boolean) => {
+    setSavingRole(role);
+    const previous = rolePermissions;
+    const currentModules = rolePermissions[role] ?? [];
+    const nextModules = enabled ? Array.from(new Set([...currentModules, moduleKey])) : currentModules.filter((m) => m !== moduleKey);
+    setRolePermissions((prev) => ({ ...prev, [role]: nextModules }));
+    try {
+      const res = await fetch("/api/settings/role-permissions", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role, modules: nextModules }),
+      });
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error ?? "Güncellenemedi.");
+      }
+    } catch (error) {
+      setRolePermissions(previous);
+      toast.error(error instanceof Error ? error.message : "Sistem hatası.");
+    } finally {
+      setSavingRole(null);
+    }
+  };
 
   const handleSaveCommission = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -298,6 +421,173 @@ export default function SettingsPage() {
           )}
         </div>
       </form>
+
+      <form onSubmit={handleSaveBranding} className="panel bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <div>
+          <h3 className="font-bold text-slate-900">Marka Teması</h3>
+          <p className="text-xs text-slate-500 mt-1">
+            Menüdeki logonuzu ve vurgu rengini değiştirin. Bırakılan alanlar VibeGSM varsayılanını kullanır.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-slate-500 uppercase">Vurgu Rengi</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                className="h-10 w-14 rounded-lg border border-slate-200 cursor-pointer disabled:cursor-not-allowed"
+                value={accentColor || "#3b82f6"}
+                onChange={(e) => setAccentColor(e.target.value)}
+                disabled={!canManageSettings}
+              />
+              <input
+                type="text"
+                className="field flex-1 border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 font-mono text-sm"
+                placeholder="#3b82f6"
+                value={accentColor}
+                onChange={(e) => setAccentColor(e.target.value)}
+                disabled={!canManageSettings}
+              />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-slate-500 uppercase">Logo Adresi (URL)</label>
+            <input
+              type="text"
+              className="field border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
+              placeholder="https://..."
+              value={logoUrl}
+              onChange={(e) => setLogoUrl(e.target.value)}
+              disabled={!canManageSettings}
+            />
+            <p className="text-[11px] text-slate-500">Kare, en az 128×128px bir görsel adresi yapıştırın.</p>
+          </div>
+        </div>
+        {canManageSettings && (
+          <button
+            type="submit"
+            disabled={savingBranding}
+            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-sm active:scale-95 transition text-sm"
+          >
+            {savingBranding ? "Kaydediliyor..." : "Kaydet"}
+          </button>
+        )}
+      </form>
+
+      <form onSubmit={handleSaveInvoiceTemplate} className="panel bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <div>
+          <h3 className="font-bold text-slate-900">Fiş / Fatura Şablonu</h3>
+          <p className="text-xs text-slate-500 mt-1">
+            POS&apos;ta yazdırılan fişin üst ve alt bilgilerini işletmenize göre özelleştirin.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-slate-500 uppercase">İşletme Adı</label>
+            <input
+              type="text"
+              className="field border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
+              placeholder="Örn: Yılmaz Telefon"
+              value={invoiceTemplate.businessName}
+              onChange={(e) => setInvoiceTemplate({ ...invoiceTemplate, businessName: e.target.value })}
+              disabled={!canManageSettings}
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-slate-500 uppercase">Vergi Dairesi</label>
+            <input
+              type="text"
+              className="field border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
+              placeholder="Örn: Kadıköy V.D."
+              value={invoiceTemplate.taxOffice}
+              onChange={(e) => setInvoiceTemplate({ ...invoiceTemplate, taxOffice: e.target.value })}
+              disabled={!canManageSettings}
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-slate-500 uppercase">Vergi No (VKN)</label>
+            <input
+              type="text"
+              className="field border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
+              placeholder="1234567890"
+              value={invoiceTemplate.taxNo}
+              onChange={(e) => setInvoiceTemplate({ ...invoiceTemplate, taxNo: e.target.value })}
+              disabled={!canManageSettings}
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-slate-500 uppercase">Fiş Alt Notu</label>
+            <input
+              type="text"
+              className="field border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
+              placeholder="Örn: Bizi tercih ettiğiniz için teşekkürler!"
+              value={invoiceTemplate.footerNote}
+              onChange={(e) => setInvoiceTemplate({ ...invoiceTemplate, footerNote: e.target.value })}
+              disabled={!canManageSettings}
+            />
+          </div>
+        </div>
+        {canManageSettings && (
+          <button
+            type="submit"
+            disabled={savingInvoiceTemplate}
+            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-sm active:scale-95 transition text-sm"
+          >
+            {savingInvoiceTemplate ? "Kaydediliyor..." : "Kaydet"}
+          </button>
+        )}
+      </form>
+
+      <div className="panel bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <div>
+          <h3 className="font-bold text-slate-900">Rol Bazlı Yetkiler</h3>
+          <p className="text-xs text-slate-500 mt-1">
+            Hangi rolün hangi modüle erişebileceğini buradan ayarlayın. Değişiklik anında etkili olur.
+          </p>
+        </div>
+        {rolePermissionsLoading ? (
+          <div className="text-sm text-slate-400">Yükleniyor...</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-left text-xs">
+              <thead>
+                <tr className="border-b border-slate-100">
+                  <th className="py-2 pr-3 font-bold text-slate-500 uppercase text-[10px]">Rol</th>
+                  {ROLE_MODULE_KEYS.map((mod) => (
+                    <th key={mod} className="py-2 px-2 font-bold text-slate-500 uppercase text-[10px] text-center">
+                      {ROLE_MODULE_LABELS[mod]}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {EDITABLE_ROLES.map((role) => (
+                  <tr key={role} className="border-b border-slate-50">
+                    <td className="py-2.5 pr-3 font-bold text-slate-800 whitespace-nowrap">
+                      {ROLE_LABELS[role]}
+                      {savingRole === role && <span className="ml-1.5 text-[10px] font-normal text-slate-400">kaydediliyor...</span>}
+                    </td>
+                    {ROLE_MODULE_KEYS.map((mod) => {
+                      const enabled = (rolePermissions[role] ?? []).includes(mod);
+                      return (
+                        <td key={mod} className="py-2.5 px-2 text-center">
+                          <input
+                            type="checkbox"
+                            checked={enabled}
+                            disabled={!canManageSettings || savingRole === role}
+                            onChange={(e) => handleToggleRoleModule(role, mod, e.target.checked)}
+                            className="w-4 h-4 accent-blue-600 cursor-pointer disabled:cursor-not-allowed"
+                          />
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       <form onSubmit={handleSave} className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

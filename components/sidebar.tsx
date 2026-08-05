@@ -234,6 +234,7 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
   const [tenantName, setTenantName] = useState<string>("");
   const [rolePermissions, setRolePermissions] = useState<Record<string, string[]>>({});
   const [activeModules, setActiveModules] = useState<Record<string, boolean>>({});
+  const [branding, setBranding] = useState<{ accentColor?: string; logoUrl?: string }>({});
 
   const isActive = (href: string) => {
     return pathname === href || pathname.startsWith(`${href}/`);
@@ -247,12 +248,27 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
         setTenantName(json.tenantName ?? "");
         setRolePermissions(json.rolePermissions ?? {});
         setActiveModules(json.activeModules ?? {});
+        setBranding(json.branding ?? {});
       })
       .catch(() => {
         setUser(null);
         setTenantName("");
       });
   }, []);
+
+  // Tenant marka rengi: --accent/--accent-dark global CSS değişkenlerini
+  // günceller. Bunlar zaten aktif menü vurgusu gibi birkaç yerde kullanılıyor;
+  // burada ayarlanmazsa varsayılan mavi (globals.css) geçerli kalır.
+  useEffect(() => {
+    const color = branding.accentColor;
+    if (!color || !/^#[0-9a-fA-F]{6}$/.test(color)) return;
+    const root = document.documentElement;
+    root.style.setProperty("--accent", color);
+    const r = Math.max(0, parseInt(color.slice(1, 3), 16) - 35);
+    const g = Math.max(0, parseInt(color.slice(3, 5), 16) - 35);
+    const b = Math.max(0, parseInt(color.slice(5, 7), 16) - 35);
+    root.style.setProperty("--accent-dark", `rgb(${r}, ${g}, ${b})`);
+  }, [branding.accentColor]);
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -283,7 +299,7 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
       <div>
         <div className="mb-6 border-b border-slate-800/40 pb-5">
           <div className="flex items-center gap-2.5">
-            <img src="/icon-square.png" alt="VibeGSM" className="w-8 h-8 rounded-xl shadow-lg shadow-blue-900/35 border border-blue-500/20 object-cover" />
+            <img src={branding.logoUrl || "/icon-square.png"} alt="VibeGSM" className="w-8 h-8 rounded-xl shadow-lg shadow-blue-900/35 border border-blue-500/20 object-cover" />
             <div>
               <h1 className="text-lg font-black tracking-tight text-white leading-none">VibeGSM</h1>
               <span className="text-[9px] font-bold text-slate-500 tracking-widest uppercase">Cloud Platform</span>

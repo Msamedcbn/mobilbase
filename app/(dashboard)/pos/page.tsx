@@ -122,6 +122,13 @@ export default function PosPage() {
   const [selectedBranchId, setSelectedBranchId] = useState("");
   const [session, setSession] = useState<SessionUser | null>(null);
   const [banks, setBanks] = useState<BankAccount[]>([]);
+  const [cardCommissionRate, setCardCommissionRate] = useState(0);
+  const [invoiceTemplate, setInvoiceTemplate] = useState<{ businessName: string; taxOffice: string; taxNo: string; footerNote: string }>({
+    businessName: "",
+    taxOffice: "",
+    taxNo: "",
+    footerNote: "",
+  });
   const [bankAccountId, setBankAccountId] = useState("");
   
   const [query, setQuery] = useState("");
@@ -274,6 +281,20 @@ export default function PosPage() {
         setCardConfigs(Array.isArray(instData) ? instData : []);
       })
       .catch(() => toast.error("Veriler yüklenemedi"));
+
+    fetch("/api/settings/commission")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (json?.cardCommissionRate) setCardCommissionRate(Number(json.cardCommissionRate) || 0);
+      })
+      .catch(() => {});
+
+    fetch("/api/settings/invoice-template")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (json?.invoiceTemplate) setInvoiceTemplate(json.invoiceTemplate);
+      })
+      .catch(() => {});
   }, []);
 
   // Stok sayfasındaki "Satışa Ekle" butonundan `/pos?add=<sku>` ile açıldığında,
@@ -701,9 +722,13 @@ export default function PosPage() {
       </head>
       <body>
         <div class="header text-center">
-          <div class="title">${(tenantName || "VibeGSM").toUpperCase()}</div>
+          <div class="title">${(invoiceTemplate.businessName || tenantName || "VibeGSM").toUpperCase()}</div>
           <div>${branchName}</div>
-          <div style="font-size: 10px; margin-top: 4px;">Tel: +90 555 123 4567</div>
+          ${
+            invoiceTemplate.taxOffice || invoiceTemplate.taxNo
+              ? `<div style="font-size: 10px; margin-top: 4px;">${[invoiceTemplate.taxOffice, invoiceTemplate.taxNo ? `VKN: ${invoiceTemplate.taxNo}` : ""].filter(Boolean).join(" · ")}</div>`
+              : ""
+          }
         </div>
         
         <table class="info-table">
@@ -744,7 +769,7 @@ export default function PosPage() {
         ${installmentTableHtml}
 
         <div class="footer text-center">
-          <p style="margin: 0 0 4px;">Ürünlerimizi tercih ettiğiniz için teşekkür ederiz.</p>
+          <p style="margin: 0 0 4px;">${invoiceTemplate.footerNote || "Ürünlerimizi tercih ettiğiniz için teşekkür ederiz."}</p>
           <p style="margin: 0; font-size: 10px;">Fişinizi garanti işlemleri için saklayınız.</p>
         </div>
       </body>
@@ -1189,6 +1214,17 @@ export default function PosPage() {
                 {total.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
               </span>
             </div>
+
+            {checkoutStep === "payment" && cardCommissionRate > 0 && (paymentMethod === "CREDIT_CARD" || paymentMethod === "INSTALLMENT") && (
+              <div className="flex items-center justify-between rounded-xl bg-amber-50 border border-amber-100 px-3 py-2">
+                <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wide">
+                  Komisyon Sonrası Net (%{cardCommissionRate})
+                </span>
+                <span className="text-xs font-black text-amber-800 font-mono">
+                  {(total - total * (cardCommissionRate / 100)).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
+                </span>
+              </div>
+            )}
 
             {checkoutStep === "cart" ? (
               <button

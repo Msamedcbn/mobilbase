@@ -5,6 +5,7 @@ import "./globals.css";
 import { RuntimeGuard } from "@/components/runtime-guard";
 import { AppChrome } from "@/components/app-chrome";
 import { PwaRegister } from "@/components/pwa-register";
+import { GoogleAnalytics } from "@/components/google-analytics";
 
 const BASE_URL = process.env.APP_BASE_URL ?? "https://www.vibegsm.com.tr";
 const SITE_TITLE = "VibeGSM | Telefoncu Yazılımı ve Teknik Servis Programı";
@@ -75,6 +76,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AppChrome>{children}</AppChrome>
         <SpeedInsights />
         <Analytics />
+        <GoogleAnalytics />
       </body>
     </html>
   );
