@@ -35,6 +35,7 @@ type RepairRecord = {
   receivedAt: string;
   completedAt: string | null;
   device: Device & { customer: Customer };
+  trackingToken?: string;
 };
 
 type CustomerHistoryResult = {
@@ -749,8 +750,12 @@ export default function RepairPage() {
       phoneNum = "90" + phoneNum;
     }
 
-    const defaultTpl = "Merhaba {ad_soyad}, {cihaz_marka} {cihaz_model} cihazınızın teknik servis durumu güncellendi. Durum: {durum}. Toplam Tutar: {tutar} TL. Bilgi almak için bizi arayabilirsiniz. İyi günler dileriz. - TelefoncuPro";
+    const defaultTpl = "Merhaba {ad_soyad}, {cihaz_marka} {cihaz_model} cihazınızın teknik servis durumu güncellendi. Durum: {durum}. Toplam Tutar: {tutar} TL. Canlı takip: {takip_linki} Bilgi almak için bizi arayabilirsiniz. İyi günler dileriz. - VibeGSM";
     let message = settings.repairTemplate || defaultTpl;
+
+    const trackingUrl = repair.trackingToken
+      ? `${window.location.origin}/servis/${repair.id}?t=${repair.trackingToken}`
+      : "";
 
     message = message
       .replace(/{ad_soyad}/g, cust.fullName)
@@ -758,7 +763,14 @@ export default function RepairPage() {
       .replace(/{cihaz_model}/g, repair.device.model)
       .replace(/{durum}/g, STATUS_LABELS[repair.status])
       .replace(/{tutar}/g, Number(repair.totalCost).toLocaleString("tr-TR"))
-      .replace(/{servis_no}/g, getNumericServiceNo(repair));
+      .replace(/{servis_no}/g, getNumericServiceNo(repair))
+      .replace(/{takip_linki}/g, trackingUrl);
+
+    // Older/custom templates may not include {takip_linki} at all — append the
+    // link anyway so the promised "live tracking link" actually gets sent.
+    if (trackingUrl && !message.includes(trackingUrl)) {
+      message = `${message}\n\nCanlı takip: ${trackingUrl}`;
+    }
 
     const encoded = encodeURIComponent(message);
     window.open(`https://api.whatsapp.com/send?phone=${phoneNum}&text=${encoded}`, "_blank");

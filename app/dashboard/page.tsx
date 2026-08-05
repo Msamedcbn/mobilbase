@@ -884,10 +884,10 @@ export default async function DashboardPage({
           </div>
 
           <div className="space-y-3">
-            <Link href="/pos" className="flex items-center gap-3 w-full p-3 rounded-2xl border border-slate-100 hover:border-blue-200/50 bg-slate-50/50 hover:bg-blue-50/20 text-slate-700 hover:text-blue-800 font-semibold text-xs transition-all duration-200 transform hover:scale-[1.01]">
+            <a href="/pos" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 w-full p-3 rounded-2xl border border-slate-100 hover:border-blue-200/50 bg-slate-50/50 hover:bg-blue-50/20 text-slate-700 hover:text-blue-800 font-semibold text-xs transition-all duration-200 transform hover:scale-[1.01]">
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600 border border-blue-100/55"></span>
               Yeni POS Satis Yap
-            </Link>
+            </a>
             <Link href="/tamir-takip" className="flex items-center gap-3 w-full p-3 rounded-2xl border border-slate-100 hover:border-blue-200/50 bg-slate-50/50 hover:bg-blue-50/20 text-slate-700 hover:text-blue-800 font-semibold text-xs transition-all duration-200 transform hover:scale-[1.01]">
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600 border border-blue-100/55"></span>
               Ariza / Tamir Kaydi Ac

@@ -87,7 +87,7 @@ export default async function QuickManagementPage() {
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <Link className="field" style={{ width: 130, textAlign: "center" }} href="/dashboard">Detay Dashboard</Link>
-          <Link className="primary-btn" style={{ width: 130, textAlign: "center" }} href="/pos">Hizli Satis</Link>
+          <a className="primary-btn" style={{ width: 130, textAlign: "center" }} href="/pos" target="_blank" rel="noopener noreferrer">Hizli Satis</a>
         </div>
       </div>
 

@@ -349,6 +349,27 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
                 <div className="space-y-1">
                   {visibleItems.map((item) => {
                     const active = isActive(item.href);
+                    // POS is a live cash-register screen — open it in its own tab so
+                    // staff can keep the rest of the app open behind it, instead of
+                    // navigating away from whatever they were doing.
+                    if (item.href === "/pos") {
+                      return (
+                        <a
+                          key={item.href}
+                          href={item.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          id={`nav-${item.href.replace(/\//g, "-").replace(/^-/, "")}`}
+                          className={`sidebar-nav-link group ${active ? "active" : ""}`}
+                        >
+                          {getIcon(item.href)}
+                          <span className="truncate">{item.label}</span>
+                          <svg className="ml-auto h-3 w-3 shrink-0 opacity-50" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                          </svg>
+                        </a>
+                      );
+                    }
                     return (
                       <Link
                         key={item.href}

@@ -125,6 +125,7 @@ export default function PosPage() {
   
   const [query, setQuery] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [checkoutStep, setCheckoutStep] = useState<"cart" | "payment">("cart");
   const [paymentMethod, setPaymentMethod] = useState<"CASH" | "CREDIT_CARD" | "ON_ACCOUNT" | "INSTALLMENT">("CASH");
   const [customerId, setCustomerId] = useState("");
   const [installmentCount, setInstallmentCount] = useState(6);
@@ -268,6 +269,28 @@ export default function PosPage() {
       })
       .catch(() => toast.error("Veriler yüklenemedi"));
   }, []);
+
+  // Stok sayfasındaki "Satışa Ekle" butonundan `/pos?add=<sku>` ile açıldığında,
+  // ürün kataloğu yüklenir yüklenmez o ürünü otomatik sepete ekler.
+  useEffect(() => {
+    if (products.length === 0) return;
+    const params = new URLSearchParams(window.location.search);
+    const addSku = params.get("add");
+    if (!addSku) return;
+
+    const found = products.find((p) => p.barcode === addSku);
+    if (found) {
+      addToCart(found);
+      toast.success(`${found.name} sepete eklendi`);
+    } else {
+      toast.warning("Stoktan gönderilen ürün POS kataloğunda bulunamadı");
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.delete("add");
+    window.history.replaceState({}, "", url.toString());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [products]);
 
   // Helper to fetch branch-specific stock of a product
   const getStockForBranch = (product: Product, branchId: string): number => {
@@ -507,6 +530,7 @@ export default function PosPage() {
 
       setCart([]);
       setCustomerId("");
+      setCheckoutStep("cart");
       setSelectedCardBrand(null);
       setInstallmentCount(6);
       setInterestRate(0);
@@ -1152,6 +1176,31 @@ export default function PosPage() {
               </span>
             </div>
 
+            {checkoutStep === "cart" ? (
+              <button
+                type="button"
+                onClick={() => setCheckoutStep("payment")}
+                disabled={cart.length === 0}
+                className="w-full py-3.5 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/20 active:scale-[0.99] transition duration-200 text-sm flex items-center justify-center gap-2"
+              >
+                Ödemeye Geç
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </button>
+            ) : (
+            <>
+            <button
+              type="button"
+              onClick={() => setCheckoutStep("cart")}
+              className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              </svg>
+              Sepete Dön
+            </button>
+
             {/* Payment Segment Selector */}
             <div className="grid grid-cols-4 gap-1 bg-slate-100 p-1 rounded-xl">
               <button
@@ -1527,6 +1576,8 @@ export default function PosPage() {
             >
               {loading ? "Tamamlanıyor..." : "Satışı Tamamla"}
             </button>
+            </>
+            )}
 
             <div className="grid grid-cols-2 gap-2">
               <button
@@ -1540,6 +1591,7 @@ export default function PosPage() {
                 type="button"
                 onClick={() => {
                   setCart([]);
+                  setCheckoutStep("cart");
                   setReceivedCash("");
                   setPayments([]);
                   setLegAmount("");

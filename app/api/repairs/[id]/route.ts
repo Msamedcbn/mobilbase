@@ -3,6 +3,38 @@ import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore, writeLocalStore } from "@/lib/local-store";
 import { getSessionUser, requireRole, getEffectiveTenantId } from "@/lib/auth";
+import { verifyRepairTrackingToken } from "@/lib/repair-tracking";
+
+// Shape returned to an anonymous customer holding a valid tracking token —
+// deliberately narrower than the staff view (no tenantId, no raw notes) since
+// this response is reachable without a session.
+function toPublicRepairView(r: any, device: any, customer: any, invoice: any) {
+  return {
+    id: r.id,
+    deviceId: r.deviceId,
+    issueDescription: r.issueDescription,
+    diagnosisNote: r.diagnosisNote,
+    laborCost: r.laborCost,
+    partCost: r.partCost,
+    totalCost: r.totalCost,
+    status: r.status,
+    receivedAt: r.receivedAt,
+    completedAt: r.completedAt,
+    branchId: r.branchId,
+    device: device
+      ? {
+          id: device.id,
+          brand: device.brand,
+          model: device.model,
+          storage: device.storage,
+          imei: device.imei,
+          conditionNote: device.conditionNote,
+          customer: customer ? { fullName: customer.fullName, phone: customer.phone } : null,
+        }
+      : null,
+    invoice: invoice ? { id: invoice.id, invoiceNo: invoice.invoiceNo } : null,
+  };
+}
 
 // DELIVERED and CANCELED are terminal: once a repair is delivered it has already
 // created an Invoice/Transaction/bank-balance effect with no reliable link back to
@@ -24,9 +56,33 @@ function isValidRepairStatusTransition(from: string, to: string) {
   return REPAIR_STATUS_TRANSITIONS[from]?.includes(to) ?? false;
 }
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: { id: string } }) {
   const user = getSessionUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const token = new URL(req.url).searchParams.get("t");
+  const hasValidTrackingToken = !user && verifyRepairTrackingToken(params.id, token);
+
+  if (!user && !hasValidTrackingToken) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (hasValidTrackingToken) {
+    if (isDbDisabledMode()) {
+      const store = await readLocalStore();
+      const r = (store.repairs || []).find((x) => x.id === params.id);
+      if (!r) return NextResponse.json({ error: "Not found" }, { status: 404 });
+      const device = store.devices.find((d) => d.id === r.deviceId);
+      const customer = device ? store.customers.find((c) => c.id === device.customerId) : null;
+      return NextResponse.json(toPublicRepairView(r, device, customer, null));
+    }
+
+    const item = await prisma.repairRecord.findUnique({
+      where: { id: params.id },
+      include: { device: { include: { customer: true } }, invoice: true },
+    });
+    if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json(toPublicRepairView(item, item.device, item.device?.customer, item.invoice));
+  }
+
   const tenantId = await getEffectiveTenantId(user);
 
   if (isDbDisabledMode()) {

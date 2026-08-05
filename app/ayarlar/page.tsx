@@ -14,7 +14,7 @@ type SettingsState = {
 const DEFAULT_SETTINGS: SettingsState = {
   whatsappEnabled: false,
   whatsappNumber: "",
-  repairTemplate: "Merhaba {ad_soyad}, {cihaz_marka} {cihaz_model} cihazınızın teknik servis durumu güncellendi. Durum: {durum}. Toplam Tutar: {tutar} TL. Bilgi almak için bizi arayabilirsiniz. İyi günler dileriz. - VibeGSM",
+  repairTemplate: "Merhaba {ad_soyad}, {cihaz_marka} {cihaz_model} cihazınızın teknik servis durumu güncellendi. Durum: {durum}. Toplam Tutar: {tutar} TL. Canlı takip: {takip_linki} Bilgi almak için bizi arayabilirsiniz. İyi günler dileriz. - VibeGSM",
   veresiyeTemplate: "Sayın {ad_soyad}, cari hesabınızdaki güncel borç bakiyeniz {bakiye} TL'dir. Ödemenizi en kısa sürede yapmanızı rica ederiz. İyi çalışmalar.",
   installmentTemplate: "Merhaba {ad_soyad}, {islem_no} numaralı alışverişinize ait {taksit_no}. taksit ödemeniz ({tutar} TL) vadesi ({vade}) gelmiştir. Ödemenizi en kısa sürede tamamlamanızı rica ederiz. İyi günler dileriz.",
 };
@@ -36,6 +36,8 @@ export default function SettingsPage() {
   const [modules, setModules] = useState<Record<string, boolean>>({});
   const [modulesLoading, setModulesLoading] = useState(true);
   const [togglingModule, setTogglingModule] = useState<string | null>(null);
+  const [cardCommissionRate, setCardCommissionRate] = useState("0");
+  const [savingCommission, setSavingCommission] = useState(false);
 
   useEffect(() => {
     // Check user auth role
@@ -81,7 +83,44 @@ export default function SettingsPage() {
         // Non-fatal: modules default to visible when unset.
       })
       .finally(() => setModulesLoading(false));
+
+    // Fetch card commission rate
+    fetch("/api/settings/commission")
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then((json) => setCardCommissionRate(String(json.cardCommissionRate ?? 0)))
+      .catch(() => {
+        // Non-fatal: defaults to 0%.
+      });
   }, []);
+
+  const handleSaveCommission = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const rate = Number(cardCommissionRate);
+    if (!Number.isFinite(rate) || rate < 0 || rate > 100) {
+      toast.error("Geçerli bir komisyon oranı girin (0-100 arası).");
+      return;
+    }
+    setSavingCommission(true);
+    try {
+      const res = await fetch("/api/settings/commission", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cardCommissionRate: rate }),
+      });
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error ?? "Kaydedilemedi.");
+      }
+      toast.success("Kart komisyon oranı kaydedildi.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Sistem hatası.");
+    } finally {
+      setSavingCommission(false);
+    }
+  };
 
   const handleToggleModule = async (moduleKey: string, enabled: boolean) => {
     setTogglingModule(moduleKey);
@@ -143,7 +182,8 @@ export default function SettingsPage() {
         .replace(/{cihaz_model}/g, "iPhone 13")
         .replace(/{durum}/g, "HAZIR (Ekran Değişimi Tamamlandı)")
         .replace(/{tutar}/g, "2.500")
-        .replace(/{servis_no}/g, "REP-8A2F");
+        .replace(/{servis_no}/g, "REP-8A2F")
+        .replace(/{takip_linki}/g, "https://vibegsm.com.tr/servis/rep123?t=abcXYZ");
     } else if (activeTab === "veresiye") {
       return settings.veresiyeTemplate
         .replace(/{ad_soyad}/g, "Ahmet Yılmaz")
@@ -222,6 +262,42 @@ export default function SettingsPage() {
           </div>
         )}
       </div>
+
+      <form onSubmit={handleSaveCommission} className="panel bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <div>
+          <h3 className="font-bold text-slate-900">Kart / Banka Komisyon Oranı</h3>
+          <p className="text-xs text-slate-500 mt-1">
+            Bankanızın kredi kartı tahsilatlarından kestiği komisyon oranını girin; raporlarda kart satışlarının
+            net (komisyon sonrası) tutarını görmenizi sağlar.
+          </p>
+        </div>
+        <div className="flex items-end gap-3">
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-slate-500 uppercase">Komisyon Oranı (%)</label>
+            <div className="relative">
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                max="100"
+                className="field w-40 border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
+                value={cardCommissionRate}
+                onChange={(e) => setCardCommissionRate(e.target.value)}
+                disabled={!canManageSettings}
+              />
+            </div>
+          </div>
+          {canManageSettings && (
+            <button
+              type="submit"
+              disabled={savingCommission}
+              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-sm active:scale-95 transition text-sm"
+            >
+              {savingCommission ? "Kaydediliyor..." : "Kaydet"}
+            </button>
+          )}
+        </div>
+      </form>
 
       <form onSubmit={handleSave} className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -362,7 +438,7 @@ export default function SettingsPage() {
                     <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl space-y-2">
                       <span className="block text-[11px] font-bold text-slate-600 uppercase">Kullanılabilir Değişkenler:</span>
                       <div className="flex flex-wrap gap-1.5">
-                        {["{ad_soyad}", "{cihaz_marka}", "{cihaz_model}", "{durum}", "{tutar}", "{servis_no}"].map((ph) => (
+                        {["{ad_soyad}", "{cihaz_marka}", "{cihaz_model}", "{durum}", "{tutar}", "{servis_no}", "{takip_linki}"].map((ph) => (
                           <code key={ph} className="px-2 py-0.5 bg-slate-200/60 rounded text-[11px] font-mono text-slate-700">
                             {ph}
                           </code>

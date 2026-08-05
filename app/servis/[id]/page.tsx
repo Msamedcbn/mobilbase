@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 
 type RepairDetails = {
   id: string;
@@ -42,7 +42,23 @@ const STATUS_STEPS = [
 ];
 
 export default function PublicRepairTracking() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-[#f3f6fb] via-[#e6fffb] to-[#f3f6fb] p-6">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600" />
+        </div>
+      }
+    >
+      <RepairTrackingContent />
+    </Suspense>
+  );
+}
+
+function RepairTrackingContent() {
   const { id } = useParams() as { id: string };
+  const searchParams = useSearchParams();
+  const token = searchParams.get("t");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [repair, setRepair] = useState<RepairDetails | null>(null);
@@ -50,7 +66,8 @@ export default function PublicRepairTracking() {
   useEffect(() => {
     async function fetchRepair() {
       try {
-        const res = await fetch(`/api/repairs/${id}`);
+        const url = token ? `/api/repairs/${id}?t=${encodeURIComponent(token)}` : `/api/repairs/${id}`;
+        const res = await fetch(url);
         if (!res.ok) {
           if (res.status === 404) {
             throw new Error("Aradığınız servis kaydı bulunamadı.");
@@ -68,7 +85,8 @@ export default function PublicRepairTracking() {
     if (id) {
       fetchRepair();
     }
-  }, [id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, token]);
 
   if (loading) {
     return (
