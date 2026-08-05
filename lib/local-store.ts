@@ -41,7 +41,7 @@ export type LocalStore = {
   notifications?: Array<{ id: string; buybackDealId: string; eventType: string; recipient: string; subject: string; bodyHtml: string; status: "QUEUED" | "SENT" | "FAILED"; errorMessage: string | null; contextJson: string | null; createdAt: string; sentAt: string | null }>;
   accountEntries?: Array<{ id: string; customerId: string; type: "DEBIT" | "CREDIT"; amount: number; description: string | null; createdAt: string; bankAccountId?: string | null }>;
   branches: Array<{ id: string; tenantId?: string | null; name: string; address: string | null; phone: string | null }>;
-  productBranchStocks?: Array<{ id: string; productId: string; branchId: string; stock: number }>;
+  productBranchStocks?: Array<{ id: string; productId: string; branchId: string; stock: number; price?: number | null }>;
   transactions: Array<{ id: string; tenantId?: string | null; transactionNo: string; type: "INCOME" | "EXPENSE"; paymentMethod: "CASH" | "CREDIT_CARD" | "ON_ACCOUNT" | "INSTALLMENT"; customerId: string | null; totalAmount: number; note: string | null; createdAt: string; branchId?: string | null; bankAccountId?: string | null; groupNo?: string | null; soldByUserId?: string | null }>;
   repairs: Array<{ id: string; deviceId: string; issueDescription: string; diagnosisNote: string | null; laborCost: number; partCost: number; totalCost: number; status: "RECEIVED" | "IN_PROGRESS" | "WAITING_PART" | "READY" | "DELIVERED" | "CANCELED"; receivedAt: string; completedAt: string | null; branchId?: string | null; createdAt?: string }>;
   bankAccounts: Array<{ id: string; tenantId?: string | null; name: string; iban: string | null; balance: number; createdAt: string }>;

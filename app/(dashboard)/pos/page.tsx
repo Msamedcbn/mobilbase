@@ -16,6 +16,7 @@ type Product = {
     id: string;
     branchId: string;
     stock: number;
+    price?: string | number | null;
   }>;
 };
 type Customer = { id: string; fullName: string; phone: string };
@@ -326,6 +327,18 @@ export default function PosPage() {
     return match ? match.stock : 0;
   };
 
+  // Şube bazlı fiyat override'ı varsa onu, yoksa ürünün genel satış fiyatını döner.
+  const getPriceForBranch = (product: Product, branchId: string): number => {
+    if (branchId) {
+      const match = product.branchStocks?.find((bs) => bs.branchId === branchId);
+      if (match?.price !== null && match?.price !== undefined) {
+        const override = Number(match.price);
+        if (Number.isFinite(override)) return override;
+      }
+    }
+    return Number(product.salePrice);
+  };
+
   const filteredProducts = useMemo(() => {
     const key = query.trim().toLowerCase();
     if (!key) return products;
@@ -436,6 +449,7 @@ export default function PosPage() {
 
   function addToCart(product: Product) {
     const branchStock = getStockForBranch(product, selectedBranchId);
+    const branchPrice = getPriceForBranch(product, selectedBranchId);
 
     setCart((prev) => {
       const found = prev.find((i) => i.productId === product.id);
@@ -466,7 +480,7 @@ export default function PosPage() {
           productId: product.id,
           name: product.name,
           barcode: product.barcode,
-          unitPrice: Number(product.salePrice),
+          unitPrice: branchPrice,
           quantity: 1,
           stock: branchStock,
           discountPct: 0
@@ -924,7 +938,7 @@ export default function PosPage() {
                           {item.name}
                         </p>
                         <p className="text-[10px] font-black font-mono mt-0.5 opacity-90">
-                          {Number(item.salePrice).toLocaleString("tr-TR")} TL
+                          {getPriceForBranch(item, selectedBranchId).toLocaleString("tr-TR")} TL
                         </p>
                       </div>
                     </button>
@@ -1017,7 +1031,7 @@ export default function PosPage() {
                       Fiyat
                     </span>
                     <span className="font-extrabold text-slate-900 font-mono text-sm sm:text-base">
-                      {Number(product.salePrice).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
+                      {getPriceForBranch(product, selectedBranchId).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
                     </span>
                   </div>
                 </div>
