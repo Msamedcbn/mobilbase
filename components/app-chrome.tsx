@@ -14,12 +14,17 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
   const isPublicOrStudio =
     pathname === "/" ||
     pathname === "/login" ||
+    pathname === "/kayit" ||
     pathname === "/story-preview" ||
     pathname === "/neden-vibegsm" ||
+    pathname === "/yardim" ||
+    pathname === "/takas-hesapla" ||
     pathname?.startsWith("/sehirler") ||
     pathname?.startsWith("/servis/") ||
     pathname?.startsWith("/studio") ||
-    pathname?.startsWith("/blog");
+    pathname?.startsWith("/blog") ||
+    pathname?.startsWith("/karsilastir") ||
+    pathname?.startsWith("/en-iyi-telefoncu-yazilimlari");
 
   if (isPublicOrStudio) {
     return (

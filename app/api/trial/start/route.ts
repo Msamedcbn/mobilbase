@@ -8,7 +8,14 @@ import { createSignedSessionToken } from "@/lib/session";
 import { logStudioAction } from "@/lib/studio-audit";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
-const TRIAL_DAYS = 14;
+const TRIAL_DAYS = 7;
+
+function normalizeTrPhone(input: string) {
+  let digits = input.replace(/\D/g, "");
+  if (digits.startsWith("90") && digits.length === 12) digits = digits.slice(2);
+  else if (digits.startsWith("0") && digits.length === 11) digits = digits.slice(1);
+  return digits;
+}
 
 const TRIAL_ROLE_PERMISSIONS = {
   CASHIER: ["pos", "repairs", "stock", "invoicing", "buyback", "branches"],
@@ -84,11 +91,21 @@ export async function POST(req: Request) {
     if (!email || typeof email !== "string" || !email.includes("@")) {
       return NextResponse.json({ error: "Geçerli bir email adresi giriniz" }, { status: 400 });
     }
+    if (!phone || typeof phone !== "string" || !phone.trim()) {
+      return NextResponse.json({ error: "Telefon numarası zorunludur" }, { status: 400 });
+    }
+    const normalizedPhone = normalizeTrPhone(phone);
+    if (!/^5\d{9}$/.test(normalizedPhone)) {
+      return NextResponse.json(
+        { error: "Telefon numarası 5 ile başlayan 10 haneli olmalıdır (örn: 5XX XXX XX XX)" },
+        { status: 400 },
+      );
+    }
 
     const name = shopName.trim();
     const ownerName = (fullName || name).trim();
     const ownerEmail = email.trim().toLowerCase();
-    const ownerPhone = typeof phone === "string" && phone.trim() ? phone.trim() : "5XXXXXXXXX";
+    const ownerPhone = normalizedPhone;
     const trialExpires = new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
     // The account is provisioned without a usable password — the trial session

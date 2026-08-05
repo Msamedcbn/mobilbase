@@ -14,9 +14,35 @@ type SettingsState = {
 const DEFAULT_SETTINGS: SettingsState = {
   whatsappEnabled: false,
   whatsappNumber: "",
-  repairTemplate: "Merhaba {ad_soyad}, {cihaz_marka} {cihaz_model} cihazınızın teknik servis durumu güncellendi. Durum: {durum}. Toplam Tutar: {tutar} TL. Bilgi almak için bizi arayabilirsiniz. İyi günler dileriz. - VibeGSM",
+  repairTemplate: "Merhaba {ad_soyad}, {cihaz_marka} {cihaz_model} cihazınızın teknik servis durumu güncellendi. Durum: {durum}. Toplam Tutar: {tutar} TL. Canlı takip: {takip_linki} Bilgi almak için bizi arayabilirsiniz. İyi günler dileriz. - VibeGSM",
   veresiyeTemplate: "Sayın {ad_soyad}, cari hesabınızdaki güncel borç bakiyeniz {bakiye} TL'dir. Ödemenizi en kısa sürede yapmanızı rica ederiz. İyi çalışmalar.",
   installmentTemplate: "Merhaba {ad_soyad}, {islem_no} numaralı alışverişinize ait {taksit_no}. taksit ödemeniz ({tutar} TL) vadesi ({vade}) gelmiştir. Ödemenizi en kısa sürede tamamlamanızı rica ederiz. İyi günler dileriz.",
+};
+
+const MODULE_LABELS: { key: string; label: string; description: string }[] = [
+  { key: "pos", label: "Satış (POS)", description: "Satış ekranı ve hızlı satış işlemleri." },
+  { key: "repairs", label: "Teknik Servis", description: "Servis kayıtları ve tamir takibi." },
+  { key: "stock", label: "Stok Yönetimi", description: "Ürün ve IMEI bazlı stok kayıtları." },
+  { key: "invoicing", label: "Faturalama", description: "Fatura oluşturma ve cari işlemler." },
+  { key: "buyback", label: "İkinci El Alım (Takas)", description: "Cihaz takas ve geri alım akışı." },
+];
+
+const ROLE_MODULE_KEYS = ["pos", "repairs", "stock", "invoicing", "buyback", "branches"] as const;
+const ROLE_MODULE_LABELS: Record<string, string> = {
+  pos: "POS",
+  repairs: "Servis",
+  stock: "Stok",
+  invoicing: "Fatura",
+  buyback: "İkinci El",
+  branches: "Şubeler",
+};
+const EDITABLE_ROLES = ["ADMIN", "MANAGER", "CASHIER", "TECHNICIAN", "ACCOUNTANT"] as const;
+const ROLE_LABELS: Record<string, string> = {
+  ADMIN: "Yönetici",
+  MANAGER: "Müdür",
+  CASHIER: "Kasiyer",
+  TECHNICIAN: "Teknisyen",
+  ACCOUNTANT: "Muhasebeci",
 };
 
 export default function SettingsPage() {
@@ -25,6 +51,22 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [canManageSettings, setCanManageSettings] = useState(false);
   const [activeTab, setActiveTab] = useState<"repair" | "veresiye" | "installment">("repair");
+  const [modules, setModules] = useState<Record<string, boolean>>({});
+  const [modulesLoading, setModulesLoading] = useState(true);
+  const [togglingModule, setTogglingModule] = useState<string | null>(null);
+  const [cardCommissionRate, setCardCommissionRate] = useState("0");
+  const [savingCommission, setSavingCommission] = useState(false);
+
+  const [accentColor, setAccentColor] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
+  const [savingBranding, setSavingBranding] = useState(false);
+
+  const [invoiceTemplate, setInvoiceTemplate] = useState({ businessName: "", taxOffice: "", taxNo: "", footerNote: "" });
+  const [savingInvoiceTemplate, setSavingInvoiceTemplate] = useState(false);
+
+  const [rolePermissions, setRolePermissions] = useState<Record<string, string[]>>({});
+  const [rolePermissionsLoading, setRolePermissionsLoading] = useState(true);
+  const [savingRole, setSavingRole] = useState<string | null>(null);
 
   useEffect(() => {
     // Check user auth role
@@ -58,7 +100,173 @@ export default function SettingsPage() {
       .finally(() => {
         setLoading(false);
       });
+
+    // Fetch module visibility toggles
+    fetch("/api/settings/modules")
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then((json) => setModules(json.modules ?? {}))
+      .catch(() => {
+        // Non-fatal: modules default to visible when unset.
+      })
+      .finally(() => setModulesLoading(false));
+
+    // Fetch card commission rate
+    fetch("/api/settings/commission")
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then((json) => setCardCommissionRate(String(json.cardCommissionRate ?? 0)))
+      .catch(() => {
+        // Non-fatal: defaults to 0%.
+      });
+
+    // Fetch brand theme
+    fetch("/api/settings/branding")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (json?.branding) {
+          setAccentColor(json.branding.accentColor ?? "");
+          setLogoUrl(json.branding.logoUrl ?? "");
+        }
+      })
+      .catch(() => {});
+
+    // Fetch invoice/receipt template
+    fetch("/api/settings/invoice-template")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (json?.invoiceTemplate) setInvoiceTemplate(json.invoiceTemplate);
+      })
+      .catch(() => {});
+
+    // Fetch role -> module permission matrix
+    fetch("/api/settings/role-permissions")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (json?.rolePermissions) setRolePermissions(json.rolePermissions);
+      })
+      .catch(() => {})
+      .finally(() => setRolePermissionsLoading(false));
   }, []);
+
+  const handleSaveBranding = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingBranding(true);
+    try {
+      const res = await fetch("/api/settings/branding", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accentColor, logoUrl }),
+      });
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error ?? "Kaydedilemedi.");
+      }
+      toast.success("Marka teması kaydedildi. Değişiklik sayfa yenilenince görünür.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Sistem hatası.");
+    } finally {
+      setSavingBranding(false);
+    }
+  };
+
+  const handleSaveInvoiceTemplate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingInvoiceTemplate(true);
+    try {
+      const res = await fetch("/api/settings/invoice-template", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(invoiceTemplate),
+      });
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error ?? "Kaydedilemedi.");
+      }
+      toast.success("Fiş şablonu kaydedildi.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Sistem hatası.");
+    } finally {
+      setSavingInvoiceTemplate(false);
+    }
+  };
+
+  const handleToggleRoleModule = async (role: string, moduleKey: string, enabled: boolean) => {
+    setSavingRole(role);
+    const previous = rolePermissions;
+    const currentModules = rolePermissions[role] ?? [];
+    const nextModules = enabled ? Array.from(new Set([...currentModules, moduleKey])) : currentModules.filter((m) => m !== moduleKey);
+    setRolePermissions((prev) => ({ ...prev, [role]: nextModules }));
+    try {
+      const res = await fetch("/api/settings/role-permissions", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role, modules: nextModules }),
+      });
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error ?? "Güncellenemedi.");
+      }
+    } catch (error) {
+      setRolePermissions(previous);
+      toast.error(error instanceof Error ? error.message : "Sistem hatası.");
+    } finally {
+      setSavingRole(null);
+    }
+  };
+
+  const handleSaveCommission = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const rate = Number(cardCommissionRate);
+    if (!Number.isFinite(rate) || rate < 0 || rate > 100) {
+      toast.error("Geçerli bir komisyon oranı girin (0-100 arası).");
+      return;
+    }
+    setSavingCommission(true);
+    try {
+      const res = await fetch("/api/settings/commission", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cardCommissionRate: rate }),
+      });
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error ?? "Kaydedilemedi.");
+      }
+      toast.success("Kart komisyon oranı kaydedildi.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Sistem hatası.");
+    } finally {
+      setSavingCommission(false);
+    }
+  };
+
+  const handleToggleModule = async (moduleKey: string, enabled: boolean) => {
+    setTogglingModule(moduleKey);
+    const previous = modules;
+    setModules((prev) => ({ ...prev, [moduleKey]: enabled }));
+    try {
+      const res = await fetch("/api/settings/modules", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ module: moduleKey, enabled }),
+      });
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error ?? "Modül güncellenemedi.");
+      }
+      toast.success(`${MODULE_LABELS.find((m) => m.key === moduleKey)?.label ?? moduleKey} ${enabled ? "açıldı" : "kapatıldı"}.`);
+    } catch (error) {
+      setModules(previous);
+      toast.error(error instanceof Error ? error.message : "Sistem hatası.");
+    } finally {
+      setTogglingModule(null);
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,7 +305,8 @@ export default function SettingsPage() {
         .replace(/{cihaz_model}/g, "iPhone 13")
         .replace(/{durum}/g, "HAZIR (Ekran Değişimi Tamamlandı)")
         .replace(/{tutar}/g, "2.500")
-        .replace(/{servis_no}/g, "REP-8A2F");
+        .replace(/{servis_no}/g, "REP-8A2F")
+        .replace(/{takip_linki}/g, "https://vibegsm.com.tr/servis/rep123?t=abcXYZ");
     } else if (activeTab === "veresiye") {
       return settings.veresiyeTemplate
         .replace(/{ad_soyad}/g, "Ahmet Yılmaz")
@@ -137,6 +346,248 @@ export default function SettingsPage() {
           Görüntüleme Modu: Sistem ayarlarını sadece yetkili roller (ADMIN/MANAGER) düzenleyebilir.
         </div>
       )}
+
+      <div className="panel bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <div>
+          <h3 className="font-bold text-slate-900">Modül Görünürlüğü</h3>
+          <p className="text-xs text-slate-500 mt-1">
+            İşletmenizde kullanmadığınız modülleri kapatarak menüyü sadeleştirebilirsiniz. Kapatılan modüllere ekip üyeleriniz erişemez.
+          </p>
+        </div>
+        {modulesLoading ? (
+          <div className="text-sm text-slate-400">Yükleniyor...</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {MODULE_LABELS.map((mod) => {
+              const enabled = modules[mod.key] !== false;
+              return (
+                <div
+                  key={mod.key}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-slate-800">{mod.label}</p>
+                    <p className="text-[11px] text-slate-500">{mod.description}</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={enabled}
+                      disabled={!canManageSettings || togglingModule === mod.key}
+                      onChange={(e) => handleToggleModule(mod.key, e.target.checked)}
+                    />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                  </label>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <form onSubmit={handleSaveCommission} className="panel bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <div>
+          <h3 className="font-bold text-slate-900">Kart / Banka Komisyon Oranı</h3>
+          <p className="text-xs text-slate-500 mt-1">
+            Bankanızın kredi kartı tahsilatlarından kestiği komisyon oranını girin; raporlarda kart satışlarının
+            net (komisyon sonrası) tutarını görmenizi sağlar.
+          </p>
+        </div>
+        <div className="flex items-end gap-3">
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-slate-500 uppercase">Komisyon Oranı (%)</label>
+            <div className="relative">
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                max="100"
+                className="field w-40 border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
+                value={cardCommissionRate}
+                onChange={(e) => setCardCommissionRate(e.target.value)}
+                disabled={!canManageSettings}
+              />
+            </div>
+          </div>
+          {canManageSettings && (
+            <button
+              type="submit"
+              disabled={savingCommission}
+              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-sm active:scale-95 transition text-sm"
+            >
+              {savingCommission ? "Kaydediliyor..." : "Kaydet"}
+            </button>
+          )}
+        </div>
+      </form>
+
+      <form onSubmit={handleSaveBranding} className="panel bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <div>
+          <h3 className="font-bold text-slate-900">Marka Teması</h3>
+          <p className="text-xs text-slate-500 mt-1">
+            Menüdeki logonuzu ve vurgu rengini değiştirin. Bırakılan alanlar VibeGSM varsayılanını kullanır.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-slate-500 uppercase">Vurgu Rengi</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                className="h-10 w-14 rounded-lg border border-slate-200 cursor-pointer disabled:cursor-not-allowed"
+                value={accentColor || "#3b82f6"}
+                onChange={(e) => setAccentColor(e.target.value)}
+                disabled={!canManageSettings}
+              />
+              <input
+                type="text"
+                className="field flex-1 border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 font-mono text-sm"
+                placeholder="#3b82f6"
+                value={accentColor}
+                onChange={(e) => setAccentColor(e.target.value)}
+                disabled={!canManageSettings}
+              />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-slate-500 uppercase">Logo Adresi (URL)</label>
+            <input
+              type="text"
+              className="field border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
+              placeholder="https://..."
+              value={logoUrl}
+              onChange={(e) => setLogoUrl(e.target.value)}
+              disabled={!canManageSettings}
+            />
+            <p className="text-[11px] text-slate-500">Kare, en az 128×128px bir görsel adresi yapıştırın.</p>
+          </div>
+        </div>
+        {canManageSettings && (
+          <button
+            type="submit"
+            disabled={savingBranding}
+            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-sm active:scale-95 transition text-sm"
+          >
+            {savingBranding ? "Kaydediliyor..." : "Kaydet"}
+          </button>
+        )}
+      </form>
+
+      <form onSubmit={handleSaveInvoiceTemplate} className="panel bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <div>
+          <h3 className="font-bold text-slate-900">Fiş / Fatura Şablonu</h3>
+          <p className="text-xs text-slate-500 mt-1">
+            POS&apos;ta yazdırılan fişin üst ve alt bilgilerini işletmenize göre özelleştirin.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-slate-500 uppercase">İşletme Adı</label>
+            <input
+              type="text"
+              className="field border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
+              placeholder="Örn: Yılmaz Telefon"
+              value={invoiceTemplate.businessName}
+              onChange={(e) => setInvoiceTemplate({ ...invoiceTemplate, businessName: e.target.value })}
+              disabled={!canManageSettings}
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-slate-500 uppercase">Vergi Dairesi</label>
+            <input
+              type="text"
+              className="field border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
+              placeholder="Örn: Kadıköy V.D."
+              value={invoiceTemplate.taxOffice}
+              onChange={(e) => setInvoiceTemplate({ ...invoiceTemplate, taxOffice: e.target.value })}
+              disabled={!canManageSettings}
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-slate-500 uppercase">Vergi No (VKN)</label>
+            <input
+              type="text"
+              className="field border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
+              placeholder="1234567890"
+              value={invoiceTemplate.taxNo}
+              onChange={(e) => setInvoiceTemplate({ ...invoiceTemplate, taxNo: e.target.value })}
+              disabled={!canManageSettings}
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-slate-500 uppercase">Fiş Alt Notu</label>
+            <input
+              type="text"
+              className="field border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
+              placeholder="Örn: Bizi tercih ettiğiniz için teşekkürler!"
+              value={invoiceTemplate.footerNote}
+              onChange={(e) => setInvoiceTemplate({ ...invoiceTemplate, footerNote: e.target.value })}
+              disabled={!canManageSettings}
+            />
+          </div>
+        </div>
+        {canManageSettings && (
+          <button
+            type="submit"
+            disabled={savingInvoiceTemplate}
+            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-sm active:scale-95 transition text-sm"
+          >
+            {savingInvoiceTemplate ? "Kaydediliyor..." : "Kaydet"}
+          </button>
+        )}
+      </form>
+
+      <div className="panel bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <div>
+          <h3 className="font-bold text-slate-900">Rol Bazlı Yetkiler</h3>
+          <p className="text-xs text-slate-500 mt-1">
+            Hangi rolün hangi modüle erişebileceğini buradan ayarlayın. Değişiklik anında etkili olur.
+          </p>
+        </div>
+        {rolePermissionsLoading ? (
+          <div className="text-sm text-slate-400">Yükleniyor...</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-left text-xs">
+              <thead>
+                <tr className="border-b border-slate-100">
+                  <th className="py-2 pr-3 font-bold text-slate-500 uppercase text-[10px]">Rol</th>
+                  {ROLE_MODULE_KEYS.map((mod) => (
+                    <th key={mod} className="py-2 px-2 font-bold text-slate-500 uppercase text-[10px] text-center">
+                      {ROLE_MODULE_LABELS[mod]}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {EDITABLE_ROLES.map((role) => (
+                  <tr key={role} className="border-b border-slate-50">
+                    <td className="py-2.5 pr-3 font-bold text-slate-800 whitespace-nowrap">
+                      {ROLE_LABELS[role]}
+                      {savingRole === role && <span className="ml-1.5 text-[10px] font-normal text-slate-400">kaydediliyor...</span>}
+                    </td>
+                    {ROLE_MODULE_KEYS.map((mod) => {
+                      const enabled = (rolePermissions[role] ?? []).includes(mod);
+                      return (
+                        <td key={mod} className="py-2.5 px-2 text-center">
+                          <input
+                            type="checkbox"
+                            checked={enabled}
+                            disabled={!canManageSettings || savingRole === role}
+                            onChange={(e) => handleToggleRoleModule(role, mod, e.target.checked)}
+                            className="w-4 h-4 accent-blue-600 cursor-pointer disabled:cursor-not-allowed"
+                          />
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       <form onSubmit={handleSave} className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -277,7 +728,7 @@ export default function SettingsPage() {
                     <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl space-y-2">
                       <span className="block text-[11px] font-bold text-slate-600 uppercase">Kullanılabilir Değişkenler:</span>
                       <div className="flex flex-wrap gap-1.5">
-                        {["{ad_soyad}", "{cihaz_marka}", "{cihaz_model}", "{durum}", "{tutar}", "{servis_no}"].map((ph) => (
+                        {["{ad_soyad}", "{cihaz_marka}", "{cihaz_model}", "{durum}", "{tutar}", "{servis_no}", "{takip_linki}"].map((ph) => (
                           <code key={ph} className="px-2 py-0.5 bg-slate-200/60 rounded text-[11px] font-mono text-slate-700">
                             {ph}
                           </code>

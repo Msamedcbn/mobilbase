@@ -24,7 +24,7 @@ export default function TrialExpiredPage() {
         </div>
         <h1 className="text-3xl font-black text-white md:text-4xl">Deneme Süreniz Doldu</h1>
         <p className="mt-4 text-base leading-7 text-slate-300">
-          {shopName} için 14 günlük ücretsiz deneme süresi sona erdi. Verileriniz 30 gün boyunca saklanır.
+          {shopName} için 7 günlük ücretsiz deneme süresi sona erdi. Devam etmek için ekibimizle WhatsApp&apos;tan hemen iletişime geçebilirsiniz.
         </p>
 
         <div className="mt-8 rounded-2xl border border-white/10 bg-white/[0.04] p-6">

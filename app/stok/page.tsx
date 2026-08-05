@@ -1199,6 +1199,17 @@ export default function StockPage() {
                           </td>
                           <td className="text-right">
                             <div className="flex gap-1 justify-end">
+                              {Number(item.quantity) > 0 && (
+                                <a
+                                  href={`/pos?add=${encodeURIComponent(item.sku)}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-2.5 py-1 text-xs border border-emerald-200/50 hover:border-emerald-300 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors cursor-pointer font-bold"
+                                  title="Bu ürünü POS'ta satışa ekle"
+                                >
+                                  Satışa Ekle
+                                </a>
+                              )}
                               <button type="button" className="px-2.5 py-1 text-xs border border-slate-200 hover:border-slate-300 rounded-lg text-slate-600 hover:text-slate-800 bg-white transition-colors cursor-pointer font-bold" onClick={() => startEdit(item)}>Düzenle</button>
                               <button
                                 type="button"

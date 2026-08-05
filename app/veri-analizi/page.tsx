@@ -68,6 +68,7 @@ type Financials = {
   unassignedIncome: number;
   staffBreakdown: { name: string; total: number; count: number }[];
   unassignedStaffIncome: number;
+  cardIncome: number;
 };
 
 // Shared by the primary window and (optionally) the comparison window, so the
@@ -215,6 +216,9 @@ async function loadFinancials(tenantId: string | null, periodStart: Date | null,
   const totalIncome = incomeRows.reduce((sum, r) => sum + r.totalAmount, 0);
   const totalExpense = expenseRows.reduce((sum, r) => sum + r.totalAmount, 0);
   const netProfit = totalIncome - totalExpense;
+  const cardIncome = incomeRows
+    .filter((r) => r.paymentMethod === "CREDIT_CARD" || r.paymentMethod === "INSTALLMENT")
+    .reduce((sum, r) => sum + r.totalAmount, 0);
 
   const branchMap = new Map<string, { name: string; total: number; count: number }>();
   for (const r of incomeRows) {
@@ -256,6 +260,7 @@ async function loadFinancials(tenantId: string | null, periodStart: Date | null,
     unassignedIncome,
     staffBreakdown,
     unassignedStaffIncome,
+    cardIncome,
   };
 }
 
@@ -337,7 +342,26 @@ export default async function VeriAnaliziPage({
     unassignedIncome,
     staffBreakdown,
     unassignedStaffIncome,
+    cardIncome,
   } = data;
+
+  let cardCommissionRate = 0;
+  try {
+    if (isDbDisabledMode()) {
+      const store = await readLocalStore();
+      const customer = store.customers.find((c) => c.id === tenantId);
+      const meta = customer?.notes ? JSON.parse(customer.notes) : {};
+      cardCommissionRate = Number(meta?.cardCommissionRate) || 0;
+    } else if (tenantId) {
+      const customer = await prisma.customer.findUnique({ where: { id: tenantId }, select: { notes: true } });
+      const meta = customer?.notes ? JSON.parse(customer.notes) : {};
+      cardCommissionRate = Number(meta?.cardCommissionRate) || 0;
+    }
+  } catch {
+    cardCommissionRate = 0;
+  }
+  const cardCommissionAmount = cardIncome * (cardCommissionRate / 100);
+  const netProfitAfterCommission = netProfit - cardCommissionAmount;
 
   const incomeRows = rows.filter((r) => r.type === "INCOME");
   const expenseRows = rows.filter((r) => r.type === "EXPENSE");
@@ -460,6 +484,29 @@ export default async function VeriAnaliziPage({
         </div>
       </div>
 
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="relative overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-6 shadow-sm">
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-orange-500 opacity-85" />
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Kart Komisyonu (Tahmini)</p>
+          <h3 className="mt-3 text-2xl font-black text-orange-600 font-mono tracking-tight">
+            {cardCommissionAmount > 0 ? "-" : ""}
+            {cardCommissionAmount.toLocaleString("tr-TR", { maximumFractionDigits: 2 })} TL
+          </h3>
+          <p className="mt-1 text-xs text-slate-400">
+            {cardCommissionRate > 0
+              ? `Kart/taksitli satışlar (${cardIncome.toLocaleString("tr-TR")} TL) × %${cardCommissionRate} banka komisyonu.`
+              : "Komisyon oranı Ayarlar sayfasından girilmedi, 0 kabul edildi."}
+          </p>
+        </div>
+        <div className="relative overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-6 shadow-sm">
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-teal-500 opacity-85" />
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Hesaba Geçen Net Kâr</p>
+          <h3 className={`mt-3 text-2xl font-black font-mono tracking-tight ${netProfitAfterCommission >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+            {netProfitAfterCommission.toLocaleString("tr-TR", { maximumFractionDigits: 2 })} TL
+          </h3>
+          <p className="mt-1 text-xs text-slate-400">Net Faaliyet Kârı − tahmini kart komisyonu.</p>
+        </div>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="panel p-6 bg-white rounded-2xl border border-slate-200/80">

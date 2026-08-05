@@ -22,10 +22,12 @@ type Product = {
   barcode: string;
   category: string | null;
   stock: number;
+  salePrice?: string | number;
   branchStocks?: Array<{
     id: string;
     branchId: string;
     stock: number;
+    price?: string | number | null;
     branch: Branch | null;
   }>;
 };
@@ -48,6 +50,9 @@ export default function BranchesPage() {
   const [sourceBranchId, setSourceBranchId] = useState("");
   const [targetBranchId, setTargetBranchId] = useState("");
   const [transferQty, setTransferQty] = useState(1);
+  const [editingPriceBranchId, setEditingPriceBranchId] = useState<string | null>(null);
+  const [priceInputValue, setPriceInputValue] = useState("");
+  const [savingPrice, setSavingPrice] = useState(false);
 
   // Added States for branch performance & history
   const [performance, setPerformance] = useState<any[]>([]);
@@ -129,6 +134,33 @@ export default function BranchesPage() {
   }, []);
 
   const selectedProduct = products.find((p) => p.id === selectedProductId);
+
+  async function saveBranchPrice(branchId: string) {
+    if (!selectedProductId) return;
+    const trimmed = priceInputValue.trim();
+    const price = trimmed === "" ? null : Number(trimmed);
+    if (price !== null && (!Number.isFinite(price) || price < 0)) {
+      toast.warning("Geçerli bir fiyat girin");
+      return;
+    }
+    setSavingPrice(true);
+    try {
+      const res = await fetch("/api/products/branch-price", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: selectedProductId, branchId, price }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Fiyat kaydedilemedi");
+      toast.success(price === null ? "Şube fiyatı kaldırıldı, genel fiyata dönüldü." : "Şube fiyatı kaydedildi.");
+      setEditingPriceBranchId(null);
+      await loadData();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Fiyat kaydedilemedi");
+    } finally {
+      setSavingPrice(false);
+    }
+  }
 
   async function handleAddOrEditBranch(e: React.FormEvent) {
     e.preventDefault();
@@ -679,6 +711,9 @@ export default function BranchesPage() {
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400 font-medium">
                       <span>Barkod: <strong className="text-slate-500">{selectedProduct.barcode}</strong></span>
                       <span>Toplam Stok: <strong className="text-slate-500">{selectedProduct.stock} adet</strong></span>
+                      {selectedProduct.salePrice !== undefined && (
+                        <span>Genel Fiyat: <strong className="text-slate-500">{Number(selectedProduct.salePrice).toLocaleString("tr-TR")} TL</strong></span>
+                      )}
                     </div>
                   </div>
 
@@ -688,6 +723,7 @@ export default function BranchesPage() {
                         <tr>
                           <th>Şube</th>
                           <th style={{ textAlign: "right" }}>Mevcut Stok</th>
+                          <th style={{ textAlign: "right" }}>Şube Fiyatı</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -700,11 +736,57 @@ export default function BranchesPage() {
                               <td style={{ textAlign: "right" }} className="font-extrabold text-slate-900">
                                 {s.stock} adet
                               </td>
+                              <td style={{ textAlign: "right" }}>
+                                {editingPriceBranchId === s.branchId ? (
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      step="0.01"
+                                      autoFocus
+                                      className="field w-24 text-right text-xs py-1 px-2"
+                                      placeholder="Genel fiyat"
+                                      value={priceInputValue}
+                                      onChange={(e) => setPriceInputValue(e.target.value)}
+                                    />
+                                    <button
+                                      type="button"
+                                      disabled={savingPrice}
+                                      onClick={() => saveBranchPrice(s.branchId)}
+                                      className="text-emerald-600 hover:text-emerald-800 font-bold text-xs"
+                                      title="Kaydet"
+                                    >
+                                      ✓
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditingPriceBranchId(null)}
+                                      className="text-slate-400 hover:text-slate-600 font-bold text-xs"
+                                      title="Vazgeç"
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setEditingPriceBranchId(s.branchId);
+                                      setPriceInputValue(s.price !== null && s.price !== undefined ? String(s.price) : "");
+                                    }}
+                                    className="font-semibold text-blue-700 hover:underline text-xs"
+                                  >
+                                    {s.price !== null && s.price !== undefined
+                                      ? `${Number(s.price).toLocaleString("tr-TR")} TL`
+                                      : "Genel fiyat"}
+                                  </button>
+                                )}
+                              </td>
                             </tr>
                           ))
                         ) : (
                           <tr>
-                            <td colSpan={2} className="text-center text-slate-400 text-xs py-8">
+                            <td colSpan={3} className="text-center text-slate-400 text-xs py-8">
                               Bu ürün için henüz şube bazlı stok bilgisi girilmemiştir.
                             </td>
                           </tr>

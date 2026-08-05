@@ -1,5 +1,6 @@
 import { readLocalStore } from "@/lib/local-store";
 import { BuybackCalculator } from "./calculator";
+import { PublicHeader } from "@/components/public-header";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,7 @@ export default async function TakasHesaplaPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#030712] to-[#06101e]">
+      <PublicHeader />
       <BuybackCalculator brands={brands} models={models} />
     </div>
   );

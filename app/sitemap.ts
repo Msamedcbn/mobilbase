@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { BLOG_POSTS } from "@/lib/blog-posts";
 
-const BASE_URL = process.env.APP_BASE_URL ?? "https://vibegsm.com";
+const BASE_URL = process.env.APP_BASE_URL ?? "https://www.vibegsm.com.tr";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -10,6 +10,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/takas-hesapla`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/yardim`, changeFrequency: "monthly", priority: 0.3 },
     { url: `${BASE_URL}/neden-vibegsm`, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/kayit`, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${BASE_URL}/karsilastir/excel`, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE_URL}/en-iyi-telefoncu-yazilimlari-2026`, changeFrequency: "monthly", priority: 0.85 },
   ];
 
   const cityRoutes: MetadataRoute.Sitemap = [

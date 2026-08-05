@@ -10,6 +10,9 @@ const PUBLIC_PATHS = [
   "/trial-expired",
   "/yardim",
   "/takas-hesapla",
+  "/kayit",
+  "/karsilastir",
+  "/en-iyi-telefoncu-yazilimlari-2026",
   "/blog",
   "/story-preview",
   // Next.js metadata image conventions — social/crawler bots (WhatsApp, Twitter,
@@ -79,11 +82,13 @@ function getModuleFromPath(path: string): "pos" | "repairs" | "stock" | "invoici
     cleanPath.startsWith("/banka") ||
     cleanPath.startsWith("/taksit-yonetimi") ||
     cleanPath.startsWith("/giderler") ||
+    cleanPath.startsWith("/vadeli-alis-borclari") ||
     cleanPath.startsWith("/api/invoices") ||
     cleanPath.startsWith("/api/banks") ||
     cleanPath.startsWith("/api/expenses") ||
     cleanPath.startsWith("/api/installments") ||
-    cleanPath.startsWith("/api/account-entries")
+    cleanPath.startsWith("/api/account-entries") ||
+    cleanPath.startsWith("/api/supplier-debts")
   ) {
     return "invoicing";
   }
@@ -99,7 +104,14 @@ export async function middleware(req: NextRequest) {
   requestHeaders.set("x-request-path", path); // Set x-request-path header for API downstream checks
 
 
-  if (path === "/" || PUBLIC_PATHS.some((p) => path.startsWith(p))) {
+  // Public repair-tracking lookup: the route handler itself verifies the HMAC
+  // token (`?t=`) and returns 401/404 on a bad/missing one — middleware just
+  // avoids blocking the anonymous request before it gets there. Only GET is
+  // let through; PUT/DELETE on the same path still require a real session.
+  const isPublicRepairTrackingRequest =
+    req.method === "GET" && path.startsWith("/api/repairs/") && req.nextUrl.searchParams.has("t");
+
+  if (path === "/" || isPublicRepairTrackingRequest || PUBLIC_PATHS.some((p) => path.startsWith(p))) {
     const response = NextResponse.next({ request: { headers: requestHeaders } });
     response.headers.set("x-request-id", requestId);
     return response;

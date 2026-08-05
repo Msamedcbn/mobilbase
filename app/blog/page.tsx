@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BLOG_POSTS } from "@/lib/blog-posts";
+import { PublicHeader } from "@/components/public-header";
 
 export const metadata: Metadata = {
   title: "Blog — Telefon Bayii ve Teknik Servis Rehberi",
@@ -48,11 +49,9 @@ export default function BlogIndexPage() {
   const allTags = Array.from(new Set(posts.flatMap((p) => p.tags)));
 
   return (
-    <main className="relative min-h-[100dvh] bg-[#fbfcfe] px-5 py-16 text-slate-900 md:px-8">
-      <div className="mx-auto max-w-6xl">
-        <Link href="/" className="text-xs font-bold text-blue-600 hover:text-blue-700 transition">
-          ← VibeGSM Ana Sayfa
-        </Link>
+    <main className="relative min-h-[100dvh] bg-[#fbfcfe] text-slate-900">
+      <PublicHeader />
+      <div className="mx-auto max-w-6xl px-5 py-16 md:px-8">
         <h1 className="mt-6 text-[clamp(2rem,4vw,3rem)] font-black leading-[1.1] tracking-[-0.03em] text-slate-900">
           Telefon Bayii ve Teknik Servis Rehberi
         </h1>

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PublicHeader } from "@/components/public-header";
 
-const BASE_URL = process.env.APP_BASE_URL ?? "https://vibegsm.com";
+const BASE_URL = process.env.APP_BASE_URL ?? "https://www.vibegsm.com.tr";
 const WHATSAPP_HREF = "https://wa.me/905454403452?text=Merhaba,%20VibeGSM%20hakk%C4%B1nda%20detayl%C4%B1%20bilgi%20almak%20istiyorum.";
 
 export const metadata: Metadata = {
@@ -29,23 +30,22 @@ export default function NedenVibeGsmPage() {
     },
     offers: {
       "@type": "Offer",
-      url: `${BASE_URL}/pricing`,
+      url: `${BASE_URL}/kayit`,
       priceCurrency: "TRY",
-      price: "299",
+      price: "750",
       valueAddedTaxIncluded: true,
     },
   };
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] px-4 py-16 text-slate-900 md:px-8">
+    <main className="min-h-screen bg-[#f8fafc] text-slate-900">
       {/* eslint-disable-next-line react/no-danger */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <div className="mx-auto max-w-5xl">
-        <header className="mb-12 flex items-center justify-between">
-          <Link href="/" className="text-xs font-bold text-blue-600 hover:text-blue-700 transition">
-            ← VibeGSM Ana Sayfa
-          </Link>
+      <PublicHeader />
+
+      <div className="mx-auto max-w-5xl px-4 py-16 md:px-8">
+        <header className="mb-12 flex items-center justify-end">
           <span className="rounded-full bg-blue-100 border border-blue-200 px-3.5 py-1 text-xs font-black text-blue-700 uppercase tracking-widest">
             Bayi Analizi
           </span>

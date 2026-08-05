@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BLOG_POSTS, getBlogPost } from "@/lib/blog-posts";
+import { PublicHeader } from "@/components/public-header";
 
-const BASE_URL = process.env.APP_BASE_URL ?? "https://vibegsm.com";
+const BASE_URL = process.env.APP_BASE_URL ?? "https://www.vibegsm.com.tr";
 
 export function generateStaticParams() {
   return BLOG_POSTS.map((post) => ({ slug: post.slug }));
@@ -16,7 +17,6 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   return {
     title: seoTitle,
     description: post.description,
-    keywords: Array.from(new Set([post.focusKeyword, ...post.keywords])),
     alternates: { canonical: `/blog/${post.slug}` },
     openGraph: {
       title: seoTitle,
@@ -49,6 +49,7 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
     "@type": "Article",
     headline: post.title,
     description: post.description,
+    image: `${BASE_URL}/blog/${post.slug}/opengraph-image`,
     keywords: [post.focusKeyword, ...post.tags].join(", "),
     datePublished: post.date,
     author: { "@type": "Organization", name: "VibeGSM" },
@@ -66,13 +67,15 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
   };
 
   return (
-    <main className="relative min-h-[100dvh] bg-[#fbfcfe] px-5 py-16 text-slate-900 md:px-8">
+    <main className="relative min-h-[100dvh] bg-[#fbfcfe] text-slate-900">
       {/* eslint-disable-next-line react/no-danger */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {/* eslint-disable-next-line react/no-danger */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
-      <article className="mx-auto max-w-3xl">
+      <PublicHeader />
+
+      <article className="mx-auto max-w-3xl px-5 py-16 md:px-8">
         <Link href="/blog" className="text-xs font-bold text-blue-600 hover:text-blue-700 transition">
           ← Tüm yazılar
         </Link>
@@ -142,7 +145,7 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
               href="/kayit"
               className="rounded-full bg-blue-600 px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-blue-600/30 transition hover:bg-blue-500"
             >
-              14 Gün Ücretsiz Deneyin
+              7 Gün Ücretsiz Deneyin
             </Link>
           </div>
         </div>

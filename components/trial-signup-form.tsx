@@ -2,6 +2,18 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { trackConversion } from "@/components/google-analytics";
+
+function normalizeTrPhone(input: string) {
+  let digits = input.replace(/\D/g, "");
+  if (digits.startsWith("90") && digits.length === 12) digits = digits.slice(2);
+  else if (digits.startsWith("0") && digits.length === 11) digits = digits.slice(1);
+  return digits;
+}
+
+function isValidTrMobile(digits: string) {
+  return /^5\d{9}$/.test(digits);
+}
 
 export function TrialSignupForm({ className }: { className?: string }) {
   const [shopName, setShopName] = useState("");
@@ -24,6 +36,11 @@ export function TrialSignupForm({ className }: { className?: string }) {
       toast.error("Bayi adı zorunludur");
       return;
     }
+    const normalizedPhone = normalizeTrPhone(phone);
+    if (!isValidTrMobile(normalizedPhone)) {
+      toast.error("Telefon numarası 5 ile başlayan 10 haneli olmalıdır (örn: 5XX XXX XX XX)");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -34,7 +51,7 @@ export function TrialSignupForm({ className }: { className?: string }) {
           shopName: shopName.trim(),
           fullName: fullName.trim() || shopName.trim(),
           email: trimmedEmail,
-          phone: phone.trim() || undefined,
+          phone: normalizedPhone,
         }),
       });
 
@@ -47,6 +64,7 @@ export function TrialSignupForm({ className }: { className?: string }) {
 
       setDone(true);
       toast.success("Deneme sürümünüz hazır! Yönlendiriliyorsunuz...");
+      trackConversion("trial_signup", { shop_name: shopName.trim() });
 
       setTimeout(() => {
         window.location.href = json.redirect || "/dashboard";
@@ -75,7 +93,7 @@ export function TrialSignupForm({ className }: { className?: string }) {
 
   return (
     <form onSubmit={handleSubmit} className={className}>
-      <h2 className="text-xl font-black text-white md:text-2xl">14 Gün Ücretsiz Deneyin</h2>
+      <h2 className="text-xl font-black text-white md:text-2xl">7 Gün Ücretsiz Deneyin</h2>
       <p className="mt-2 text-sm text-slate-300">
         Kredi kartı gerekmez. Bayinize özel sanal alan hemen açılır.
       </p>
@@ -102,13 +120,18 @@ export function TrialSignupForm({ className }: { className?: string }) {
           required
           className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white placeholder-slate-500 focus:border-blue-200/50 focus:outline-none focus:ring-2 focus:ring-blue-200/20 transition"
         />
-        <input
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="Telefon (opsiyonel)"
-          type="tel"
-          className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white placeholder-slate-500 focus:border-blue-200/50 focus:outline-none focus:ring-2 focus:ring-blue-200/20 transition"
-        />
+        <div className="flex items-center rounded-xl border border-white/15 bg-white/5 pl-4 focus-within:border-blue-200/50 focus-within:ring-2 focus-within:ring-blue-200/20 transition">
+          <span className="shrink-0 text-sm font-semibold text-slate-400">+90</span>
+          <input
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="5XX XXX XX XX"
+            type="tel"
+            inputMode="numeric"
+            required
+            className="w-full bg-transparent px-2 py-3 text-sm font-semibold text-white placeholder-slate-500 focus:outline-none"
+          />
+        </div>
       </div>
 
       <button
@@ -120,7 +143,7 @@ export function TrialSignupForm({ className }: { className?: string }) {
       </button>
 
       <p className="mt-3 text-center text-[11px] text-slate-500">
-        14 gün tam erişim. Süre sonunda verileriniz 30 gün saklanır.
+        7 gün tam erişim. Süre sonunda ekibimiz WhatsApp&apos;tan sizinle iletişime geçer.
       </p>
     </form>
   );

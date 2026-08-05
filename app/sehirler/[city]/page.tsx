@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PublicHeader } from "@/components/public-header";
 
-const BASE_URL = process.env.APP_BASE_URL ?? "https://vibegsm.com";
+const BASE_URL = process.env.APP_BASE_URL ?? "https://www.vibegsm.com.tr";
 
 const CITIES: Record<string, { name: string; region: string; description: string }> = {
   istanbul: {
@@ -67,18 +68,11 @@ export function generateStaticParams() {
 
 export function generateMetadata({ params }: Props): Metadata {
   const cityInfo = CITIES[params.city.toLowerCase()];
-  if (!cityInfo) return { title: "Şehir Bulunamadı | VibeGSM" };
+  if (!cityInfo) return { title: "Şehir Bulunamadı" };
 
   return {
-    title: `${cityInfo.name} Telefoncu Yönetim Programı & Teknik Servis Yazılımı | VibeGSM`,
+    title: `${cityInfo.name} Telefoncu Yönetim Programı & Teknik Servis Yazılımı`,
     description: `${cityInfo.name} şehrindeki GSM dükkanları ve telefon tamircileri için bulut tabanlı stok, POS, veresiye ve 2. el alım sözleşmesi otomasyonu.`,
-    keywords: [
-      `${cityInfo.name.toLowerCase()} telefoncu yönetim programı`,
-      `${cityInfo.name.toLowerCase()} gsm dükkanı otomasyonu`,
-      `${cityInfo.name.toLowerCase()} telefon teknik servis yazılımı`,
-      `${cityInfo.name.toLowerCase()} ikinci el telefon alım sözleşmesi`,
-      `${cityInfo.name.toLowerCase()} telefoncu veresiye takip`,
-    ],
     alternates: { canonical: `/sehirler/${params.city}` },
     openGraph: {
       title: `${cityInfo.name} Telefoncu Yönetim Programı | VibeGSM`,
@@ -113,15 +107,14 @@ export default function CitySeoPage({ params }: Props) {
   };
 
   return (
-    <main className="min-h-screen bg-[#fbfcfe] px-4 py-12 text-slate-900 md:px-8">
+    <main className="min-h-screen bg-[#fbfcfe] text-slate-900">
       {/* eslint-disable-next-line react/no-danger */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <div className="mx-auto max-w-4xl">
-        <div className="mb-6 flex items-center justify-between">
-          <Link href="/" className="text-xs font-bold text-blue-600 hover:text-blue-700 transition">
-            ← VibeGSM Ana Sayfa
-          </Link>
+      <PublicHeader />
+
+      <div className="mx-auto max-w-4xl px-4 py-12 md:px-8">
+        <div className="mb-6 flex items-center justify-end">
           <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-black text-blue-800">
             {cityInfo.name} Yerel GSM Çözümü
           </span>
@@ -187,7 +180,7 @@ export default function CitySeoPage({ params }: Props) {
             {cityInfo.name}&apos;deki Dükkanınızı VibeGSM ile Dijitalleştirin
           </h3>
           <p className="mx-auto mt-2 max-w-xl text-sm text-slate-300 leading-relaxed">
-            10 saniyede hesabınızı oluşturun, 14 gün boyunca hiçbir ücret ödemeden tüm özellikleri sınırsız test edin.
+            10 saniyede hesabınızı oluşturun, 7 gün boyunca hiçbir ücret ödemeden tüm özellikleri sınırsız test edin.
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <a
@@ -202,7 +195,7 @@ export default function CitySeoPage({ params }: Props) {
               href="/kayit"
               className="rounded-full bg-blue-600 px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-blue-600/30 transition hover:bg-blue-500"
             >
-              14 Gün Ücretsiz Deneyin
+              7 Gün Ücretsiz Deneyin
             </Link>
           </div>
         </div>

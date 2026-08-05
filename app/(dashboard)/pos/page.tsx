@@ -16,6 +16,7 @@ type Product = {
     id: string;
     branchId: string;
     stock: number;
+    price?: string | number | null;
   }>;
 };
 type Customer = { id: string; fullName: string; phone: string };
@@ -90,6 +91,7 @@ type HeldCart = {
   items: CartItem[];
   createdAt: string;
   branchId: string;
+  customerId?: string;
 };
 
 const getBrandStyle = (brandId: string) => {
@@ -121,10 +123,19 @@ export default function PosPage() {
   const [selectedBranchId, setSelectedBranchId] = useState("");
   const [session, setSession] = useState<SessionUser | null>(null);
   const [banks, setBanks] = useState<BankAccount[]>([]);
+  const [cardCommissionRate, setCardCommissionRate] = useState(0);
+  const [invoiceTemplate, setInvoiceTemplate] = useState<{ businessName: string; taxOffice: string; taxNo: string; footerNote: string }>({
+    businessName: "",
+    taxOffice: "",
+    taxNo: "",
+    footerNote: "",
+  });
   const [bankAccountId, setBankAccountId] = useState("");
   
   const [query, setQuery] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [checkoutStep, setCheckoutStep] = useState<"cart" | "customer" | "payment">("cart");
+  const [customerSearchQuery, setCustomerSearchQuery] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"CASH" | "CREDIT_CARD" | "ON_ACCOUNT" | "INSTALLMENT">("CASH");
   const [customerId, setCustomerId] = useState("");
   const [installmentCount, setInstallmentCount] = useState(6);
@@ -186,11 +197,15 @@ export default function PosPage() {
       label: label.trim() || `Sepet #${heldCarts.length + 1}`,
       items: cart,
       createdAt: new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }),
-      branchId: selectedBranchId
+      branchId: selectedBranchId,
+      customerId: customerId || undefined,
     };
-    
+
     saveHeldCarts([...heldCarts, newCart]);
     setCart([]);
+    setCheckoutStep("cart");
+    setCustomerId("");
+    setCustomerSearchQuery("");
     setReceivedCash("");
     toast.success("Sepet beklemeye alındı.");
   };
@@ -267,13 +282,61 @@ export default function PosPage() {
         setCardConfigs(Array.isArray(instData) ? instData : []);
       })
       .catch(() => toast.error("Veriler yüklenemedi"));
+
+    fetch("/api/settings/commission")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (json?.cardCommissionRate) setCardCommissionRate(Number(json.cardCommissionRate) || 0);
+      })
+      .catch(() => {});
+
+    fetch("/api/settings/invoice-template")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (json?.invoiceTemplate) setInvoiceTemplate(json.invoiceTemplate);
+      })
+      .catch(() => {});
   }, []);
+
+  // Stok sayfasındaki "Satışa Ekle" butonundan `/pos?add=<sku>` ile açıldığında,
+  // ürün kataloğu yüklenir yüklenmez o ürünü otomatik sepete ekler.
+  useEffect(() => {
+    if (products.length === 0) return;
+    const params = new URLSearchParams(window.location.search);
+    const addSku = params.get("add");
+    if (!addSku) return;
+
+    const found = products.find((p) => p.barcode === addSku);
+    if (found) {
+      addToCart(found);
+      toast.success(`${found.name} sepete eklendi`);
+    } else {
+      toast.warning("Stoktan gönderilen ürün POS kataloğunda bulunamadı");
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.delete("add");
+    window.history.replaceState({}, "", url.toString());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [products]);
 
   // Helper to fetch branch-specific stock of a product
   const getStockForBranch = (product: Product, branchId: string): number => {
     if (!branchId) return product.stock;
     const match = product.branchStocks?.find((bs) => bs.branchId === branchId);
     return match ? match.stock : 0;
+  };
+
+  // Şube bazlı fiyat override'ı varsa onu, yoksa ürünün genel satış fiyatını döner.
+  const getPriceForBranch = (product: Product, branchId: string): number => {
+    if (branchId) {
+      const match = product.branchStocks?.find((bs) => bs.branchId === branchId);
+      if (match?.price !== null && match?.price !== undefined) {
+        const override = Number(match.price);
+        if (Number.isFinite(override)) return override;
+      }
+    }
+    return Number(product.salePrice);
   };
 
   const filteredProducts = useMemo(() => {
@@ -386,6 +449,7 @@ export default function PosPage() {
 
   function addToCart(product: Product) {
     const branchStock = getStockForBranch(product, selectedBranchId);
+    const branchPrice = getPriceForBranch(product, selectedBranchId);
 
     setCart((prev) => {
       const found = prev.find((i) => i.productId === product.id);
@@ -416,7 +480,7 @@ export default function PosPage() {
           productId: product.id,
           name: product.name,
           barcode: product.barcode,
-          unitPrice: Number(product.salePrice),
+          unitPrice: branchPrice,
           quantity: 1,
           stock: branchStock,
           discountPct: 0
@@ -507,6 +571,8 @@ export default function PosPage() {
 
       setCart([]);
       setCustomerId("");
+      setCheckoutStep("cart");
+      setCustomerSearchQuery("");
       setSelectedCardBrand(null);
       setInstallmentCount(6);
       setInterestRate(0);
@@ -670,9 +736,13 @@ export default function PosPage() {
       </head>
       <body>
         <div class="header text-center">
-          <div class="title">${(tenantName || "VibeGSM").toUpperCase()}</div>
+          <div class="title">${(invoiceTemplate.businessName || tenantName || "VibeGSM").toUpperCase()}</div>
           <div>${branchName}</div>
-          <div style="font-size: 10px; margin-top: 4px;">Tel: +90 555 123 4567</div>
+          ${
+            invoiceTemplate.taxOffice || invoiceTemplate.taxNo
+              ? `<div style="font-size: 10px; margin-top: 4px;">${[invoiceTemplate.taxOffice, invoiceTemplate.taxNo ? `VKN: ${invoiceTemplate.taxNo}` : ""].filter(Boolean).join(" · ")}</div>`
+              : ""
+          }
         </div>
         
         <table class="info-table">
@@ -713,7 +783,7 @@ export default function PosPage() {
         ${installmentTableHtml}
 
         <div class="footer text-center">
-          <p style="margin: 0 0 4px;">Ürünlerimizi tercih ettiğiniz için teşekkür ederiz.</p>
+          <p style="margin: 0 0 4px;">${invoiceTemplate.footerNote || "Ürünlerimizi tercih ettiğiniz için teşekkür ederiz."}</p>
           <p style="margin: 0; font-size: 10px;">Fişinizi garanti işlemleri için saklayınız.</p>
         </div>
       </body>
@@ -868,7 +938,7 @@ export default function PosPage() {
                           {item.name}
                         </p>
                         <p className="text-[10px] font-black font-mono mt-0.5 opacity-90">
-                          {Number(item.salePrice).toLocaleString("tr-TR")} TL
+                          {getPriceForBranch(item, selectedBranchId).toLocaleString("tr-TR")} TL
                         </p>
                       </div>
                     </button>
@@ -961,7 +1031,7 @@ export default function PosPage() {
                       Fiyat
                     </span>
                     <span className="font-extrabold text-slate-900 font-mono text-sm sm:text-base">
-                      {Number(product.salePrice).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
+                      {getPriceForBranch(product, selectedBranchId).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
                     </span>
                   </div>
                 </div>
@@ -1019,6 +1089,13 @@ export default function PosPage() {
                             if (hc.branchId !== undefined && hc.branchId !== selectedBranchId) {
                               setSelectedBranchId(hc.branchId);
                               toast.info("Şube seçimi sepetin şubesi ile senkronize edildi.");
+                            }
+                            if (hc.customerId && customers.some((c) => c.id === hc.customerId)) {
+                              setCustomerId(hc.customerId);
+                              setCheckoutStep("payment");
+                            } else {
+                              setCustomerId("");
+                              setCheckoutStep("cart");
                             }
                             saveHeldCarts(heldCarts.filter((c) => c.id !== hc.id));
                             toast.success("Sepet geri yüklendi.");
@@ -1151,6 +1228,117 @@ export default function PosPage() {
                 {total.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
               </span>
             </div>
+
+            {checkoutStep === "payment" && cardCommissionRate > 0 && (paymentMethod === "CREDIT_CARD" || paymentMethod === "INSTALLMENT") && (
+              <div className="flex items-center justify-between rounded-xl bg-amber-50 border border-amber-100 px-3 py-2">
+                <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wide">
+                  Komisyon Sonrası Net (%{cardCommissionRate})
+                </span>
+                <span className="text-xs font-black text-amber-800 font-mono">
+                  {(total - total * (cardCommissionRate / 100)).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
+                </span>
+              </div>
+            )}
+
+            {checkoutStep === "cart" ? (
+              <button
+                type="button"
+                onClick={() => setCheckoutStep("customer")}
+                disabled={cart.length === 0}
+                className="w-full py-3.5 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/20 active:scale-[0.99] transition duration-200 text-sm flex items-center justify-center gap-2"
+              >
+                Müşteriyi Seç
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </button>
+            ) : checkoutStep === "customer" ? (
+            <>
+            <button
+              type="button"
+              onClick={() => setCheckoutStep("cart")}
+              className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              </svg>
+              Sepete Dön
+            </button>
+
+            {/* Customer lookup / create — mandatory before payment so every
+                sale/invoice is attributed to the right customer. */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                  Müşteri Ara (Ad veya Telefon)
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowQuickAddCustomer(true)}
+                  className="text-[10px] font-bold text-blue-600 hover:text-blue-800 transition"
+                >
+                  + Yeni Müşteri
+                </button>
+              </div>
+              <input
+                type="text"
+                autoFocus
+                value={customerSearchQuery}
+                onChange={(e) => setCustomerSearchQuery(e.target.value)}
+                placeholder="Örn: Ahmet ya da 0532..."
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+
+              <div className="max-h-[32vh] overflow-y-auto space-y-1.5 pr-1">
+                {(() => {
+                  const q = customerSearchQuery.trim().toLowerCase();
+                  const filtered = q
+                    ? customers.filter(
+                        (c) => c.fullName.toLowerCase().includes(q) || c.phone.replace(/\D/g, "").includes(q.replace(/\D/g, ""))
+                      )
+                    : customers;
+                  if (filtered.length === 0) {
+                    return (
+                      <div className="py-8 text-center text-xs text-slate-400">
+                        {q ? "Eşleşen müşteri bulunamadı. \"+ Yeni Müşteri\" ile ekleyin." : "Kayıtlı müşteri yok."}
+                      </div>
+                    );
+                  }
+                  return filtered.slice(0, 30).map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => {
+                        setCustomerId(c.id);
+                        setCheckoutStep("payment");
+                      }}
+                      className="w-full flex items-center justify-between gap-2 p-3 bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 rounded-xl transition text-left"
+                    >
+                      <div>
+                        <p className="text-xs font-bold text-slate-800">{c.fullName}</p>
+                        <p className="text-[10px] text-slate-400 font-mono">{c.phone}</p>
+                      </div>
+                      <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                      </svg>
+                    </button>
+                  ));
+                })()}
+              </div>
+            </div>
+            </>
+            ) : (
+            <>
+            <button
+              type="button"
+              onClick={() => setCheckoutStep("customer")}
+              className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              </svg>
+              Müşteriyi Değiştir
+            </button>
 
             {/* Payment Segment Selector */}
             <div className="grid grid-cols-4 gap-1 bg-slate-100 p-1 rounded-xl">
@@ -1397,38 +1585,23 @@ export default function PosPage() {
               </div>
             )}
 
-            {/* Customer Selector — mandatory for every sale. */}
+            {/* Selected customer summary — actual selection happens in the
+                dedicated "customer" step so every sale is attributed correctly. */}
             <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">
-                  Müşteri *
-                </label>
+              <div className="flex items-center justify-between p-2.5 bg-blue-50/60 border border-blue-100 rounded-xl">
+                <div>
+                  <p className="text-[9px] font-bold text-blue-500 uppercase tracking-wider">Müşteri</p>
+                  <p className="text-xs font-bold text-slate-800">
+                    {customers.find((c) => c.id === customerId)?.fullName ?? "Seçilmedi"}
+                  </p>
+                </div>
                 <button
                   type="button"
-                  onClick={() => setShowQuickAddCustomer(true)}
+                  onClick={() => setCheckoutStep("customer")}
                   className="text-[10px] font-bold text-blue-600 hover:text-blue-800 transition"
                 >
-                  + Yeni Müşteri
+                  Değiştir
                 </button>
-              </div>
-              <div className="relative">
-                <select
-                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none cursor-pointer font-semibold"
-                  value={customerId}
-                  onChange={(e) => { setCustomerId(e.target.value); setCustomerHistoryOpen(false); setCustomerHistory(null); }}
-                >
-                  <option value="">Müşteri Seçiniz...</option>
-                  {customers.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.fullName} ({c.phone})
-                    </option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-3.5 flex items-center pointer-events-none text-slate-400">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
               </div>
               {customerId && (
                 <button
@@ -1527,6 +1700,8 @@ export default function PosPage() {
             >
               {loading ? "Tamamlanıyor..." : "Satışı Tamamla"}
             </button>
+            </>
+            )}
 
             <div className="grid grid-cols-2 gap-2">
               <button
@@ -1540,6 +1715,8 @@ export default function PosPage() {
                 type="button"
                 onClick={() => {
                   setCart([]);
+                  setCheckoutStep("cart");
+                  setCustomerSearchQuery("");
                   setReceivedCash("");
                   setPayments([]);
                   setLegAmount("");
@@ -1560,6 +1737,7 @@ export default function PosPage() {
             setCustomers((prev) => [{ id: created.id, fullName: created.fullName, phone: created.phone }, ...prev]);
             setCustomerId(created.id);
             setShowQuickAddCustomer(false);
+            setCheckoutStep("payment");
           }}
         />
       )}

@@ -7,9 +7,50 @@ import { fail, ok } from "@/lib/api-response";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore, writeLocalStore, localId } from "@/lib/local-store";
 import { validateBuybackSellability } from "@/lib/buyback-stock";
+import { findPriceMismatch, resolveBranchPrice } from "@/lib/pos-pricing";
 
 function generateNumericReceiptNo() {
   return `${Date.now()}${Math.floor(100 + Math.random() * 900)}`;
+}
+
+/**
+ * Authoritative sale price per product, honouring a branch override when one is
+ * set. See lib/pos-pricing.ts for why the client-sent price is never trusted.
+ */
+async function resolveAuthoritativePrices(
+  productIds: string[],
+  tenantId: string | null | undefined,
+  branchId: string | undefined,
+): Promise<Map<string, number>> {
+  const prices = new Map<string, number>();
+
+  if (isDbDisabledMode()) {
+    const store = await readLocalStore();
+    for (const id of productIds) {
+      const item = (store.stockItems || []).find((s) => s.id === id && s.tenantId === tenantId);
+      if (!item) continue;
+      const override = branchId
+        ? (store.productBranchStocks || []).find((s) => s.productId === id && s.branchId === branchId)?.price
+        : null;
+      prices.set(id, resolveBranchPrice(item.salePrice, override));
+    }
+    return prices;
+  }
+
+  const products = await prisma.product.findMany({
+    where: { id: { in: productIds }, tenantId },
+    select: {
+      id: true,
+      salePrice: true,
+      branchStocks: branchId ? { where: { branchId }, select: { price: true } } : false,
+    },
+  });
+
+  for (const product of products) {
+    const override = (product as { branchStocks?: Array<{ price: unknown }> }).branchStocks?.[0]?.price;
+    prices.set(product.id, resolveBranchPrice(product.salePrice as unknown as number, override as number | null));
+  }
+  return prices;
 }
 
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
@@ -75,6 +116,25 @@ export async function POST(req: Request) {
     if (!parsed.success) return fail("Checkout verisi geçersiz", "VALIDATION", 400);
 
     const { items, customerId, branchId, relatedBuybackId, tradeInRef } = parsed.data;
+
+    // Fiyat, istemciden gelen değere göre değil sunucudaki kayda göre belirlenir.
+    // Aksi halde değiştirilmiş bir istek ürünü istediği tutara satabilirdi.
+    const authoritativePrices = await resolveAuthoritativePrices(
+      items.map((i) => i.productId),
+      auth.user?.tenantId,
+      branchId,
+    );
+    const priceMismatch = findPriceMismatch(items, authoritativePrices);
+    if (priceMismatch) {
+      if (priceMismatch.kind === "unknown-product") {
+        return fail("Sepetteki bir ürün bulunamadı veya bu işletmeye ait değil.", "VALIDATION", 400);
+      }
+      return fail(
+        `Ürün fiyatı güncellenmiş görünüyor (beklenen: ${priceMismatch.expected.toLocaleString("tr-TR")} TL). Sepeti yenileyip tekrar deneyin.`,
+        "VALIDATION",
+        409,
+      );
+    }
 
     const subtotal = items.reduce((sum, item) => {
       const lineBase = item.unitPrice * item.quantity;

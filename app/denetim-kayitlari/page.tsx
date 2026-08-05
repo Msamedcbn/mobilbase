@@ -56,6 +56,24 @@ export default function DenetimKayitlariPage() {
 
   const uniqueActions = Array.from(new Set(entries.map((e) => e.action))).sort();
 
+  const now = new Date();
+  const isSameDay = (iso: string) => {
+    const d = new Date(iso);
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+  };
+  const isSameMonth = (iso: string) => {
+    const d = new Date(iso);
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+  };
+  const todayEntries = entries.filter((e) => isSameDay(e.createdAt));
+  const monthEntries = entries.filter((e) => isSameMonth(e.createdAt));
+  const summaryStats = [
+    { label: "Bugün Toplam İşlem", value: todayEntries.length },
+    { label: "Bugün Silinen", value: todayEntries.filter((e) => e.action.toUpperCase().includes("DELETE")).length },
+    { label: "Bugün Düzenlenen", value: todayEntries.filter((e) => e.action.toUpperCase().includes("UPDATE")).length },
+    { label: "Bu Ay Toplam İşlem", value: monthEntries.length },
+  ];
+
   if (!isAccessAllowed) {
     return (
       <section className="max-w-[1400px] mx-auto p-4 md:p-6 animate-fade-in">
@@ -93,6 +111,15 @@ export default function DenetimKayitlariPage() {
             { header: "Detay", accessor: (r) => r.detail ?? "" },
           ]}
         />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        {summaryStats.map((stat) => (
+          <div key={stat.label} className="panel p-4">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{stat.label}</p>
+            <p className="mt-1 text-2xl font-black text-slate-900">{stat.value}</p>
+          </div>
+        ))}
       </div>
 
       <form

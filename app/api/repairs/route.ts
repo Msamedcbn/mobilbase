@@ -5,6 +5,7 @@ import { localId, readLocalStore, writeLocalStore } from "@/lib/local-store";
 import { getSessionUser, requireRole, getEffectiveTenantId } from "@/lib/auth";
 import { fail } from "@/lib/api-response";
 import { pickFields } from "@/lib/tenant-guard";
+import { createRepairTrackingToken } from "@/lib/repair-tracking";
 
 const REPAIR_CREATABLE = [
   "issueDescription",
@@ -36,6 +37,7 @@ export async function GET() {
             }
           : null,
         invoice: null,
+        trackingToken: createRepairTrackingToken(r.id),
       };
     }).filter((r) => r.device?.customer?.tenantId === tenantId);
     return NextResponse.json(repairs);
@@ -59,7 +61,8 @@ export async function GET() {
       invoice: true,
     },
   });
-  return NextResponse.json(items);
+  const itemsWithToken = items.map((item) => ({ ...item, trackingToken: createRepairTrackingToken(item.id) }));
+  return NextResponse.json(itemsWithToken);
 }
 
 export async function POST(req: Request) {

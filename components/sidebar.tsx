@@ -54,6 +54,7 @@ const navSections: Array<{ title: string; items: NavItem[] }> = [
     title: "💼 Finans & İK & Şubeler",
     items: [
       { href: "/giderler", label: "İşletme Giderleri", module: "invoicing" },
+      { href: "/vadeli-alis-borclari", label: "Vadeli Alış Borçları", module: "invoicing" },
       { href: "/banka", label: "Kasa & Banka", module: "invoicing" },
       { href: "/personel-yonetimi", label: "Personel & Hakediş", module: "branches" },
       { href: "/denetim-kayitlari", label: "Denetim Kayıtları", module: "branches" },
@@ -68,6 +69,8 @@ const navSections: Array<{ title: string; items: NavItem[] }> = [
 type SessionUser = {
   fullName: string;
   role: "PLATFORM_OWNER" | "ADMIN" | "CASHIER" | "TECHNICIAN" | "MANAGER" | "ACCOUNTANT";
+  isTrial?: boolean;
+  trialExpiresAt?: string;
 };
 
 const getIcon = (href: string) => {
@@ -168,6 +171,12 @@ const getIcon = (href: string) => {
           <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
       );
+    case "/vadeli-alis-borclari":
+      return (
+        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m-6 4h6m-6 4h4m5-13H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2z" />
+        </svg>
+      );
     case "/veri-analizi":
       return (
         <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -225,6 +234,7 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
   const [tenantName, setTenantName] = useState<string>("");
   const [rolePermissions, setRolePermissions] = useState<Record<string, string[]>>({});
   const [activeModules, setActiveModules] = useState<Record<string, boolean>>({});
+  const [branding, setBranding] = useState<{ accentColor?: string; logoUrl?: string }>({});
 
   const isActive = (href: string) => {
     return pathname === href || pathname.startsWith(`${href}/`);
@@ -238,12 +248,27 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
         setTenantName(json.tenantName ?? "");
         setRolePermissions(json.rolePermissions ?? {});
         setActiveModules(json.activeModules ?? {});
+        setBranding(json.branding ?? {});
       })
       .catch(() => {
         setUser(null);
         setTenantName("");
       });
   }, []);
+
+  // Tenant marka rengi: --accent/--accent-dark global CSS değişkenlerini
+  // günceller. Bunlar zaten aktif menü vurgusu gibi birkaç yerde kullanılıyor;
+  // burada ayarlanmazsa varsayılan mavi (globals.css) geçerli kalır.
+  useEffect(() => {
+    const color = branding.accentColor;
+    if (!color || !/^#[0-9a-fA-F]{6}$/.test(color)) return;
+    const root = document.documentElement;
+    root.style.setProperty("--accent", color);
+    const r = Math.max(0, parseInt(color.slice(1, 3), 16) - 35);
+    const g = Math.max(0, parseInt(color.slice(3, 5), 16) - 35);
+    const b = Math.max(0, parseInt(color.slice(5, 7), 16) - 35);
+    root.style.setProperty("--accent-dark", `rgb(${r}, ${g}, ${b})`);
+  }, [branding.accentColor]);
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -265,12 +290,16 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
 
   if (pathname === "/login") return null;
 
+  const trialDaysLeft = user?.isTrial && user.trialExpiresAt
+    ? Math.max(0, Math.ceil((new Date(user.trialExpiresAt).getTime() - Date.now()) / 86_400_000))
+    : null;
+
   return (
     <aside className={`sidebar-shell flex flex-col justify-between ${className}`}>
       <div>
         <div className="mb-6 border-b border-slate-800/40 pb-5">
           <div className="flex items-center gap-2.5">
-            <img src="/icon-square.png" alt="VibeGSM" className="w-8 h-8 rounded-xl shadow-lg shadow-blue-900/35 border border-blue-500/20 object-cover" />
+            <img src={branding.logoUrl || "/icon-square.png"} alt="VibeGSM" className="w-8 h-8 rounded-xl shadow-lg shadow-blue-900/35 border border-blue-500/20 object-cover" />
             <div>
               <h1 className="text-lg font-black tracking-tight text-white leading-none">VibeGSM</h1>
               <span className="text-[9px] font-bold text-slate-500 tracking-widest uppercase">Cloud Platform</span>
@@ -283,6 +312,20 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
             </div>
           )}
         </div>
+
+        {trialDaysLeft !== null && (
+          <a
+            href="https://wa.me/905454403452?text=Merhaba%2C%20VibeGSM%20deneme%20s%C3%BCremi%20abonelie%20%C3%A7evirmek%20istiyorum."
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mb-4 flex items-center justify-between gap-2 rounded-2xl border border-amber-400/25 bg-amber-400/10 px-3.5 py-2.5 text-xs transition hover:bg-amber-400/15"
+          >
+            <span className="font-bold text-amber-300">
+              Demo · {trialDaysLeft > 0 ? `${trialDaysLeft} gün kaldı` : "son gün"}
+            </span>
+            <span className="rounded-full bg-amber-400 px-2.5 py-1 text-[10px] font-black text-slate-900">Öde</span>
+          </a>
+        )}
 
         {user && (
           <div className="mb-6 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-xs text-slate-300 flex items-center gap-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
@@ -300,8 +343,8 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
           {navSections.map((section) => {
             const visibleItems = section.items.filter((item) => {
               if (!user) return false;
-              if (user.role === "ADMIN" || user.role === "PLATFORM_OWNER" || user.role === "MANAGER") return true;
-              if (item.adminOnly) return false;
+              if (user.role === "PLATFORM_OWNER") return true;
+              if (item.adminOnly && user.role !== "ADMIN") return false;
               if (item.module) {
                 const isModuleActive = activeModules[item.module] !== false;
                 const userPerms = rolePermissions[user.role] || [];
@@ -322,6 +365,27 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
                 <div className="space-y-1">
                   {visibleItems.map((item) => {
                     const active = isActive(item.href);
+                    // POS is a live cash-register screen — open it in its own tab so
+                    // staff can keep the rest of the app open behind it, instead of
+                    // navigating away from whatever they were doing.
+                    if (item.href === "/pos") {
+                      return (
+                        <a
+                          key={item.href}
+                          href={item.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          id={`nav-${item.href.replace(/\//g, "-").replace(/^-/, "")}`}
+                          className={`sidebar-nav-link group ${active ? "active" : ""}`}
+                        >
+                          {getIcon(item.href)}
+                          <span className="truncate">{item.label}</span>
+                          <svg className="ml-auto h-3 w-3 shrink-0 opacity-50" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                          </svg>
+                        </a>
+                      );
+                    }
                     return (
                       <Link
                         key={item.href}

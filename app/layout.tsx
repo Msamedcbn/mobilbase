@@ -5,25 +5,17 @@ import "./globals.css";
 import { RuntimeGuard } from "@/components/runtime-guard";
 import { AppChrome } from "@/components/app-chrome";
 import { PwaRegister } from "@/components/pwa-register";
+import { GoogleAnalytics } from "@/components/google-analytics";
 
-const BASE_URL = process.env.APP_BASE_URL ?? "https://vibegsm.com";
-const SITE_TITLE = "VibeGSM | Telefon Bayii, Telefoncu ve Teknik Servis Yönetim Yazılımı";
+const BASE_URL = process.env.APP_BASE_URL ?? "https://www.vibegsm.com.tr";
+const SITE_TITLE = "VibeGSM | Telefoncu Yazılımı ve Teknik Servis Programı";
 const SITE_DESCRIPTION =
-  "Telefon bayileri, telefoncular ve teknik servisler için stok/IMEI takibi, POS, tamir takip ve tahsilatı tek panelde birleştiren bulut otomasyonu.";
+  "Telefon bayileri ve telefoncular için stok/IMEI takibi, POS, tamir takibi ve tahsilatı tek panelde birleştiren telefoncu yazılımı ve GSM teknik servis programı.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: { default: SITE_TITLE, template: "%s | VibeGSM" },
   description: SITE_DESCRIPTION,
-  keywords: [
-    "telefon bayii yazılımı",
-    "telefoncu programı",
-    "telefoncu yönetim yazılımı",
-    "teknik servis yönetim yazılımı",
-    "telefon tamiri takip programı",
-    "IMEI takibi",
-    "telefon stok takip programı",
-  ],
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -84,6 +76,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AppChrome>{children}</AppChrome>
         <SpeedInsights />
         <Analytics />
+        <GoogleAnalytics />
       </body>
     </html>
   );
