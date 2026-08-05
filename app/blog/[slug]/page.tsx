@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BLOG_POSTS, getBlogPost } from "@/lib/blog-posts";
+import { PublicHeader } from "@/components/public-header";
 
 const BASE_URL = process.env.APP_BASE_URL ?? "https://www.vibegsm.com.tr";
 
@@ -66,13 +67,15 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
   };
 
   return (
-    <main className="relative min-h-[100dvh] bg-[#fbfcfe] px-5 py-16 text-slate-900 md:px-8">
+    <main className="relative min-h-[100dvh] bg-[#fbfcfe] text-slate-900">
       {/* eslint-disable-next-line react/no-danger */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {/* eslint-disable-next-line react/no-danger */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
-      <article className="mx-auto max-w-3xl">
+      <PublicHeader />
+
+      <article className="mx-auto max-w-3xl px-5 py-16 md:px-8">
         <Link href="/blog" className="text-xs font-bold text-blue-600 hover:text-blue-700 transition">
           ← Tüm yazılar
         </Link>

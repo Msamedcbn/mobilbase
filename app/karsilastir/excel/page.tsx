@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { RoiCalculator } from "./roi-calculator";
+import { PublicHeader } from "@/components/public-header";
 
 const BASE_URL = process.env.APP_BASE_URL ?? "https://www.vibegsm.com.tr";
 
@@ -51,16 +52,14 @@ const jsonLd = {
 
 export default function ExcelComparisonPage() {
   return (
-    <main className="min-h-screen bg-[#fbfcfe] px-5 py-16 text-slate-900 md:px-8">
+    <main className="min-h-screen bg-[#fbfcfe] text-slate-900">
       {/* eslint-disable-next-line react/no-danger */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <div className="mx-auto max-w-4xl">
-        <Link href="/" className="text-xs font-bold text-blue-600 hover:text-blue-700 transition">
-          ← VibeGSM Ana Sayfa
-        </Link>
+      <PublicHeader />
 
-        <header className="mt-6 text-center">
+      <div className="mx-auto max-w-4xl px-5 py-16 md:px-8">
+        <header className="text-center">
           <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-black text-blue-800">Karşılaştırma</span>
           <h1 className="mt-4 text-[clamp(1.9rem,4vw,3.2rem)] font-black leading-[1.1] tracking-[-0.03em] text-slate-900">
             VibeGSM ile Excel: Telefoncu İşletmeniz İçin Hangisi Daha Karlı?

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PublicHeader } from "@/components/public-header";
 
 const BASE_URL = process.env.APP_BASE_URL ?? "https://www.vibegsm.com.tr";
 
@@ -67,10 +68,10 @@ export function generateStaticParams() {
 
 export function generateMetadata({ params }: Props): Metadata {
   const cityInfo = CITIES[params.city.toLowerCase()];
-  if (!cityInfo) return { title: "Şehir Bulunamadı | VibeGSM" };
+  if (!cityInfo) return { title: "Şehir Bulunamadı" };
 
   return {
-    title: `${cityInfo.name} Telefoncu Yönetim Programı & Teknik Servis Yazılımı | VibeGSM`,
+    title: `${cityInfo.name} Telefoncu Yönetim Programı & Teknik Servis Yazılımı`,
     description: `${cityInfo.name} şehrindeki GSM dükkanları ve telefon tamircileri için bulut tabanlı stok, POS, veresiye ve 2. el alım sözleşmesi otomasyonu.`,
     alternates: { canonical: `/sehirler/${params.city}` },
     openGraph: {
@@ -106,15 +107,14 @@ export default function CitySeoPage({ params }: Props) {
   };
 
   return (
-    <main className="min-h-screen bg-[#fbfcfe] px-4 py-12 text-slate-900 md:px-8">
+    <main className="min-h-screen bg-[#fbfcfe] text-slate-900">
       {/* eslint-disable-next-line react/no-danger */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <div className="mx-auto max-w-4xl">
-        <div className="mb-6 flex items-center justify-between">
-          <Link href="/" className="text-xs font-bold text-blue-600 hover:text-blue-700 transition">
-            ← VibeGSM Ana Sayfa
-          </Link>
+      <PublicHeader />
+
+      <div className="mx-auto max-w-4xl px-4 py-12 md:px-8">
+        <div className="mb-6 flex items-center justify-end">
           <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-black text-blue-800">
             {cityInfo.name} Yerel GSM Çözümü
           </span>

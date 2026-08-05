@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PublicHeader } from "@/components/public-header";
 
 const BASE_URL = process.env.APP_BASE_URL ?? "https://www.vibegsm.com.tr";
 
@@ -54,16 +55,14 @@ const jsonLd = {
 
 export default function BestSoftwareGuidePage() {
   return (
-    <main className="min-h-screen bg-[#fbfcfe] px-5 py-16 text-slate-900 md:px-8">
+    <main className="min-h-screen bg-[#fbfcfe] text-slate-900">
       {/* eslint-disable-next-line react/no-danger */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <div className="mx-auto max-w-3xl">
-        <Link href="/" className="text-xs font-bold text-blue-600 hover:text-blue-700 transition">
-          ← VibeGSM Ana Sayfa
-        </Link>
+      <PublicHeader />
 
-        <header className="mt-6">
+      <div className="mx-auto max-w-3xl px-5 py-16 md:px-8">
+        <header>
           <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-black text-blue-800">Satın Alma Rehberi</span>
           <h1 className="mt-4 text-[clamp(1.75rem,3.5vw,2.75rem)] font-black leading-[1.15] tracking-[-0.02em] text-slate-900">
             En İyi Telefoncu Yazılımları 2026: Nasıl Seçmeli?

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PublicHeader } from "@/components/public-header";
 
 interface KbArticle {
   slug: string;
@@ -242,6 +243,7 @@ export default function KnowledgeBasePage() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc]">
+      <PublicHeader />
       <div className="mx-auto max-w-4xl px-5 py-12 md:px-8 md:py-20">
         {activeArticle ? (
           <div>
