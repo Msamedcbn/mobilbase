@@ -411,7 +411,8 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       await tx.branch.deleteMany({ where: { tenantId: customerId } });
       
       // 10. Delete retail Customers (this cascades to Device, RepairRecord, BuybackDeal, AccountEntry, BuybackWizardData, etc.)
-      await tx.customer.deleteMany({ where: { tenantId: customerId } });
+      // Exclude the tenant's own Customer record (tenantId === id for the tenant root row) so step 11 still finds it.
+      await tx.customer.deleteMany({ where: { tenantId: customerId, id: { not: customerId } } });
       
       // 11. Delete the tenant Customer record itself
       await tx.customer.delete({ where: { id: customerId } });
