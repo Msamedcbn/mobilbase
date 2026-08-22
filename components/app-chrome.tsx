@@ -26,7 +26,12 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
     pathname?.startsWith("/karsilastir") ||
     pathname?.startsWith("/en-iyi-telefoncu-yazilimlari");
 
-  if (isPublicOrStudio) {
+  // POS opens in its own tab as a standalone cash-register terminal — it
+  // ships its own topbar and full-height layout, so it must skip the
+  // dashboard sidebar/shell entirely rather than being squeezed beside it.
+  const isPos = pathname === "/pos";
+
+  if (isPublicOrStudio || isPos) {
     return (
       <div className="min-h-screen" style={{ fontFamily: "'Satoshi', 'Plus Jakarta Sans', sans-serif" }}>
         <main className="w-full">{children}</main>

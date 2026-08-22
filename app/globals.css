@@ -282,10 +282,31 @@ button, input, select, textarea {
   max-width: 100%;
 }
 
+/* Standalone POS terminal shell — fixed viewport height, no page scroll;
+   only the catalog and cart columns scroll internally. */
+.pos-shell {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: #0a0e1a;
+}
+.pos-shell .font-mono {
+  font-family: var(--font-pos-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.pos-topbar {
+  flex-shrink: 0;
+}
 .pos-grid {
+  flex: 1;
+  min-height: 0;
   display: grid;
-  gap: 1.25rem;
   grid-template-columns: 1fr;
+  overflow: hidden;
+}
+.pos-catalog,
+.pos-cart {
+  min-height: 0;
+  overflow-y: auto;
 }
 .form-grid-2 {
   display: grid;
@@ -467,7 +488,7 @@ button, input, select, textarea {
 
 @media (min-width: 1024px) {
   .pos-grid {
-    grid-template-columns: 2.1fr 1fr;
+    grid-template-columns: 1fr 420px;
   }
 }
 
