@@ -23,8 +23,8 @@ export default async function HomePage() {
       annualDiscountPct: (store.resellerPricing as any)?.addons?.annualDiscountPct ?? 15,
     },
     features: (store.resellerPricing as any)?.features ?? {
-      Lite: { pos: true, repairs: true, stock: false, invoicing: false, buyback: false, supportLevel: "Standart" },
-      Service: { pos: false, repairs: true, stock: true, invoicing: false, buyback: false, supportLevel: "Teknik servis odakli" },
+      Lite: { pos: true, repairs: true, stock: true, invoicing: false, buyback: false, supportLevel: "Standart" },
+      Service: { pos: true, repairs: true, stock: true, invoicing: false, buyback: false, supportLevel: "Öncelikli" },
       Pro: { pos: true, repairs: true, stock: true, invoicing: true, buyback: false, supportLevel: "Hizli" },
       Enterprise: { pos: true, repairs: true, stock: true, invoicing: true, buyback: true, supportLevel: "7/24 SLA" },
     },

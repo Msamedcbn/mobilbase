@@ -190,6 +190,20 @@ const BENTO_CARDS = [
       </div>
     ),
   },
+  {
+    span: "md:col-span-1 md:row-span-1",
+    gradient: "from-teal-500 to-cyan-700",
+    title: "İş ortaklığı ayrıcalıkları",
+    description: "Distribütör ve tedarikçi anlaşmalarımızdan VibeGSM bayilerine özel avantajlı fırsatlar.",
+    visual: (
+      <div className="flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2">
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/15 text-white">
+          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18.375" /></svg>
+        </span>
+        <span className="text-[11px] font-black text-white">Bayilere özel indirim ağı</span>
+      </div>
+    ),
+  },
 ];
 
 const BEFORE_CHIPS = [
@@ -231,10 +245,10 @@ const TESTIMONIALS = [
 ];
 
 const PLANS = [
-  { key: "Lite", subtitle: "Küçük bayi için temel kontrol" },
-  { key: "Service", subtitle: "Teknik servis ağırlıklı işletmeler" },
-  { key: "Pro", subtitle: "Satış, stok ve finans birlikte", badge: "Önerilen" },
-  { key: "Enterprise", subtitle: "Çok şubeli bayi ve SLA ihtiyacı" },
+  { key: "Lite", subtitle: "POS, stok ve servis birlikte başlangıç" },
+  { key: "Service", subtitle: "Öncelikli destekle büyüyen bayi" },
+  { key: "Pro", subtitle: "Faturalama dahil tam kapsamlı yönetim", badge: "Önerilen" },
+  { key: "Enterprise", subtitle: "İkinci el, çok şubeli bayi ve 7/24 SLA" },
 ];
 
 const FEATURE_NAMES = [
@@ -321,6 +335,7 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
   const [menuOpen, setMenuOpen] = useState(false);
   const [showPromo, setShowPromo] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
   const countdown = useCountdown(PROMO_DEADLINE);
 
   useEffect(() => {
@@ -920,15 +935,39 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
 
       <section id="pricing" className="relative z-10 py-32 md:py-44">
         <div className="mx-auto max-w-5xl px-5 md:px-8">
-          <div className="reveal md:max-w-xl">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-600">Paketler</p>
-            <h2 className="mt-4 text-[clamp(2rem,4vw,3.5rem)] font-black leading-[1.05] tracking-[-0.03em] text-slate-900">Bayi ölçeğine göre başlayın</h2>
-            <p className="mt-3 text-sm text-slate-500">Tüm fiyatlar aylıktır. Yıllık ödemede %{addons.annualDiscountPct} indirim uygulanır.</p>
+          <div className="reveal flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <div className="md:max-w-xl">
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-600">Paketler</p>
+              <h2 className="mt-4 text-[clamp(2rem,4vw,3.5rem)] font-black leading-[1.05] tracking-[-0.03em] text-slate-900">Bayi ölçeğine göre başlayın</h2>
+              <p className="mt-3 text-sm text-slate-500">Tüm paketlerde POS, stok ve teknik servis birlikte gelir. Yıllık ödemede %{addons.annualDiscountPct} indirim uygulanır.</p>
+            </div>
+            <div className="inline-flex shrink-0 items-center gap-1 self-start rounded-full border border-slate-200 bg-slate-50 p-1 md:self-auto">
+              <button
+                type="button"
+                onClick={() => setBillingCycle("monthly")}
+                className={`rounded-full px-4 py-2 text-xs font-bold transition-all duration-300 ${billingCycle === "monthly" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+              >
+                Aylık
+              </button>
+              <button
+                type="button"
+                onClick={() => setBillingCycle("annual")}
+                className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold transition-all duration-300 ${billingCycle === "annual" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+              >
+                Yıllık
+                <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-black ${billingCycle === "annual" ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-500"}`}>
+                  -%{addons.annualDiscountPct}
+                </span>
+              </button>
+            </div>
           </div>
           <div className="mt-14 grid gap-5 md:grid-cols-2 md:gap-6">
             {PLANS.map((plan) => {
               const featureConfig = (pricing.features as any)?.[plan.key] || {};
-              const amount = Number((pricing as any)[plan.key] || 0);
+              const monthlyAmount = Number((pricing as any)[plan.key] || 0);
+              const amount = billingCycle === "annual"
+                ? Math.round(monthlyAmount * (1 - addons.annualDiscountPct / 100))
+                : monthlyAmount;
               const highlighted = Boolean(plan.badge);
               return (
                 <article key={plan.key} className={`reveal group rounded-[2.25rem] border p-1.5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 ${
@@ -940,13 +979,31 @@ export function LandingPage({ pricing, addons }: { pricing: PricingData; addons:
                       {plan.badge ? <span className="shrink-0 rounded-full bg-blue-600 px-3 py-1 text-[10px] font-black uppercase text-white">{plan.badge}</span> : null}
                     </div>
                     <p className="mt-6 text-4xl font-black tracking-tight text-slate-900">{amount.toLocaleString("tr-TR")} <span className="text-base font-medium text-slate-400">TL / ay</span></p>
+                    {billingCycle === "annual" && (
+                      <p className="mt-1 text-xs font-bold text-emerald-600">Yıllık faturalandırılır, aylığa göre %{addons.annualDiscountPct} avantajlı</p>
+                    )}
                     <div className="mt-6 space-y-2.5 border-t border-slate-100 pt-5">
-                      {FEATURE_NAMES.map((f) => (
-                        <div key={f.key} className="flex items-center justify-between text-sm">
-                          <span className="text-slate-500">{f.label}</span>
-                          <span className={featureConfig[f.key] ? "text-blue-600 font-bold" : "text-slate-400"}>{featureConfig[f.key] ? "Dahil" : "Yok"}</span>
-                        </div>
-                      ))}
+                      {FEATURE_NAMES.map((f) => {
+                        const included = Boolean(featureConfig[f.key]);
+                        return (
+                          <div key={f.key} className="flex items-center gap-2.5 text-sm">
+                            <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${included ? "bg-blue-50 text-blue-600" : "bg-slate-100 text-slate-300"}`}>
+                              {included ? (
+                                <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                              ) : (
+                                <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                              )}
+                            </span>
+                            <span className={included ? "font-semibold text-slate-800" : "text-slate-400"}>{f.label}</span>
+                          </div>
+                        );
+                      })}
+                      <div className="flex items-center gap-2.5 pt-1 text-sm">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                          <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                        </span>
+                        <span className="font-semibold text-slate-800">{featureConfig.supportLevel || "Destek"}</span>
+                      </div>
                     </div>
                     <a
                       href={WHATSAPP_HREF}

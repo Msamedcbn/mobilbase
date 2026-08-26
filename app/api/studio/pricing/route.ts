@@ -21,18 +21,18 @@ const DEFAULT_PRICING = {
     Lite: {
       pos: true,
       repairs: true,
-      stock: false,
+      stock: true,
       invoicing: false,
       buyback: false,
       supportLevel: "Standart E-Posta Destek",
     },
     Service: {
-      pos: false,
+      pos: true,
       repairs: true,
       stock: true,
       invoicing: false,
       buyback: false,
-      supportLevel: "Teknik Servis Odakli Destek",
+      supportLevel: "Öncelikli Destek",
     },
     Pro: {
       pos: true,

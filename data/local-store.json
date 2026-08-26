@@ -9150,18 +9150,18 @@
       "Lite": {
         "pos": true,
         "repairs": true,
-        "stock": false,
+        "stock": true,
         "invoicing": false,
         "buyback": false,
         "supportLevel": "Standart E-Posta Destek"
       },
       "Service": {
-        "pos": false,
+        "pos": true,
         "repairs": true,
         "stock": true,
         "invoicing": false,
         "buyback": false,
-        "supportLevel": "Teknik Servis Odaklı Destek"
+        "supportLevel": "Öncelikli Destek"
       },
       "Pro": {
         "pos": true,
@@ -9219,6 +9219,60 @@
     }
   ],
   "resellerPricingHistory": [
+    {
+      "id": "pricing-hst-c1f4a9b2",
+      "createdAt": "2026-08-26T10:00:00.000Z",
+      "createdBy": "StudioAdmin",
+      "reason": "Lite ve Service paketlerine stok/POS dahil edildi (rakip karsilastirmasi sonrasi paket birlestirme)",
+      "snapshot": {
+        "Lite": 750,
+        "Service": 990,
+        "Pro": 1500,
+        "Enterprise": 3500,
+        "freeBranchLimit": 1,
+        "branchSurchargePrice": 2000,
+        "addons": {
+          "apiPackPrice": 150,
+          "dbGbPrice": 200,
+          "customDevHourly": 1200,
+          "annualDiscountPct": 15
+        },
+        "features": {
+          "Lite": {
+            "pos": true,
+            "repairs": true,
+            "stock": true,
+            "invoicing": false,
+            "buyback": false,
+            "supportLevel": "Standart E-Posta Destek"
+          },
+          "Service": {
+            "pos": true,
+            "repairs": true,
+            "stock": true,
+            "invoicing": false,
+            "buyback": false,
+            "supportLevel": "Öncelikli Destek"
+          },
+          "Pro": {
+            "pos": true,
+            "repairs": true,
+            "stock": true,
+            "invoicing": true,
+            "buyback": false,
+            "supportLevel": "Hızlı Destek (Mesai Saatleri)"
+          },
+          "Enterprise": {
+            "pos": true,
+            "repairs": true,
+            "stock": true,
+            "invoicing": true,
+            "buyback": true,
+            "supportLevel": "7/24 Telefon & SLA Desteği"
+          }
+        }
+      }
+    },
     {
       "id": "pricing-hst-9e2eb27a",
       "createdAt": "2026-06-02T11:12:36.512Z",
@@ -9329,6 +9383,18 @@
     }
   ],
   "studioAuditLogs": [
+    {
+      "id": "audit-c1f4a9b2",
+      "createdAt": "2026-08-26T10:00:00.000Z",
+      "actor": "StudioAdmin",
+      "action": "PRICING_UPDATE",
+      "targetType": "PRICING",
+      "targetId": "resellerPricing",
+      "detail": "750/990/1500/3500 fiyatlari güncellendi",
+      "context": {
+        "reason": "Lite ve Service paketlerine stok/POS dahil edildi (rakip karsilastirmasi sonrasi paket birlestirme)"
+      }
+    },
     {
       "id": "audit-267b518e",
       "createdAt": "2026-07-15T19:29:58.633Z",
