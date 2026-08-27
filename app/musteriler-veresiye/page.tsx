@@ -299,7 +299,7 @@ export default function CustomersVeresiyePage() {
   if (loading && customers.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-slate-200 border-t-blue-600"></div>
       </div>
     );
   }
@@ -307,38 +307,43 @@ export default function CustomersVeresiyePage() {
   return (
     <section className="space-y-8 pb-12">
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass-card p-6 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <svg className="w-16 h-16 text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-            </svg>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Kayıtlı Müşteri</span>
+            <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
+              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-4.13a4 4 0 10-4-4 4 4 0 004 4zm6 4a4 4 0 10-4-4" />
+              </svg>
+            </div>
           </div>
-          <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Kayıtlı Müşteri</p>
-          <p className="text-3xl font-extrabold text-slate-900 mt-2">{customers.length}</p>
+          <p className="text-3xl font-black text-slate-900 mt-3 font-mono">{customers.length}</p>
         </div>
 
-        <div className="glass-card p-6 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <svg className="w-16 h-16 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M8.433 7.418c.554-.589 1.448-.589 2.002 0l.007.007a1.425 1.425 0 002.016 0l.007-.007c.554-.59 1.448-.59 2.002 0l.007.007a1.425 1.425 0 000 2.015l-.007.007c-.554.59-.554 1.54 0 2.13l.007.007a1.425 1.425 0 000 2.015l-.007.007c-.554.59-1.448.59-2.002 0l-.007-.007a1.425 1.425 0 00-2.016 0l-.007.007c-.554.59-1.448.59-2.002 0l-.007-.007a1.425 1.425 0 00-2.015 0l-.007.007c-.554.59-.554 1.54 0 2.13l.007.007a1.425 1.425 0 000 2.015l-.007.007c-.554.59-1.448.59-2.002 0l-.007-.007a1.425 1.425 0 00-2.015-2.015l.007-.007c.554-.59.554-1.54 0-2.13l-.007-.007a1.425 1.425 0 000-2.015l.007-.007c.554-.59 1.448-.59 2.002 0l.007.007z" />
-            </svg>
+        <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Veresiye Sattıklarım (Alacak)</span>
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 7v10m-4-4l4 4 4-4M5 4h14" />
+              </svg>
+            </div>
           </div>
-          <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Veresiye Sattıklarım (Alacak)</p>
-          <p className="text-3xl font-extrabold text-emerald-600 mt-2">
+          <p className="text-3xl font-black text-emerald-600 mt-3 font-mono">
             {totalOnAccountSales.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
           </p>
         </div>
 
-        <div className="glass-card p-6 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <svg className="w-16 h-16 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-              <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
-            </svg>
+        <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Veresiye Aldıklarım (Tahsilat)</span>
+            <div className="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center shrink-0">
+              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 17V7m-4 4l4-4 4 4M5 20h14" />
+              </svg>
+            </div>
           </div>
-          <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Veresiye Aldıklarım (Tahsilat)</p>
-          <p className="text-3xl font-extrabold text-rose-600 mt-2">
+          <p className="text-3xl font-black text-rose-600 mt-3 font-mono">
             {totalOnAccountCollections.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
           </p>
         </div>
@@ -349,27 +354,27 @@ export default function CustomersVeresiyePage() {
         <div className="relative w-full md:w-96">
           <input
             type="text"
-            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent backdrop-blur-sm transition-all"
+            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             placeholder="Müşteri adı veya telefon ile ara..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <div className="absolute top-3.5 right-4 text-slate-500">
+          <div className="absolute top-3.5 right-4 text-slate-400">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row w-full md:w-auto items-center gap-3">
+        <div className="flex flex-col sm:flex-row w-full md:w-auto items-center gap-2.5">
           <button
             onClick={() => setIsAddCustomerModalOpen(true)}
-            className="w-full md:w-auto px-4 py-3 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2"
+            className="group w-full md:w-auto px-4 py-3 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition-all active:scale-95 flex items-center justify-center gap-2"
           >
-            <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-slate-500 opacity-80 group-hover:opacity-100 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
             </svg>
-            + Yeni Müşteri
+            Yeni Müşteri
           </button>
 
           <button
@@ -379,12 +384,12 @@ export default function CustomersVeresiyePage() {
               setEntryAmount("");
               setIsEntryModalOpen(true);
             }}
-            className="w-full md:w-auto px-5 py-3 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
+            className="w-full md:w-auto px-5 py-3 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl transition-all shadow-sm shadow-rose-900/10 active:scale-95 flex items-center justify-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
-            🔴 Cari Aç (Borçlandır)
+            Cari Aç (Borçlandır)
           </button>
 
           <button
@@ -394,19 +399,19 @@ export default function CustomersVeresiyePage() {
               setEntryAmount("");
               setIsEntryModalOpen(true);
             }}
-            className="w-full md:w-auto px-5 py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
+            className="w-full md:w-auto px-5 py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-all shadow-sm shadow-emerald-900/10 active:scale-95 flex items-center justify-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            🟢 Cari Kapat (Tahsilat Al)
+            Cari Kapat (Tahsilat Al)
           </button>
         </div>
 
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <button onClick={() => setBalanceFilter("ALL")} className={`px-3 py-2 rounded-lg border text-xs font-semibold ${balanceFilter === "ALL" ? "bg-slate-800 text-white border-slate-800" : "bg-white text-slate-600 border-slate-200"}`}>Tum Bakiye</button>
-          <button onClick={() => setBalanceFilter("RECEIVABLE")} className={`px-3 py-2 rounded-lg border text-xs font-semibold ${balanceFilter === "RECEIVABLE" ? "bg-emerald-600 text-white border-emerald-600" : "bg-white text-emerald-700 border-emerald-200"}`}>Alacaklarim</button>
-          <button onClick={() => setBalanceFilter("PAYABLE")} className={`px-3 py-2 rounded-lg border text-xs font-semibold ${balanceFilter === "PAYABLE" ? "bg-rose-600 text-white border-rose-600" : "bg-white text-rose-700 border-rose-200"}`}>Vereceklerim</button>
+        <div className="flex items-center gap-1 w-full md:w-auto bg-slate-100 rounded-xl p-1">
+          <button onClick={() => setBalanceFilter("ALL")} className={`px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${balanceFilter === "ALL" ? "bg-blue-600 text-white shadow-sm" : "text-slate-600 hover:text-slate-900"}`}>Tüm Bakiye</button>
+          <button onClick={() => setBalanceFilter("RECEIVABLE")} className={`px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${balanceFilter === "RECEIVABLE" ? "bg-emerald-600 text-white shadow-sm" : "text-emerald-700 hover:text-emerald-800"}`}>Alacaklarım</button>
+          <button onClick={() => setBalanceFilter("PAYABLE")} className={`px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${balanceFilter === "PAYABLE" ? "bg-rose-600 text-white shadow-sm" : "text-rose-700 hover:text-rose-800"}`}>Vereceklerim</button>
         </div>
       </div>
       {/* Customer store-history search */}
@@ -414,7 +419,7 @@ export default function CustomersVeresiyePage() {
         <div className="flex flex-col md:flex-row md:items-center gap-3">
           <div className="w-full md:max-w-md relative">
             <input
-              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Müşteri adı veya telefon ile mağaza geçmişi sorgula..."
               value={historyQuery}
               onChange={(e) => setHistoryQuery(e.target.value)}
@@ -426,8 +431,15 @@ export default function CustomersVeresiyePage() {
           <button
             onClick={() => void handleCustomerHistorySearch()}
             disabled={historyLoading}
-            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white font-medium rounded-xl transition-all shadow-sm active:scale-95"
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2"
           >
+            {historyLoading ? (
+              <span className="w-4 h-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+            ) : (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            )}
             {historyLoading ? "Sorgulanıyor..." : "Geçmiş İşlemleri Sorgula"}
           </button>
           {historyResults.length > 0 && (
@@ -449,7 +461,7 @@ export default function CustomersVeresiyePage() {
                     <strong className="text-slate-900">{item.customer.fullName}</strong>
                     <div className="text-xs text-slate-500">{item.customer.phone}</div>
                   </div>
-                  <div className="text-xs text-slate-600">
+                  <div className="text-xs text-slate-600 font-mono">
                     Borç: <strong className="text-rose-600">{Number(item.summary.totalDebit).toLocaleString("tr-TR")} TL</strong>
                     {" · "}Tahsilat: <strong className="text-emerald-600">{Number(item.summary.totalCredit).toLocaleString("tr-TR")} TL</strong>
                     {" · "}Net: <strong>{Number(item.summary.netBalance).toLocaleString("tr-TR")} TL</strong>
@@ -496,17 +508,17 @@ export default function CustomersVeresiyePage() {
         )}
       </div>
 
-      <div className="panel bg-white border border-slate-200 rounded-xl px-4 py-3 flex items-center justify-between">
-        <span className="text-sm text-slate-500">Net Veresiye Bakiye</span>
-        <strong className={netBalance >= 0 ? "text-emerald-600" : "text-rose-600"}>
+      <div className="panel bg-white border border-slate-200 rounded-xl px-5 py-3.5 flex items-center justify-between">
+        <span className="text-sm font-medium text-slate-500">Net Veresiye Bakiye</span>
+        <strong className={`font-mono text-base ${netBalance >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
           {netBalance.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
         </strong>
       </div>
 
       {/* Customer List */}
-      <div className="panel bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm backdrop-blur-md">
+      <div className="panel bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
         <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
-          <h3 className="text-lg font-bold text-slate-900">Müşteri Cari Durum Listesi</h3>
+          <h3 className="text-base font-bold text-slate-900">Müşteri Cari Durum Listesi</h3>
         </div>
         <div className="overflow-x-auto">
           {filteredCustomers.length === 0 ? (
@@ -532,7 +544,7 @@ export default function CustomersVeresiyePage() {
                   return (
                     <tr key={c.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-6 py-4 font-semibold text-slate-900">{c.fullName}</td>
-                      <td className="px-6 py-4 text-slate-500">{c.phone}</td>
+                      <td className="px-6 py-4 text-slate-500 font-mono">{c.phone}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-slate-900">
@@ -544,7 +556,7 @@ export default function CustomersVeresiyePage() {
                               setNewLimitValue(limit.toString());
                               setIsLimitModalOpen(true);
                             }}
-                            className="text-indigo-400 hover:text-indigo-300 transition-colors p-1"
+                            className="text-slate-400 hover:text-blue-600 transition-colors p-1"
                             title="Limiti Düzenle"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -560,19 +572,22 @@ export default function CustomersVeresiyePage() {
                       </td>
                       <td className="px-6 py-4">
                         {isLimitExceeded ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-rose-500/20 text-rose-400 border border-rose-500/30 animate-pulse">
-                            🚨 Limit Aşıldı ({(bal - limit).toLocaleString("tr-TR")} TL)
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-600 border border-rose-500/20 animate-pulse">
+                            <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                            </svg>
+                            Limit Aşıldı ({(bal - limit).toLocaleString("tr-TR")} TL)
                           </span>
                         ) : bal > 0 ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-600 border border-emerald-500/30">
-                            Alacaklım (Yeşil)
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                            Alacaklım
                           </span>
                         ) : bal < 0 ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-rose-500/20 text-rose-500 border border-rose-500/30">
-                            Vereceğim (Kırmızı)
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-600 border border-rose-500/20">
+                            Vereceğim
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-500/20 text-slate-500 border border-slate-500/30">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200">
                             Dengede
                           </span>
                         )}
@@ -629,9 +644,9 @@ export default function CustomersVeresiyePage() {
       </div>
 
       {/* Ledger History */}
-      <div className="panel bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm backdrop-blur-md">
+      <div className="panel bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
         <div className="px-6 py-4 border-b border-slate-200">
-          <h3 className="text-lg font-bold text-slate-900">Son Cari Hareketler</h3>
+          <h3 className="text-base font-bold text-slate-900">Son Cari Hareketler</h3>
         </div>
         <div className="overflow-x-auto">
           {ledger.length === 0 ? (
@@ -693,7 +708,7 @@ export default function CustomersVeresiyePage() {
                 <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">Limit Tutarı (TL)</label>
                 <input
                   type="number"
-                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono"
+                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
                   placeholder="örn. 5000"
                   value={newLimitValue}
                   onChange={(e) => setNewLimitValue(e.target.value)}
@@ -713,7 +728,7 @@ export default function CustomersVeresiyePage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-slate-900 text-sm font-medium rounded-xl transition-all"
+                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-xl transition-all"
                 >
                   Kaydet
                 </button>
@@ -728,8 +743,19 @@ export default function CustomersVeresiyePage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-lg bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
             <div>
-              <h3 className="text-xl font-bold text-slate-900">
-                {entryType === "DEBIT" ? "🔴 Cari Aç (Borç Ekle / Veresiye Verme)" : "🟢 Cari Kapat (Tahsilat Al / Borç Kapatma)"}
+              <h3 className="flex items-center gap-2 text-xl font-bold text-slate-900">
+                <span className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${entryType === "DEBIT" ? "bg-rose-500/10 text-rose-600" : "bg-emerald-500/10 text-emerald-600"}`}>
+                  {entryType === "DEBIT" ? (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  )}
+                </span>
+                {entryType === "DEBIT" ? "Cari Aç (Borç Ekle / Veresiye Verme)" : "Cari Kapat (Tahsilat Al / Borç Kapatma)"}
               </h3>
               <p className="text-sm text-slate-500 mt-1">
                 {entryType === "DEBIT" ? "Müşteri hesabına borç kaydedin (Cari Açma)." : "Müşteriden ödeme alarak cari hesabı kapatın veya bakiyeyi düşürün."}
@@ -741,7 +767,7 @@ export default function CustomersVeresiyePage() {
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">Müşteri Seçin</label>
                   <select
-                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={entryCustomerId}
                     onChange={(e) => setEntryCustomerId(e.target.value)}
                     required
@@ -757,13 +783,13 @@ export default function CustomersVeresiyePage() {
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">İşlem Tipi</label>
                   <select
-                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-bold"
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-bold"
                     value={entryType}
                     onChange={(e) => setEntryType(e.target.value as "DEBIT" | "CREDIT")}
                     required
                   >
-                    <option value="DEBIT" className="bg-white text-rose-700 font-bold">🔴 Cari Aç (Borçlandır)</option>
-                    <option value="CREDIT" className="bg-white text-emerald-700 font-bold">🟢 Cari Kapat (Tahsilat Al / Sıfırla)</option>
+                    <option value="DEBIT" className="bg-white text-rose-700 font-bold">Cari Aç (Borçlandır)</option>
+                    <option value="CREDIT" className="bg-white text-emerald-700 font-bold">Cari Kapat (Tahsilat Al / Sıfırla)</option>
                   </select>
                 </div>
               </div>
@@ -773,7 +799,7 @@ export default function CustomersVeresiyePage() {
                 <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">Tutar (TL)</label>
                 <input
                   type="number"
-                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono"
+                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
                   placeholder="örn. 1500"
                   value={entryAmount}
                   onChange={(e) => setEntryAmount(e.target.value)}
@@ -786,7 +812,7 @@ export default function CustomersVeresiyePage() {
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">İşlem Yapılan Kasa/Banka</label>
                 <select
-                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   value={bankAccountId}
                   onChange={(e) => setBankAccountId(e.target.value)}
                 >
@@ -802,7 +828,7 @@ export default function CustomersVeresiyePage() {
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">Açıklama</label>
                 <textarea
-                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent h-20 resize-none"
+                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-20 resize-none"
                   placeholder="İşlem açıklaması girin..."
                   value={entryDesc}
                   onChange={(e) => setEntryDesc(e.target.value)}
@@ -819,7 +845,7 @@ export default function CustomersVeresiyePage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-slate-900 text-sm font-medium rounded-xl transition-all"
+                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-xl transition-all"
                 >
                   Kaydet
                 </button>

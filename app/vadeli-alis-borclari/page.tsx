@@ -155,22 +155,25 @@ export default function VadeliAlisBorclariPage() {
           </div>
         </div>
         <button type="button" onClick={() => setShowAddModal(true)} className="primary-btn text-xs py-2 px-4">
-          + Yeni Borç Kaydı
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          Yeni Borç Kaydı
         </button>
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
         <div className="panel p-4">
           <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Toplam Açık Borç</p>
-          <p className="mt-1 text-2xl font-black text-slate-900">{formatTL(totalOutstanding)}</p>
+          <p className="mt-1 text-2xl font-black text-slate-900 font-mono">{formatTL(totalOutstanding)}</p>
         </div>
         <div className="panel p-4">
           <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Ödenmemiş Kayıt</p>
-          <p className="mt-1 text-2xl font-black text-slate-900">{debts.filter((d) => !d.isPaid).length}</p>
+          <p className="mt-1 text-2xl font-black text-slate-900 font-mono">{debts.filter((d) => !d.isPaid).length}</p>
         </div>
         <div className="panel p-4">
           <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Vadesi Geçen</p>
-          <p className="mt-1 text-2xl font-black text-rose-600">{overdueCount}</p>
+          <p className="mt-1 text-2xl font-black text-rose-600 font-mono">{overdueCount}</p>
         </div>
       </div>
 
@@ -209,9 +212,9 @@ export default function VadeliAlisBorclariPage() {
                   return (
                     <tr key={d.id}>
                       <td className="text-xs font-semibold text-slate-800">{d.supplierName}</td>
-                      <td className="text-xs text-slate-600">{formatTL(d.amount)}</td>
-                      <td className="text-xs text-slate-600">{formatTL(d.paidAmount)}</td>
-                      <td className={`text-xs whitespace-nowrap ${isOverdue ? "font-bold text-rose-600" : "text-slate-500"}`}>
+                      <td className="text-xs text-slate-600 font-mono">{formatTL(d.amount)}</td>
+                      <td className="text-xs text-slate-600 font-mono">{formatTL(d.paidAmount)}</td>
+                      <td className={`text-xs whitespace-nowrap font-mono ${isOverdue ? "font-bold text-rose-600" : "text-slate-500"}`}>
                         {formatDate(d.dueDate)}
                       </td>
                       <td className="text-xs text-slate-500 max-w-[240px] truncate" title={d.description ?? undefined}>
@@ -226,15 +229,31 @@ export default function VadeliAlisBorclariPage() {
                           <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[11px] font-bold">Bekliyor</span>
                         )}
                       </td>
-                      <td className="text-xs whitespace-nowrap space-x-2">
-                        {!d.isPaid && (
-                          <button type="button" onClick={() => markPaid(d.id)} className="text-blue-600 font-semibold hover:underline">
-                            Ödendi İşaretle
+                      <td className="text-xs whitespace-nowrap">
+                        <div className="flex items-center gap-1.5">
+                          {!d.isPaid && (
+                            <button
+                              type="button"
+                              onClick={() => markPaid(d.id)}
+                              title="Ödendi İşaretle"
+                              className="w-7 h-7 rounded-lg flex items-center justify-center text-blue-600 hover:bg-blue-50 transition-colors"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                              </svg>
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => removeDebt(d.id)}
+                            title="Sil"
+                            className="w-7 h-7 rounded-lg flex items-center justify-center text-rose-600 hover:bg-rose-50 transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
                           </button>
-                        )}
-                        <button type="button" onClick={() => removeDebt(d.id)} className="text-rose-600 font-semibold hover:underline">
-                          Sil
-                        </button>
+                        </div>
                       </td>
                     </tr>
                   );

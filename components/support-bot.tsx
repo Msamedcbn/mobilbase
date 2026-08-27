@@ -170,7 +170,8 @@ export function SupportBot() {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 font-sans">
+    // Lifted above the mobile bottom tab bar (68px tall) so it never covers it.
+    <div className="fixed bottom-[84px] right-4 md:bottom-6 md:right-6 z-50 font-sans">
       {/* TRIGGER FLOATING BUTTON */}
       {!isOpen && (
         <button

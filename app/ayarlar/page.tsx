@@ -330,16 +330,24 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-16">
-      <div>
-        <h2 className="text-2xl font-bold text-slate-900">Sistem & Entegrasyon Ayarları</h2>
-        <p className="text-sm text-slate-500 mt-1">
-          Bildirim kanalları, şablonlar ve otomatik bilgilendirme kurulumlarını yönetin.
-        </p>
+    <div className="max-w-5xl mx-auto space-y-6 pb-16">
+      <div className="flex items-center gap-3.5">
+        <div className="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </div>
+        <div>
+          <h2 className="text-2xl font-black tracking-tight text-slate-900">Sistem & Entegrasyon Ayarları</h2>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Bildirim kanalları, şablonlar ve otomatik bilgilendirme kurulumlarını yönetin.
+          </p>
+        </div>
       </div>
 
       {!canManageSettings && (
-        <div className="p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-sm font-medium flex items-center gap-3">
+        <div className="p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl text-sm font-medium flex items-center gap-3">
           <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
@@ -348,11 +356,18 @@ export default function SettingsPage() {
       )}
 
       <div className="panel bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-        <div>
-          <h3 className="font-bold text-slate-900">Modül Görünürlüğü</h3>
-          <p className="text-xs text-slate-500 mt-1">
-            İşletmenizde kullanmadığınız modülleri kapatarak menüyü sadeleştirebilirsiniz. Kapatılan modüllere ekip üyeleriniz erişemez.
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h7" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="font-bold text-slate-900 text-[15px]">Modül Görünürlüğü</h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              İşletmenizde kullanmadığınız modülleri kapatarak menüyü sadeleştirebilirsiniz. Kapatılan modüllere ekip üyeleriniz erişemez.
+            </p>
+          </div>
         </div>
         {modulesLoading ? (
           <div className="text-sm text-slate-400">Yükleniyor...</div>
@@ -387,23 +402,30 @@ export default function SettingsPage() {
       </div>
 
       <form onSubmit={handleSaveCommission} className="panel bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-        <div>
-          <h3 className="font-bold text-slate-900">Kart / Banka Komisyon Oranı</h3>
-          <p className="text-xs text-slate-500 mt-1">
-            Bankanızın kredi kartı tahsilatlarından kestiği komisyon oranını girin; raporlarda kart satışlarının
-            net (komisyon sonrası) tutarını görmenizi sağlar.
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 8h1V6h1m-1 2v2m0 0h1m-1 0H8m9 6h1v-2h1m-1 2v2m0-2h-1m1 0h1M5 8h.01M19 16h.01M5 19L19 5" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="font-bold text-slate-900 text-[15px]">Kart / Banka Komisyon Oranı</h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Bankanızın kredi kartı tahsilatlarından kestiği komisyon oranını girin; raporlarda kart satışlarının
+              net (komisyon sonrası) tutarını görmenizi sağlar.
+            </p>
+          </div>
         </div>
         <div className="flex items-end gap-3">
           <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-500 uppercase">Komisyon Oranı (%)</label>
+            <label className="block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Komisyon Oranı (%)</label>
             <div className="relative">
               <input
                 type="number"
                 step="0.01"
                 min="0"
                 max="100"
-                className="field w-40 border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
+                className="field w-40 border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 font-mono"
                 value={cardCommissionRate}
                 onChange={(e) => setCardCommissionRate(e.target.value)}
                 disabled={!canManageSettings}
@@ -423,15 +445,22 @@ export default function SettingsPage() {
       </form>
 
       <form onSubmit={handleSaveBranding} className="panel bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-        <div>
-          <h3 className="font-bold text-slate-900">Marka Teması</h3>
-          <p className="text-xs text-slate-500 mt-1">
-            Menüdeki logonuzu ve vurgu rengini değiştirin. Bırakılan alanlar VibeGSM varsayılanını kullanır.
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h10a2 2 0 002-2v-4a2 2 0 00-2-2h-3M7 8h.01M7 12h.01" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="font-bold text-slate-900 text-[15px]">Marka Teması</h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Menüdeki logonuzu ve vurgu rengini değiştirin. Bırakılan alanlar VibeGSM varsayılanını kullanır.
+            </p>
+          </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-500 uppercase">Vurgu Rengi</label>
+            <label className="block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Vurgu Rengi</label>
             <div className="flex items-center gap-2">
               <input
                 type="color"
@@ -451,7 +480,7 @@ export default function SettingsPage() {
             </div>
           </div>
           <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-500 uppercase">Logo Adresi (URL)</label>
+            <label className="block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Logo Adresi (URL)</label>
             <input
               type="text"
               className="field border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
@@ -475,15 +504,22 @@ export default function SettingsPage() {
       </form>
 
       <form onSubmit={handleSaveInvoiceTemplate} className="panel bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-        <div>
-          <h3 className="font-bold text-slate-900">Fiş / Fatura Şablonu</h3>
-          <p className="text-xs text-slate-500 mt-1">
-            POS&apos;ta yazdırılan fişin üst ve alt bilgilerini işletmenize göre özelleştirin.
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 14l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="font-bold text-slate-900 text-[15px]">Fiş / Fatura Şablonu</h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              POS&apos;ta yazdırılan fişin üst ve alt bilgilerini işletmenize göre özelleştirin.
+            </p>
+          </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-500 uppercase">İşletme Adı</label>
+            <label className="block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">İşletme Adı</label>
             <input
               type="text"
               className="field border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
@@ -494,7 +530,7 @@ export default function SettingsPage() {
             />
           </div>
           <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-500 uppercase">Vergi Dairesi</label>
+            <label className="block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Vergi Dairesi</label>
             <input
               type="text"
               className="field border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
@@ -505,10 +541,10 @@ export default function SettingsPage() {
             />
           </div>
           <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-500 uppercase">Vergi No (VKN)</label>
+            <label className="block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Vergi No (VKN)</label>
             <input
               type="text"
-              className="field border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
+              className="field border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 font-mono"
               placeholder="1234567890"
               value={invoiceTemplate.taxNo}
               onChange={(e) => setInvoiceTemplate({ ...invoiceTemplate, taxNo: e.target.value })}
@@ -516,7 +552,7 @@ export default function SettingsPage() {
             />
           </div>
           <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-500 uppercase">Fiş Alt Notu</label>
+            <label className="block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Fiş Alt Notu</label>
             <input
               type="text"
               className="field border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
@@ -539,11 +575,18 @@ export default function SettingsPage() {
       </form>
 
       <div className="panel bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-        <div>
-          <h3 className="font-bold text-slate-900">Rol Bazlı Yetkiler</h3>
-          <p className="text-xs text-slate-500 mt-1">
-            Hangi rolün hangi modüle erişebileceğini buradan ayarlayın. Değişiklik anında etkili olur.
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="font-bold text-slate-900 text-[15px]">Rol Bazlı Yetkiler</h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Hangi rolün hangi modüle erişebileceğini buradan ayarlayın. Değişiklik anında etkili olur.
+            </p>
+          </div>
         </div>
         {rolePermissionsLoading ? (
           <div className="text-sm text-slate-400">Yükleniyor...</div>
@@ -552,9 +595,9 @@ export default function SettingsPage() {
             <table className="w-full border-collapse text-left text-xs">
               <thead>
                 <tr className="border-b border-slate-100">
-                  <th className="py-2 pr-3 font-bold text-slate-500 uppercase text-[10px]">Rol</th>
+                  <th className="py-2 pr-3 font-bold text-slate-500 uppercase tracking-[0.14em] text-[10px]">Rol</th>
                   {ROLE_MODULE_KEYS.map((mod) => (
-                    <th key={mod} className="py-2 px-2 font-bold text-slate-500 uppercase text-[10px] text-center">
+                    <th key={mod} className="py-2 px-2 font-bold text-slate-500 uppercase tracking-[0.14em] text-[10px] text-center">
                       {ROLE_MODULE_LABELS[mod]}
                     </th>
                   ))}
@@ -562,7 +605,7 @@ export default function SettingsPage() {
               </thead>
               <tbody>
                 {EDITABLE_ROLES.map((role) => (
-                  <tr key={role} className="border-b border-slate-50">
+                  <tr key={role} className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors">
                     <td className="py-2.5 pr-3 font-bold text-slate-800 whitespace-nowrap">
                       {ROLE_LABELS[role]}
                       {savingRole === role && <span className="ml-1.5 text-[10px] font-normal text-slate-400">kaydediliyor...</span>}
@@ -576,7 +619,7 @@ export default function SettingsPage() {
                             checked={enabled}
                             disabled={!canManageSettings || savingRole === role}
                             onChange={(e) => handleToggleRoleModule(role, mod, e.target.checked)}
-                            className="w-4 h-4 accent-blue-600 cursor-pointer disabled:cursor-not-allowed"
+                            className="w-4 h-4 accent-blue-600 cursor-pointer disabled:cursor-not-allowed rounded"
                           />
                         </td>
                       );
@@ -595,16 +638,16 @@ export default function SettingsPage() {
           <div className="lg:col-span-1 space-y-6">
             {/* WhatsApp setup status card */}
             <div className="panel bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 relative overflow-hidden">
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                  <span className="p-1.5 bg-emerald-100 text-emerald-800 rounded-lg">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.73-1.45L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.963C16.588 1.981 14.111.957 11.997.957c-5.439 0-9.862 4.37-9.866 9.801-.002 1.761.478 3.483 1.393 5.015l-.997 3.64 3.738-.97c1.547.842 3.12 1.282 4.379 1.282zm10.742-7.85c-.29-.145-1.716-.848-1.983-.945-.267-.097-.461-.145-.655.145-.194.29-.752.945-.921 1.14-.169.194-.339.219-.63.073-.29-.145-1.229-.453-2.34-1.445-.864-.77-1.447-1.722-1.617-2.013-.17-.29-.018-.447.127-.592.13-.13.29-.339.436-.509.145-.17.194-.29.291-.485.097-.194.049-.364-.024-.509-.073-.145-.655-1.577-.898-2.16-.236-.57-.478-.49-.655-.499-.17-.008-.364-.01-.558-.01-.194 0-.509.073-.776.364-.267.29-1.02 1.02-1.02 2.475 0 1.455 1.069 2.859 1.214 3.053.145.194 2.1 3.21 5.09 4.5 1.776.767 2.477.83 3.364.698.544-.08 1.716-.703 1.958-1.382.242-.679.242-1.261.169-1.382-.072-.12-.267-.194-.557-.339z" />
                     </svg>
                   </span>
-                  WhatsApp
-                </h3>
-                <span className={`px-2.5 py-1 text-xs font-bold rounded-full border ${settings.whatsappEnabled && settings.whatsappNumber ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"}`}>
+                  <h3 className="font-bold text-slate-900 text-[15px]">WhatsApp</h3>
+                </div>
+                <span className={`px-2.5 py-1 text-[11px] font-bold rounded-full border shrink-0 ${settings.whatsappEnabled && settings.whatsappNumber ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"}`}>
                   {settings.whatsappEnabled && settings.whatsappNumber ? "Kurulum Aktif" : "Kurulum Bekliyor"}
                 </span>
               </div>
@@ -625,12 +668,12 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-slate-500 uppercase">
+                  <label className="block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
                     İşletme WhatsApp Numarası
                   </label>
                   <input
                     type="text"
-                    className="field border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
+                    className="field border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 font-mono"
                     placeholder="Örn: 905551234567"
                     value={settings.whatsappNumber}
                     onChange={(e) => setSettings({ ...settings, whatsappNumber: e.target.value })}
@@ -645,16 +688,16 @@ export default function SettingsPage() {
 
             {/* SMS status card (Strictly disabled) */}
             <div className="panel bg-slate-50 border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4 relative overflow-hidden">
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-slate-400 flex items-center gap-2">
-                  <span className="p-1.5 bg-slate-200 text-slate-500 rounded-lg">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="w-9 h-9 rounded-xl bg-slate-200 text-slate-500 flex items-center justify-center shrink-0">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
                   </span>
-                  SMS Entegrasyonu
-                </h3>
-                <span className="px-2.5 py-1 text-xs font-bold rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+                  <h3 className="font-bold text-slate-400 text-[15px]">SMS Entegrasyonu</h3>
+                </div>
+                <span className="px-2.5 py-1 text-[11px] font-bold rounded-full bg-rose-50 text-rose-700 border border-rose-200 shrink-0">
                   Sunulmamaktadır
                 </span>
               </div>
@@ -667,7 +710,7 @@ export default function SettingsPage() {
                   WhatsApp üzerinden bilgi iletimi tamamen ücretsiz, sınırsız ve daha yüksek erişim oranına sahip olduğu için bu kanalı kullanmanız önerilir.
                 </div>
                 <div className="space-y-1">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.14em]">
                     SMS Servis Sağlayıcısı API Key
                   </label>
                   <input
@@ -689,21 +732,21 @@ export default function SettingsPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("repair")}
-                  className={`flex-1 py-4 text-center text-sm font-semibold border-b-2 transition ${activeTab === "repair" ? "border-blue-600 text-blue-600 bg-white" : "border-transparent text-slate-600 hover:text-slate-900"}`}
+                  className={`flex-1 py-4 text-center text-sm font-semibold border-b-2 transition-colors ${activeTab === "repair" ? "border-blue-600 text-blue-600 bg-white" : "border-transparent text-slate-500 hover:text-slate-900"}`}
                 >
                   Teknik Servis Bildirimi
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTab("veresiye")}
-                  className={`flex-1 py-4 text-center text-sm font-semibold border-b-2 transition ${activeTab === "veresiye" ? "border-blue-600 text-blue-600 bg-white" : "border-transparent text-slate-600 hover:text-slate-900"}`}
+                  className={`flex-1 py-4 text-center text-sm font-semibold border-b-2 transition-colors ${activeTab === "veresiye" ? "border-blue-600 text-blue-600 bg-white" : "border-transparent text-slate-500 hover:text-slate-900"}`}
                 >
                   Veresiye Hatırlatması
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTab("installment")}
-                  className={`flex-1 py-4 text-center text-sm font-semibold border-b-2 transition ${activeTab === "installment" ? "border-blue-600 text-blue-600 bg-white" : "border-transparent text-slate-600 hover:text-slate-900"}`}
+                  className={`flex-1 py-4 text-center text-sm font-semibold border-b-2 transition-colors ${activeTab === "installment" ? "border-blue-600 text-blue-600 bg-white" : "border-transparent text-slate-500 hover:text-slate-900"}`}
                 >
                   Taksit Hatırlatması
                 </button>
@@ -714,7 +757,7 @@ export default function SettingsPage() {
                 {activeTab === "repair" && (
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-slate-500 uppercase">Şablon Mesajı</span>
+                      <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Şablon Mesajı</span>
                       <span className="text-xs text-slate-400 font-medium">Teknik servis durumu değiştiğinde gönderilir.</span>
                     </div>
                     <textarea
@@ -726,10 +769,10 @@ export default function SettingsPage() {
                       disabled={!canManageSettings}
                     />
                     <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl space-y-2">
-                      <span className="block text-[11px] font-bold text-slate-600 uppercase">Kullanılabilir Değişkenler:</span>
+                      <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-[0.14em]">Kullanılabilir Değişkenler</span>
                       <div className="flex flex-wrap gap-1.5">
                         {["{ad_soyad}", "{cihaz_marka}", "{cihaz_model}", "{durum}", "{tutar}", "{servis_no}", "{takip_linki}"].map((ph) => (
-                          <code key={ph} className="px-2 py-0.5 bg-slate-200/60 rounded text-[11px] font-mono text-slate-700">
+                          <code key={ph} className="px-2 py-0.5 bg-white border border-slate-200 rounded-md text-[11px] font-mono text-slate-600">
                             {ph}
                           </code>
                         ))}
@@ -741,7 +784,7 @@ export default function SettingsPage() {
                 {activeTab === "veresiye" && (
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-slate-500 uppercase">Şablon Mesajı</span>
+                      <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Şablon Mesajı</span>
                       <span className="text-xs text-slate-400 font-medium">Borçlu cari hesaba hatırlatma yaparken gönderilir.</span>
                     </div>
                     <textarea
@@ -753,10 +796,10 @@ export default function SettingsPage() {
                       disabled={!canManageSettings}
                     />
                     <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl space-y-2">
-                      <span className="block text-[11px] font-bold text-slate-600 uppercase">Kullanılabilir Değişkenler:</span>
+                      <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-[0.14em]">Kullanılabilir Değişkenler</span>
                       <div className="flex flex-wrap gap-1.5">
                         {["{ad_soyad}", "{bakiye}"].map((ph) => (
-                          <code key={ph} className="px-2 py-0.5 bg-slate-200/60 rounded text-[11px] font-mono text-slate-700">
+                          <code key={ph} className="px-2 py-0.5 bg-white border border-slate-200 rounded-md text-[11px] font-mono text-slate-600">
                             {ph}
                           </code>
                         ))}
@@ -768,7 +811,7 @@ export default function SettingsPage() {
                 {activeTab === "installment" && (
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-slate-500 uppercase">Şablon Mesajı</span>
+                      <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Şablon Mesajı</span>
                       <span className="text-xs text-slate-400 font-medium">Taksit vadesi gelen müşteriye gönderilir.</span>
                     </div>
                     <textarea
@@ -780,10 +823,10 @@ export default function SettingsPage() {
                       disabled={!canManageSettings}
                     />
                     <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl space-y-2">
-                      <span className="block text-[11px] font-bold text-slate-600 uppercase">Kullanılabilir Değişkenler:</span>
+                      <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-[0.14em]">Kullanılabilir Değişkenler</span>
                       <div className="flex flex-wrap gap-1.5">
                         {["{ad_soyad}", "{islem_no}", "{taksit_no}", "{tutar}", "{vade}"].map((ph) => (
-                          <code key={ph} className="px-2 py-0.5 bg-slate-200/60 rounded text-[11px] font-mono text-slate-700">
+                          <code key={ph} className="px-2 py-0.5 bg-white border border-slate-200 rounded-md text-[11px] font-mono text-slate-600">
                             {ph}
                           </code>
                         ))}
@@ -794,7 +837,7 @@ export default function SettingsPage() {
 
                 {/* WhatsApp simulated chat preview */}
                 <div className="space-y-3 pt-4 border-t border-slate-100">
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 block">
                     Müşteri Mesaj Önizlemesi
                   </span>
                   <div className="rounded-2xl bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] bg-cover p-4 min-h-[160px] flex items-end">

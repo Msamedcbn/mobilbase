@@ -251,6 +251,12 @@ export default function StockPage() {
       if (tabParam === "inventory" || tabParam === "buyback" || tabParam === "entry" || tabParam === "catalog" || tabParam === "report") {
         setActiveTab(tabParam);
       }
+      // Dashboard'daki hızlı arama kutusundan gelen ?q= değeri, envanter
+      // arama kutusunu önceden doldurur (örn: /stok?tab=inventory&q=iphone).
+      const qParam = params.get("q");
+      if (qParam) {
+        setSearch(qParam);
+      }
     }
   }, []);
 
@@ -902,114 +908,162 @@ export default function StockPage() {
         <button
           type="button"
           onClick={() => setShowErpMatrixCreator(true)}
-          className="px-5 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold text-xs rounded-2xl shadow-lg shadow-indigo-500/20 active:scale-95 transition-all flex items-center gap-2"
+          className="px-5 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-2xl shadow-lg shadow-blue-600/20 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
         >
-          <span>⚡ ERP Hızlı Ürün Kartı & Varyant Sihirbazı</span>
+          <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z" />
+          </svg>
+          <span>ERP Hızlı Ürün Kartı & Varyant Sihirbazı</span>
         </button>
       </div>
 
 
       {/* Tab Navigation */}
-      <div className="flex border-b border-slate-200 gap-2 mb-2 overflow-x-auto scrollbar-none">
+      <div className="flex p-1 rounded-2xl bg-slate-100/80 border border-slate-200/60 gap-1 mb-2 overflow-x-auto scrollbar-none w-fit max-w-full">
         <button
           type="button"
           onClick={() => handleTabChange("inventory")}
-          className={`px-4 py-3 text-sm font-semibold border-b-2 transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-2 ${
+          className={`px-3.5 py-2 text-xs font-bold rounded-xl transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-2 ${
             activeTab === "inventory"
-              ? "border-blue-700 text-blue-700 font-bold"
-              : "border-transparent text-slate-500 hover:text-slate-800"
+              ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+              : "text-slate-500 hover:text-slate-800 hover:bg-white/60"
           }`}
         >
-          📦 Envanter
+          <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 8 12 3 3 8m18 0-9 5m9-5v9l-9 5m0-9L3 8m9 5v9m-9-9v9l9 5" />
+          </svg>
+          Envanter
         </button>
         <button
           type="button"
           onClick={() => handleTabChange("buyback")}
-          className={`px-4 py-3 text-sm font-semibold border-b-2 transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-2 ${
+          className={`px-3.5 py-2 text-xs font-bold rounded-xl transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-2 ${
             activeTab === "buyback"
-              ? "border-blue-700 text-blue-700 font-bold"
-              : "border-transparent text-slate-500 hover:text-slate-800"
+              ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+              : "text-slate-500 hover:text-slate-800 hover:bg-white/60"
           }`}
         >
+          <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17 2 12 7l5 5M7 22l5-5-5-5M3 7h13a4 4 0 0 1 4 4v1M21 17H8a4 4 0 0 1-4-4v-1" />
+          </svg>
           Buyback Cihazlar
         </button>
         <button
           type="button"
           onClick={() => handleTabChange("entry")}
-          className={`px-4 py-3 text-sm font-semibold border-b-2 transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-2 ${
+          className={`px-3.5 py-2 text-xs font-bold rounded-xl transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-2 ${
             activeTab === "entry"
-              ? "border-blue-700 text-blue-700 font-bold"
-              : "border-transparent text-slate-500 hover:text-slate-800"
+              ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+              : "text-slate-500 hover:text-slate-800 hover:bg-white/60"
           }`}
         >
-          📥 Stok Girişi {editingId && "(Düzenleme)"}
+          <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 3v12m0 0-4-4m4 4 4-4M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+          </svg>
+          Stok Girişi {editingId && "(Düzenleme)"}
         </button>
         <button
           type="button"
           onClick={() => handleTabChange("catalog")}
-          className={`px-4 py-3 text-sm font-semibold border-b-2 transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-2 ${
+          className={`px-3.5 py-2 text-xs font-bold rounded-xl transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-2 ${
             activeTab === "catalog"
-              ? "border-blue-700 text-blue-700 font-bold"
-              : "border-transparent text-slate-500 hover:text-slate-800"
+              ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+              : "text-slate-500 hover:text-slate-800 hover:bg-white/60"
           }`}
         >
-          📇 Ürün Kataloğu
+          <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="4" width="18" height="16" rx="2" />
+            <path d="M3 9h18M8 4v5" />
+          </svg>
+          Ürün Kataloğu
         </button>
         <button
           type="button"
           onClick={() => handleTabChange("report")}
-          className={`px-4 py-3 text-sm font-semibold border-b-2 transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-2 ${
+          className={`px-3.5 py-2 text-xs font-bold rounded-xl transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-2 ${
             activeTab === "report"
-              ? "border-blue-700 text-blue-700 font-bold"
-              : "border-transparent text-slate-500 hover:text-slate-800"
+              ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+              : "text-slate-500 hover:text-slate-800 hover:bg-white/60"
           }`}
         >
-          📊 Raporlar & Loglar
+          <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 3v18h18M8 17V10m5 7V6m5 11v-4" />
+          </svg>
+          Raporlar & Loglar
         </button>
       </div>
 
       {/* Tab 1: Inventory List */}
       {activeTab === "inventory" && (
         <div className="space-y-6">
-          {/* Quick Metrics */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="panel p-4 flex items-center justify-between bg-white relative overflow-hidden group">
-              <div>
-                <p className="m-0 text-2xs font-bold text-slate-400 uppercase tracking-wider">Kayıtlı Cihaz/Ürün</p>
-                <h3 className="m-0 mt-1.5 text-2xl font-extrabold text-slate-900">{items.length} adet</h3>
+          {/* Quick Metrics — same card anatomy as the dashboard: icon chip top-left,
+              muted label, bold mono value. */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+              {
+                label: "Kayıtlı Cihaz/Ürün",
+                value: items.length.toLocaleString("tr-TR"),
+                unit: "adet",
+                tone: "text-slate-900",
+                wrap: "bg-slate-100 text-slate-500",
+                path: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4",
+              },
+              {
+                label: "Kritik Stok Seviyesi",
+                value: lowStockCount.toLocaleString("tr-TR"),
+                unit: "",
+                tone: lowStockCount > 0 ? "text-amber-600" : "text-slate-900",
+                wrap: lowStockCount > 0 ? "bg-amber-50 text-amber-600" : "bg-slate-100 text-slate-500",
+                path: "M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z",
+              },
+              {
+                label: "Toplam Envanter Maliyeti",
+                value: totalInventoryCost.toLocaleString("tr-TR"),
+                unit: "TL",
+                tone: "text-slate-900",
+                wrap: "bg-blue-50 text-blue-600",
+                path: "M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-4.5-9.75h16.5a1.5 1.5 0 011.5 1.5v9a1.5 1.5 0 01-1.5 1.5H3.75a1.5 1.5 0 01-1.5-1.5v-9a1.5 1.5 0 011.5-1.5z",
+              },
+              {
+                label: "Toplam Satış Değeri",
+                value: totalInventoryRetail.toLocaleString("tr-TR"),
+                unit: "TL",
+                tone: "text-emerald-600",
+                wrap: "bg-emerald-50 text-emerald-600",
+                path: "M2.25 18L9 11.25l4.306 4.306a11.95 11.95 0 015.814-5.518l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941",
+              },
+            ].map((m) => (
+              <div key={m.label} className="panel p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="m-0 text-[10px] font-bold uppercase tracking-wider text-slate-400">{m.label}</p>
+                  <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${m.wrap}`}>
+                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d={m.path} />
+                    </svg>
+                  </span>
+                </div>
+                <h3 className={`m-0 mt-2 truncate text-xl font-black font-mono ${m.tone}`}>
+                  {m.value}
+                  {m.unit ? <span className="ml-1 text-xs font-bold text-slate-400">{m.unit}</span> : null}
+                </h3>
               </div>
-            </div>
-            <div className="panel p-4 flex items-center justify-between bg-white relative overflow-hidden group">
-              <div>
-                <p className="m-0 text-2xs font-bold text-slate-400 uppercase tracking-wider">Kritik Stok Seviyesi</p>
-                <h3 className={`m-0 mt-1.5 text-2xl font-extrabold ${lowStockCount > 0 ? "text-amber-600" : "text-blue-700"}`}>{lowStockCount}</h3>
-              </div>
-            </div>
-            <div className="panel p-4 flex items-center justify-between bg-white relative overflow-hidden group">
-              <div>
-                <p className="m-0 text-2xs font-bold text-slate-400 uppercase tracking-wider">Toplam Envanter Maliyeti</p>
-                <h3 className="m-0 mt-1.5 text-2xl font-extrabold text-slate-900">{totalInventoryCost.toLocaleString("tr-TR")} TL</h3>
-              </div>
-            </div>
-            <div className="panel p-4 flex items-center justify-between bg-white relative overflow-hidden group">
-              <div>
-                <p className="m-0 text-2xs font-bold text-slate-400 uppercase tracking-wider">Toplam Satış Değeri</p>
-                <h3 className="m-0 mt-1.5 text-2xl font-extrabold text-slate-900">{totalInventoryRetail.toLocaleString("tr-TR")} TL</h3>
-              </div>
-            </div>
+            ))}
           </div>
 
           {/* Filtering and Table */}
           <div className="panel p-6 bg-white flex flex-col gap-4">
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
-                <input 
-                  className="field w-full pl-9" 
-                  placeholder="SKU, Ürün adı, IMEI veya kategori ara..." 
-                  value={search} 
-                  onChange={(e) => setSearch(e.target.value)} 
+                <input
+                  className="field w-full pl-9"
+                  placeholder="SKU, Ürün adı, IMEI veya kategori ara..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
                 />
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="m21 21-4.3-4.3" />
+                </svg>
               </div>
 
               <div className="flex gap-1.5 overflow-x-auto scrollbar-thin">
@@ -1021,8 +1075,8 @@ export default function StockPage() {
                       type="button"
                       onClick={() => setCategoryFilter(c)}
                       className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all duration-200 shrink-0 cursor-pointer ${
-                        active 
-                          ? "bg-blue-700 border-blue-700 text-white shadow-sm" 
+                        active
+                          ? "bg-blue-600 border-blue-600 text-white shadow-sm"
                           : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-800"
                       }`}
                     >
@@ -1061,7 +1115,7 @@ export default function StockPage() {
 
             {selectedIds.size > 0 && (
               <div className="flex flex-wrap items-center gap-2 p-3 rounded-xl border border-blue-200 bg-blue-50">
-                <span className="text-xs font-bold text-blue-800">{selectedIds.size} ürün seçili</span>
+                <span className="text-xs font-bold text-blue-600">{selectedIds.size} ürün seçili</span>
                 <select
                   className="field text-xs py-1.5 w-auto"
                   value={bulkPriceMode}
@@ -1082,7 +1136,7 @@ export default function StockPage() {
                 <button
                   type="button"
                   disabled={applyingBulkPrice || !bulkPriceValue}
-                  className="px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-700 text-white hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  className="px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-600 text-white hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   onClick={() => void applyBulkPrice()}
                 >
                   {applyingBulkPrice ? "Uygulanıyor..." : "Uygula"}
@@ -1156,7 +1210,7 @@ export default function StockPage() {
                                 </span>
                               )}
                               {item.condition ? (
-                                <span className="bg-indigo-50 border border-indigo-100 text-indigo-700 text-2xs px-2 py-0.5 rounded font-bold">
+                                <span className="bg-slate-100 border border-slate-200 text-slate-600 text-2xs px-2 py-0.5 rounded font-bold">
                                   {item.condition}
                                 </span>
                               ) : Number(item.quantity) > 0 ? (
@@ -1178,23 +1232,23 @@ export default function StockPage() {
                             )}
                           </td>
                           <td>
-                            <span className={`inline-flex items-center gap-1 text-xs font-bold ${
-                              low ? "text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-100" : "text-blue-700"
+                            <span className={`inline-flex items-center gap-1 text-xs font-bold font-mono ${
+                              low ? "text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-100" : "text-blue-600"
                             }`}>
                               {item.quantity} adet
                             </span>
                           </td>
                           <td className="text-slate-600 text-xs font-medium">
-                            {item.purchaseDate 
+                            {item.purchaseDate
                               ? new Date(item.purchaseDate).toLocaleDateString("tr-TR")
                               : item.updatedAt
                                 ? new Date(item.updatedAt).toLocaleDateString("tr-TR")
                                 : "-"}
                           </td>
                           <td>
-                            <div className="flex flex-col text-2xs">
+                            <div className="flex flex-col text-2xs font-mono">
                               <span className="text-slate-500">Alış: <strong className="text-slate-700">{Number(item.purchasePrice).toLocaleString("tr-TR")} TL</strong></span>
-                              <span className="text-blue-700 font-bold">Satış: <strong>{Number(item.salePrice).toLocaleString("tr-TR")} TL</strong></span>
+                              <span className="text-blue-600 font-bold">Satış: <strong>{Number(item.salePrice).toLocaleString("tr-TR")} TL</strong></span>
                             </div>
                           </td>
                           <td className="text-right">
@@ -1204,24 +1258,41 @@ export default function StockPage() {
                                   href={`/pos?add=${encodeURIComponent(item.sku)}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="px-2.5 py-1 text-xs border border-emerald-200/50 hover:border-emerald-300 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors cursor-pointer font-bold"
+                                  className="px-2.5 py-1 text-xs border border-emerald-200/50 hover:border-emerald-300 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors cursor-pointer font-bold flex items-center gap-1"
                                   title="Bu ürünü POS'ta satışa ekle"
                                 >
+                                  <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="9" cy="21" r="1" /><circle cx="19" cy="21" r="1" />
+                                    <path d="M2.5 3h2l2.6 12.4a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 2-1.6L21.5 7H6" />
+                                  </svg>
                                   Satışa Ekle
                                 </a>
                               )}
-                              <button type="button" className="px-2.5 py-1 text-xs border border-slate-200 hover:border-slate-300 rounded-lg text-slate-600 hover:text-slate-800 bg-white transition-colors cursor-pointer font-bold" onClick={() => startEdit(item)}>Düzenle</button>
+                              <button type="button" className="px-2.5 py-1 text-xs border border-slate-200 hover:border-slate-300 rounded-lg text-slate-600 hover:text-slate-800 bg-white transition-colors cursor-pointer font-bold flex items-center gap-1" onClick={() => startEdit(item)}>
+                                <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                                </svg>
+                                Düzenle
+                              </button>
                               <button
                                 type="button"
-                                className="px-2.5 py-1 text-xs border border-blue-200/50 hover:border-blue-300 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors cursor-pointer font-bold"
+                                className="px-2.5 py-1 text-xs border border-blue-200/50 hover:border-blue-300 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors cursor-pointer font-bold flex items-center gap-1"
                                 onClick={() => {
                                   setSelectedItem(item);
                                   setShowBarcodeModal(true);
                                 }}
                               >
+                                <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M4 6v12M8 6v12M12 6v12M15 6v12M18 6v4M18 14v4M21 6v12" />
+                                </svg>
                                 Barkod
                               </button>
-                              <button type="button" className="px-2.5 py-1 text-xs border border-rose-200/50 hover:border-rose-300 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors cursor-pointer font-bold" onClick={() => void deleteItem(item.id)}>Sil</button>
+                              <button type="button" className="px-2.5 py-1 text-xs border border-rose-200/50 hover:border-rose-300 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors cursor-pointer font-bold flex items-center gap-1" onClick={() => void deleteItem(item.id)}>
+                                <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                </svg>
+                                Sil
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -1289,18 +1360,18 @@ export default function StockPage() {
                           </span>
                         </td>
                         <td>
-                          <span className={`text-xs font-semibold ${item.buybackSaleEnabled ? "text-blue-700" : "text-rose-600"}`}>
+                          <span className={`text-2xs font-bold px-2 py-0.5 rounded-full border ${item.buybackSaleEnabled ? "text-blue-600 bg-blue-50 border-blue-100" : "text-rose-600 bg-rose-50 border-rose-100"}`}>
                             {item.buybackSaleEnabled ? "Satisa Acik" : "Satisa Kapali"}
                           </span>
                         </td>
                         <td className="text-right">
-                          <div className="flex gap-2 justify-end">
+                          <div className="flex gap-1.5 justify-end items-center">
                             {buybackUpdatingId === item.id && (
-                              <span className="text-xs text-slate-500">Guncelleniyor...</span>
+                              <span className="text-2xs text-slate-500">Guncelleniyor...</span>
                             )}
                             <button
                               type="button"
-                              className="px-2.5 py-1 text-xs border border-slate-200 rounded-lg bg-white"
+                              className="px-2.5 py-1 text-xs font-bold border border-slate-200 hover:border-slate-300 rounded-lg bg-white text-slate-600 hover:text-slate-800 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                               disabled={buybackUpdatingId === item.id}
                               onClick={() => void updateBuybackState(item.id, { buybackProcessStatus: "SERVICE_TRANSFERRED" })}
                             >
@@ -1308,7 +1379,7 @@ export default function StockPage() {
                             </button>
                             <button
                               type="button"
-                              className="px-2.5 py-1 text-xs border border-slate-200 rounded-lg bg-white"
+                              className="px-2.5 py-1 text-xs font-bold border border-slate-200 hover:border-slate-300 rounded-lg bg-white text-slate-600 hover:text-slate-800 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                               disabled={buybackUpdatingId === item.id}
                               onClick={() => void updateBuybackState(item.id, { buybackProcessStatus: "READY_FOR_SALE" })}
                             >
@@ -1316,7 +1387,7 @@ export default function StockPage() {
                             </button>
                             <button
                               type="button"
-                              className={`px-2.5 py-1 text-xs rounded-lg border ${item.buybackSaleEnabled ? "bg-rose-50 border-rose-200 text-rose-700" : "bg-blue-50 border-blue-200 text-blue-700"}`}
+                              className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${item.buybackSaleEnabled ? "bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100" : "bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"}`}
                               disabled={buybackUpdatingId === item.id}
                               onClick={() => void updateBuybackState(item.id, { buybackSaleEnabled: !item.buybackSaleEnabled })}
                             >
@@ -1365,7 +1436,10 @@ export default function StockPage() {
                       value={catalogSearchTerm}
                       onChange={(e) => setCatalogSearchTerm(e.target.value)}
                     />
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="11" cy="11" r="7" />
+                      <path d="m21 21-4.3-4.3" />
+                    </svg>
                   </div>
 
                   {filteredCatalogCards.length > 0 && (
@@ -1380,7 +1454,7 @@ export default function StockPage() {
                             <strong className="text-slate-800">{card.name}</strong>
                             <span className="text-slate-450 block text-[10px]">SKU/Barkod: {card.barcode} | Kategori: {card.category}</span>
                           </div>
-                          <span className="text-blue-700 font-bold bg-blue-50 border border-blue-100 px-2 py-0.5 rounded text-[10px]">Kartı Seç</span>
+                          <span className="text-blue-600 font-bold bg-blue-50 border border-blue-100 px-2 py-0.5 rounded text-[10px]">Kartı Seç</span>
                         </div>
                       ))}
                     </div>
@@ -1393,7 +1467,7 @@ export default function StockPage() {
                 <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
                   <div className="flex justify-between items-start">
                     <div>
-                      <span className="text-2xs font-extrabold uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded">
+                      <span className="text-2xs font-extrabold uppercase tracking-wider text-blue-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded">
                         {stockForm.category} Kartı
                       </span>
                       <h4 className="text-sm font-extrabold text-slate-800 mt-2">{stockForm.name}</h4>
@@ -1509,7 +1583,7 @@ export default function StockPage() {
                       <div className="flex flex-col gap-1">
                         <label className="text-2xs font-bold text-slate-600">Satış Fiyatı (KDV Hariç) *</label>
                         <input
-                          className="field w-full text-sm font-bold text-blue-800"
+                          className="field w-full text-sm font-bold text-blue-600"
                           type="number"
                           min={0}
                           step="0.01"
@@ -1587,11 +1661,11 @@ export default function StockPage() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-2xs text-slate-600 pt-2 border-t border-slate-200">
-                      <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+                      <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2 font-mono">
                         Alış (KDV Dahil): <strong className="text-slate-800 font-bold">{purchaseWithVatPreview.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL</strong>
                       </div>
-                      <div className="rounded-lg border border-blue-200 bg-blue-50/60 px-2.5 py-2">
-                        Satış (KDV Dahil): <strong className="text-blue-850 font-bold">{saleWithVatPreview.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL</strong>
+                      <div className="rounded-lg border border-blue-200 bg-blue-50/60 px-2.5 py-2 font-mono">
+                        Satış (KDV Dahil): <strong className="text-blue-600 font-bold">{saleWithVatPreview.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL</strong>
                       </div>
                     </div>
                   </div>
@@ -1599,7 +1673,7 @@ export default function StockPage() {
                   <div className="flex gap-2.5 mt-2">
                     <button
                       type="submit"
-                      className="primary-btn flex-1 py-2.5 font-bold text-sm cursor-pointer shadow-md shadow-blue-700/10 hover:shadow-blue-700/20"
+                      className="primary-btn flex-1 py-2.5 font-bold text-sm cursor-pointer shadow-md shadow-blue-600/10 hover:shadow-blue-600/20"
                       disabled={saving}
                     >
                       {saving ? "Kaydediliyor..." : editingId ? "Envanter Kaydını Güncelle" : "Envantere Ekle"}
@@ -1666,8 +1740,8 @@ export default function StockPage() {
                         <tr key={ev.id}>
                           <td className="text-[10px] text-slate-400 font-mono">{new Date(ev.createdAt).toLocaleDateString("tr-TR")}</td>
                           <td className="font-semibold text-slate-700">{getEventTypeName(ev.type)}</td>
-                          <td>{Number(ev.amount).toLocaleString("tr-TR")} TL</td>
-                          <td className="font-bold text-slate-900">{Number(ev.unitCostAfter).toLocaleString("tr-TR")} TL</td>
+                          <td className="font-mono">{Number(ev.amount).toLocaleString("tr-TR")} TL</td>
+                          <td className="font-bold text-slate-900 font-mono">{Number(ev.unitCostAfter).toLocaleString("tr-TR")} TL</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1825,7 +1899,7 @@ export default function StockPage() {
                 <div className="flex flex-col gap-1">
                   <label className="text-2xs font-bold text-slate-600">Varsayılan Satış Fiyatı (KDV Hariç)</label>
                   <input
-                    className="field w-full text-sm font-bold text-blue-800"
+                    className="field w-full text-sm font-bold text-blue-600"
                     type="number"
                     min={0}
                     step="0.01"
@@ -1903,7 +1977,7 @@ export default function StockPage() {
               <div className="flex gap-2.5 mt-2">
                 <button
                   type="submit"
-                  className="primary-btn flex-1 py-2.5 font-bold text-sm cursor-pointer shadow-md shadow-blue-700/10 hover:shadow-blue-700/20"
+                  className="primary-btn flex-1 py-2.5 font-bold text-sm cursor-pointer shadow-md shadow-blue-600/10 hover:shadow-blue-600/20"
                   disabled={saving}
                 >
                   {saving ? "Kart Oluşturuluyor..." : "Ürün Kartı Oluştur"}
@@ -1973,9 +2047,9 @@ export default function StockPage() {
                             {card.category || "Genel"}
                           </span>
                         </td>
-                        <td className="font-semibold text-slate-700">{Number(card.purchasePrice || 0).toLocaleString("tr-TR")} TL</td>
-                        <td className="font-bold text-blue-800">{Number(card.salePrice || 0).toLocaleString("tr-TR")} TL</td>
-                        <td className="font-bold text-slate-900">{card.stock || 0} Adet</td>
+                        <td className="font-semibold text-slate-700 font-mono">{Number(card.purchasePrice || 0).toLocaleString("tr-TR")} TL</td>
+                        <td className="font-bold text-blue-600 font-mono">{Number(card.salePrice || 0).toLocaleString("tr-TR")} TL</td>
+                        <td className="font-bold text-slate-900 font-mono">{card.stock || 0} Adet</td>
                         <td className="text-right" onClick={(e) => e.stopPropagation()}>
                           <button
                             type="button"
@@ -2008,19 +2082,19 @@ export default function StockPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="panel p-4 bg-slate-50/50 border-slate-200/50">
                 <p className="m-0 text-2xs font-bold text-slate-400 uppercase tracking-wider">Toplam Ürün Adedi</p>
-                <p className="m-0 mt-1 text-xl font-extrabold text-slate-900">{totalStockUnits.toLocaleString("tr-TR")}</p>
+                <p className="m-0 mt-1 text-xl font-extrabold text-slate-900 font-mono">{totalStockUnits.toLocaleString("tr-TR")}</p>
               </div>
               <div className="panel p-4 bg-slate-50/50 border-slate-200/50">
                 <p className="m-0 text-2xs font-bold text-slate-400 uppercase tracking-wider">Toplam Envanter Maliyeti</p>
-                <p className="m-0 mt-1 text-xl font-extrabold text-slate-900">{totalInventoryCost.toLocaleString("tr-TR")} TL</p>
+                <p className="m-0 mt-1 text-xl font-extrabold text-slate-900 font-mono">{totalInventoryCost.toLocaleString("tr-TR")} TL</p>
               </div>
               <div className="panel p-4 bg-slate-50/50 border-slate-200/50">
                 <p className="m-0 text-2xs font-bold text-slate-400 uppercase tracking-wider">Toplam Satış Değeri</p>
-                <p className="m-0 mt-1 text-xl font-extrabold text-slate-900">{totalInventoryRetail.toLocaleString("tr-TR")} TL</p>
+                <p className="m-0 mt-1 text-xl font-extrabold text-slate-900 font-mono">{totalInventoryRetail.toLocaleString("tr-TR")} TL</p>
               </div>
               <div className="panel p-4 bg-slate-50/50 border-slate-200/50">
                 <p className="m-0 text-2xs font-bold text-slate-400 uppercase tracking-wider">Tahmini Brüt Kâr Potansiyeli</p>
-                <p className={`m-0 mt-1 text-xl font-extrabold ${totalInventoryRetail - totalInventoryCost >= 0 ? "text-blue-700" : "text-rose-600"}`}>
+                <p className={`m-0 mt-1 text-xl font-extrabold font-mono ${totalInventoryRetail - totalInventoryCost >= 0 ? "text-blue-600" : "text-rose-600"}`}>
                   {(totalInventoryRetail - totalInventoryCost).toLocaleString("tr-TR")} TL
                 </p>
               </div>
@@ -2044,10 +2118,10 @@ export default function StockPage() {
                     {inventoryByCategory.map((row) => (
                       <tr key={row.category} className="hover:bg-slate-50/50">
                         <td className="font-semibold text-slate-800">{row.category}</td>
-                        <td className="text-slate-600 font-semibold">{row.quantity.toLocaleString("tr-TR")}</td>
-                        <td className="text-slate-600">{row.cost.toLocaleString("tr-TR")} TL</td>
-                        <td className="text-slate-600">{row.retail.toLocaleString("tr-TR")} TL</td>
-                        <td className={`font-bold ${row.profit >= 0 ? "text-blue-700" : "text-rose-600"}`}>{row.profit.toLocaleString("tr-TR")} TL</td>
+                        <td className="text-slate-600 font-semibold font-mono">{row.quantity.toLocaleString("tr-TR")}</td>
+                        <td className="text-slate-600 font-mono">{row.cost.toLocaleString("tr-TR")} TL</td>
+                        <td className="text-slate-600 font-mono">{row.retail.toLocaleString("tr-TR")} TL</td>
+                        <td className={`font-bold font-mono ${row.profit >= 0 ? "text-blue-600" : "text-rose-600"}`}>{row.profit.toLocaleString("tr-TR")} TL</td>
                       </tr>
                     ))}
                   </tbody>
@@ -2150,7 +2224,7 @@ export default function StockPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => handlePrintSticker(selectedItem)}
-                className="primary-btn flex-1 py-2 flex items-center justify-center gap-2 font-bold text-xs cursor-pointer shadow-md shadow-blue-700/10 hover:shadow-blue-700/20"
+                className="primary-btn flex-1 py-2 flex items-center justify-center gap-2 font-bold text-xs cursor-pointer shadow-md shadow-blue-600/10 hover:shadow-blue-600/20"
               >
                 Yazdır
               </button>

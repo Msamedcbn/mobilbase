@@ -734,7 +734,7 @@ export default function InstallmentManagementPage() {
               resetForm();
               setShowCreateModal(true);
             }}
-            className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-bold text-sm px-4 py-2.5 rounded-xl transition duration-150 shadow-md shadow-blue-700/20"
+            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm px-4 py-2.5 rounded-xl transition duration-150 shadow-md shadow-blue-600/20"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -748,7 +748,7 @@ export default function InstallmentManagementPage() {
       <div className="flex border-b border-slate-200/60 gap-6 text-sm">
         <button
           onClick={() => setActiveTab("takip")}
-          className={`pb-3 font-bold transition-all relative ${activeTab === "takip" ? "text-blue-700 font-extrabold" : "text-slate-500 hover:text-slate-800"}`}
+          className={`pb-3 font-bold transition-all relative ${activeTab === "takip" ? "text-blue-600 font-extrabold" : "text-slate-500 hover:text-slate-800"}`}
         >
           Taksit Takip
           {activeTab === "takip" && (
@@ -757,7 +757,7 @@ export default function InstallmentManagementPage() {
         </button>
         <button
           onClick={() => setActiveTab("oranlar")}
-          className={`pb-3 font-bold transition-all relative ${activeTab === "oranlar" ? "text-blue-700 font-extrabold" : "text-slate-500 hover:text-slate-800"}`}
+          className={`pb-3 font-bold transition-all relative ${activeTab === "oranlar" ? "text-blue-600 font-extrabold" : "text-slate-500 hover:text-slate-800"}`}
         >
           Kredi Kartı Taksit Oranları
           {activeTab === "oranlar" && (
@@ -773,7 +773,7 @@ export default function InstallmentManagementPage() {
             {/* Toplam Taksitli Alacak */}
             <div className="backdrop-blur-md bg-white/70 border border-slate-200/50 rounded-2xl p-5 shadow-sm">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Toplam Kalan Alacak</span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.14em]">Toplam Kalan Alacak</span>
                 <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-1.958-.659-1.071-.879-1.071-2.303 0-3.182.508-.439 1.233-.659 1.958-.659.768 0 1.536.219 2.121.659c.586.44.879.99.879 1.59" />
@@ -781,7 +781,7 @@ export default function InstallmentManagementPage() {
                 </div>
               </div>
               <div className="mt-3">
-                <h3 className="text-2xl font-black text-blue-700">
+                <h3 className="text-2xl font-black text-blue-600 font-mono">
                   {totalAlacak.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
                 </h3>
                 <p className="text-[10px] text-slate-400 mt-1">Müşterilerden tahsil edilecek kalan toplam anapara + vade farkı tutarı.</p>
@@ -791,7 +791,7 @@ export default function InstallmentManagementPage() {
             {/* Günü Geçen Taksitler */}
             <div className="backdrop-blur-md bg-white/70 border border-slate-200/50 rounded-2xl p-5 shadow-sm">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Günü Geçen Taksitler</span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.14em]">Günü Geçen Taksitler</span>
                 <div className="p-2 bg-rose-50 text-rose-600 rounded-xl">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -799,7 +799,7 @@ export default function InstallmentManagementPage() {
                 </div>
               </div>
               <div className="mt-3">
-                <h3 className="text-2xl font-black text-rose-700">
+                <h3 className="text-2xl font-black text-rose-600 font-mono">
                   {gecikmisTaksit.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
                 </h3>
                 <p className="text-[10px] text-slate-400 mt-1">Vadesi bugünden önce olup henüz ödenmemiş olan taksitlerin toplamı.</p>
@@ -809,7 +809,7 @@ export default function InstallmentManagementPage() {
             {/* Tahsil Edilen Tutar */}
             <div className="backdrop-blur-md bg-white/70 border border-slate-200/50 rounded-2xl p-5 shadow-sm">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tahsil Edilen Toplam</span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.14em]">Tahsil Edilen Toplam</span>
                 <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -817,7 +817,7 @@ export default function InstallmentManagementPage() {
                 </div>
               </div>
               <div className="mt-3">
-                <h3 className="text-2xl font-black text-blue-700">
+                <h3 className="text-2xl font-black text-blue-600 font-mono">
                   {tahsilEdilen.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
                 </h3>
                 <p className="text-[10px] text-slate-400 mt-1">Bugüne kadar taksitli satışlardan kasaya giren toplam tutar.</p>
@@ -827,7 +827,7 @@ export default function InstallmentManagementPage() {
             {/* Aktif Plan Sayısı */}
             <div className="backdrop-blur-md bg-white/70 border border-slate-200/50 rounded-2xl p-5 shadow-sm">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Aktif Plan Sayısı</span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.14em]">Aktif Plan Sayısı</span>
                 <div className="p-2 bg-amber-50 text-amber-600 rounded-xl">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
@@ -835,7 +835,7 @@ export default function InstallmentManagementPage() {
                 </div>
               </div>
               <div className="mt-3">
-                <h3 className="text-2xl font-black text-slate-800">{aktifPlanCount} Plan</h3>
+                <h3 className="text-2xl font-black text-slate-800"><span className="font-mono">{aktifPlanCount}</span> Plan</h3>
                 <p className="text-[10px] text-slate-400 mt-1">Kalan bakiyesi sıfırdan büyük olan açık taksitli sözleşme adeti.</p>
               </div>
             </div>
@@ -894,7 +894,7 @@ export default function InstallmentManagementPage() {
                 <button
                   type="button"
                   onClick={exportToCSV}
-                  className="inline-flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition duration-150 shadow-md shadow-emerald-700/20"
+                  className="inline-flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs px-3.5 py-2 rounded-xl transition duration-150 border border-slate-200"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5" />
@@ -954,16 +954,16 @@ export default function InstallmentManagementPage() {
                           className={`hover:bg-slate-50/50 transition border-b border-slate-150 ${hasLocalEdit ? "bg-amber-50/40 hover:bg-amber-50/60" : ""}`}
                         >
                           {/* Row Number Column */}
-                          <td className="w-10 text-center border-r border-slate-200 bg-slate-50 text-[10px] text-slate-400 font-bold select-none py-1">
+                          <td className="w-10 text-center border-r border-slate-200 bg-slate-50 text-[10px] text-slate-400 font-bold font-mono select-none py-1">
                             {idx + 1}
                           </td>
                           <td className="px-3 py-1 border-r border-slate-200 font-mono text-[11px] text-slate-500">{row.transactionNo}</td>
                           <td className="px-3 py-1 border-r border-slate-200">
                             <div className="font-bold text-slate-800 line-clamp-1">{row.customerName}</div>
-                            <div className="text-[10px] text-slate-400 font-normal">{row.customerPhone}</div>
+                            <div className="text-[10px] text-slate-400 font-normal font-mono">{row.customerPhone}</div>
                           </td>
-                          <td className="px-3 py-1 border-r border-slate-200 text-center font-bold text-slate-600">
-                            <span className="text-blue-700">{row.installmentNo}</span>
+                          <td className="px-3 py-1 border-r border-slate-200 text-center font-bold text-slate-600 font-mono">
+                            <span className="text-blue-600">{row.installmentNo}</span>
                             <span className="text-slate-400">/</span>
                             <span>{row.installmentCount}</span>
                           </td>
@@ -984,7 +984,7 @@ export default function InstallmentManagementPage() {
                               type="number"
                               step="0.01"
                               min="0.01"
-                              className="w-full h-full px-2 py-1 bg-transparent border-0 outline-none text-xs text-right text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 rounded transition font-bold"
+                              className="w-full h-full px-2 py-1 bg-transparent border-0 outline-none text-xs text-right text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 rounded transition font-bold font-mono"
                               value={row.amount}
                               onChange={(e) => handleCellEdit(row.installmentId, row.saleId, "amount", Number(e.target.value))}
                             />
@@ -995,10 +995,10 @@ export default function InstallmentManagementPage() {
                             <select
                               className={`w-full px-2 py-1 bg-transparent border-0 outline-none text-xs font-bold focus:bg-white focus:ring-1 focus:ring-blue-500 rounded transition cursor-pointer ${
                                 row.status === "PAID"
-                                  ? "text-blue-700"
+                                  ? "text-blue-600"
                                   : isOverdue
-                                  ? "text-rose-700"
-                                  : "text-amber-700"
+                                  ? "text-rose-600"
+                                  : "text-amber-600"
                               }`}
                               value={row.status}
                               onChange={(e) => handleStatusChange(row.installmentId, row.saleId, e.target.value as "PAID" | "UNPAID")}
@@ -1054,7 +1054,7 @@ export default function InstallmentManagementPage() {
                                   }
                                 }}
                                 title="Plan Detayını Göster"
-                                className="p-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded border border-blue-200/40 transition"
+                                className="p-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded border border-blue-200/40 transition"
                               >
                                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
@@ -1090,7 +1090,7 @@ export default function InstallmentManagementPage() {
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
                   <span className="text-xs font-bold tracking-wide">
-                    Tabloda <span className="text-amber-400 font-extrabold">{Object.keys(edits).length} adet</span> hücre düzenlendi.
+                    Tabloda <span className="text-amber-400 font-extrabold font-mono">{Object.keys(edits).length} adet</span> hücre düzenlendi.
                   </span>
                 </div>
                 <div className="flex items-center gap-2.5">
@@ -1138,7 +1138,7 @@ export default function InstallmentManagementPage() {
                 type="button"
                 onClick={handleSaveSettings}
                 disabled={settingsLoading}
-                className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition duration-150 shadow-md shadow-blue-700/20"
+                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition duration-150 shadow-md shadow-blue-600/20"
               >
                 {settingsLoading ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
               </button>
@@ -1195,7 +1195,7 @@ export default function InstallmentManagementPage() {
                             <tbody className="divide-y divide-slate-50 font-medium text-slate-700">
                               {config.installments.map((inst) => (
                                 <tr key={inst.count} className="hover:bg-slate-50/30 transition">
-                                  <td className="py-2.5 font-bold">{inst.count} Taksit</td>
+                                  <td className="py-2.5 font-bold font-mono">{inst.count} Taksit</td>
                                   <td className="py-2.5 text-center">
                                     <input
                                       type="checkbox"
@@ -1210,7 +1210,7 @@ export default function InstallmentManagementPage() {
                                       step="0.01"
                                       min="0"
                                       disabled={!inst.isActive}
-                                      className="w-16 border border-slate-200 rounded-lg text-center px-1 py-1 text-xs outline-none focus:ring-1 focus:ring-blue-500 transition font-bold disabled:opacity-40"
+                                      className="w-16 border border-slate-200 rounded-lg text-center px-1 py-1 text-xs outline-none focus:ring-1 focus:ring-blue-500 transition font-bold font-mono disabled:opacity-40"
                                       value={inst.rate}
                                       onChange={(e) => handleInstallmentRateChange(config.brandId, inst.count, Number(e.target.value))}
                                     />
@@ -1221,7 +1221,7 @@ export default function InstallmentManagementPage() {
                                       min="0"
                                       max="6"
                                       disabled={!inst.isActive}
-                                      className="w-16 border border-slate-200 rounded-lg text-center px-1 py-1 text-xs outline-none focus:ring-1 focus:ring-blue-500 transition font-bold disabled:opacity-40"
+                                      className="w-16 border border-slate-200 rounded-lg text-center px-1 py-1 text-xs outline-none focus:ring-1 focus:ring-blue-500 transition font-bold font-mono disabled:opacity-40"
                                       value={inst.plusInstallment}
                                       onChange={(e) => handleInstallmentPlusChange(config.brandId, inst.count, Number(e.target.value))}
                                     />
@@ -1294,7 +1294,7 @@ export default function InstallmentManagementPage() {
                       step="0.01"
                       required
                       placeholder="0.00"
-                      className="w-full border border-slate-200 rounded-xl text-xs pl-3.5 pr-8 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 transition font-bold"
+                      className="w-full border border-slate-200 rounded-xl text-xs pl-3.5 pr-8 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 transition font-bold font-mono"
                       value={formBaseAmount}
                       onChange={(e) => setFormBaseAmount(e.target.value)}
                     />
@@ -1352,7 +1352,7 @@ export default function InstallmentManagementPage() {
                           type="number"
                           step="0.01"
                           placeholder="0"
-                          className="w-full border border-slate-200 rounded-xl text-xs pl-3.5 pr-8 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 transition font-bold"
+                          className="w-full border border-slate-200 rounded-xl text-xs pl-3.5 pr-8 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 transition font-bold font-mono"
                           value={formInterestRate}
                           onChange={(e) => setFormInterestRate(Number(e.target.value))}
                         />
@@ -1397,7 +1397,7 @@ export default function InstallmentManagementPage() {
                   {manualTotalAmount > 0 && (
                     <div className="text-right">
                       <div className="text-[10px] text-slate-400 font-bold uppercase">Toplam Borç</div>
-                      <div className="text-sm font-black text-blue-700">
+                      <div className="text-sm font-black text-blue-600 font-mono">
                         {manualTotalAmount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
                       </div>
                     </div>
@@ -1416,7 +1416,7 @@ export default function InstallmentManagementPage() {
                           <div className="font-bold text-slate-800">{p.installmentNo}. Taksit</div>
                           <div className="text-[10px] text-slate-400">Vade: {p.dueDate}</div>
                         </div>
-                        <div className="font-bold text-slate-700 text-right">
+                        <div className="font-bold text-slate-700 text-right font-mono">
                           {p.amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
                         </div>
                       </div>
@@ -1439,7 +1439,7 @@ export default function InstallmentManagementPage() {
                   <button
                     type="submit"
                     disabled={creatingPlan || !formBaseAmount}
-                    className="px-5 py-2.5 bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs rounded-xl transition shadow-md shadow-blue-700/20 disabled:opacity-50"
+                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl transition shadow-md shadow-blue-600/20 disabled:opacity-50"
                   >
                     {creatingPlan ? "Oluşturuluyor..." : "Planı Oluştur"}
                   </button>
@@ -1459,7 +1459,7 @@ export default function InstallmentManagementPage() {
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
               <div>
                 <h2 className="text-md font-bold text-slate-800">Taksit Planı Detayları</h2>
-                <p className="text-[10px] text-slate-400 mt-0.5">Sözleşme No: {selectedSale.transactionNo}</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">Sözleşme No: <span className="font-mono">{selectedSale.transactionNo}</span></p>
               </div>
               <button
                 onClick={() => {
@@ -1490,11 +1490,11 @@ export default function InstallmentManagementPage() {
                   <div className="text-[10px] font-bold text-slate-400 uppercase">Sözleşme Finansalı</div>
                   <div className="text-xs text-slate-700 mt-2 flex justify-between max-w-[200px]">
                     <span>Toplam Tutar:</span>
-                    <span className="font-bold text-slate-800">{Number(selectedSale.totalAmount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL</span>
+                    <span className="font-bold text-slate-800 font-mono">{Number(selectedSale.totalAmount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL</span>
                   </div>
                   <div className="text-xs text-slate-700 flex justify-between max-w-[200px]">
                     <span>Kalan Borç:</span>
-                    <span className="font-bold text-blue-700">{Number(selectedSale.remainingAmount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL</span>
+                    <span className="font-bold text-blue-600 font-mono">{Number(selectedSale.remainingAmount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL</span>
                   </div>
                 </div>
 
@@ -1502,11 +1502,11 @@ export default function InstallmentManagementPage() {
                   <div className="text-[10px] font-bold text-slate-400 uppercase">Plan Koşulları</div>
                   <div className="text-xs text-slate-700 mt-2 flex justify-between max-w-[200px]">
                     <span>Taksit Adeti:</span>
-                    <span className="font-bold text-slate-800">{selectedSale.installmentCount} Ay</span>
+                    <span className="font-bold text-slate-800 font-mono">{selectedSale.installmentCount} Ay</span>
                   </div>
                   <div className="text-xs text-slate-700 flex justify-between max-w-[200px]">
                     <span>Vade Farkı Oranı:</span>
-                    <span className="font-bold text-slate-800">%{selectedSale.interestRate}</span>
+                    <span className="font-bold text-slate-800 font-mono">%{selectedSale.interestRate}</span>
                   </div>
                 </div>
               </div>
@@ -1515,7 +1515,7 @@ export default function InstallmentManagementPage() {
               <div>
                 <div className="flex justify-between text-[11px] font-bold text-slate-500 mb-1">
                   <span>Ödeme İlerlemesi</span>
-                  <span>
+                  <span className="font-mono">
                     %{Math.round(((selectedSale.totalAmount - selectedSale.remainingAmount) / selectedSale.totalAmount) * 100)} (
                     {(selectedSale.totalAmount - selectedSale.remainingAmount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL Ödendi
                     )
@@ -1551,16 +1551,16 @@ export default function InstallmentManagementPage() {
 
                         return (
                           <tr key={inst.id} className="hover:bg-slate-50/30 transition">
-                            <td className="px-5 py-3.5 font-bold">{inst.installmentNo}. Taksit</td>
-                            <td className="px-5 py-3.5 text-slate-500">
+                            <td className="px-5 py-3.5 font-bold font-mono">{inst.installmentNo}. Taksit</td>
+                            <td className="px-5 py-3.5 text-slate-500 font-mono">
                               {new Date(inst.dueDate).toLocaleDateString("tr-TR")}
                             </td>
-                            <td className="px-5 py-3.5 text-right font-bold text-slate-800">
+                            <td className="px-5 py-3.5 text-right font-bold text-slate-800 font-mono">
                               {Number(inst.amount).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
                             </td>
                             <td className="px-5 py-3.5 text-center">
                               {inst.status === "PAID" ? (
-                                <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-100">
+                                <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-100">
                                   Ödendi
                                 </span>
                               ) : isOverdue ? (
@@ -1577,7 +1577,7 @@ export default function InstallmentManagementPage() {
                               {inst.status === "PAID" ? (
                                 <div>
                                   <div>Kasa: {paidBank?.name || inst.bankAccountId}</div>
-                                  <div className="text-[9px] text-slate-400">
+                                  <div className="text-[9px] text-slate-400 font-mono">
                                     Tarih: {inst.paidAt ? new Date(inst.paidAt).toLocaleDateString("tr-TR") : "-"}
                                   </div>
                                 </div>
@@ -1606,7 +1606,7 @@ export default function InstallmentManagementPage() {
                                       <button
                                         onClick={() => handlePayInstallment(inst.id)}
                                         disabled={submittingPayment}
-                                        className="bg-blue-700 hover:bg-blue-800 text-white font-bold text-[10px] px-2 py-1.5 rounded-lg transition disabled:opacity-50"
+                                        className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px] px-2 py-1.5 rounded-lg transition disabled:opacity-50"
                                       >
                                         {submittingPayment ? "..." : "Kaydet"}
                                       </button>
@@ -1626,7 +1626,7 @@ export default function InstallmentManagementPage() {
                                             setSelectedBankId(banks[0].id);
                                           }
                                         }}
-                                        className="inline-flex items-center gap-1 bg-blue-700 hover:bg-blue-800 text-white text-[10px] font-bold px-2 py-1.5 rounded-lg transition"
+                                        className="inline-flex items-center gap-1 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold px-2 py-1.5 rounded-lg transition"
                                       >
                                         Tahsil Et
                                       </button>

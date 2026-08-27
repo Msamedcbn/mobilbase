@@ -152,85 +152,185 @@ export default function ExpensesPage() {
     });
   }, [expenses, filterCategory, filterBranch]);
 
+  const totalFiltered = useMemo(() => filtered.reduce((sum, e) => sum + Number(e.totalAmount || 0), 0), [filtered]);
+  const paymentLabel: Record<Expense["paymentMethod"], string> = { CASH: "Nakit", CREDIT_CARD: "Kredi Kartı", ON_ACCOUNT: "Cari" };
+  const paymentBadgeClass: Record<Expense["paymentMethod"], string> = {
+    CASH: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    CREDIT_CARD: "bg-blue-50 text-blue-700 border-blue-200",
+    ON_ACCOUNT: "bg-amber-50 text-amber-700 border-amber-200",
+  };
+
   return (
-    <section className="compact-shell" style={{ display: "grid", gap: 10 }}>
-      <h2 className="page-title" style={{ margin: 0 }}>Gider Yonetimi</h2>
-      <div className="panel" style={{ padding: "0.7rem", display: "flex", gap: 8, alignItems: "end", flexWrap: "wrap" }}>
-        <div>
-          <label style={{ fontSize: 12, color: "#64748b" }}>Kategori Filtresi</label>
-          <select className="field" value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
-            <option value="All">Tum Kategoriler</option>
+    <section className="max-w-[1400px] mx-auto p-4 md:p-6 space-y-6 animate-fade-in">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-600 flex items-center justify-center shadow-sm">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-4.5-9.75h16.5a1.5 1.5 0 011.5 1.5v9a1.5 1.5 0 01-1.5 1.5H3.75a1.5 1.5 0 01-1.5-1.5v-9a1.5 1.5 0 011.5-1.5z" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="page-title !m-0">Gider Yönetimi</h2>
+            <p className="text-xs md:text-sm text-slate-500 font-medium">İşletme giderlerinizi kategori ve şubeye göre takip edin.</p>
+          </div>
+        </div>
+        <button type="button" onClick={() => setShowAddModal(true)} className="primary-btn text-xs py-2 px-4">
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          Yeni Gider Ekle
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+        <div className="panel p-4">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Görüntülenen Toplam</p>
+          <p className="mt-1 text-2xl font-black text-slate-900 font-mono">{totalFiltered.toLocaleString("tr-TR")} TL</p>
+        </div>
+        <div className="panel p-4">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Kayıt Sayısı</p>
+          <p className="mt-1 text-2xl font-black text-slate-900 font-mono">{filtered.length}</p>
+        </div>
+        <div className="panel p-4 col-span-2 md:col-span-1">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Gider Tipi Sayısı</p>
+          <p className="mt-1 text-2xl font-black text-slate-900 font-mono">{expenseTypes.length}</p>
+        </div>
+      </div>
+
+      <div className="panel p-4 flex flex-wrap items-end gap-3">
+        <div className="space-y-1">
+          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Kategori Filtresi</label>
+          <select className="field w-44" value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
+            <option value="All">Tüm Kategoriler</option>
             {expenseTypes.map((x) => <option key={x} value={x}>{x}</option>)}
           </select>
         </div>
-        <div>
-          <label style={{ fontSize: 12, color: "#64748b" }}>Sube</label>
-          <select className="field" value={filterBranch} onChange={(e) => setFilterBranch(e.target.value)}>
-            <option value="All">Tum Subeler</option>
+        <div className="space-y-1">
+          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Şube</label>
+          <select className="field w-44" value={filterBranch} onChange={(e) => setFilterBranch(e.target.value)}>
+            <option value="All">Tüm Şubeler</option>
             {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
           </select>
         </div>
-        <button className="primary-btn" style={{ width: 180 }} onClick={() => setShowAddModal(true)}>Yeni Gider Ekle</button>
       </div>
 
-      <div className="panel panel-scroll" style={{ maxHeight: 420 }}>
-        {loading ? <div className="empty-box">Yukleniyor...</div> : (
-          <table className="data-table">
-            <thead><tr><th>No</th><th>Kategori</th><th>Aciklama</th><th>Sube</th><th>Tarih</th><th>Tutar</th></tr></thead>
-            <tbody>
-              {filtered.map((e) => {
-                const d = parseExpenseDetails(e.note);
-                return (
-                  <tr key={e.id}>
-                    <td>{e.transactionNo}</td>
-                    <td>{d.category}</td>
-                    <td>{d.details || "-"}</td>
-                    <td>{branches.find((b) => b.id === e.branchId)?.name || "-"}</td>
-                    <td>{new Date(e.createdAt).toLocaleString("tr-TR")}</td>
-                    <td>{Number(e.totalAmount).toLocaleString("tr-TR")} TL</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+      <div className="panel overflow-hidden">
+        {loading ? (
+          <div className="p-8 text-center text-slate-400 text-sm">Yükleniyor...</div>
+        ) : filtered.length === 0 ? (
+          <div className="empty-box">Kayıt bulunamadı.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="data-table w-full">
+              <thead>
+                <tr>
+                  <th className="text-xs">No</th>
+                  <th className="text-xs">Kategori</th>
+                  <th className="text-xs">Açıklama</th>
+                  <th className="text-xs">Şube</th>
+                  <th className="text-xs">Ödeme</th>
+                  <th className="text-xs">Tarih</th>
+                  <th className="text-xs">Tutar</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((e) => {
+                  const d = parseExpenseDetails(e.note);
+                  return (
+                    <tr key={e.id}>
+                      <td className="text-xs font-mono text-slate-500">{e.transactionNo}</td>
+                      <td className="text-xs">
+                        <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 text-[11px] font-bold">{d.category}</span>
+                      </td>
+                      <td className="text-xs text-slate-500 max-w-[240px] truncate" title={d.details || undefined}>{d.details || "—"}</td>
+                      <td className="text-xs text-slate-600 font-semibold">{branches.find((b) => b.id === e.branchId)?.name || "—"}</td>
+                      <td className="text-xs">
+                        <span className={`px-2 py-0.5 rounded-full border text-[11px] font-bold ${paymentBadgeClass[e.paymentMethod]}`}>
+                          {paymentLabel[e.paymentMethod]}
+                        </span>
+                      </td>
+                      <td className="text-xs text-slate-500 whitespace-nowrap font-mono">{new Date(e.createdAt).toLocaleString("tr-TR")}</td>
+                      <td className="text-xs font-bold text-slate-900 font-mono">{Number(e.totalAmount).toLocaleString("tr-TR")} TL</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40">
-          <form className="panel" style={{ width: 620, maxWidth: "95vw", padding: "0.8rem", display: "grid", gap: 8 }} onSubmit={addExpense}>
-            <h3 style={{ margin: 0 }}>Yeni Gider</h3>
-            <div className="form-grid-2">
-              <select className="field" value={formCategory} onChange={(e) => setFormCategory(e.target.value)}>
-                {expenseTypes.map((x) => <option key={x} value={x}>{x}</option>)}
-              </select>
-              <input className="field" type="number" min={0.01} step="0.01" value={formAmount} onChange={(e) => setFormAmount(e.target.value)} placeholder="Tutar" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" onClick={() => setShowAddModal(false)}>
+          <form
+            onSubmit={addExpense}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-lg space-y-4 rounded-2xl bg-white p-6 shadow-xl"
+          >
+            <h3 className="text-lg font-bold text-slate-900">Yeni Gider</h3>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-500 uppercase">Kategori</label>
+                <select className="field" value={formCategory} onChange={(e) => setFormCategory(e.target.value)}>
+                  {expenseTypes.map((x) => <option key={x} value={x}>{x}</option>)}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-500 uppercase">Tutar (TL)</label>
+                <input className="field" type="number" min={0.01} step="0.01" value={formAmount} onChange={(e) => setFormAmount(e.target.value)} placeholder="0.00" />
+              </div>
             </div>
-            <div className="form-grid-2">
-              <select className="field" value={formPaymentMethod} onChange={(e) => setFormPaymentMethod(e.target.value as any)}>
-                <option value="CASH">Nakit</option><option value="CREDIT_CARD">Kredi Karti</option><option value="ON_ACCOUNT">Cari</option>
-              </select>
-              <select className="field" value={formBranchId} onChange={(e) => setFormBranchId(e.target.value)}>
-                {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-              </select>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-500 uppercase">Ödeme Yöntemi</label>
+                <select className="field" value={formPaymentMethod} onChange={(e) => setFormPaymentMethod(e.target.value as any)}>
+                  <option value="CASH">Nakit</option>
+                  <option value="CREDIT_CARD">Kredi Kartı</option>
+                  <option value="ON_ACCOUNT">Cari</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-500 uppercase">Şube</label>
+                <select className="field" value={formBranchId} onChange={(e) => setFormBranchId(e.target.value)}>
+                  {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+                </select>
+              </div>
             </div>
+
             {formPaymentMethod !== "ON_ACCOUNT" && (
-              <div>
-                <label style={{ fontSize: 12, color: "#64748b" }}>Odenen Kasa/Banka (Isteğe Bağlı)</label>
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-500 uppercase">Ödenen Kasa/Banka (İsteğe Bağlı)</label>
                 <select className="field" value={formBankAccountId} onChange={(e) => setFormBankAccountId(e.target.value)}>
                   <option value="">Seçiniz... (bakiye düşülmez)</option>
                   {banks.map((b) => <option key={b.id} value={b.id}>{b.name} ({Number(b.balance).toLocaleString("tr-TR")} TL)</option>)}
                 </select>
               </div>
             )}
-            <input className="field" value={formNote} onChange={(e) => setFormNote(e.target.value)} placeholder="Aciklama" />
-            <div className="form-grid-2">
-              <input className="field" value={newExpenseType} onChange={(e) => setNewExpenseType(e.target.value)} placeholder="Yeni gider tipi (ornek: Kargo)" />
-              <button type="button" className="field" onClick={addExpenseType}>Gider Tipi Ekle</button>
+
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-slate-500 uppercase">Açıklama</label>
+              <input className="field" value={formNote} onChange={(e) => setFormNote(e.target.value)} placeholder="Açıklama" />
             </div>
-            <div style={{ display: "flex", justifyContent: "end", gap: 8 }}>
-              <button type="button" className="field" style={{ width: 110 }} onClick={() => setShowAddModal(false)}>Kapat</button>
-              <button className="primary-btn" style={{ width: 140 }}>Kaydet</button>
+
+            <div className="space-y-1 rounded-xl border border-dashed border-slate-200 p-3">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Yeni Gider Tipi Ekle</label>
+              <div className="flex gap-2">
+                <input className="field" value={newExpenseType} onChange={(e) => setNewExpenseType(e.target.value)} placeholder="Örn: Kargo" />
+                <button type="button" onClick={addExpenseType} className="px-4 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 whitespace-nowrap">
+                  Ekle
+                </button>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button type="button" onClick={() => setShowAddModal(false)} className="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900">
+                Vazgeç
+              </button>
+              <button type="submit" className="primary-btn text-sm py-2 px-5">
+                Kaydet
+              </button>
             </div>
           </form>
         </div>

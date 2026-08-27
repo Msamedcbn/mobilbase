@@ -715,51 +715,180 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
   const totalCategoryCount = useMemo(() => groupedModels.reduce((sum, model) => sum + model.categories.length, 0), [groupedModels]);
   const totalOptionCount = useMemo(() => groupedModels.reduce((sum, model) => sum + model.categories.reduce((s, c) => s + c.options.length, 0), 0), [groupedModels]);
 
+  // --- Visual-only helpers (icons) — no business logic below this line ---
+  const IconPencil = ({ className = "w-4 h-4" }: { className?: string }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+      <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+    </svg>
+  );
+  const IconPlus = ({ className = "w-4 h-4" }: { className?: string }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  );
+  const IconClose = ({ className = "w-4 h-4" }: { className?: string }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+  const IconChevronDown = ({ className = "w-4 h-4" }: { className?: string }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+  const IconWarning = ({ className = "w-4 h-4" }: { className?: string }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+      <line x1="12" y1="9" x2="12" y2="13" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
+    </svg>
+  );
+  const IconSearch = ({ className = "w-4 h-4" }: { className?: string }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  );
+  const IconSend = ({ className = "w-4 h-4" }: { className?: string }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <line x1="22" y1="2" x2="11" y2="13" />
+      <polygon points="22 2 15 22 11 13 2 9 22 2" />
+    </svg>
+  );
+
+  // Device icon by brand, used on model cards
+  const getDeviceIcon = (brand: GroupedModel["brand"], className = "w-5 h-5") => {
+    if (brand === "iPad") {
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
+          <line x1="12" y1="18" x2="12.01" y2="18" />
+        </svg>
+      );
+    }
+    if (brand === "MacBook") {
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+          <line x1="2" y1="20" x2="22" y2="20" />
+        </svg>
+      );
+    }
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <rect x="6" y="2" width="12" height="20" rx="2" ry="2" />
+        <line x1="12" y1="17.5" x2="12.01" y2="17.5" />
+      </svg>
+    );
+  };
+
+  // Repair category icon, used inside each model card's accordion
+  const getCategoryIcon = (category: string, className = "w-4 h-4") => {
+    if (category === "BATARYA DEĞİŞİMİ") {
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <rect x="2" y="7" width="18" height="10" rx="2" />
+          <line x1="22" y1="10.5" x2="22" y2="13.5" />
+        </svg>
+      );
+    }
+    if (category === "EKRAN DEĞİŞİMİ") {
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <rect x="6" y="2" width="12" height="20" rx="2" />
+          <line x1="9" y1="18" x2="15" y2="18" />
+        </svg>
+      );
+    }
+    if (category === "FACE ID TRUDEP DEĞİŞİMİ") {
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 8V6a2 2 0 0 1 2-2h2" />
+          <path d="M4 16v2a2 2 0 0 0 2 2h2" />
+          <path d="M20 8V6a2 2 0 0 0-2-2h-2" />
+          <path d="M20 16v2a2 2 0 0 1-2 2h-2" />
+          <circle cx="9" cy="11" r="0.8" fill="currentColor" stroke="none" />
+          <circle cx="15" cy="11" r="0.8" fill="currentColor" stroke="none" />
+          <path d="M9 15.2c1.2 1 4.8 1 6 0" />
+        </svg>
+      );
+    }
+    if (category === "ARKA CAM DEĞİŞİMİ") {
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <rect x="5" y="2" width="14" height="20" rx="3" />
+          <circle cx="15" cy="6.5" r="1.4" />
+        </svg>
+      );
+    }
+    if (category === "ARKA KAMERA DEĞİŞİMİ") {
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 8a2 2 0 0 1 2-2h1.2l1.1-1.6A2 2 0 0 1 9.9 3.6h4.2a2 2 0 0 1 1.6.8L17 6h1a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8z" />
+          <circle cx="12" cy="13" r="3.1" />
+        </svg>
+      );
+    }
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+      </svg>
+    );
+  };
+
+  const brandBadgeClass = (brand: GroupedModel["brand"]) => {
+    if (brand === "iPhone") return "bg-emerald-500";
+    if (brand === "iPad") return "bg-blue-500";
+    if (brand === "MacBook") return "bg-indigo-500";
+    return "bg-amber-500";
+  };
+
   return (
-    <div style={{ padding: "1.5rem", maxWidth: "1280px", margin: "0 auto" }}>
-      {/* Header section matching premium white design */}
-      <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
-        <h1
-          style={{
-            fontSize: "2.5rem",
-            fontWeight: "800",
-            color: "var(--text)",
-            margin: "0 0 0.5rem 0",
-            letterSpacing: "-0.025em",
-          }}
-        >
+    <div className="max-w-[1280px] mx-auto p-4 sm:p-6">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mb-1.5">
           Cihaz Tamir Fiyatları
         </h1>
-        <p style={{ fontSize: "1rem", color: "var(--muted)", margin: 0, maxWidth: "600px", marginInline: "auto" }}>
+        <p className="text-sm text-slate-500 max-w-xl mx-auto">
           Tüm cihaz modellerimiz için güncel tamir ve parça değişim fiyatlarımızı inceleyebilirsiniz.
         </p>
       </div>
 
-      <div style={{ display: "grid", gap: "0.75rem", gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))", marginBottom: "1rem" }}>
-        <div className="panel" style={{ padding: "0.75rem 0.9rem" }}>
-          <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>Model Sayisi</p>
-          <p style={{ margin: "4px 0 0", fontWeight: 800, fontSize: 20 }}>{groupedModels.length}</p>
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <div className="bg-white border border-slate-200 rounded-2xl p-4">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Model Sayısı</p>
+          <p className="mt-1 text-xl font-black text-slate-900 font-mono">{groupedModels.length}</p>
         </div>
-        <div className="panel" style={{ padding: "0.75rem 0.9rem" }}>
-          <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>Onarim Grubu</p>
-          <p style={{ margin: "4px 0 0", fontWeight: 800, fontSize: 20 }}>{totalCategoryCount}</p>
+        <div className="bg-white border border-slate-200 rounded-2xl p-4">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Onarım Grubu</p>
+          <p className="mt-1 text-xl font-black text-slate-900 font-mono">{totalCategoryCount}</p>
         </div>
-        <div className="panel" style={{ padding: "0.75rem 0.9rem" }}>
-          <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>Parca/Fiyat Kalemi</p>
-          <p style={{ margin: "4px 0 0", fontWeight: 800, fontSize: 20 }}>{totalOptionCount}</p>
+        <div className="bg-white border border-slate-200 rounded-2xl p-4">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Parça/Fiyat Kalemi</p>
+          <p className="mt-1 text-xl font-black text-slate-900 font-mono">{totalOptionCount}</p>
         </div>
-        <div className="panel" style={{ padding: "0.75rem 0.9rem" }}>
-          <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>Filtre Sonucu</p>
-          <p style={{ margin: "4px 0 0", fontWeight: 800, fontSize: 20 }}>{filteredModels.length}</p>
+        <div className="bg-white border border-slate-200 rounded-2xl p-4">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Filtre Sonucu</p>
+          <p className="mt-1 text-xl font-black text-blue-600 font-mono">{filteredModels.length}</p>
         </div>
       </div>
 
-      <div className="panel" style={{ padding: "0.9rem", marginBottom: "1rem", display: "grid", gap: 8 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
-          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: editingPartId ? "var(--accent)" : "var(--text)" }}>
-            {editingPartId ? "✏️ Parça Fiyat Kaydı Düzenle" : "➕ Parça & Onarım Fiyat Yönetimi"}
+      {/* Manage parts panel */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 mb-6 space-y-4">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <h3 className="flex items-center gap-2 text-sm font-black text-slate-900">
+            <span className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${editingPartId ? "bg-blue-50 text-blue-600" : "bg-slate-100 text-slate-600"}`}>
+              {editingPartId ? <IconPencil className="w-3.5 h-3.5" /> : <IconPlus className="w-3.5 h-3.5" />}
+            </span>
+            {editingPartId ? "Parça Fiyat Kaydı Düzenle" : "Parça & Onarım Fiyat Yönetimi"}
           </h3>
-          <span style={{ fontSize: 12, color: "var(--muted)" }}>Marka, model, arıza, parça tipi ve fiyat tanımlayın / güncelleyin.</span>
+          <span className="text-xs text-slate-500">Marka, model, arıza, parça tipi ve fiyat tanımlayın / güncelleyin.</span>
         </div>
         <div className="form-grid-4">
           <select className="field" value={manageBrand} onChange={(e) => setManageBrand(e.target.value as ManagedPartRecord["brand"])}>
@@ -779,36 +908,56 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
         <div className="form-grid-4">
           <input className="field" placeholder="Parça/İşlem Adı" value={managePartName} onChange={(e) => setManagePartName(e.target.value)} />
           <input className="field" placeholder="Fiyat (örn: 3500)" value={managePrice} onChange={(e) => setManagePrice(e.target.value)} />
-          <div style={{ display: "flex", gap: 6 }}>
-            <button type="button" className="primary-btn" style={{ flex: 1 }} onClick={() => void addManagedPart()} disabled={manageSaving}>
+          <div className="flex gap-2 sm:col-span-2">
+            <button type="button" className="primary-btn flex-1" onClick={() => void addManagedPart()} disabled={manageSaving}>
               {manageSaving ? "Kaydediliyor..." : editingPartId ? "Kaydı Güncelle" : "Kaydı Ekle"}
             </button>
             {editingPartId && (
-              <button type="button" className="field" style={{ width: 75 }} onClick={resetManageForm}>
+              <button type="button" className="field w-24" onClick={resetManageForm}>
                 Vazgeç
               </button>
             )}
           </div>
         </div>
-        <div className="panel panel-scroll" style={{ maxHeight: 220 }}>
-          {managedParts.length === 0 ? <div className="empty-box">Henüz özel/düzenlenmiş parça fiyat kaydı yok.</div> : (
+        <div className="panel-scroll rounded-xl border border-slate-200" style={{ maxHeight: 220 }}>
+          {managedParts.length === 0 ? (
+            <div className="empty-box">Henüz özel/düzenlenmiş parça fiyat kaydı yok.</div>
+          ) : (
             <table className="data-table">
-              <thead><tr><th>Marka</th><th>Model</th><th>Arıza</th><th>Tip</th><th>Parça</th><th>Fiyat</th><th style={{ textAlign: "right" }}>İşlemler</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>Marka</th>
+                  <th>Model</th>
+                  <th>Arıza</th>
+                  <th>Tip</th>
+                  <th>Parça</th>
+                  <th>Fiyat</th>
+                  <th className="text-right">İşlemler</th>
+                </tr>
+              </thead>
               <tbody>
                 {managedParts.map((row) => (
-                  <tr key={row.id} style={{ backgroundColor: editingPartId === row.id ? "#eff6ff" : undefined }}>
+                  <tr key={row.id} className={editingPartId === row.id ? "bg-blue-50/60" : undefined}>
                     <td><strong>{row.brand}</strong></td>
                     <td>{row.model}</td>
                     <td>{row.category}</td>
                     <td>{row.type}</td>
                     <td>{row.partName}</td>
-                    <td><strong className="text-blue-700">{Number(row.price).toLocaleString("tr-TR")} TL</strong></td>
-                    <td style={{ textAlign: "right" }}>
-                      <div style={{ display: "inline-flex", gap: 6 }}>
-                        <button type="button" className="field" style={{ width: 68, color: "#1d4ed8", fontWeight: 700 }} onClick={() => startEditPart(row)}>
+                    <td><strong className="text-blue-700 font-mono">{Number(row.price).toLocaleString("tr-TR")} TL</strong></td>
+                    <td className="text-right">
+                      <div className="inline-flex gap-1.5">
+                        <button
+                          type="button"
+                          className="px-2.5 py-1 rounded-lg border border-blue-200 text-blue-700 text-xs font-bold hover:bg-blue-50 transition"
+                          onClick={() => startEditPart(row)}
+                        >
                           Düzenle
                         </button>
-                        <button type="button" className="field" style={{ width: 52, color: "#dc2626" }} onClick={() => void deleteManagedPart(row.id)}>
+                        <button
+                          type="button"
+                          className="px-2.5 py-1 rounded-lg border border-rose-200 text-rose-600 text-xs font-bold hover:bg-rose-50 transition"
+                          onClick={() => void deleteManagedPart(row.id)}
+                        >
                           Sil
                         </button>
                       </div>
@@ -822,486 +971,211 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
       </div>
 
       {/* Tabs and Search Panel */}
-      <div
-        className="panel"
-        style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          borderRadius: "var(--radius)",
-          boxShadow: "var(--shadow)",
-          padding: "1.5rem",
-          marginBottom: "2rem",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "1.25rem",
-            justifyContent: "space-between",
-            alignItems: "stretch",
-          }}
-        >
-          {/* Tab buttons */}
-          <div style={{ display: "flex", gap: "0.5rem", overflowX: "auto", paddingBottom: "4px" }}>
-            {(["Tümü", "iPhone", "Android", "iPad", "MacBook"] as const).map((tab) => {
-              const active = selectedTab === tab;
-              return (
-                <button
-                  key={tab}
-                  onClick={() => setSelectedTab(tab)}
-                  style={{
-                    border: active ? "none" : "1px solid var(--border)",
-                    backgroundColor: active ? "var(--accent)" : "transparent",
-                    color: active ? "white" : "var(--text)",
-                    padding: "0.55rem 1.25rem",
-                    borderRadius: "10px",
-                    fontSize: "0.9rem",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {tab}
-                </button>
-              );
-            })}
-          </div>
-          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-            <button type="button" className="field" style={{ width: 120 }} onClick={() => { setSelectedTab("Tümü"); setSearchTerm(""); }}>Filtreyi Sifirla</button>
-            <button type="button" className="field" style={{ width: 120 }} onClick={() => setSearchTerm("ekran")}>Ekran Isleri</button>
-            <button type="button" className="field" style={{ width: 120 }} onClick={() => setSearchTerm("batarya")}>Batarya Isleri</button>
-          </div>
-
-          {/* Search box with SVG icon */}
-          <div style={{ position: "relative", width: "100%" }}>
-            <span
-              style={{
-                position: "absolute",
-                left: "1rem",
-                top: "50%",
-                transform: "translateY(-50%)",
-                color: "var(--muted)",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-6 space-y-4">
+        {/* Tab buttons */}
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {(["Tümü", "iPhone", "Android", "iPad", "MacBook"] as const).map((tab) => {
+            const active = selectedTab === tab;
+            return (
+              <button
+                key={tab}
+                onClick={() => setSelectedTab(tab)}
+                className={`px-5 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-colors ${
+                  active ? "bg-blue-600 text-white" : "border border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-600"
+                }`}
               >
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              </svg>
-            </span>
-            <input
-              type="text"
-              placeholder="Model ara..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "0.75rem 1rem 0.75rem 2.75rem",
-                borderRadius: "12px",
-                border: "1px solid var(--border)",
-                background: "var(--surface-soft)",
-                color: "var(--text)",
-                fontSize: "0.95rem",
-                outline: "none",
-                transition: "border-color 0.2s ease",
-              }}
-              onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
-              onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
-            />
-          </div>
+                {tab}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="flex gap-2 flex-wrap">
+          <button
+            type="button"
+            className="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:border-blue-300 hover:text-blue-600 transition"
+            onClick={() => {
+              setSelectedTab("Tümü");
+              setSearchTerm("");
+            }}
+          >
+            Filtreyi Sıfırla
+          </button>
+          <button
+            type="button"
+            className="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:border-blue-300 hover:text-blue-600 transition"
+            onClick={() => setSearchTerm("ekran")}
+          >
+            Ekran İşleri
+          </button>
+          <button
+            type="button"
+            className="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:border-blue-300 hover:text-blue-600 transition"
+            onClick={() => setSearchTerm("batarya")}
+          >
+            Batarya İşleri
+          </button>
+        </div>
+
+        {/* Search box */}
+        <div className="relative w-full">
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 flex items-center pointer-events-none">
+            <IconSearch className="w-[18px] h-[18px]" />
+          </span>
+          <input
+            type="text"
+            placeholder="Model ara..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-sm font-medium placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition"
+          />
         </div>
       </div>
 
-      {/* Pricing Grid matching screenshot style */}
+      {/* Pricing Grid */}
       {filteredModels.length === 0 ? (
-        <div
-          className="panel"
-          style={{
-            textAlign: "center",
-            padding: "4rem 2rem",
-            background: "var(--surface)",
-            border: "1px solid var(--border)",
-            borderRadius: "var(--radius)",
-          }}
-        >
-          <p style={{ fontSize: "1.1rem", color: "var(--muted)", margin: 0 }}>
-            Arama kriterlerinize uygun cihaz veya onarım bulunamadı.
-          </p>
+        <div className="bg-white border border-slate-200 rounded-2xl text-center py-16 px-8">
+          <p className="text-base text-slate-500">Arama kriterlerinize uygun cihaz veya onarım bulunamadı.</p>
         </div>
       ) : (
-        <div
-          style={{
-            display: "grid",
-            gap: "1.5rem",
-            gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))",
-          }}
-        >
-          {filteredModels.map((modelGroup) => {
-            // Pick icon depending on brand type
-            let deviceIcon = (
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
-                <line x1="12" y1="18" x2="12.01" y2="18"></line>
-              </svg>
-            );
-            if (modelGroup.brand === "iPad") {
-              deviceIcon = (
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
-                  <line x1="12" y1="20" x2="12.01" y2="20"></line>
-                </svg>
-              );
-            } else if (modelGroup.brand === "MacBook") {
-              deviceIcon = (
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                  <line x1="2" y1="20" x2="22" y2="20"></line>
-                  <line x1="12" y1="17" x2="12" y2="17"></line>
-                </svg>
-              );
-            }
-
-            return (
-              <div
-                key={modelGroup.model}
-                className="panel"
-                style={{
-                  background: "var(--surface)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "var(--radius)",
-                  boxShadow: "var(--shadow)",
-                  display: "flex",
-                  flexDirection: "column",
-                  padding: 0,
-                  overflow: "hidden",
-                  transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                }}
-              >
-                {/* Card Header */}
-                <div
-                  style={{
-                    padding: "1.25rem",
-                    borderBottom: "1px solid var(--border)",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.75rem",
-                    background: "var(--surface-soft)",
-                  }}
-                >
-                  <div style={{ color: "var(--accent)", display: "flex", alignItems: "center" }}>{deviceIcon}</div>
-                  <div style={{ flex: 1 }}>
-                    <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: "800", color: "var(--text)" }}>
-                      {modelGroup.model.toUpperCase()}
-                    </h3>
-                    <span
-                      style={{
-                        fontSize: "0.7rem",
-                        fontWeight: "700",
-                        color: "white",
-                        backgroundColor:
-                          modelGroup.brand === "iPhone"
-                            ? "#10b981"
-                            : modelGroup.brand === "iPad"
-                            ? "#3b82f6"
-                            : modelGroup.brand === "MacBook"
-                            ? "#6366f1"
-                            : "#f59e0b",
-                        padding: "0.15rem 0.45rem",
-                        borderRadius: "6px",
-                        textTransform: "uppercase",
-                        display: "inline-block",
-                        marginTop: "2px",
-                      }}
-                    >
-                      {modelGroup.brand}
-                    </span>
-                  </div>
+        <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(360px,1fr))]">
+          {filteredModels.map((modelGroup) => (
+            <div
+              key={modelGroup.model}
+              className="bg-white border border-slate-200 rounded-2xl flex flex-col overflow-hidden transition-all duration-200 hover:shadow-lg hover:shadow-slate-900/5 hover:border-blue-200"
+            >
+              {/* Card Header */}
+              <div className="flex items-center gap-3 p-5 border-b border-slate-100 bg-slate-50/70">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                  {getDeviceIcon(modelGroup.brand)}
                 </div>
-
-                {/* Accordion list of repairs */}
-                <div style={{ flex: 1, padding: "0.5rem 0" }}>
-                  {modelGroup.categories.map((cat) => {
-                    const isExpanded = expandedKeys[`${modelGroup.model}-${cat.category}`];
-                    return (
-                      <div
-                        key={cat.category}
-                        style={{
-                          borderBottom: "1px solid var(--border)",
-                        }}
-                      >
-                        {/* Accordion Trigger */}
-                        <div
-                          onClick={() => toggleAccordion(modelGroup.model, cat.category)}
-                          style={{
-                            padding: "0.9rem 1.25rem",
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            cursor: "pointer",
-                            fontWeight: "700",
-                            fontSize: "0.85rem",
-                            color: "var(--text)",
-                            transition: "background-color 0.2s",
-                          }}
-                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--surface-soft)")}
-                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-                        >
-                          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                            {cat.category === "BATARYA DEĞİŞİMİ" ? (
-                              <span>🔋</span>
-                            ) : cat.category === "EKRAN DEĞİŞİMİ" ? (
-                              <span>📱</span>
-                            ) : cat.category === "FACE ID TRUDEP DEĞİŞİMİ" ? (
-                              <span>😊</span>
-                            ) : cat.category === "ARKA CAM DEĞİŞİMİ" ? (
-                              <span>📱</span>
-                            ) : cat.category === "ARKA KAMERA DEĞİŞİMİ" ? (
-                              <span>📷</span>
-                            ) : (
-                              <span>⚙️</span>
-                            )}
-                            {cat.category}
-                          </div>
-                          <span style={{ color: "var(--muted)", transform: isExpanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
-                            ▼
-                          </span>
-                        </div>
-
-                        {/* Accordion Content */}
-                        {isExpanded && (
-                          <div style={{ padding: "0.5rem 1.25rem 1rem 1.25rem", backgroundColor: "var(--surface-soft)" }}>
-                            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                              {cat.options.map((opt, oIdx) => {
-                                let badgeColor = "#64748b"; // Muadil (grey)
-                                let bg = "#f8fafc";
-                                let text = "#334155";
-                                if (opt.type === "original") {
-                                  badgeColor = "#3b82f6"; // Original (blue)
-                                  bg = "#eff6ff";
-                                  text = "#1d4ed8";
-                                } else if (opt.type === "revision") {
-                                  badgeColor = "#3b82f6"; // Revision (blue)
-                                  bg = "#eff6ff";
-                                  text = "#1d4ed8";
-                                }
-
-                                return (
-                                  <div
-                                    key={oIdx}
-                                    style={{
-                                      display: "flex",
-                                      justifyContent: "space-between",
-                                      alignItems: "center",
-                                      padding: "0.6rem 0.8rem",
-                                      borderRadius: "8px",
-                                      border: "1px solid var(--border)",
-                                      backgroundColor: bg,
-                                      fontSize: "0.85rem",
-                                    }}
-                                  >
-                                    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                                      <span
-                                        style={{
-                                          width: "6px",
-                                          height: "6px",
-                                          borderRadius: "50%",
-                                          backgroundColor: badgeColor,
-                                        }}
-                                      ></span>
-                                      <span style={{ fontWeight: "600", color: text }}>{opt.name}</span>
-                                    </div>
-                                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                                      <span style={{ fontWeight: "800", color: "var(--text)" }}>
-                                        {opt.price.includes("TEKLİF") ? opt.price : `${opt.price} TL`}
-                                      </span>
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          const existing = managedParts.find(
-                                            (m) => m.model.toLowerCase() === modelGroup.model.toLowerCase() && m.category === cat.category && m.type === opt.type
-                                          );
-                                          if (existing) {
-                                            startEditPart(existing);
-                                          } else {
-                                            setEditingPartId(null);
-                                            setManageBrand(modelGroup.brand);
-                                            setManageModel(modelGroup.model);
-                                            setManageCategory(cat.category);
-                                            setManageType(opt.type);
-                                            setManagePartName(opt.name);
-                                            setManagePrice(cleanNumericPrice(opt.price));
-                                            window.scrollTo({ top: 120, behavior: "smooth" });
-                                          }
-                                        }}
-                                        style={{
-                                          padding: "2px 8px",
-                                          fontSize: "0.7rem",
-                                          fontWeight: "700",
-                                          color: "#1d4ed8",
-                                          backgroundColor: "#ffffff",
-                                          border: "1px solid #93c5fd",
-                                          borderRadius: "6px",
-                                          cursor: "pointer",
-                                        }}
-                                        title="Bu parçanın fiyatını düzenle"
-                                      >
-                                        ✏️ Düzenle
-                                      </button>
-                                    </div>
-
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Card Footer Button */}
-                <div style={{ padding: "1rem 1.25rem", borderTop: "1px solid var(--border)" }}>
-                  <button
-                    onClick={() => handleOpenModal(modelGroup)}
-                    style={{
-                      width: "100%",
-                      padding: "0.65rem",
-                      backgroundColor: "transparent",
-                      border: "1px solid var(--accent)",
-                      color: "var(--accent)",
-                      borderRadius: "10px",
-                      fontSize: "0.85rem",
-                      fontWeight: "700",
-                      cursor: "pointer",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      gap: "0.4rem",
-                      transition: "all 0.2s ease",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "var(--accent)";
-                      e.currentTarget.style.color = "white";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "transparent";
-                      e.currentTarget.style.color = "var(--accent)";
-                    }}
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-[1.05rem] font-black text-slate-900 truncate">
+                    {modelGroup.model.toUpperCase()}
+                  </h3>
+                  <span
+                    className={`inline-block mt-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide text-white ${brandBadgeClass(modelGroup.brand)}`}
                   >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <line x1="22" y1="2" x2="11" y2="13"></line>
-                      <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                    </svg>
-                    Servis Talebi Oluştur
-                  </button>
+                    {modelGroup.brand}
+                  </span>
                 </div>
               </div>
-            );
-          })}
+
+              {/* Accordion list of repairs */}
+              <div className="flex-1 divide-y divide-slate-100">
+                {modelGroup.categories.map((cat) => {
+                  const isExpanded = expandedKeys[`${modelGroup.model}-${cat.category}`];
+                  return (
+                    <div key={cat.category}>
+                      {/* Accordion Trigger */}
+                      <button
+                        type="button"
+                        onClick={() => toggleAccordion(modelGroup.model, cat.category)}
+                        className="w-full flex items-center justify-between gap-2 px-5 py-3.5 text-left hover:bg-slate-50 transition-colors"
+                      >
+                        <span className="flex items-center gap-2 text-[0.83rem] font-bold text-slate-800">
+                          <span className="text-slate-400 shrink-0">{getCategoryIcon(cat.category)}</span>
+                          {cat.category}
+                        </span>
+                        <IconChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+                      </button>
+
+                      {/* Accordion Content */}
+                      {isExpanded && (
+                        <div className="px-5 pb-4 pt-1 bg-slate-50/70">
+                          <div className="flex flex-col gap-2">
+                            {cat.options.map((opt, oIdx) => (
+                              <div
+                                key={oIdx}
+                                className="flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-[0.83rem]"
+                              >
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${opt.type === "equivalent" ? "bg-slate-400" : "bg-blue-500"}`} />
+                                  <span className="font-semibold text-slate-700 truncate">{opt.name}</span>
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <span className="font-black text-slate-900 font-mono text-[0.85rem]">
+                                    {opt.price.includes("TEKLİF") ? opt.price : `${opt.price} TL`}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const existing = managedParts.find(
+                                        (m) => m.model.toLowerCase() === modelGroup.model.toLowerCase() && m.category === cat.category && m.type === opt.type
+                                      );
+                                      if (existing) {
+                                        startEditPart(existing);
+                                      } else {
+                                        setEditingPartId(null);
+                                        setManageBrand(modelGroup.brand);
+                                        setManageModel(modelGroup.model);
+                                        setManageCategory(cat.category);
+                                        setManageType(opt.type);
+                                        setManagePartName(opt.name);
+                                        setManagePrice(cleanNumericPrice(opt.price));
+                                        window.scrollTo({ top: 120, behavior: "smooth" });
+                                      }
+                                    }}
+                                    className="p-1.5 rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition shrink-0"
+                                    title="Bu parçanın fiyatını düzenle"
+                                  >
+                                    <IconPencil className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Card Footer Button */}
+              <div className="p-4 border-t border-slate-100">
+                <button
+                  onClick={() => handleOpenModal(modelGroup)}
+                  className="w-full py-2.5 rounded-xl border border-blue-600 text-blue-600 text-[0.85rem] font-bold flex items-center justify-center gap-2 transition-all duration-200 hover:bg-blue-600 hover:text-white"
+                >
+                  <IconSend className="w-4 h-4" />
+                  Servis Talebi Oluştur
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
       {/* CREATE TECHNICAL SERVICE REQUEST MODAL */}
       {selectedModel && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(15, 23, 42, 0.45)",
-            backdropFilter: "blur(4px)",
-            display: "grid",
-            placeItems: "center",
-            zIndex: 100,
-            padding: "1rem",
-          }}
-        >
-          <div
-            className="panel"
-            style={{
-              width: "min(640px, 95vw)",
-              maxHeight: "90vh",
-              display: "flex",
-              flexDirection: "column",
-              padding: 0,
-              overflow: "hidden",
-              background: "var(--surface)",
-              borderRadius: "var(--radius)",
-              boxShadow: "var(--shadow)",
-              border: "1px solid var(--border)",
-            }}
-          >
+        <div className="fixed inset-0 bg-slate-900/45 backdrop-blur-sm grid place-items-center z-[100] p-4">
+          <div className="w-full max-w-[640px] max-h-[90vh] flex flex-col overflow-hidden bg-white rounded-2xl border border-slate-200 shadow-xl">
             {/* Modal Header */}
-            <div
-              style={{
-                padding: "1.25rem 1.5rem",
-                borderBottom: "1px solid var(--border)",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                background: "var(--surface-soft)",
-              }}
-            >
-              <div>
-                <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: "800", color: "var(--text)" }}>
-                  Teknik Servis Talebi Oluştur
-                </h3>
-                <p style={{ margin: "2px 0 0 0", fontSize: "0.8rem", color: "var(--muted)" }}>
-                  {selectedModel.model} için yeni iş emri kaydı.
-                </p>
+            <div className="flex items-center justify-between gap-3 px-6 py-5 border-b border-slate-100 bg-slate-50/70">
+              <div className="min-w-0">
+                <h3 className="text-lg font-black text-slate-900">Teknik Servis Talebi Oluştur</h3>
+                <p className="text-xs text-slate-500 mt-0.5 truncate">{selectedModel.model} için yeni iş emri kaydı.</p>
               </div>
               <button
                 onClick={() => setSelectedModel(null)}
-                style={{
-                  border: 0,
-                  background: "transparent",
-                  fontSize: "1.5rem",
-                  cursor: "pointer",
-                  color: "var(--muted)",
-                  padding: "0.2rem",
-                }}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition shrink-0"
               >
-                &times;
+                <IconClose className="w-4 h-4" />
               </button>
             </div>
 
             {/* Modal Content */}
-            <form onSubmit={handleSubmit} style={{ overflowY: "auto", display: "flex", flexDirection: "column" }}>
-              <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-                
+            <form onSubmit={handleSubmit} className="overflow-y-auto flex flex-col">
+              <div className="p-6 flex flex-col gap-6">
                 {/* SECTION 1: CUSTOMER */}
                 <div>
-                  <h4 style={{ margin: "0 0 0.75rem 0", fontSize: "0.9rem", fontWeight: "700", textTransform: "uppercase", color: "var(--accent)" }}>
-                    1. Müşteri Bilgileri
-                  </h4>
+                  <h4 className="text-xs font-bold uppercase tracking-[0.14em] text-blue-600 mb-3">1. Müşteri Bilgileri</h4>
 
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                  <div className="flex flex-col gap-3">
                     <div>
-                      <label style={{ display: "block", fontSize: "0.8rem", fontWeight: "600", color: "var(--muted)", marginBottom: "4px" }}>
-                        Müşteri Seçimi
-                      </label>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1">Müşteri Seçimi</label>
                       <select
                         value={selectedCustomerId}
                         onChange={(e) => {
@@ -1318,14 +1192,7 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
                             setCustomerMode("SELECT");
                           }
                         }}
-                        style={{
-                          width: "100%",
-                          padding: "0.6rem 0.8rem",
-                          borderRadius: "8px",
-                          border: "1px solid var(--border)",
-                          backgroundColor: "var(--surface)",
-                          fontSize: "0.9rem",
-                        }}
+                        className="w-full px-3 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition"
                       >
                         <option value="">-- Müşteri Seçin --</option>
                         {customers.map((c) => (
@@ -1333,78 +1200,44 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
                             {c.fullName} ({c.phone})
                           </option>
                         ))}
-                        <option value="new" style={{ fontWeight: "bold", color: "var(--accent)" }}>
+                        <option value="new" className="font-bold text-blue-600">
                           [+] Yeni Müşteri Tanımla
                         </option>
                       </select>
                     </div>
 
                     {(customerMode === "CREATE" || selectedCustomerId === "new") && (
-                      <div
-                        style={{
-                          display: "grid",
-                          gap: "0.75rem",
-                          gridTemplateColumns: "1fr 1fr",
-                          padding: "1rem",
-                          background: "var(--surface-soft)",
-                          borderRadius: "10px",
-                          border: "1px dashed var(--border)",
-                        }}
-                      >
-                        <div style={{ gridColumn: "span 2" }}>
-                          <label style={{ display: "block", fontSize: "0.8rem", fontWeight: "600", color: "var(--text)", marginBottom: "4px" }}>
-                            Müşteri Adı Soyadı *
-                          </label>
+                      <div className="grid grid-cols-2 gap-3 p-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                        <div className="col-span-2">
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Müşteri Adı Soyadı *</label>
                           <input
                             type="text"
                             placeholder="Örn: Ahmet Sevim"
                             value={newCustName}
                             onChange={(e) => setNewCustName(e.target.value)}
                             required
-                            style={{
-                              width: "100%",
-                              padding: "0.55rem 0.75rem",
-                              borderRadius: "8px",
-                              border: "1px solid var(--border)",
-                              fontSize: "0.85rem",
-                            }}
+                            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition"
                           />
                         </div>
                         <div>
-                          <label style={{ display: "block", fontSize: "0.8rem", fontWeight: "600", color: "var(--text)", marginBottom: "4px" }}>
-                            Telefon Numarası *
-                          </label>
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">Telefon Numarası *</label>
                           <input
                             type="text"
                             placeholder="Örn: 0555..."
                             value={newCustPhone}
                             onChange={(e) => setNewCustPhone(e.target.value)}
                             required
-                            style={{
-                              width: "100%",
-                              padding: "0.55rem 0.75rem",
-                              borderRadius: "8px",
-                              border: "1px solid var(--border)",
-                              fontSize: "0.85rem",
-                            }}
+                            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition"
                           />
                         </div>
                         <div>
-                          <label style={{ display: "block", fontSize: "0.8rem", fontWeight: "600", color: "var(--text)", marginBottom: "4px" }}>
-                            E-Posta Adresi
-                          </label>
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">E-Posta Adresi</label>
                           <input
                             type="email"
                             placeholder="Örn: mail@adres.com"
                             value={newCustEmail}
                             onChange={(e) => setNewCustEmail(e.target.value)}
-                            style={{
-                              width: "100%",
-                              padding: "0.55rem 0.75rem",
-                              borderRadius: "8px",
-                              border: "1px solid var(--border)",
-                              fontSize: "0.85rem",
-                            }}
+                            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition"
                           />
                         </div>
                       </div>
@@ -1414,16 +1247,12 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
 
                 {/* SECTION 2: DEVICE */}
                 <div>
-                  <h4 style={{ margin: "0 0 0.75rem 0", fontSize: "0.9rem", fontWeight: "700", textTransform: "uppercase", color: "var(--accent)" }}>
-                    2. Cihaz Detayları
-                  </h4>
+                  <h4 className="text-xs font-bold uppercase tracking-[0.14em] text-blue-600 mb-3">2. Cihaz Detayları</h4>
 
                   {/* Quick Device Selector */}
                   {selectedCustomerId && selectedCustomerId !== "new" && customerDevices.length > 0 && (
-                    <div style={{ marginBottom: "1rem" }}>
-                      <label style={{ display: "block", fontSize: "0.8rem", fontWeight: "600", color: "var(--text)", marginBottom: "4px" }}>
-                        Kayıtlı Cihazlardan Seç (Hızlı Seçim)
-                      </label>
+                    <div className="mb-4">
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">Kayıtlı Cihazlardan Seç (Hızlı Seçim)</label>
                       <select
                         value={selectedDeviceId}
                         onChange={(e) => {
@@ -1444,15 +1273,7 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
                             setNewDevCondNote("");
                           }
                         }}
-                        style={{
-                          width: "100%",
-                          padding: "0.6rem 0.8rem",
-                          borderRadius: "8px",
-                          border: "1px solid var(--border)",
-                          backgroundColor: "var(--surface)",
-                          fontSize: "0.85rem",
-                          outline: "none",
-                        }}
+                        className="w-full px-3 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition"
                       >
                         <option value="">-- Yeni Cihaz Tanımla (Boş Bırakın) --</option>
                         {customerDevices.map((d) => (
@@ -1465,8 +1286,9 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
                         const selectedDev = customerDevices.find((d) => d.id === selectedDeviceId);
                         if (selectedDev && selectedDev.model.toLowerCase().replace(/\s+/g, "") !== selectedModel.model.toLowerCase().replace(/\s+/g, "")) {
                           return (
-                            <div style={{ marginTop: "4px", fontSize: "0.75rem", color: "#eab308", fontWeight: "600" }}>
-                              ⚠️ Uyarı: Seçtiğiniz cihaz modeli ({selectedDev.brand} {selectedDev.model}) ile fiyatını incelediğiniz model ({selectedModel.model}) uyuşmuyor.
+                            <div className="flex items-center gap-1.5 mt-1.5 text-xs font-semibold text-amber-700">
+                              <IconWarning className="w-3.5 h-3.5 shrink-0" />
+                              Uyarı: Seçtiğiniz cihaz modeli ({selectedDev.brand} {selectedDev.model}) ile fiyatını incelediğiniz model ({selectedModel.model}) uyuşmuyor.
                             </div>
                           );
                         }
@@ -1475,59 +1297,31 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
                     </div>
                   )}
 
-                  <div style={{ display: "grid", gap: "0.75rem", gridTemplateColumns: "1fr 1fr" }}>
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label style={{ display: "block", fontSize: "0.8rem", fontWeight: "600", color: "var(--muted)", marginBottom: "4px" }}>
-                        Cihaz Markası
-                      </label>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1">Cihaz Markası</label>
                       <input
                         type="text"
                         value={getSaveDetails(selectedModel).brand}
                         disabled
-                        style={{
-                          width: "100%",
-                          padding: "0.55rem 0.75rem",
-                          borderRadius: "8px",
-                          border: "1px solid var(--border)",
-                          backgroundColor: "var(--surface-soft)",
-                          color: "var(--muted)",
-                          fontSize: "0.85rem",
-                        }}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 text-sm"
                       />
                     </div>
                     <div>
-                      <label style={{ display: "block", fontSize: "0.8rem", fontWeight: "600", color: "var(--muted)", marginBottom: "4px" }}>
-                        Model
-                      </label>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1">Model</label>
                       <input
                         type="text"
                         value={selectedModel.model}
                         disabled
-                        style={{
-                          width: "100%",
-                          padding: "0.55rem 0.75rem",
-                          borderRadius: "8px",
-                          border: "1px solid var(--border)",
-                          backgroundColor: "var(--surface-soft)",
-                          color: "var(--muted)",
-                          fontSize: "0.85rem",
-                        }}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 text-sm"
                       />
                     </div>
                     <div>
-                      <label style={{ display: "block", fontSize: "0.8rem", fontWeight: "600", color: "var(--text)", marginBottom: "4px" }}>
-                        Kapasite / Hafıza
-                      </label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">Kapasite / Hafıza</label>
                       <select
                         value={newDevStorage}
                         onChange={(e) => setNewDevStorage(e.target.value)}
-                        style={{
-                          width: "100%",
-                          padding: "0.55rem 0.75rem",
-                          borderRadius: "8px",
-                          border: "1px solid var(--border)",
-                          fontSize: "0.85rem",
-                        }}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition"
                       >
                         <option value="64GB">64 GB</option>
                         <option value="128GB">128 GB</option>
@@ -1537,58 +1331,34 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
                       </select>
                     </div>
                     <div>
-                      <label style={{ display: "block", fontSize: "0.8rem", fontWeight: "600", color: "var(--text)", marginBottom: "4px" }}>
-                        Renk
-                      </label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">Renk</label>
                       <input
                         type="text"
                         placeholder="Örn: Uzay Grisi"
                         value={newDevColor}
                         onChange={(e) => setNewDevColor(e.target.value)}
-                        style={{
-                          width: "100%",
-                          padding: "0.55rem 0.75rem",
-                          borderRadius: "8px",
-                          border: "1px solid var(--border)",
-                          fontSize: "0.85rem",
-                        }}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition"
                       />
                     </div>
                     <div>
-                      <label style={{ display: "block", fontSize: "0.8rem", fontWeight: "600", color: "var(--text)", marginBottom: "4px" }}>
-                        IMEI Numarası
-                      </label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">IMEI Numarası</label>
                       <input
                         type="text"
                         placeholder="15 Haneli IMEI"
                         value={newDevImei}
                         onChange={(e) => setNewDevImei(e.target.value)}
                         maxLength={15}
-                        style={{
-                          width: "100%",
-                          padding: "0.55rem 0.75rem",
-                          borderRadius: "8px",
-                          border: "1px solid var(--border)",
-                          fontSize: "0.85rem",
-                        }}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-mono outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition"
                       />
                     </div>
                     <div>
-                      <label style={{ display: "block", fontSize: "0.8rem", fontWeight: "600", color: "var(--text)", marginBottom: "4px" }}>
-                        Fiziksel Durum / Çizikler
-                      </label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">Fiziksel Durum / Çizikler</label>
                       <input
                         type="text"
                         placeholder="Örn: Ekranda hafif kılcal çizik"
                         value={newDevCondNote}
                         onChange={(e) => setNewDevCondNote(e.target.value)}
-                        style={{
-                          width: "100%",
-                          padding: "0.55rem 0.75rem",
-                          borderRadius: "8px",
-                          border: "1px solid var(--border)",
-                          fontSize: "0.85rem",
-                        }}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition"
                       />
                     </div>
                   </div>
@@ -1596,29 +1366,16 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
 
                 {/* SECTION 3: REPAIR SELECTION */}
                 <div>
-                  <h4 style={{ margin: "0 0 0.75rem 0", fontSize: "0.9rem", fontWeight: "700", textTransform: "uppercase", color: "var(--accent)" }}>
-                    3. Arıza & Fiyatlandırma
-                  </h4>
+                  <h4 className="text-xs font-bold uppercase tracking-[0.14em] text-blue-600 mb-3">3. Arıza & Fiyatlandırma</h4>
 
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                    <div style={{ display: "grid", gap: "0.75rem", gridTemplateColumns: "1fr 1.2fr auto", alignItems: "end" }}>
+                  <div className="flex flex-col gap-3">
+                    <div className="grid gap-3 items-end" style={{ gridTemplateColumns: "1fr 1.2fr auto" }}>
                       <div>
-                        <label style={{ display: "block", fontSize: "0.8rem", fontWeight: "600", color: "var(--text)", marginBottom: "4px" }}>
-                          Arıza Grubu
-                        </label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Arıza Grubu</label>
                         <select
                           value={selectedCategoryName}
                           onChange={(e) => handleCategoryChange(e.target.value)}
-                          style={{
-                            width: "100%",
-                            padding: "0.55rem 0.75rem",
-                            borderRadius: "8px",
-                            border: "1px solid var(--border)",
-                            backgroundColor: "var(--surface)",
-                            color: "var(--text)",
-                            fontSize: "0.85rem",
-                            outline: "none",
-                          }}
+                          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition"
                         >
                           {selectedModel.categories.map((c) => (
                             <option key={c.category} value={c.category}>
@@ -1629,22 +1386,11 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
                       </div>
 
                       <div>
-                        <label style={{ display: "block", fontSize: "0.8rem", fontWeight: "600", color: "var(--text)", marginBottom: "4px" }}>
-                          Yedek Parça / Onarım Tipi
-                        </label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Yedek Parça / Onarım Tipi</label>
                         <select
                           value={selectedOptionIndex}
                           onChange={(e) => handleOptionChange(Number(e.target.value))}
-                          style={{
-                            width: "100%",
-                            padding: "0.55rem 0.75rem",
-                            borderRadius: "8px",
-                            border: "1px solid var(--border)",
-                            backgroundColor: "var(--surface)",
-                            color: "var(--text)",
-                            fontSize: "0.85rem",
-                            outline: "none",
-                          }}
+                          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition"
                         >
                           {selectedCategoryObj?.options.map((opt, idx) => (
                             <option key={idx} value={idx}>
@@ -1657,27 +1403,7 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
                       <button
                         type="button"
                         onClick={handleAddRepair}
-                        style={{
-                          padding: "0.55rem 1.25rem",
-                          borderRadius: "8px",
-                          border: "none",
-                          backgroundColor: "var(--accent)",
-                          color: "white",
-                          fontSize: "0.85rem",
-                          fontWeight: "700",
-                          cursor: "pointer",
-                          height: "36px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          transition: "filter 0.2s ease",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.filter = "brightness(0.9)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.filter = "none";
-                        }}
+                        className="h-9 px-5 rounded-lg border-none bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold flex items-center justify-center transition-colors"
                       >
                         Listeye Ekle
                       </button>
@@ -1685,77 +1411,34 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
 
                     {/* Selected repairs list */}
                     {selectedRepairsList.length > 0 && (
-                      <div
-                        style={{
-                          border: "1px solid var(--border)",
-                          borderRadius: "8px",
-                          padding: "0.75rem",
-                          backgroundColor: "var(--surface-soft)",
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontSize: "0.8rem",
-                            fontWeight: "700",
-                            marginBottom: "0.6rem",
-                            color: "var(--text)",
-                            display: "flex",
-                            justifyContent: "space-between",
-                          }}
-                        >
+                      <div className="border border-slate-200 rounded-xl p-3 bg-slate-50">
+                        <div className="flex items-center justify-between text-xs font-bold text-slate-900 mb-2.5">
                           <span>Seçilen Onarım Kalemleri ({selectedRepairsList.length})</span>
-                          <span style={{ color: "var(--accent)" }}>
+                          <span className="text-blue-600 font-mono">
                             Toplam: {selectedRepairsList.reduce((sum, item) => sum + item.partCost + item.laborCost, 0)} TL
                           </span>
                         </div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                        <div className="flex flex-col gap-2">
                           {selectedRepairsList.map((item) => (
                             <div
                               key={item.id}
-                              style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                                padding: "0.5rem 0.75rem",
-                                backgroundColor: "var(--surface)",
-                                border: "1px solid var(--border)",
-                                borderRadius: "6px",
-                                fontSize: "0.8rem",
-                              }}
+                              className="flex items-center justify-between gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs"
                             >
-                              <div style={{ flex: 1 }}>
-                                <span style={{ fontWeight: "700", color: "var(--accent)" }}>{item.category}:</span>{" "}
-                                <span style={{ color: "var(--text)" }}>{item.optionName}</span>
+                              <div className="flex-1 min-w-0">
+                                <span className="font-bold text-blue-600">{item.category}:</span>{" "}
+                                <span className="text-slate-800">{item.optionName}</span>
                               </div>
-                              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                                <span style={{ color: "var(--muted)", fontWeight: "600" }}>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className="text-slate-500 font-semibold font-mono">
                                   {item.partCost} TL (P) + {item.laborCost} TL (İ)
                                 </span>
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveRepair(item.id)}
-                                  style={{
-                                    border: "none",
-                                    background: "none",
-                                    color: "#ef4444",
-                                    cursor: "pointer",
-                                    fontSize: "1.25rem",
-                                    lineHeight: "1",
-                                    padding: "0 4px",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    fontWeight: "bold",
-                                    transition: "color 0.2s ease",
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.color = "#dc2626";
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.color = "#ef4444";
-                                  }}
+                                  className="p-1 rounded-md text-rose-500 hover:bg-rose-50 hover:text-rose-600 transition"
                                   title="Sil"
                                 >
-                                  ×
+                                  <IconClose className="w-3.5 h-3.5" />
                                 </button>
                               </div>
                             </div>
@@ -1765,131 +1448,60 @@ export function PartsPriceClient({ initialData }: { initialData: PriceRecord[] }
                     )}
 
                     <div>
-                      <label style={{ display: "block", fontSize: "0.8rem", fontWeight: "600", color: "var(--text)", marginBottom: "4px" }}>
-                        Yapılacak İşlem Açıklaması *
-                      </label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">Yapılacak İşlem Açıklaması *</label>
                       <textarea
                         value={issueDescription}
                         onChange={(e) => setIssueDescription(e.target.value)}
                         rows={2}
                         required
-                        style={{
-                          width: "100%",
-                          padding: "0.55rem 0.75rem",
-                          borderRadius: "8px",
-                          border: "1px solid var(--border)",
-                          fontSize: "0.85rem",
-                          fontFamily: "inherit",
-                          resize: "none",
-                        }}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-[inherit] resize-none outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition"
                       />
                     </div>
 
-                    <div style={{ display: "grid", gap: "0.75rem", gridTemplateColumns: "1fr 1fr 1fr" }}>
+                    <div className="grid grid-cols-3 gap-3">
                       <div>
-                        <label style={{ display: "block", fontSize: "0.8rem", fontWeight: "600", color: "var(--text)", marginBottom: "4px" }}>
-                          Yedek Parça Bedeli (TL)
-                        </label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Yedek Parça Bedeli (TL)</label>
                         <input
                           type="number"
                           value={partCost}
                           onChange={(e) => setPartCost(e.target.value)}
-                          style={{
-                            width: "100%",
-                            padding: "0.55rem 0.75rem",
-                            borderRadius: "8px",
-                            border: "1px solid var(--border)",
-                            fontSize: "0.85rem",
-                          }}
+                          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-mono outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition"
                         />
                       </div>
                       <div>
-                        <label style={{ display: "block", fontSize: "0.8rem", fontWeight: "600", color: "var(--text)", marginBottom: "4px" }}>
-                          İşçilik Bedeli (TL)
-                        </label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">İşçilik Bedeli (TL)</label>
                         <input
                           type="number"
                           value={laborCost}
                           onChange={(e) => setLaborCost(e.target.value)}
-                          style={{
-                            width: "100%",
-                            padding: "0.55rem 0.75rem",
-                            borderRadius: "8px",
-                            border: "1px solid var(--border)",
-                            fontSize: "0.85rem",
-                          }}
+                          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-mono outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition"
                         />
                       </div>
                       <div>
-                        <label style={{ display: "block", fontSize: "0.8rem", fontWeight: "600", color: "var(--accent)", marginBottom: "4px" }}>
-                          Toplam Fiyat
-                        </label>
-                        <div
-                          style={{
-                            width: "100%",
-                            padding: "0.55rem 0.75rem",
-                            borderRadius: "8px",
-                            border: "1px solid var(--accent)",
-                            backgroundColor: "var(--surface-soft)",
-                            color: "var(--accent)",
-                            fontWeight: "800",
-                            fontSize: "0.95rem",
-                            textAlign: "center",
-                          }}
-                        >
+                        <label className="block text-xs font-semibold text-blue-600 mb-1">Toplam Fiyat</label>
+                        <div className="w-full px-3 py-2 rounded-lg border border-blue-600 bg-blue-50 text-blue-600 font-black text-[0.95rem] font-mono text-center">
                           {Number(partCost || 0) + Number(laborCost || 0)} TL
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-
               </div>
 
               {/* Modal Actions */}
-              <div
-                style={{
-                  padding: "1rem 1.5rem",
-                  borderTop: "1px solid var(--border)",
-                  display: "flex",
-                  justifyContent: "flex-end",
-                  gap: "0.75rem",
-                  background: "var(--surface-soft)",
-                }}
-              >
+              <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/70 flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setSelectedModel(null)}
                   disabled={submitting}
-                  style={{
-                    padding: "0.6rem 1.25rem",
-                    border: "1px solid var(--border)",
-                    backgroundColor: "transparent",
-                    color: "var(--text)",
-                    borderRadius: "8px",
-                    fontSize: "0.85rem",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                  }}
+                  className="px-5 py-2.5 rounded-lg border border-slate-200 bg-transparent text-slate-700 text-sm font-semibold hover:bg-slate-100 transition"
                 >
                   İptal Et
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  style={{
-                    padding: "0.6rem 1.5rem",
-                    border: "none",
-                    backgroundColor: "var(--accent)",
-                    color: "white",
-                    borderRadius: "8px",
-                    fontSize: "0.85rem",
-                    fontWeight: "700",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.4rem",
-                  }}
+                  className="px-6 py-2.5 rounded-lg border-none bg-blue-600 hover:bg-blue-500 disabled:opacity-60 text-white text-sm font-bold flex items-center gap-1.5 transition-colors"
                 >
                   {submitting ? "Kaydediliyor..." : "Servis Talebi Aç"}
                 </button>

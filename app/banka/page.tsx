@@ -169,25 +169,29 @@ export default function BankaManagementPage() {
   if (loading && banks.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
     );
   }
 
   return (
     <section className="space-y-8 pb-12">
+      <h2 className="text-xl font-black tracking-tight text-slate-900">Banka &amp; Kasa Yönetimi</h2>
+
       {/* Top Assets summary & actions */}
       <div className="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
-        <div className="glass-card p-6 rounded-2xl bg-gradient-to-r from-blue-900 to-slate-900 border border-blue-500/20 shadow-md relative overflow-hidden w-full md:w-96">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <svg className="w-16 h-16 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="rounded-2xl border border-slate-800/60 bg-slate-900 p-5 shadow-sm w-full md:w-96 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center shrink-0 shadow-lg shadow-blue-900/30">
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
             </svg>
           </div>
-          <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider">Toplam Kasa / Banka Varlığı</p>
-          <p className="text-3xl font-extrabold text-white mt-2">
-            {totalAssets.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
-          </p>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Toplam Kasa / Banka Varlığı</p>
+            <p className="text-2xl font-black font-mono text-white mt-1">
+              {totalAssets.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
+            </p>
+          </div>
         </div>
 
         <button
@@ -235,7 +239,7 @@ export default function BankaManagementPage() {
                       e.stopPropagation();
                       openEditModal(b);
                     }}
-                    className={`p-1.5 rounded-lg border transition ${
+                    className={`p-1.5 rounded-xl border transition ${
                       isSelected
                         ? "border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-white"
                         : "border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
@@ -251,7 +255,7 @@ export default function BankaManagementPage() {
                       e.stopPropagation();
                       handleDelete(b.id);
                     }}
-                    className="p-1.5 rounded-lg border border-red-500/20 text-red-400 hover:bg-red-500/10 transition"
+                    className="p-1.5 rounded-xl border border-rose-200 text-rose-500 hover:bg-rose-50 transition"
                     title="Sil"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -262,7 +266,7 @@ export default function BankaManagementPage() {
               </div>
 
               <div className="mt-6 flex justify-between items-baseline">
-                <span className={`text-xs ${isSelected ? "text-slate-500" : "text-slate-400"} uppercase tracking-wider`}>Bakiye</span>
+                <span className={`text-[10px] font-bold uppercase tracking-[0.14em] ${isSelected ? "text-slate-500" : "text-slate-400"}`}>Bakiye</span>
                 <span className={`text-2xl font-black font-mono ${isSelected ? "text-blue-400" : "text-blue-600"}`}>
                   {Number(b.balance).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
                 </span>
@@ -290,7 +294,7 @@ export default function BankaManagementPage() {
           <div className="overflow-x-auto">
             {loadingLogs ? (
               <div className="flex items-center justify-center p-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
               </div>
             ) : logs.length === 0 ? (
               <div className="p-8 text-center text-slate-500">Henüz bu hesaba ait işlem hareketi bulunmuyor.</div>
@@ -318,7 +322,7 @@ export default function BankaManagementPage() {
                             log.source === "POS"
                               ? "bg-blue-50 text-blue-700 border-blue-100"
                               : log.source === "CARI"
-                              ? "bg-purple-50 text-purple-700 border-purple-100"
+                              ? "bg-slate-100 text-slate-600 border-slate-200"
                               : "bg-amber-50 text-amber-700 border-amber-100"
                           }`}>
                             {log.source}
@@ -364,7 +368,7 @@ export default function BankaManagementPage() {
 
             <form onSubmit={handleAdd} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">Hesap Adı</label>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-[0.14em] mb-2">Hesap Adı</label>
                 <input
                   type="text"
                   className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -376,7 +380,7 @@ export default function BankaManagementPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">IBAN (Varsa)</label>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-[0.14em] mb-2">IBAN (Varsa)</label>
                 <input
                   type="text"
                   className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
@@ -387,7 +391,7 @@ export default function BankaManagementPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">Başlangıç Bakiyesi (TL)</label>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-[0.14em] mb-2">Başlangıç Bakiyesi (TL)</label>
                 <input
                   type="number"
                   className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
@@ -429,7 +433,7 @@ export default function BankaManagementPage() {
 
             <form onSubmit={handleEdit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">Hesap Adı</label>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-[0.14em] mb-2">Hesap Adı</label>
                 <input
                   type="text"
                   className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -440,7 +444,7 @@ export default function BankaManagementPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">IBAN</label>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-[0.14em] mb-2">IBAN</label>
                 <input
                   type="text"
                   className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
@@ -450,7 +454,7 @@ export default function BankaManagementPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">Mevcut Bakiye (TL)</label>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-[0.14em] mb-2">Mevcut Bakiye (TL)</label>
                 <input
                   type="number"
                   className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"

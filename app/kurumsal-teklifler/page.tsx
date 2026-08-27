@@ -26,6 +26,22 @@ type Product = {
   salePrice: number | string;
 };
 
+const STATUS_LABEL: Record<Quote["status"], string> = {
+  DRAFT: "Taslak",
+  SENT: "Gönderildi",
+  APPROVED: "Onaylandı",
+  REJECTED: "Reddedildi",
+  CANCELED: "İptal",
+};
+
+const STATUS_STYLE: Record<Quote["status"], string> = {
+  DRAFT: "bg-slate-100 text-slate-600 border-slate-200",
+  SENT: "bg-blue-50 text-blue-700 border-blue-100",
+  APPROVED: "bg-emerald-50 text-emerald-700 border-emerald-100",
+  REJECTED: "bg-rose-50 text-rose-700 border-rose-100",
+  CANCELED: "bg-slate-100 text-slate-500 border-slate-200",
+};
+
 export default function CorporateQuotesPage() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -175,159 +191,248 @@ export default function CorporateQuotesPage() {
     }
   }
 
+  const inputClass =
+    "w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent";
+
   return (
-    <section className="compact-shell" style={{ display: "grid", gap: 10 }}>
-      <h2 className="page-title" style={{ margin: 0 }}>Kurumsal Teklif Yonetimi</h2>
+    <section className="space-y-6 pb-12">
+      <h2 className="text-xl font-black tracking-tight text-slate-900">Kurumsal Teklif Yönetimi</h2>
 
-      <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))" }}>
-      <form className="panel" style={{ padding: "0.8rem", display: "grid", gap: 8 }} onSubmit={createQuote}>
-        <h3 style={{ margin: 0 }}>Yeni Teklif Hazirla</h3>
-        <div className="form-grid-2">
-          <input className="field" placeholder="Firma Adi *" value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
-          <input className="field" placeholder="Yetkili Kisi" value={contactName} onChange={(e) => setContactName(e.target.value)} />
-        </div>
-        <div className="form-grid-3">
-          <input className="field" placeholder="Telefon" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} />
-          <input className="field" placeholder="E-posta" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} />
-          <input className="field" type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} />
-        </div>
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+        {/* New quote form */}
+        <form className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4" onSubmit={createQuote}>
+          <h3 className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Yeni Teklif Hazırla</h3>
 
-        <div className="panel" style={{ padding: "0.6rem" }}>
-          <p style={{ margin: "0 0 8px", fontWeight: 700 }}>Teklif Kalemleri</p>
-          <div className="form-grid-4" style={{ marginBottom: 8 }}>
-            <button type="button" className="field" style={{ width: "100%", textAlign: "left" }} onClick={() => setIsProductModalOpen(true)}>
-              {lineProductId ? `Stoktan Secildi: ${lineTitle}` : "Stoktan urun sec (popup)"}
-            </button>
-            <input className="field" placeholder="Kalem Aciklamasi" value={lineTitle} onChange={(e) => setLineTitle(e.target.value)} />
-            <input className="field" type="number" min={1} value={lineQty} onChange={(e) => setLineQty(e.target.value)} />
-            <input className="field" type="number" min={0} step="0.01" value={linePrice} onChange={(e) => setLinePrice(e.target.value)} />
-            <button type="button" className="field" onClick={addItem}>Kalem Ekle</button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input className={inputClass} placeholder="Firma Adı *" value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
+            <input className={inputClass} placeholder="Yetkili Kişi" value={contactName} onChange={(e) => setContactName(e.target.value)} />
           </div>
-          <div className="panel panel-scroll" style={{ maxHeight: 170 }}>
-            {items.length === 0 ? <div className="empty-box">Henuz kalem yok.</div> : (
-              <table className="data-table"><thead><tr><th>Kalem</th><th>Adet</th><th>Birim</th><th>Tutar</th><th></th></tr></thead><tbody>
-                {items.map((it, idx) => <tr key={`${it.title}-${idx}`}><td>{it.title}</td><td>{it.quantity}</td><td>{it.unitPrice.toLocaleString("tr-TR")} TL</td><td>{(it.quantity * it.unitPrice).toLocaleString("tr-TR")} TL</td><td><button type="button" className="field" style={{ width: 56 }} onClick={() => removeItem(idx)}>Sil</button></td></tr>)}
-              </tbody></table>
-            )}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <input className={inputClass} placeholder="Telefon" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} />
+            <input className={inputClass} placeholder="E-posta" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} />
+            <input className={`${inputClass} font-mono`} type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} />
           </div>
-        </div>
 
-        <div className="form-grid-3">
-          <input className="field" type="number" step="0.01" value={discountAmount} onChange={(e) => setDiscountAmount(e.target.value)} placeholder="Indirim" />
-          <input className="field" type="number" step="0.01" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} placeholder="KDV %" />
-          <input className="field" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Not" />
-        </div>
+          <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4 space-y-3">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Teklif Kalemleri</p>
 
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <strong>Toplam: {totalAmount.toLocaleString("tr-TR")} TL</strong>
-          <button className="primary-btn" style={{ width: 220 }}>Teklifi Kaydet</button>
-        </div>
-      </form>
-      <aside className="panel" style={{ padding: "0.9rem", alignSelf: "start" }}>
-        <h3 style={{ margin: "0 0 8px" }}>Canli Teklif Kopyasi</h3>
-        <div style={{ border: "1px solid #cbd5e1", borderRadius: 12, padding: 12, background: "#f8fafc" }}>
-          <div style={{ margin: "0 auto", width: "100%", maxWidth: 560, minHeight: 760, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 10, padding: 16, display: "grid", gap: 10 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: "2px solid #0f172a", paddingBottom: 10 }}>
+            <div className="grid grid-cols-1 sm:grid-cols-[1.2fr_1.4fr_0.6fr_0.8fr_auto] gap-2">
+              <button type="button" className={`${inputClass} text-left truncate`} onClick={() => setIsProductModalOpen(true)}>
+                {lineProductId ? `Stoktan: ${lineTitle}` : "Stoktan ürün seç"}
+              </button>
+              <input className={inputClass} placeholder="Kalem Açıklaması" value={lineTitle} onChange={(e) => setLineTitle(e.target.value)} />
+              <input className={`${inputClass} font-mono`} type="number" min={1} value={lineQty} onChange={(e) => setLineQty(e.target.value)} />
+              <input className={`${inputClass} font-mono`} type="number" min={0} step="0.01" value={linePrice} onChange={(e) => setLinePrice(e.target.value)} />
+              <button
+                type="button"
+                onClick={addItem}
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-xl transition-all shrink-0"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Ekle
+              </button>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+              {items.length === 0 ? (
+                <div className="p-6 text-center text-sm text-slate-400">Henüz kalem yok.</div>
+              ) : (
+                <div className="max-h-[170px] overflow-y-auto">
+                  <table className="w-full text-sm border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold text-slate-500 uppercase sticky top-0">
+                        <th className="px-3 py-2">Kalem</th>
+                        <th className="px-3 py-2">Adet</th>
+                        <th className="px-3 py-2">Birim</th>
+                        <th className="px-3 py-2">Tutar</th>
+                        <th className="px-3 py-2 w-10"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {items.map((it, idx) => (
+                        <tr key={`${it.title}-${idx}`} className="hover:bg-slate-50/80 transition-colors">
+                          <td className="px-3 py-2 font-medium text-slate-700">{it.title}</td>
+                          <td className="px-3 py-2 font-mono text-slate-600">{it.quantity}</td>
+                          <td className="px-3 py-2 font-mono text-slate-600">{it.unitPrice.toLocaleString("tr-TR")} TL</td>
+                          <td className="px-3 py-2 font-mono font-semibold text-slate-900">{(it.quantity * it.unitPrice).toLocaleString("tr-TR")} TL</td>
+                          <td className="px-3 py-2 text-right">
+                            <button
+                              type="button"
+                              onClick={() => removeItem(idx)}
+                              className="p-1 rounded-lg text-rose-400 hover:bg-rose-50 hover:text-rose-600 transition"
+                              title="Sil"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <input className={`${inputClass} font-mono`} type="number" step="0.01" value={discountAmount} onChange={(e) => setDiscountAmount(e.target.value)} placeholder="İndirim" />
+            <input className={`${inputClass} font-mono`} type="number" step="0.01" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} placeholder="KDV %" />
+            <input className={inputClass} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Not" />
+          </div>
+
+          <div className="flex items-center justify-between pt-2 border-t border-slate-100">
             <div>
-              <strong style={{ fontSize: 18, letterSpacing: 0.3 }}>KURUMSAL TEKLİF</strong>
-              <p style={{ margin: "4px 0 0", fontSize: 12, color: "#64748b" }}>{tenantName || "Kurumsal Mağaza / Servis"}</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Toplam</p>
+              <p className="text-xl font-black font-mono text-slate-900">{totalAmount.toLocaleString("tr-TR")} TL</p>
             </div>
-            <div style={{ textAlign: "right", fontSize: 12 }}>
-              <div><strong>No:</strong> {previewQuoteNo}</div>
-              <div><strong>Tarih:</strong> {new Date().toLocaleDateString("tr-TR")}</div>
+            <button
+              type="submit"
+              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-xl transition-all shadow-sm active:scale-95"
+            >
+              Teklifi Kaydet
+            </button>
+          </div>
+        </form>
+
+        {/* Live quote preview */}
+        <aside className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <h3 className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 mb-3">Canlı Teklif Kopyası</h3>
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <div className="mx-auto w-full max-w-[560px] min-h-[760px] bg-white border border-slate-200 rounded-lg p-4 flex flex-col gap-3">
+              <div className="flex justify-between items-start border-b-2 border-slate-900 pb-2.5">
+                <div>
+                  <strong className="text-lg tracking-tight text-slate-900">KURUMSAL TEKLİF</strong>
+                  <p className="mt-1 text-xs text-slate-500">{tenantName || "Kurumsal Mağaza / Servis"}</p>
+                </div>
+                <div className="text-right text-xs text-slate-700">
+                  <div><strong>No:</strong> <span className="font-mono">{previewQuoteNo}</span></div>
+                  <div><strong>Tarih:</strong> <span className="font-mono">{new Date().toLocaleDateString("tr-TR")}</span></div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="border border-slate-200 rounded-lg p-2">
+                  <div className="text-slate-500 font-bold mb-1">MÜŞTERİ / FİRMA</div>
+                  <div><strong>Firma:</strong> {companyName || "-"}</div>
+                  <div><strong>Yetkili:</strong> {contactName || "-"}</div>
+                  <div><strong>Telefon:</strong> {contactPhone || "-"}</div>
+                  <div><strong>E-posta:</strong> {contactEmail || "-"}</div>
+                </div>
+                <div className="border border-slate-200 rounded-lg p-2">
+                  <div className="text-slate-500 font-bold mb-1">TEKLİF DETAYI</div>
+                  <div><strong>Geçerlilik:</strong> {validUntil ? new Date(validUntil).toLocaleDateString("tr-TR") : "-"}</div>
+                  <div><strong>KDV:</strong> %{Number(taxRate || 0).toLocaleString("tr-TR")}</div>
+                  <div><strong>Para Birimi:</strong> TRY</div>
+                </div>
+              </div>
+
+              <div className="border border-slate-200 rounded-lg overflow-hidden max-h-[260px] overflow-y-auto">
+                <table className="w-full text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-200 bg-slate-50 text-left">
+                      <th className="px-2 py-1.5">#</th>
+                      <th className="px-2 py-1.5">Kalem</th>
+                      <th className="px-2 py-1.5">Adet</th>
+                      <th className="px-2 py-1.5">Birim</th>
+                      <th className="px-2 py-1.5">Tutar</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {items.length === 0 ? (
+                      <tr><td colSpan={5} className="text-center text-slate-400 py-4">Kalem ekleyince önizleme oluşur.</td></tr>
+                    ) : items.map((it, idx) => (
+                      <tr key={`preview-${idx}`}>
+                        <td className="px-2 py-1.5 font-mono">{idx + 1}</td>
+                        <td className="px-2 py-1.5">{it.title}</td>
+                        <td className="px-2 py-1.5 font-mono">{it.quantity}</td>
+                        <td className="px-2 py-1.5 font-mono">{it.unitPrice.toLocaleString("tr-TR")} TL</td>
+                        <td className="px-2 py-1.5 font-mono">{(it.quantity * it.unitPrice).toLocaleString("tr-TR")} TL</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="grid grid-cols-[1.2fr_0.8fr] gap-2">
+                <div className="border border-slate-200 rounded-lg p-2 text-[11px] text-slate-600 leading-relaxed">
+                  <strong className="block mb-1 text-slate-700">Koşullar</strong>
+                  <span>1) Bu teklif belirtilen geçerlilik tarihine kadar geçerlidir.</span><br />
+                  <span>2) Teslimat ve ödeme planı mutabakata göre netleştirilir.</span><br />
+                  <span>3) Fiyatlara aksi belirtilmedikçe KDV dahildir.</span>
+                </div>
+                <div className="border border-slate-200 rounded-lg p-2 text-xs text-slate-700 flex flex-col gap-1">
+                  <span>Ara Toplam: <span className="font-mono">{subtotal.toLocaleString("tr-TR")} TL</span></span>
+                  <span>İndirim: <span className="font-mono">{Number(discountAmount || 0).toLocaleString("tr-TR")} TL</span></span>
+                  <span>KDV: <span className="font-mono">{taxAmount.toLocaleString("tr-TR")} TL</span></span>
+                  <strong className="text-sm font-mono">Genel Toplam: {totalAmount.toLocaleString("tr-TR")} TL</strong>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5 mt-1.5">
+                <div className="border-t border-dashed border-slate-400 pt-1.5 text-[11px] text-slate-500">
+                  <strong>Müşteri Onay</strong>
+                  <div>Ad Soyad / İmza</div>
+                </div>
+                <div className="border-t border-dashed border-slate-400 pt-1.5 text-[11px] text-slate-500 text-right">
+                  <strong>Firma Yetkilisi</strong>
+                  <div>Ad Soyad / İmza</div>
+                </div>
+              </div>
+
+              <div className="text-[10px] text-slate-400 text-center border-t border-slate-200 pt-2">
+                {note ? `Not: ${note}` : "Bu alan teklif notları için ayrılmıştır."}
+              </div>
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 12 }}>
-            <div style={{ border: "1px solid #e2e8f0", borderRadius: 8, padding: 8 }}>
-              <div style={{ color: "#64748b", marginBottom: 4, fontWeight: 700 }}>MUSTERI / FIRMA</div>
-              <div><strong>Firma:</strong> {companyName || "-"}</div>
-              <div><strong>Yetkili:</strong> {contactName || "-"}</div>
-              <div><strong>Telefon:</strong> {contactPhone || "-"}</div>
-              <div><strong>E-posta:</strong> {contactEmail || "-"}</div>
-            </div>
-            <div style={{ border: "1px solid #e2e8f0", borderRadius: 8, padding: 8 }}>
-              <div style={{ color: "#64748b", marginBottom: 4, fontWeight: 700 }}>TEKLIF DETAYI</div>
-              <div><strong>Gecerlilik:</strong> {validUntil ? new Date(validUntil).toLocaleDateString("tr-TR") : "-"}</div>
-              <div><strong>KDV:</strong> %{Number(taxRate || 0).toLocaleString("tr-TR")}</div>
-              <div><strong>Para Birimi:</strong> TRY</div>
-            </div>
-          </div>
-          <div className="panel panel-scroll" style={{ maxHeight: 260, border: "1px solid #e2e8f0" }}>
-            <table className="data-table">
-              <thead><tr><th>#</th><th>Kalem</th><th>Adet</th><th>Birim</th><th>Tutar</th></tr></thead>
-              <tbody>
-                {items.length === 0 ? <tr><td colSpan={5} style={{ textAlign: "center", color: "#94a3b8" }}>Kalem ekleyince onizleme olusur.</td></tr> : items.map((it, idx) => (
-                  <tr key={`preview-${idx}`}>
-                    <td>{idx + 1}</td>
-                    <td>{it.title}</td>
-                    <td>{it.quantity}</td>
-                    <td>{it.unitPrice.toLocaleString("tr-TR")} TL</td>
-                    <td>{(it.quantity * it.unitPrice).toLocaleString("tr-TR")} TL</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1.2fr 0.8fr" }}>
-            <div style={{ border: "1px solid #e2e8f0", borderRadius: 8, padding: 8, fontSize: 11, color: "#475569" }}>
-              <strong style={{ display: "block", marginBottom: 4, color: "#334155" }}>Kosullar</strong>
-              <span>1) Bu teklif belirtilen gecerlilik tarihine kadar gecerlidir.</span><br />
-              <span>2) Teslimat ve odeme plani mutabakata gore netlestirilir.</span><br />
-              <span>3) Fiyatlara aksi belirtilmedikce KDV dahildir.</span>
-            </div>
-            <div style={{ border: "1px solid #e2e8f0", borderRadius: 8, padding: 8, fontSize: 12, color: "#334155", display: "grid", gap: 4 }}>
-              <span>Ara Toplam: {subtotal.toLocaleString("tr-TR")} TL</span>
-              <span>Indirim: {Number(discountAmount || 0).toLocaleString("tr-TR")} TL</span>
-              <span>KDV: {taxAmount.toLocaleString("tr-TR")} TL</span>
-              <strong style={{ fontSize: 14 }}>Genel Toplam: {totalAmount.toLocaleString("tr-TR")} TL</strong>
-            </div>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 6 }}>
-            <div style={{ borderTop: "1px dashed #94a3b8", paddingTop: 6, fontSize: 11, color: "#64748b" }}>
-              <strong>Musteri Onay</strong>
-              <div>Ad Soyad / Imza</div>
-            </div>
-            <div style={{ borderTop: "1px dashed #94a3b8", paddingTop: 6, fontSize: 11, color: "#64748b", textAlign: "right" }}>
-              <strong>Firma Yetkilisi</strong>
-              <div>Ad Soyad / Imza</div>
-            </div>
-          </div>
-          <div style={{ fontSize: 10, color: "#94a3b8", textAlign: "center", borderTop: "1px solid #e2e8f0", paddingTop: 8 }}>
-            {note ? `Not: ${note}` : "Bu alan teklif notlari icin ayrilmistir."}
-          </div>
-          </div>
-        </div>
-      </aside>
+        </aside>
       </div>
 
+      {/* Product picker modal */}
       {isProductModalOpen && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.45)", zIndex: 60, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
-          <div className="panel" style={{ width: "min(900px, 96vw)", maxHeight: "86vh", display: "grid", gap: 8, padding: "0.9rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0 }}>Stoktan Urun Sec</h3>
-              <button type="button" className="field" style={{ width: 90 }} onClick={() => setIsProductModalOpen(false)}>Kapat</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-2xl max-h-[86vh] bg-white border border-slate-200 rounded-2xl shadow-md p-5 flex flex-col gap-3">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-bold text-slate-900">Stoktan Ürün Seç</h3>
+              <button
+                type="button"
+                onClick={() => setIsProductModalOpen(false)}
+                className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-            <input className="field" placeholder="Urun ara..." value={productSearch} onChange={(e) => setProductSearch(e.target.value)} />
-            <div className="panel panel-scroll" style={{ maxHeight: "65vh" }}>
-              <table className="data-table">
-                <thead><tr><th>Urun</th><th>Satis</th><th></th></tr></thead>
-                <tbody>
+            <input className={inputClass} placeholder="Ürün ara..." value={productSearch} onChange={(e) => setProductSearch(e.target.value)} />
+            <div className="rounded-xl border border-slate-200 overflow-y-auto max-h-[65vh]">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold text-slate-500 uppercase sticky top-0">
+                    <th className="px-4 py-2.5">Ürün</th>
+                    <th className="px-4 py-2.5">Satış</th>
+                    <th className="px-4 py-2.5 w-24"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
                   {filteredProducts.map((p) => (
-                    <tr key={p.id}>
-                      <td>{p.name}</td>
-                      <td>{Number(p.salePrice || 0).toLocaleString("tr-TR")} TL</td>
-                      <td>
+                    <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="px-4 py-2.5 font-medium text-slate-700">{p.name}</td>
+                      <td className="px-4 py-2.5 font-mono text-slate-600">{Number(p.salePrice || 0).toLocaleString("tr-TR")} TL</td>
+                      <td className="px-4 py-2.5 text-right">
                         <button
                           type="button"
-                          className="primary-btn"
-                          style={{ width: 95 }}
                           onClick={() => {
                             selectProduct(p.id);
                             setIsProductModalOpen(false);
                             setProductSearch("");
                           }}
+                          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg transition-all"
                         >
-                          Sec
+                          Seç
                         </button>
                       </td>
                     </tr>
@@ -339,38 +444,85 @@ export default function CorporateQuotesPage() {
         </div>
       )}
 
-      <div className="panel panel-scroll" style={{ maxHeight: 420 }}>
-        {loading ? <div className="empty-box">Yukleniyor...</div> : (
-          <table className="data-table">
-            <thead><tr><th>No</th><th>Firma</th><th>Durum</th><th>Gecerlilik</th><th>Tutar</th><th>Tarih</th><th>Aksiyon</th></tr></thead>
-            <tbody>
-              {quotes.map((q) => (
-                <tr key={q.id}>
-                  <td>{q.quoteNo}</td>
-                  <td>{q.companyName}</td>
-                  <td>{q.status}</td>
-                  <td>{q.validUntil ? new Date(q.validUntil).toLocaleDateString("tr-TR") : "-"}</td>
-                  <td>{Number(q.totalAmount).toLocaleString("tr-TR")} TL</td>
-                  <td>{new Date(q.createdAt).toLocaleString("tr-TR")}</td>
-                  <td>
-                    <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
-                      <select className="field" value={q.status} onChange={(e) => void updateStatus(q.id, e.target.value as Quote["status"])}>
-                        <option value="DRAFT">Taslak</option>
-                        <option value="SENT">Gonderildi</option>
-                        <option value="APPROVED">Onaylandi</option>
-                        <option value="REJECTED">Reddedildi</option>
-                        <option value="CANCELED">Iptal</option>
-                      </select>
-                      <button className="field" style={{ width: 70 }} onClick={() => window.open(`/api/corporate-quotes/${q.id}/pdf`, "_blank")}>PDF</button>
-                      <button className="field" style={{ width: 90 }} onClick={() => void sendQuote(q.id, "EMAIL")}>E-posta</button>
-                      <button className="field" style={{ width: 95 }} onClick={() => void sendQuote(q.id, "WHATSAPP")}>WhatsApp</button>
-                    </div>
-                  </td>
+      {/* Quotes list */}
+      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+        <div className="overflow-x-auto max-h-[420px] overflow-y-auto">
+          {loading ? (
+            <div className="p-8 text-center text-slate-500 text-sm">Yükleniyor...</div>
+          ) : (
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-semibold text-slate-500 uppercase sticky top-0">
+                  <th className="px-6 py-4">No</th>
+                  <th className="px-6 py-4">Firma</th>
+                  <th className="px-6 py-4">Durum</th>
+                  <th className="px-6 py-4">Geçerlilik</th>
+                  <th className="px-6 py-4 text-right">Tutar</th>
+                  <th className="px-6 py-4">Tarih</th>
+                  <th className="px-6 py-4">Aksiyon</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-slate-700">
+                {quotes.map((q) => (
+                  <tr key={q.id} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="px-6 py-4 font-mono text-slate-500">{q.quoteNo}</td>
+                    <td className="px-6 py-4 font-semibold text-slate-900">{q.companyName}</td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex px-2 py-0.5 rounded text-xs font-bold border ${STATUS_STYLE[q.status]}`}>
+                        {STATUS_LABEL[q.status]}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-slate-500">{q.validUntil ? new Date(q.validUntil).toLocaleDateString("tr-TR") : "-"}</td>
+                    <td className="px-6 py-4 text-right font-mono font-bold text-slate-900">{Number(q.totalAmount).toLocaleString("tr-TR")} TL</td>
+                    <td className="px-6 py-4 text-slate-500">{new Date(q.createdAt).toLocaleString("tr-TR")}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <select
+                          className="px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          value={q.status}
+                          onChange={(e) => void updateStatus(q.id, e.target.value as Quote["status"])}
+                        >
+                          <option value="DRAFT">Taslak</option>
+                          <option value="SENT">Gönderildi</option>
+                          <option value="APPROVED">Onaylandı</option>
+                          <option value="REJECTED">Reddedildi</option>
+                          <option value="CANCELED">İptal</option>
+                        </select>
+                        <button
+                          onClick={() => window.open(`/api/corporate-quotes/${q.id}/pdf`, "_blank")}
+                          title="PDF"
+                          className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => void sendQuote(q.id, "EMAIL")}
+                          title="E-posta"
+                          className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => void sendQuote(q.id, "WHATSAPP")}
+                          title="WhatsApp"
+                          className="p-1.5 rounded-lg border border-emerald-200 text-emerald-600 hover:bg-emerald-50 transition"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
     </section>
   );

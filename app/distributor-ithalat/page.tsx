@@ -156,56 +156,57 @@ export default function DistributorImportPage() {
   }
 
   return (
-    <section style={{ maxWidth: 1200, margin: "0 auto", padding: "1.5rem" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-        <h2 className="page-title" style={{ margin: 0 }}>Distribütör Entegrasyonu</h2>
-        <button onClick={handleDownloadTemplate} className="primary-btn" style={{ backgroundColor: "#1d4ed8" }}>
-          📥 Örnek Şablon İndir ({distributor})
+    <section className="space-y-6 pb-12 max-w-6xl mx-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h2 className="text-xl font-black tracking-tight text-slate-900">Distribütör Entegrasyonu</h2>
+        <button
+          onClick={handleDownloadTemplate}
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-xl transition-all shadow-sm active:scale-95"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+          </svg>
+          Örnek Şablon İndir ({distributor})
         </button>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 20, marginBottom: "2rem" }}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Configurations panel */}
-        <div className="panel" style={{ padding: "1.5rem" }}>
-          <h3 style={{ marginTop: 0, marginBottom: 16, fontWeight: 700 }}>1. Distribütör Seçimi & Yükleme</h3>
-          
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>Tedarikçi Firması</label>
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
+          <h3 className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">1. Distribütör Seçimi &amp; Yükleme</h3>
+
+          <div>
+            <label className="block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 mb-2">Tedarikçi Firması</label>
             <select
-              className="field"
+              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={distributor}
               onChange={(e) => setDistributor(e.target.value)}
               disabled={isImporting}
             >
-              <option value="KVK">KVK Yedek Parça & Cihaz</option>
+              <option value="KVK">KVK Yedek Parça &amp; Cihaz</option>
               <option value="Genpa">Genpa Distribütörlük</option>
               <option value="Index">Index Bilişim</option>
               <option value="ToptanParca">Genel Toptancı CSV</option>
             </select>
           </div>
 
-          <div 
-            style={{
-              border: "2px dashed var(--border)",
-              borderRadius: "12px",
-              padding: "2rem 1rem",
-              textAlign: "center",
-              cursor: "pointer",
-              background: "rgba(255, 255, 255, 0.02)",
-              transition: "border-color 0.2s",
-            }}
+          <div
             onClick={() => !isImporting && fileInputRef.current?.click()}
+            className="rounded-2xl border-2 border-dashed border-slate-200 hover:border-blue-300 bg-slate-50/60 hover:bg-blue-50/30 transition-colors cursor-pointer text-center py-10 px-4"
           >
-            <span style={{ fontSize: 32, display: "block", marginBottom: 10 }}>📄</span>
+            <svg className="w-8 h-8 mx-auto mb-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11v6m0 0l-2.5-2.5M12 17l2.5-2.5" />
+            </svg>
             {fileName ? (
               <div>
-                <p style={{ fontWeight: 600, margin: "0 0 4px", fontSize: 14 }}>{fileName}</p>
-                <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>Dosyayı değiştirmek için tıklayın</p>
+                <p className="font-semibold text-sm text-slate-900 mb-1 font-mono">{fileName}</p>
+                <p className="text-xs text-slate-500">Dosyayı değiştirmek için tıklayın</p>
               </div>
             ) : (
               <div>
-                <p style={{ fontWeight: 600, margin: "0 0 4px", fontSize: 14 }}>CSV Dosyasını Sürükleyin veya Seçin</p>
-                <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>Desteklenen format: .csv (UTF-8)</p>
+                <p className="font-semibold text-sm text-slate-900 mb-1">CSV Dosyasını Sürükleyin veya Seçin</p>
+                <p className="text-xs text-slate-500">Desteklenen format: .csv (UTF-8)</p>
               </div>
             )}
             <input
@@ -213,36 +214,29 @@ export default function DistributorImportPage() {
               ref={fileInputRef}
               onChange={handleFileChange}
               accept=".csv"
-              style={{ display: "none" }}
+              className="hidden"
             />
           </div>
 
-          <div style={{ marginTop: 20 }}>
-            <button
-              onClick={handleImport}
-              disabled={isImporting || !csvContent}
-              className="primary-btn"
-              style={{ width: "100%", padding: "10px", fontWeight: "bold" }}
-            >
-              {isImporting ? "Ürünler Aktarılıyor..." : "İçe Aktarmayı Başlat"}
-            </button>
-          </div>
+          <button
+            onClick={handleImport}
+            disabled={isImporting || !csvContent}
+            className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-all shadow-sm active:scale-95"
+          >
+            {isImporting ? "Ürünler Aktarılıyor..." : "İçe Aktarmayı Başlat"}
+          </button>
 
           {/* Progress bar */}
           {isImporting && (
-            <div style={{ marginTop: 20 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 4 }}>
+            <div>
+              <div className="flex justify-between text-xs text-slate-500 mb-1.5">
                 <span>Ayrıştırılıyor ve güncelleniyor...</span>
-                <span>%{progress}</span>
+                <span className="font-mono font-semibold text-blue-600">%{progress}</span>
               </div>
-              <div style={{ height: 8, background: "rgba(255,255,255,0.05)", borderRadius: 4, overflow: "hidden" }}>
-                <div 
-                  style={{ 
-                    height: "100%", 
-                    width: `${progress}%`, 
-                    background: "linear-gradient(90deg, #1d4ed8, #60a5fa)", 
-                    transition: "width 0.2s ease-out" 
-                  }} 
+              <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-blue-400 to-blue-500 transition-all duration-200 ease-out rounded-full"
+                  style={{ width: `${progress}%` }}
                 />
               </div>
             </div>
@@ -250,85 +244,90 @@ export default function DistributorImportPage() {
 
           {/* Import Result Notification */}
           {result && (
-            <div 
-              style={{ 
-                marginTop: 20, 
-                padding: "1rem", 
-                backgroundColor: "rgba(16, 185, 129, 0.05)", 
-                border: "1px solid rgba(16, 185, 129, 0.2)", 
-                borderRadius: "8px" 
-              }}
-            >
-              <h4 style={{ margin: "0 0 8px", color: "#10b981", fontWeight: 700 }}>Aktarım Özeti</h4>
-              <ul style={{ margin: 0, paddingLeft: 20, fontSize: 13, display: "flex", flexDirection: "column", gap: 4 }}>
-                <li>Toplam İşlenen: <strong>{result.totalProcessed}</strong></li>
-                <li>Yeni Eklenen Ürünler: <strong>{result.insertedCount}</strong></li>
-                <li>Fiyatı/Stoğu Güncellenenler: <strong>{result.updatedCount}</strong></li>
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 space-y-2">
+              <h4 className="text-sm font-bold text-emerald-700">Aktarım Özeti</h4>
+              <ul className="space-y-1 text-sm text-emerald-800">
+                <li className="flex justify-between">
+                  <span>Toplam İşlenen</span>
+                  <span className="font-mono font-semibold">{result.totalProcessed}</span>
+                </li>
+                <li className="flex justify-between">
+                  <span>Yeni Eklenen Ürünler</span>
+                  <span className="font-mono font-semibold">{result.insertedCount}</span>
+                </li>
+                <li className="flex justify-between">
+                  <span>Fiyatı/Stoğu Güncellenenler</span>
+                  <span className="font-mono font-semibold">{result.updatedCount}</span>
+                </li>
               </ul>
             </div>
           )}
         </div>
 
         {/* Column mappings and info */}
-        <div className="panel" style={{ padding: "1.5rem" }}>
-          <h3 style={{ marginTop: 0, marginBottom: 12, fontWeight: 700 }}>Şablon Kuralları</h3>
-          <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.5, marginBottom: 12 }}>
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+          <h3 className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 mb-2">Şablon Kuralları</h3>
+          <p className="text-sm text-slate-500 leading-relaxed mb-4">
             Sistemin yüklediğiniz CSV dosyasını doğru okuyabilmesi için aşağıdaki sütun sırasına tam olarak uymanız gerekmektedir:
           </p>
-          
-          <table style={{ width: "100%", fontSize: 12, borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ borderBottom: "1px solid var(--border)", textAlign: "left" }}>
-                <th style={{ padding: "6px 4px" }}>Sıra</th>
-                <th style={{ padding: "6px 4px" }}>Sütun Adı</th>
-                <th style={{ padding: "6px 4px" }}>Tip</th>
-                <th style={{ padding: "6px 4px" }}>Açıklama</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
-                <td style={{ padding: "6px 4px" }}>1</td>
-                <td style={{ padding: "6px 4px" }}><strong>Ürün Adı</strong></td>
-                <td style={{ padding: "6px 4px", color: "var(--text-muted)" }}>Metin</td>
-                <td style={{ padding: "6px 4px" }}>Ürünün katalog ismi.</td>
-              </tr>
-              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
-                <td style={{ padding: "6px 4px" }}>2</td>
-                <td style={{ padding: "6px 4px" }}><strong>Barkod</strong></td>
-                <td style={{ padding: "6px 4px", color: "var(--text-muted)" }}>Metin</td>
-                <td style={{ padding: "6px 4px" }}>Benzersiz barkod numarası. (Mevcut ise güncellenir)</td>
-              </tr>
-              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
-                <td style={{ padding: "6px 4px" }}>3</td>
-                <td style={{ padding: "6px 4px" }}><strong>Kategori</strong></td>
-                <td style={{ padding: "6px 4px", color: "var(--text-muted)" }}>Metin</td>
-                <td style={{ padding: "6px 4px" }}>Varsayılan: Aksesuar</td>
-              </tr>
-              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
-                <td style={{ padding: "6px 4px" }}>4</td>
-                <td style={{ padding: "6px 4px" }}><strong>Alış Fiyatı</strong></td>
-                <td style={{ padding: "6px 4px", color: "var(--text-muted)" }}>Sayı (Float)</td>
-                <td style={{ padding: "6px 4px" }}>Tedarikçiden alış fiyatı.</td>
-              </tr>
-              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
-                <td style={{ padding: "6px 4px" }}>5</td>
-                <td style={{ padding: "6px 4px" }}><strong>Satış Fiyatı</strong></td>
-                <td style={{ padding: "6px 4px", color: "var(--text-muted)" }}>Sayı (Float)</td>
-                <td style={{ padding: "6px 4px" }}>Mağaza satış fiyatı.</td>
-              </tr>
-              <tr>
-                <td style={{ padding: "6px 4px" }}>6</td>
-                <td style={{ padding: "6px 4px" }}><strong>Stok</strong></td>
-                <td style={{ padding: "6px 4px", color: "var(--text-muted)" }}>Sayı (Int)</td>
-                <td style={{ padding: "6px 4px" }}>Eklenecek stok miktarı. (Mevcut stoğa eklenir)</td>
-              </tr>
-            </tbody>
-          </table>
 
-          <div style={{ marginTop: 16, padding: 12, backgroundColor: "rgba(245, 158, 11, 0.05)", border: "1px solid rgba(245, 158, 11, 0.2)", borderRadius: 8, display: "flex", gap: 8 }}>
-            <span style={{ fontSize: 16 }}>⚠️</span>
-            <p style={{ margin: 0, fontSize: 11, color: "var(--text-muted)", lineHeight: 1.4 }}>
-              <strong>Not:</strong> İçe aktarılan dosyadaki barkod sistemde zaten varsa, ürün adı, fiyatı ve kategorisi güncellenecek, yeni stok miktarı mevcut stoğun üzerine eklenecektir.
+          <div className="overflow-x-auto -mx-1">
+            <table className="w-full text-xs border-collapse min-w-[420px]">
+              <thead>
+                <tr className="border-b border-slate-200 text-left text-slate-500">
+                  <th className="py-2 px-1 font-semibold">Sıra</th>
+                  <th className="py-2 px-1 font-semibold">Sütun Adı</th>
+                  <th className="py-2 px-1 font-semibold">Tip</th>
+                  <th className="py-2 px-1 font-semibold">Açıklama</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-slate-700">
+                <tr>
+                  <td className="py-2 px-1 font-mono">1</td>
+                  <td className="py-2 px-1 font-semibold">Ürün Adı</td>
+                  <td className="py-2 px-1 text-slate-500">Metin</td>
+                  <td className="py-2 px-1">Ürünün katalog ismi.</td>
+                </tr>
+                <tr>
+                  <td className="py-2 px-1 font-mono">2</td>
+                  <td className="py-2 px-1 font-semibold">Barkod</td>
+                  <td className="py-2 px-1 text-slate-500">Metin</td>
+                  <td className="py-2 px-1">Benzersiz barkod numarası. (Mevcut ise güncellenir)</td>
+                </tr>
+                <tr>
+                  <td className="py-2 px-1 font-mono">3</td>
+                  <td className="py-2 px-1 font-semibold">Kategori</td>
+                  <td className="py-2 px-1 text-slate-500">Metin</td>
+                  <td className="py-2 px-1">Varsayılan: Aksesuar</td>
+                </tr>
+                <tr>
+                  <td className="py-2 px-1 font-mono">4</td>
+                  <td className="py-2 px-1 font-semibold">Alış Fiyatı</td>
+                  <td className="py-2 px-1 text-slate-500">Sayı (Float)</td>
+                  <td className="py-2 px-1">Tedarikçiden alış fiyatı.</td>
+                </tr>
+                <tr>
+                  <td className="py-2 px-1 font-mono">5</td>
+                  <td className="py-2 px-1 font-semibold">Satış Fiyatı</td>
+                  <td className="py-2 px-1 text-slate-500">Sayı (Float)</td>
+                  <td className="py-2 px-1">Mağaza satış fiyatı.</td>
+                </tr>
+                <tr>
+                  <td className="py-2 px-1 font-mono">6</td>
+                  <td className="py-2 px-1 font-semibold">Stok</td>
+                  <td className="py-2 px-1 text-slate-500">Sayı (Int)</td>
+                  <td className="py-2 px-1">Eklenecek stok miktarı. (Mevcut stoğa eklenir)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-4 flex gap-3 rounded-xl border border-amber-200 bg-amber-50/60 p-3">
+            <svg className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-8.25 3.75h.008v.008h-.008v-.008z" />
+            </svg>
+            <p className="text-xs text-amber-800 leading-relaxed">
+              <strong className="font-semibold">Not:</strong> İçe aktarılan dosyadaki barkod sistemde zaten varsa, ürün adı, fiyatı ve kategorisi güncellenecek, yeni stok miktarı mevcut stoğun üzerine eklenecektir.
             </p>
           </div>
         </div>
@@ -336,39 +335,41 @@ export default function DistributorImportPage() {
 
       {/* CSV Preview Table */}
       {previewProducts.length > 0 && (
-        <div className="panel" style={{ padding: "1.5rem" }}>
-          <h3 style={{ marginTop: 0, marginBottom: 12, fontWeight: 700 }}>Yüklenen Dosya Önizlemesi</h3>
-          <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>İçe aktarılacak ilk 10 ürünün önizlemesi:</p>
-          
-          <div className="panel-scroll">
-            <table className="data-table">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+          <h3 className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 mb-1">Yüklenen Dosya Önizlemesi</h3>
+          <p className="text-sm text-slate-500 mb-4">İçe aktarılacak ilk 10 ürünün önizlemesi:</p>
+
+          <div className="overflow-x-auto rounded-xl border border-slate-100">
+            <table className="w-full text-sm border-collapse">
               <thead>
-                <tr>
-                  <th>Barkod</th>
-                  <th>Ürün Adı</th>
-                  <th>Kategori</th>
-                  <th style={{ textAlign: "right" }}>Alış Fiyatı</th>
-                  <th style={{ textAlign: "right" }}>Satış Fiyatı</th>
-                  <th style={{ textAlign: "right" }}>Eklenen Stok</th>
+                <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-semibold text-slate-500 uppercase">
+                  <th className="px-4 py-3">Barkod</th>
+                  <th className="px-4 py-3">Ürün Adı</th>
+                  <th className="px-4 py-3">Kategori</th>
+                  <th className="px-4 py-3 text-right">Alış Fiyatı</th>
+                  <th className="px-4 py-3 text-right">Satış Fiyatı</th>
+                  <th className="px-4 py-3 text-right">Eklenen Stok</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-100 text-slate-700">
                 {previewProducts.slice(0, 10).map((prod, idx) => (
-                  <tr key={idx}>
-                    <td style={{ fontFamily: "monospace", fontSize: 12 }}>{prod.barcode}</td>
-                    <td style={{ fontWeight: 600 }}>{prod.name}</td>
-                    <td><span style={{ fontSize: 11, padding: "2px 6px", background: "rgba(255,255,255,0.05)", borderRadius: 4 }}>{prod.category}</span></td>
-                    <td style={{ textAlign: "right" }}>{prod.purchasePrice.toFixed(2)} TL</td>
-                    <td style={{ textAlign: "right", fontWeight: 600 }}>{prod.salePrice.toFixed(2)} TL</td>
-                    <td style={{ textAlign: "right", fontWeight: 700, color: "#1d4ed8" }}>+{prod.stock} adet</td>
+                  <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="px-4 py-3 font-mono text-xs text-slate-500">{prod.barcode}</td>
+                    <td className="px-4 py-3 font-semibold">{prod.name}</td>
+                    <td className="px-4 py-3">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">{prod.category}</span>
+                    </td>
+                    <td className="px-4 py-3 text-right font-mono">{prod.purchasePrice.toFixed(2)} TL</td>
+                    <td className="px-4 py-3 text-right font-mono font-semibold">{prod.salePrice.toFixed(2)} TL</td>
+                    <td className="px-4 py-3 text-right font-mono font-bold text-blue-600">+{prod.stock} adet</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
           {previewProducts.length > 10 && (
-            <p style={{ textAlign: "center", fontSize: 12, color: "var(--text-muted)", marginTop: 12, marginBottom: 0 }}>
-              ve diğer {previewProducts.length - 10} ürün daha...
+            <p className="text-center text-xs text-slate-500 mt-3">
+              ve diğer <span className="font-mono">{previewProducts.length - 10}</span> ürün daha...
             </p>
           )}
         </div>

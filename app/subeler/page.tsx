@@ -377,7 +377,7 @@ export default function BranchesPage() {
                                 <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                                 </svg>
-                                {staffCount} Personel
+                                <span className="font-mono">{staffCount}</span> Personel
                               </span>
                             </div>
                           </div>
@@ -441,11 +441,14 @@ export default function BranchesPage() {
               <button
                 type="button"
                 onClick={() => setShowPerfRangeForm((v) => !v)}
-                className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-all cursor-pointer shrink-0 ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-all cursor-pointer shrink-0 ${
                   showPerfRangeForm ? "bg-blue-600 border-blue-600 text-white" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
                 }`}
               >
-                📅 Tarih
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Tarih
               </button>
             </div>
             {showPerfRangeForm && (
@@ -518,8 +521,8 @@ export default function BranchesPage() {
                 <div className="flex justify-between items-start">
                   <div>
                     <span className="text-xs font-semibold text-blue-200/80 uppercase tracking-wider">Toplam Konsolide Ciro</span>
-                    <h2 className="text-2xl md:text-3xl font-extrabold mt-1 tracking-tight">
-                      {Number(totalRevenue).toLocaleString("tr-TR")} <span className="text-lg font-semibold text-blue-300">TL</span>
+                    <h2 className="text-2xl md:text-3xl font-extrabold mt-1 tracking-tight font-mono">
+                      {Number(totalRevenue).toLocaleString("tr-TR")} <span className="text-lg font-semibold text-blue-300 font-sans">TL</span>
                     </h2>
                   </div>
                   <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center backdrop-blur-sm">
@@ -546,24 +549,19 @@ export default function BranchesPage() {
                 ) : (
                   <div className="space-y-3.5">
                     {performance.map((p, idx) => {
-                      const colors = [
-                        "from-blue-500 to-emerald-500",
-                        "from-blue-500 to-indigo-500",
-                        "from-purple-500 to-pink-500",
-                        "from-amber-500 to-orange-500",
-                      ];
-                      const gradientClass = colors[idx % colors.length];
+                      const opacities = ["opacity-100", "opacity-90", "opacity-75", "opacity-60"];
+                      const opacityClass = opacities[idx % opacities.length];
                       return (
                         <div key={p.id} className="space-y-1.5">
                           <div className="flex justify-between text-sm">
                             <span className="font-bold text-slate-700">{p.name}</span>
-                            <span className="font-semibold text-slate-900">
+                            <span className="font-semibold text-slate-900 font-mono">
                               {Number(p.revenue).toLocaleString("tr-TR")} TL <span className="text-xs font-normal text-slate-500">({p.percentage}%)</span>
                             </span>
                           </div>
                           <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden relative">
-                            <div 
-                              className={`h-full rounded-full bg-gradient-to-r ${gradientClass} transition-all duration-500 ease-out`}
+                            <div
+                              className={`h-full rounded-full bg-blue-600 ${opacityClass} transition-all duration-500 ease-out`}
                               style={{ width: `${p.percentage}%` }}
                             />
                           </div>
@@ -576,7 +574,11 @@ export default function BranchesPage() {
 
               {/* Smart recommendation card */}
               <div className="p-4 bg-blue-500/5 border border-blue-500/10 rounded-2xl flex gap-3 items-start">
-                <span className="text-xl shrink-0 mt-0.5">💡</span>
+                <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 18h6m-5 3h4m-2-4v-1a5 5 0 10-4-9.9A5 5 0 006 10a5 5 0 002 4v1" />
+                  </svg>
+                </div>
                 <div className="space-y-1">
                   <h5 className="text-xs font-bold text-blue-800">Stok Optimizasyonu Önerisi</h5>
                   <p className="text-xs text-slate-500 leading-relaxed">
@@ -690,7 +692,11 @@ export default function BranchesPage() {
 
               {!selectedProduct ? (
                 <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center min-h-[250px]">
-                  <span className="text-3xl mb-2 select-none">📦</span>
+                  <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mb-3">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                  </div>
                   <h4 className="font-bold text-slate-700">Ürün Seçilmedi</h4>
                   <p className="text-xs text-slate-500 max-w-xs mt-1 leading-relaxed">
                     Şube dağılımını görmek ve transfer işlemini başlatmak için lütfen formdan bir ürün seçin
@@ -709,10 +715,10 @@ export default function BranchesPage() {
                       <h4 className="font-bold text-slate-800 text-base">{selectedProduct.name}</h4>
                     </div>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400 font-medium">
-                      <span>Barkod: <strong className="text-slate-500">{selectedProduct.barcode}</strong></span>
-                      <span>Toplam Stok: <strong className="text-slate-500">{selectedProduct.stock} adet</strong></span>
+                      <span>Barkod: <strong className="text-slate-500 font-mono">{selectedProduct.barcode}</strong></span>
+                      <span>Toplam Stok: <strong className="text-slate-500 font-mono">{selectedProduct.stock}</strong> adet</span>
                       {selectedProduct.salePrice !== undefined && (
-                        <span>Genel Fiyat: <strong className="text-slate-500">{Number(selectedProduct.salePrice).toLocaleString("tr-TR")} TL</strong></span>
+                        <span>Genel Fiyat: <strong className="text-slate-500 font-mono">{Number(selectedProduct.salePrice).toLocaleString("tr-TR")} TL</strong></span>
                       )}
                     </div>
                   </div>
@@ -734,7 +740,7 @@ export default function BranchesPage() {
                                 {s.branch?.name || `Şube: ${s.branchId}`}
                               </td>
                               <td style={{ textAlign: "right" }} className="font-extrabold text-slate-900">
-                                {s.stock} adet
+                                <span className="font-mono">{s.stock}</span> adet
                               </td>
                               <td style={{ textAlign: "right" }}>
                                 {editingPriceBranchId === s.branchId ? (
@@ -753,18 +759,22 @@ export default function BranchesPage() {
                                       type="button"
                                       disabled={savingPrice}
                                       onClick={() => saveBranchPrice(s.branchId)}
-                                      className="text-emerald-600 hover:text-emerald-800 font-bold text-xs"
+                                      className="w-6 h-6 rounded-md flex items-center justify-center text-emerald-600 hover:bg-emerald-50 cursor-pointer"
                                       title="Kaydet"
                                     >
-                                      ✓
+                                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                      </svg>
                                     </button>
                                     <button
                                       type="button"
                                       onClick={() => setEditingPriceBranchId(null)}
-                                      className="text-slate-400 hover:text-slate-600 font-bold text-xs"
+                                      className="w-6 h-6 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer"
                                       title="Vazgeç"
                                     >
-                                      ×
+                                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                      </svg>
                                     </button>
                                   </div>
                                 ) : (
@@ -777,7 +787,7 @@ export default function BranchesPage() {
                                     className="font-semibold text-blue-700 hover:underline text-xs"
                                   >
                                     {s.price !== null && s.price !== undefined
-                                      ? `${Number(s.price).toLocaleString("tr-TR")} TL`
+                                      ? <span className="font-mono">{Number(s.price).toLocaleString("tr-TR")} TL</span>
                                       : "Genel fiyat"}
                                   </button>
                                 )}
@@ -823,7 +833,7 @@ export default function BranchesPage() {
                   <tbody>
                     {transferHistory.map((h) => (
                       <tr key={h.id} className="hover:bg-slate-50/50">
-                        <td className="text-xs text-slate-500 font-medium">
+                        <td className="text-xs text-slate-500 font-medium font-mono">
                           {new Date(h.createdAt).toLocaleString("tr-TR")}
                         </td>
                         <td className="font-bold text-slate-800">
@@ -840,7 +850,7 @@ export default function BranchesPage() {
                           </span>
                         </td>
                         <td style={{ textAlign: "right" }} className="font-extrabold text-blue-600 text-sm">
-                          {h.quantity} adet
+                          <span className="font-mono">{h.quantity}</span> adet
                         </td>
                       </tr>
                     ))}
@@ -863,11 +873,13 @@ export default function BranchesPage() {
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">Şube bilgilerini detaylıca giriniz</p>
               </div>
-              <button 
+              <button
                 onClick={() => setShowAddModal(false)}
                 className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 text-slate-500 cursor-pointer"
               >
-                ✕
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
             

@@ -267,13 +267,16 @@ async function loadFinancials(tenantId: string | null, periodStart: Date | null,
 function DeltaBadge({ current, previous }: { current: number; previous: number }) {
   if (previous === 0) {
     if (current === 0) return null;
-    return <span className="ml-2 text-[11px] font-bold text-emerald-600">yeni</span>;
+    return <span className="ml-2 text-[11px] font-bold text-emerald-600 font-mono">yeni</span>;
   }
   const pct = ((current - previous) / Math.abs(previous)) * 100;
   const up = pct >= 0;
   return (
-    <span className={`ml-2 text-[11px] font-bold ${up ? "text-emerald-600" : "text-red-600"}`}>
-      {up ? "▲" : "▼"} {Math.abs(pct).toFixed(1)}%
+    <span className={`ml-2 inline-flex items-center gap-0.5 text-[11px] font-bold font-mono ${up ? "text-emerald-600" : "text-red-600"}`}>
+      <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+        {up ? <path d="M6 15l6-6 6 6" /> : <path d="M6 9l6 6 6-6" />}
+      </svg>
+      {Math.abs(pct).toFixed(1)}%
     </span>
   );
 }
@@ -408,10 +411,16 @@ export default async function VeriAnaliziPage({
 
       <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div className="sm:max-w-xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold mb-2">
-            <span>📊 Mini ERP Finansal Analiz</span>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[11px] font-bold uppercase tracking-[0.1em] mb-2">
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 3v18h18" />
+              <path d="M18 17V9" />
+              <path d="M13 17V5" />
+              <path d="M8 17v-3" />
+            </svg>
+            <span>Mini ERP Finansal Analiz</span>
           </div>
-          <h2 className="text-[clamp(1.8rem,3vw,2.5rem)] font-black tracking-tight text-slate-900 leading-none">Gelir - Gider & Net Kâr (P&L)</h2>
+          <h2 className="text-[clamp(1.8rem,3vw,2.5rem)] font-black tracking-tight text-slate-900 leading-none">Gelir - Gider &amp; Net Kâr (P&amp;L)</h2>
           <p className="mt-2 text-sm leading-relaxed text-slate-500 max-w-lg">
             Satışlar, satılan malın maliyeti (COGS), işletme giderleri ve personel ödemeleriyle hesaplanan konsolide ERP Finans Tablosu.
           </p>
@@ -433,18 +442,18 @@ export default async function VeriAnaliziPage({
       )}
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="relative overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-6 shadow-sm">
-          <div className="absolute top-0 left-0 w-full h-[3px] bg-blue-600 opacity-80" />
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Toplam Hasılat (Gelir)</p>
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-6 shadow-sm">
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-blue-600" />
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.14em]">{periodLabel} Toplam Hasılat (Gelir)</p>
           <h3 className="mt-3 text-2xl font-black text-slate-800 font-mono tracking-tight">
             {totalIncome.toLocaleString("tr-TR")} TL
             {compareData && <DeltaBadge current={totalIncome} previous={compareData.totalIncome} />}
           </h3>
           <p className="mt-1 text-xs text-slate-400">POS Satışları + Teknik Servis Tahsilatları</p>
         </div>
-        <div className="relative overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-6 shadow-sm">
-          <div className="absolute top-0 left-0 w-full h-[3px] bg-rose-500 opacity-85" />
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} İşletme Giderleri</p>
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-6 shadow-sm">
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-rose-500" />
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.14em]">{periodLabel} İşletme Giderleri</p>
           <h3 className="mt-3 text-2xl font-black text-rose-600 font-mono tracking-tight">
             {totalExpense > 0 ? "-" : ""}
             {totalExpense.toLocaleString("tr-TR")} TL
@@ -452,9 +461,9 @@ export default async function VeriAnaliziPage({
           </h3>
           <p className="mt-1 text-xs text-slate-400">Kira, Fatura, Yemek, Kargo vb. Harcamalar</p>
         </div>
-        <div className="relative overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-6 shadow-sm">
-          <div className="absolute top-0 left-0 w-full h-[3px] bg-amber-500 opacity-85" />
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Net Faaliyet Kârı</p>
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-6 shadow-sm">
+          <div className={`absolute top-0 left-0 w-full h-[3px] ${netProfit >= 0 ? "bg-emerald-500" : "bg-rose-500"}`} />
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.14em]">{periodLabel} Net Faaliyet Kârı</p>
           <h3 className={`mt-3 text-2xl font-black font-mono tracking-tight ${netProfit >= 0 ? "text-emerald-600" : "text-red-600"}`}>
             {netProfit.toLocaleString("tr-TR")} TL
             {compareData && <DeltaBadge current={netProfit} previous={compareData.netProfit} />}
@@ -464,18 +473,18 @@ export default async function VeriAnaliziPage({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="relative overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-6 shadow-sm">
-          <div className="absolute top-0 left-0 w-full h-[3px] bg-emerald-500 opacity-85" />
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Brüt Kâr Marjı (COGS Düşülmüş)</p>
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-6 shadow-sm">
+          <div className={`absolute top-0 left-0 w-full h-[3px] ${grossProfit >= 0 ? "bg-emerald-500" : "bg-rose-500"}`} />
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.14em]">{periodLabel} Brüt Kâr Marjı (COGS Düşülmüş)</p>
           <h3 className={`mt-3 text-2xl font-black font-mono tracking-tight ${grossProfit >= 0 ? "text-emerald-600" : "text-red-600"}`}>
             {grossProfit.toLocaleString("tr-TR")} TL
             {compareData && <DeltaBadge current={grossProfit} previous={compareData.grossProfit} />}
           </h3>
           <p className="mt-1 text-xs text-slate-400">Satılan ürün geliri − güncel/kayıtlı alış maliyeti (COGS).</p>
         </div>
-        <div className="relative overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-6 shadow-sm">
-          <div className="absolute top-0 left-0 w-full h-[3px] bg-indigo-500 opacity-85" />
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Girişi Yapılan Ürün / Stok Değeri</p>
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-6 shadow-sm">
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-blue-600" />
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.14em]">{periodLabel} Girişi Yapılan Ürün / Stok Değeri</p>
           <h3 className="mt-3 text-2xl font-black text-slate-800 font-mono tracking-tight">
             {totalPurchaseCost.toLocaleString("tr-TR")} TL
             {compareData && <DeltaBadge current={totalPurchaseCost} previous={compareData.totalPurchaseCost} />}
@@ -485,10 +494,10 @@ export default async function VeriAnaliziPage({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="relative overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-6 shadow-sm">
-          <div className="absolute top-0 left-0 w-full h-[3px] bg-orange-500 opacity-85" />
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Kart Komisyonu (Tahmini)</p>
-          <h3 className="mt-3 text-2xl font-black text-orange-600 font-mono tracking-tight">
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-6 shadow-sm">
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-amber-500" />
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.14em]">{periodLabel} Kart Komisyonu (Tahmini)</p>
+          <h3 className="mt-3 text-2xl font-black text-amber-600 font-mono tracking-tight">
             {cardCommissionAmount > 0 ? "-" : ""}
             {cardCommissionAmount.toLocaleString("tr-TR", { maximumFractionDigits: 2 })} TL
           </h3>
@@ -498,9 +507,9 @@ export default async function VeriAnaliziPage({
               : "Komisyon oranı Ayarlar sayfasından girilmedi, 0 kabul edildi."}
           </p>
         </div>
-        <div className="relative overflow-hidden rounded-[20px] border border-slate-200/70 bg-white p-6 shadow-sm">
-          <div className="absolute top-0 left-0 w-full h-[3px] bg-teal-500 opacity-85" />
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{periodLabel} Hesaba Geçen Net Kâr</p>
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-6 shadow-sm">
+          <div className={`absolute top-0 left-0 w-full h-[3px] ${netProfitAfterCommission >= 0 ? "bg-emerald-500" : "bg-rose-500"}`} />
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.14em]">{periodLabel} Hesaba Geçen Net Kâr</p>
           <h3 className={`mt-3 text-2xl font-black font-mono tracking-tight ${netProfitAfterCommission >= 0 ? "text-emerald-600" : "text-red-600"}`}>
             {netProfitAfterCommission.toLocaleString("tr-TR", { maximumFractionDigits: 2 })} TL
           </h3>
@@ -578,7 +587,7 @@ export default async function VeriAnaliziPage({
                       <td className="text-xs text-slate-600">{r.purchaseDate.toLocaleDateString("tr-TR")}</td>
                       <td className="text-xs text-slate-700 font-semibold">{r.name}</td>
                       <td className="text-xs text-slate-600 text-right">{r.quantity}</td>
-                      <td className="text-xs font-mono font-bold text-indigo-700 text-right">{r.totalCost.toLocaleString("tr-TR")} TL</td>
+                      <td className="text-xs font-mono font-bold text-blue-700 text-right">{r.totalCost.toLocaleString("tr-TR")} TL</td>
                     </tr>
                   ))}
                 </tbody>
@@ -607,7 +616,7 @@ export default async function VeriAnaliziPage({
                     <div className={`h-full ${b.name === "Şubesiz Satışlar" ? "bg-amber-400" : "bg-blue-600"}`} style={{ width: `${pct}%` }} />
                   </div>
                   <span className="text-xs font-mono font-bold text-slate-600 w-28 text-right">{b.total.toLocaleString("tr-TR")} TL</span>
-                  <span className="text-2xs text-slate-400 w-16 text-right">{b.count} işlem</span>
+                  <span className="text-2xs text-slate-400 w-16 text-right font-mono">{b.count} işlem</span>
                 </div>
               );
             })}
@@ -631,10 +640,10 @@ export default async function VeriAnaliziPage({
                 <div key={s.name} className="flex items-center gap-3">
                   <span className={`text-xs font-semibold w-40 truncate ${s.name === "Atanmamış" ? "text-amber-600" : "text-slate-700"}`}>{s.name}</span>
                   <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
-                    <div className={`h-full ${s.name === "Atanmamış" ? "bg-amber-400" : "bg-purple-600"}`} style={{ width: `${pct}%` }} />
+                    <div className={`h-full ${s.name === "Atanmamış" ? "bg-amber-400" : "bg-blue-600"}`} style={{ width: `${pct}%` }} />
                   </div>
                   <span className="text-xs font-mono font-bold text-slate-600 w-28 text-right">{s.total.toLocaleString("tr-TR")} TL</span>
-                  <span className="text-2xs text-slate-400 w-16 text-right">{s.count} işlem</span>
+                  <span className="text-2xs text-slate-400 w-16 text-right font-mono">{s.count} işlem</span>
                 </div>
               );
             })}

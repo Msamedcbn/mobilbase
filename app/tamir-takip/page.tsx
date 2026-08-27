@@ -247,7 +247,12 @@ function PhoneVisualExpertise({ value, onChange }: PhoneVisualExpertiseProps) {
       <div className="relative z-10 mx-auto mt-2 min-h-[48px] max-w-[840px] rounded-xl border border-slate-700/70 bg-slate-950/60 px-3 py-2 text-center shadow-inner">
         {hoveredPart ? (
           <div className="flex flex-wrap items-center justify-center gap-1.5 font-mono text-2xs text-slate-200 md:text-xs">
-            <span className="text-blue-400">⚡ DIAGNOSTIC:</span>
+            <span className="inline-flex items-center gap-1 text-blue-400">
+              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 3.75l-8.25 9h4.5l-1.5 7.5 8.25-9h-4.5l1.5-7.5z" />
+              </svg>
+              DIAGNOSTIC:
+            </span>
             <strong>{CHECKLIST_KEYS.find(k => k.key === hoveredPart)?.label}</strong>
             <span>➜</span>
             <span className={
@@ -1050,14 +1055,14 @@ export default function RepairPage() {
 
       {/* Premium Stats Grid */}
       <div className="stats-grid mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="panel overflow-hidden relative group p-5 bg-gradient-to-br from-blue-700 to-blue-800 text-white border-0 shadow-lg">
+        <div className="panel overflow-hidden relative group p-5 bg-blue-600 text-white border-0 shadow-lg">
           <div className="absolute right-3 bottom-3 opacity-10 group-hover:scale-110 transition-transform duration-300">
             <svg className="w-16 h-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
             </svg>
           </div>
           <p className="m-0 text-xs font-bold opacity-80 uppercase tracking-wider">Aktif Cihazlar</p>
-          <h3 className="m-0 mt-2 text-3xl font-extrabold">{stats.active}</h3>
+          <h3 className="m-0 mt-2 text-3xl font-extrabold font-mono">{stats.active}</h3>
           <p className="m-0 mt-1 text-2xs opacity-75">Tamir ve parça bekleyenler</p>
         </div>
 
@@ -1068,7 +1073,7 @@ export default function RepairPage() {
             </svg>
           </div>
           <p className="m-0 text-xs font-bold text-slate-500 uppercase tracking-wider">Hazır / Teslim Edilecek</p>
-          <h3 className="m-0 mt-2 text-3xl font-extrabold text-emerald-600">{stats.ready}</h3>
+          <h3 className="m-0 mt-2 text-3xl font-extrabold text-emerald-600 font-mono">{stats.ready}</h3>
           <p className="m-0 mt-1 text-2xs text-slate-400">Onarımı biten cihazlar</p>
         </div>
 
@@ -1079,7 +1084,7 @@ export default function RepairPage() {
             </svg>
           </div>
           <p className="m-0 text-xs font-bold text-slate-500 uppercase tracking-wider">Bugün Teslim Edilen</p>
-          <h3 className="m-0 mt-2 text-3xl font-extrabold text-indigo-600">{stats.deliveredToday}</h3>
+          <h3 className="m-0 mt-2 text-3xl font-extrabold text-indigo-600 font-mono">{stats.deliveredToday}</h3>
           <p className="m-0 mt-1 text-2xs text-slate-400">Dükkandan çıkan cihazlar</p>
         </div>
 
@@ -1090,7 +1095,7 @@ export default function RepairPage() {
             </svg>
           </div>
           <p className="m-0 text-xs font-bold text-slate-500 uppercase tracking-wider">Kayıtlı Cihaz Sayısı</p>
-          <h3 className="m-0 mt-2 text-3xl font-extrabold text-slate-900">{repairs.length}</h3>
+          <h3 className="m-0 mt-2 text-3xl font-extrabold text-slate-900 font-mono">{repairs.length}</h3>
           <p className="m-0 mt-1 text-2xs text-slate-400">Toplam arıza girdisi</p>
         </div>
       </div>
@@ -1186,14 +1191,14 @@ export default function RepairPage() {
                     <div className="text-xs text-slate-500">{item.customer.phone}</div>
                   </div>
                   <div className="text-xs text-slate-600">
-                    Borç: <strong>{Number(item.summary.totalDebit).toLocaleString("tr-TR")} TL</strong> | Tahsilat:{" "}
-                    <strong>{Number(item.summary.totalCredit).toLocaleString("tr-TR")} TL</strong> | Net:{" "}
-                    <strong>{Number(item.summary.netBalance).toLocaleString("tr-TR")} TL</strong>
+                    Borç: <strong className="font-mono">{Number(item.summary.totalDebit).toLocaleString("tr-TR")} TL</strong> | Tahsilat:{" "}
+                    <strong className="font-mono">{Number(item.summary.totalCredit).toLocaleString("tr-TR")} TL</strong> | Net:{" "}
+                    <strong className="font-mono">{Number(item.summary.netBalance).toLocaleString("tr-TR")} TL</strong>
                   </div>
                 </div>
 
                 <div className="mt-2 text-xs text-slate-500">
-                  Tamir: {item.summary.repairCount} | İşlem: {item.summary.transactionCount} | Cihaz: {item.summary.deviceCount}
+                  Tamir: <span className="font-mono">{item.summary.repairCount}</span> | İşlem: <span className="font-mono">{item.summary.transactionCount}</span> | Cihaz: <span className="font-mono">{item.summary.deviceCount}</span>
                 </div>
 
                 <div className="mt-2 overflow-x-auto">
@@ -1210,10 +1215,10 @@ export default function RepairPage() {
                     <tbody>
                       {item.timeline.slice(0, 20).map((row) => (
                         <tr key={row.id}>
-                          <td>{new Date(row.date).toLocaleString("tr-TR")}</td>
+                          <td className="font-mono text-xs">{new Date(row.date).toLocaleString("tr-TR")}</td>
                           <td>{row.kind}</td>
                           <td>{row.title}{row.detail ? ` - ${row.detail}` : ""}</td>
-                          <td>{row.amount == null ? "-" : `${Number(row.amount).toLocaleString("tr-TR")} TL`}</td>
+                          <td className="font-mono">{row.amount == null ? "-" : `${Number(row.amount).toLocaleString("tr-TR")} TL`}</td>
                           <td>{row.status || "-"}</td>
                         </tr>
                       ))}
@@ -1228,12 +1233,12 @@ export default function RepairPage() {
 
       {/* Repairs Table / Cards */}
       {loading ? (
-        <div className="panel" style={{ padding: "3rem", textAlign: "center", color: "var(--muted)" }}>Veriler yükleniyor...</div>
+        <div className="panel p-12 text-center text-slate-400">Veriler yükleniyor...</div>
       ) : filteredRepairs.length === 0 ? (
-        <div className="empty-box" style={{ padding: "3rem" }}>Kayıt bulunamadı.</div>
+        <div className="empty-box p-12">Kayıt bulunamadı.</div>
       ) : (
-        <div className="panel" style={{ overflow: "hidden" }}>
-          <div style={{ overflowX: "auto" }}>
+        <div className="panel overflow-hidden p-0">
+          <div className="overflow-x-auto">
             <table className="data-table">
               <thead>
                 <tr>
@@ -1244,7 +1249,7 @@ export default function RepairPage() {
                   <th>Durum</th>
                   <th>Ücret</th>
                   <th>Kayıt Tarihi</th>
-                  <th style={{ width: 120 }}></th>
+                  <th className="w-[120px]"></th>
                 </tr>
               </thead>
               <tbody>
@@ -1252,27 +1257,23 @@ export default function RepairPage() {
                   const statusLabel = STATUS_LABELS[item.status] || item.status;
                   const color = STATUS_COLORS[item.status] || "var(--muted)";
                   return (
-                    <tr key={item.id} style={{ cursor: "pointer" }} onClick={() => openDetail(item)}>
-                      <td style={{ fontWeight: 600, color: "#64748b" }}>#{getNumericServiceNo(item)}</td>
+                    <tr key={item.id} className="cursor-pointer" onClick={() => openDetail(item)}>
+                      <td className="font-mono font-semibold text-slate-500">#{getNumericServiceNo(item)}</td>
                       <td>
-                        <div style={{ fontWeight: 600 }}>{item.device.customer.fullName}</div>
-                        <div style={{ fontSize: "0.75rem", color: "#64748b" }}>{item.device.customer.phone}</div>
+                        <div className="font-semibold text-slate-800">{item.device.customer.fullName}</div>
+                        <div className="text-xs text-slate-500 font-mono">{item.device.customer.phone}</div>
                       </td>
                       <td>
-                        <div style={{ fontWeight: 600 }}>{item.device.brand} {item.device.model}</div>
-                        <div style={{ fontSize: "0.75rem", color: "#64748b" }}>IMEI: {item.device.imei || "-"}</div>
+                        <div className="font-semibold text-slate-800">{item.device.brand} {item.device.model}</div>
+                        <div className="text-xs text-slate-500">IMEI: <span className="font-mono">{item.device.imei || "-"}</span></div>
                       </td>
-                      <td style={{ maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <td className="max-w-[220px] overflow-hidden text-ellipsis whitespace-nowrap">
                         {item.issueDescription}
                       </td>
                       <td>
                         <span
+                          className="inline-block rounded-full px-2.5 py-1 text-xs font-bold"
                           style={{
-                            display: "inline-block",
-                            padding: "0.25rem 0.6rem",
-                            borderRadius: 20,
-                            fontSize: "0.75rem",
-                            fontWeight: 700,
                             backgroundColor: color + "1a",
                             color: color,
                           }}
@@ -1280,17 +1281,16 @@ export default function RepairPage() {
                           {statusLabel}
                         </span>
                       </td>
-                      <td style={{ fontWeight: 700, color: "var(--accent)" }}>
+                      <td className="font-mono font-bold text-blue-600">
                         {Number(item.totalCost).toLocaleString("tr-TR")} TL
                       </td>
-                      <td style={{ fontSize: "0.8rem", color: "#64748b" }}>
+                      <td className="text-xs text-slate-500 font-mono">
                         {new Date(item.receivedAt).toLocaleDateString("tr-TR")}
                       </td>
                       <td onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => openDetail(item)}
-                          className="primary-btn"
-                          style={{ padding: "0.35rem 0.65rem", fontSize: "0.8rem", borderRadius: 8 }}
+                          className="primary-btn rounded-lg px-3 py-1.5 text-xs"
                         >
                           Yönet
                         </button>
@@ -1325,9 +1325,30 @@ export default function RepairPage() {
             {/* Step Indicators */}
             <div className="flex bg-slate-50/30 border-b border-slate-200">
               {[
-                { label: "Müşteri Bilgileri", icon: "👤" },
-                { label: "Cihaz Detayları", icon: "📱" },
-                { label: "Ön Kontrol & Arıza", icon: "🛠️" }
+                {
+                  label: "Müşteri Bilgileri",
+                  icon: (
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                    </svg>
+                  ),
+                },
+                {
+                  label: "Cihaz Detayları",
+                  icon: (
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+                    </svg>
+                  ),
+                },
+                {
+                  label: "Ön Kontrol & Arıza",
+                  icon: (
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />
+                    </svg>
+                  ),
+                },
               ].map((step, idx) => {
                 const stepNum = idx + 1;
                 const active = wizardStep === stepNum;
@@ -1347,7 +1368,13 @@ export default function RepairPage() {
                           ? "bg-emerald-600 border-emerald-600 text-white" 
                           : "bg-slate-100 border-slate-200 text-slate-400"
                       }`}>
-                        {done ? "✓" : stepNum}
+                        {done ? (
+                          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                          </svg>
+                        ) : (
+                          stepNum
+                        )}
                       </span>
                       <span className="hidden sm:inline">{step.label}</span>
                       <span className="sm:hidden">{step.icon}</span>
@@ -1587,8 +1614,12 @@ export default function RepairPage() {
               {wizardStep === 3 && (
                 <div className="grid gap-6 animate-fade-in">
                   <div>
-                    <h4 className="m-0 mb-2 text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-1">
-                      <span>📋</span> Cihaz Ön Kontrol Listesi
+                    <h4 className="m-0 mb-2 text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-1.5">
+                      <svg className="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.375c1.08 0 1.958-.87 1.958-1.958a1.958 1.958 0 00-1.958-1.958H9V15zM9 15v-4.5m0 0h3.75M15 9h.008v.008H15V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 3.75H6.75A2.25 2.25 0 004.5 6v13.5A2.25 2.25 0 006.75 21.75h10.5A2.25 2.25 0 0019.5 19.5V6a2.25 2.25 0 00-2.25-2.25H15m-6 0a1.5 1.5 0 011.5-1.5h3a1.5 1.5 0 011.5 1.5m-6 0a1.5 1.5 0 001.5 1.5h3a1.5 1.5 0 001.5-1.5m0 0h1.5" />
+                      </svg>
+                      Cihaz Ön Kontrol Listesi
                     </h4>
                     <p className="m-0 mb-4 text-slate-400 text-2xs md:text-xs">Cihaz dükkana teslim edilirken parçaların durumunu işaretleyin. Bu çıktı fişe yansıyacaktır.</p>
                     <PhoneVisualExpertise value={checklist} onChange={setChecklist} />
@@ -1638,8 +1669,11 @@ export default function RepairPage() {
                   </div>
 
                   <div className="border-t border-slate-200 pt-5">
-                    <h4 className="m-0 mb-3 text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-1">
-                      <span>💰</span> Arıza & Fiyat Detayları
+                    <h4 className="m-0 mb-3 text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-1.5">
+                      <svg className="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Arıza & Fiyat Detayları
                     </h4>
                     <div className="grid gap-4">
                       <div>
@@ -1652,7 +1686,16 @@ export default function RepairPage() {
                             disabled={aiLoading || !issueDescription}
                             className="primary-btn shrink-0 flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none px-4 py-2 text-xs md:text-sm cursor-pointer"
                           >
-                            {aiLoading ? "Analiz..." : "✨ AI Asistanı"}
+                            {aiLoading ? (
+                              "Analiz..."
+                            ) : (
+                              <>
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
+                                </svg>
+                                AI Asistanı
+                              </>
+                            )}
                           </button>
                         </div>
                       </div>
@@ -1663,10 +1706,16 @@ export default function RepairPage() {
                           <div className="absolute top-0 right-0 w-24 h-24 bg-blue-400/10 rounded-full blur-xl pointer-events-none" />
                           <div className="flex items-center justify-between font-bold text-xs md:text-sm text-blue-800 mb-2 border-b border-blue-100 pb-1.5">
                             <span className="flex items-center gap-1.5">
-                              <span className="animate-pulse">✨</span> Yapay Zeka Teşhisi ve Fiyatlandırma
+                              <svg className="h-4 w-4 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
+                              </svg>
+                              Yapay Zeka Teşhisi ve Fiyatlandırma
                             </span>
-                            <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full">
-                              ⏱️ {aiResult.predictedTime}
+                            <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full flex items-center gap-1 font-mono">
+                              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              {aiResult.predictedTime}
                             </span>
                           </div>
                           <p className="text-xs md:text-sm text-blue-700 leading-relaxed m-0 mb-3">{aiResult.reasoning}</p>
@@ -1785,15 +1834,40 @@ export default function RepairPage() {
                 <div className="panel p-4 bg-slate-50/80 border-slate-200/60 shadow-xs hover:border-slate-200">
                   <h4 className="m-0 mb-2 text-xs font-bold text-slate-500 uppercase tracking-widest">Müşteri Bilgileri</h4>
                   <div className="font-bold text-sm text-slate-900">{selectedRepair.device.customer.fullName}</div>
-                  <div className="text-xs text-slate-600 mt-1">📞 {selectedRepair.device.customer.phone}</div>
-                  {selectedRepair.device.customer.email && <div className="text-xs text-slate-500 mt-0.5">📧 {selectedRepair.device.customer.email}</div>}
+                  <div className="text-xs text-slate-600 mt-1 flex items-center gap-1.5 font-mono">
+                    <svg className="h-3.5 w-3.5 shrink-0 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                    </svg>
+                    {selectedRepair.device.customer.phone}
+                  </div>
+                  {selectedRepair.device.customer.email && (
+                    <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5">
+                      <svg className="h-3.5 w-3.5 shrink-0 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                      </svg>
+                      {selectedRepair.device.customer.email}
+                    </div>
+                  )}
                 </div>
 
                 <div className="panel p-4 bg-slate-50/80 border-slate-200/60 shadow-xs hover:border-slate-200">
                   <h4 className="m-0 mb-2 text-xs font-bold text-slate-500 uppercase tracking-widest">Cihaz Bilgileri</h4>
                   <div className="font-bold text-sm text-slate-900">{selectedRepair.device.brand} {selectedRepair.device.model} {selectedRepair.device.storage || ""}</div>
-                  <div className="text-xs text-slate-600 mt-1">🏷️ IMEI: {selectedRepair.device.imei || "-"}</div>
-                  {selectedRepair.device.color && <div className="text-xs text-slate-500 mt-0.5">🎨 Renk: {selectedRepair.device.color}</div>}
+                  <div className="text-xs text-slate-600 mt-1 flex items-center gap-1.5">
+                    <svg className="h-3.5 w-3.5 shrink-0 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
+                    </svg>
+                    IMEI: <span className="font-mono">{selectedRepair.device.imei || "-"}</span>
+                  </div>
+                  {selectedRepair.device.color && (
+                    <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5">
+                      <svg className="h-3.5 w-3.5 shrink-0 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.098 19.902a3.75 3.75 0 005.304 0l6.401-6.402M6.75 21A3.75 3.75 0 013 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 003.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.44-.439 1.152-.439 1.591 0l3.712 3.712c.44.44.44 1.152 0 1.591l-2.88 2.88M6.75 17.25h.008v.008H6.75v-.008z" />
+                      </svg>
+                      Renk: {selectedRepair.device.color}
+                    </div>
+                  )}
                 </div>
               </div>
 

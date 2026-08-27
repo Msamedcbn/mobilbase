@@ -816,7 +816,20 @@ export default function PosPage() {
       {/* Cockpit Topbar */}
       <header className="pos-topbar bg-[#0a0e1a] border-b border-white/[0.06] px-5 py-3 flex items-center gap-4 flex-wrap">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-9 h-9 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/20">
+          {/* Exit back to the panel. The terminal deliberately drops the app shell
+              (no sidebar / no bottom tab bar), so without this there is no way out
+              of it on a phone, where "open in a new tab" is a dead end. */}
+          <a
+            href="/dashboard"
+            className="w-9 h-9 rounded-xl bg-white/[0.06] text-slate-300 hover:bg-white/[0.12] hover:text-white flex items-center justify-center shrink-0 border border-white/[0.08] transition"
+            aria-label="Panele dön"
+            title="Panele dön"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            </svg>
+          </a>
+          <div className="w-9 h-9 rounded-xl bg-blue-500/15 text-blue-400 hidden sm:flex items-center justify-center shrink-0 border border-blue-500/20">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
             </svg>

@@ -14,7 +14,7 @@ type NavItem = {
 
 const navSections: Array<{ title: string; items: NavItem[] }> = [
   {
-    title: "📊 Genel Yönetim & Analiz",
+    title: "Genel Yönetim & Analiz",
     items: [
       { href: "/hizli-yonetim", label: "Hızlı Yönetim" },
       { href: "/dashboard", label: "Dashboard" },
@@ -23,7 +23,7 @@ const navSections: Array<{ title: string; items: NavItem[] }> = [
     ],
   },
   {
-    title: "🛒 Satış & Müşteri (CRM/POS)",
+    title: "Satış & Müşteri (CRM/POS)",
     items: [
       { href: "/pos", label: "Hızlı Satış (POS)", module: "pos" },
       { href: "/taksit-yonetimi", label: "Taksit Yönetimi", module: "invoicing" },
@@ -32,7 +32,7 @@ const navSections: Array<{ title: string; items: NavItem[] }> = [
     ],
   },
   {
-    title: "🔧 Teknik Servis & Atölye",
+    title: "Teknik Servis & Atölye",
     items: [
       { href: "/tamir-takip", label: "Tamir Takip", module: "repairs" },
       { href: "/parca-fiyatlari", label: "Parça & Onarım Fiyatları", module: "repairs" },
@@ -40,7 +40,7 @@ const navSections: Array<{ title: string; items: NavItem[] }> = [
     ],
   },
   {
-    title: "📦 Stok & Tedarik (SCM)",
+    title: "Stok & Tedarik (SCM)",
     items: [
       { href: "/stok", label: "Stok Yönetimi", module: "stock" },
       { href: "/seri-no-takip", label: "Seri No / IMEI Takibi", module: "stock" },
@@ -51,7 +51,7 @@ const navSections: Array<{ title: string; items: NavItem[] }> = [
     ],
   },
   {
-    title: "💼 Finans & İK & Şubeler",
+    title: "Finans & İK & Şubeler",
     items: [
       { href: "/giderler", label: "İşletme Giderleri", module: "invoicing" },
       { href: "/vadeli-alis-borclari", label: "Vadeli Alış Borçları", module: "invoicing" },
@@ -77,147 +77,147 @@ const getIcon = (href: string) => {
   switch (href) {
     case "/hizli-yonetim":
       return (
-        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="w-[18px] h-[18px] shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
       );
     case "/dashboard":
       return (
-        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="w-[18px] h-[18px] shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
         </svg>
       );
     case "/uyarilar":
       return (
-        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="w-[18px] h-[18px] shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
         </svg>
       );
     case "/tamir-takip":
       return (
-        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="w-[18px] h-[18px] shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2zM9 10h6m-3-3v6" />
         </svg>
       );
     case "/parca-fiyatlari":
       return (
-        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="w-[18px] h-[18px] shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 14l2-2 4 4m0-7a3 3 0 11-6 0 3 3 0 016 0zM12 17V3m0 14h.01" />
         </svg>
       );
     case "/pos":
       return (
-        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="w-[18px] h-[18px] shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
         </svg>
       );
     case "/kurumsal-teklifler":
       return (
-        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="w-[18px] h-[18px] shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
       );
     case "/stok":
       return (
-        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="w-[18px] h-[18px] shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
         </svg>
       );
     case "/ic-servis-dongusu":
       return (
-        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="w-[18px] h-[18px] shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89M9 11l3 3L22 4" />
         </svg>
       );
     case "/toptan-alim-satis":
       return (
-        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="w-[18px] h-[18px] shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
         </svg>
       );
     case "/distributor-ithalat":
       return (
-        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="w-[18px] h-[18px] shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
         </svg>
       );
     case "/seri-no-takip":
       return (
-        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="w-[18px] h-[18px] shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 11h.01M7 15h.01M13 7h.01M13 11h.01M13 15h.01M17 7h.01M17 11h.01M17 15h.01M3 21h18M3 3h18v18H3V3z" />
         </svg>
       );
     case "/musteriler-veresiye":
       return (
-        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="w-[18px] h-[18px] shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m16-10a4 4 0 11-8 0 4 4 0 018 0z" />
         </svg>
       );
     case "/banka":
       return (
-        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="w-[18px] h-[18px] shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
         </svg>
       );
     case "/taksit-yonetimi":
       return (
-        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="w-[18px] h-[18px] shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       );
     case "/giderler":
       return (
-        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="w-[18px] h-[18px] shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
       );
     case "/vadeli-alis-borclari":
       return (
-        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="w-[18px] h-[18px] shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m-6 4h6m-6 4h4m5-13H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2z" />
         </svg>
       );
     case "/veri-analizi":
       return (
-        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="w-[18px] h-[18px] shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l7 6-7 6zM4 4v16" />
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 20V10m5 10V4m-10 16v-6" />
         </svg>
       );
     case "/subeler":
       return (
-        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="w-[18px] h-[18px] shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       );
     case "/personel-yonetimi":
       return (
-        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="w-[18px] h-[18px] shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
         </svg>
       );
     case "/buyback/backoffice":
       return (
-        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="w-[18px] h-[18px] shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2zM12 7v6m0 0l-2-2m2 2l2-2" />
         </svg>
       );
     case "/ikinci-el":
       return (
-        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="w-[18px] h-[18px] shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
         </svg>
       );
     case "/denetim-kayitlari":
       return (
-        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="w-[18px] h-[18px] shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
       );
     case "/ayarlar":
       return (
-        <svg className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className="w-[18px] h-[18px] shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
@@ -321,22 +321,10 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
             className="mb-4 flex items-center justify-between gap-2 rounded-2xl border border-amber-400/25 bg-amber-400/10 px-3.5 py-2.5 text-xs transition hover:bg-amber-400/15"
           >
             <span className="font-bold text-amber-300">
-              Demo · {trialDaysLeft > 0 ? `${trialDaysLeft} gün kaldı` : "son gün"}
+              Demo · {trialDaysLeft > 0 ? <><span className="font-mono">{trialDaysLeft}</span> gün kaldı</> : "son gün"}
             </span>
             <span className="rounded-full bg-amber-400 px-2.5 py-1 text-[10px] font-black text-slate-900">Öde</span>
           </a>
-        )}
-
-        {user && (
-          <div className="mb-6 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-xs text-slate-300 flex items-center gap-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center font-black text-white text-sm shrink-0 shadow-lg shadow-blue-900/30">
-              {user.fullName.slice(0, 2).toUpperCase()}
-            </div>
-            <div className="overflow-hidden">
-              <div className="font-semibold text-white truncate">{user.fullName}</div>
-              <div className="text-[10px] text-slate-400 mt-0.5">{getRoleLabel(user.role)}</div>
-            </div>
-          </div>
         )}
 
         <nav className="space-y-6">
@@ -359,10 +347,10 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
 
             return (
               <div key={section.title} className="space-y-2">
-                <p className="px-3 text-[9px] font-bold uppercase tracking-widest text-slate-500/80">
+                <p className="px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
                   {section.title}
                 </p>
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   {visibleItems.map((item) => {
                     const active = isActive(item.href);
                     // POS is a live cash-register screen — open it in its own tab so
@@ -408,9 +396,31 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
         </nav>
       </div>
 
-      <button 
-        onClick={logout} 
-        className="mt-8 w-full rounded-xl border border-slate-800/80 px-3 py-2 text-xs font-semibold text-slate-400 hover:bg-slate-900 hover:text-white hover:border-slate-700 transition flex items-center justify-center gap-2"
+      {user && (
+        <div className="mt-6 pt-4 border-t border-slate-800/40 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center font-black text-white text-sm shrink-0 shadow-lg shadow-blue-900/30">
+            {user.fullName.slice(0, 2).toUpperCase()}
+          </div>
+          <div className="overflow-hidden flex-1">
+            <div className="text-sm font-semibold text-white truncate">{user.fullName}</div>
+            <div className="text-[10px] text-slate-400 mt-0.5">{getRoleLabel(user.role)}</div>
+          </div>
+          <Link
+            href="/ayarlar"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.06] transition"
+            title="Ayarlar"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </Link>
+        </div>
+      )}
+
+      <button
+        onClick={logout}
+        className="mt-3 w-full rounded-xl border border-slate-800/80 px-3 py-2 text-xs font-semibold text-slate-400 hover:bg-slate-900 hover:text-white hover:border-slate-700 transition flex items-center justify-center gap-2"
       >
         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
