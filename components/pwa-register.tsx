@@ -14,17 +14,26 @@ export function PwaRegister() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    // React hydration usually runs *after* window "load" has already fired, so
+    // registering from a load listener alone meant the callback never ran and the
+    // service worker was never registered. Register immediately when the document
+    // is already loaded, and only fall back to the listener when it isn't.
+    const registerServiceWorker = () => {
+      navigator.serviceWorker
+        .register("/sw.js")
+        .catch((err) => {
+          console.error("SW registration failed:", err);
+        });
+    };
+
+    let removeLoadListener: (() => void) | undefined;
     if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker
-          .register("/sw.js")
-          .then((reg) => {
-            console.log("SW registered:", reg.scope);
-          })
-          .catch((err) => {
-            console.error("SW registration failed:", err);
-          });
-      });
+      if (document.readyState === "complete") {
+        registerServiceWorker();
+      } else {
+        window.addEventListener("load", registerServiceWorker);
+        removeLoadListener = () => window.removeEventListener("load", registerServiceWorker);
+      }
     }
 
     const handleBeforeInstall = (e: Event) => {
@@ -46,6 +55,7 @@ export function PwaRegister() {
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
+      removeLoadListener?.();
     };
   }, []);
 

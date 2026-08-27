@@ -1,16 +1,28 @@
-const CACHE_NAME = 'vibegsm-cache-v1';
+const CACHE_NAME = 'vibegsm-cache-v2';
+
+// Next.js serves stylesheets from hashed /_next/static/css/* URLs, so there is no
+// /globals.css to fetch. Precaching it made cache.addAll() reject — and because
+// addAll is all-or-nothing, the whole install failed and the service worker never
+// activated, silently disabling offline support.
 const ASSETS_TO_CACHE = [
   '/',
   '/login',
-  '/globals.css',
   '/manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    })
+    caches.open(CACHE_NAME).then((cache) =>
+      // Cache each asset independently so one unreachable URL can never abort
+      // the install the way addAll() does.
+      Promise.all(
+        ASSETS_TO_CACHE.map((url) =>
+          cache.add(url).catch((err) => {
+            console.warn('[sw] precache atlandi:', url, err);
+          })
+        )
+      )
+    )
   );
   self.skipWaiting();
 });
