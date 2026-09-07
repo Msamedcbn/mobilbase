@@ -25,7 +25,7 @@ export default function GizlilikVeKvkkPage() {
         <p className="mt-3 text-sm text-slate-500">Son güncelleme: 7 Eylül 2026</p>
 
         <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-[13px] leading-6 text-amber-800">
-          <strong className="font-black">Not:</strong> Bu sayfa, VibeGSM'in kişisel veri işleme süreçlerini şeffaf şekilde
+          <strong className="font-black">Not:</strong> Bu sayfa, VibeGSM&apos;in kişisel veri işleme süreçlerini şeffaf şekilde
           açıklamak amacıyla hazırlanmış bir taslaktır. Köşeli parantez içindeki alanlar ([...]) şirketinizin gerçek ticari
           sicil, vergi ve iletişim bilgileriyle doldurulmalı, yayına almadan önce bir hukuk danışmanına onaylatılmalıdır.
         </div>
