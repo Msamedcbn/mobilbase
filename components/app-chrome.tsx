@@ -26,6 +26,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
     pathname === "/story-preview" ||
     pathname === "/neden-vibegsm" ||
     pathname === "/yardim" ||
+    pathname === "/gizlilik-ve-kvkk" ||
     pathname === "/takas-hesapla" ||
     pathname?.startsWith("/sehirler") ||
     pathname?.startsWith("/servis/") ||

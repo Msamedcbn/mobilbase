@@ -21,6 +21,7 @@ export function DirectPurchaseButton({ cycle }: { cycle: "monthly" | "annual" })
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [kvkkAccepted, setKvkkAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const close = () => { if (!loading) setOpen(false); };
@@ -41,6 +42,10 @@ export function DirectPurchaseButton({ cycle }: { cycle: "monthly" | "annual" })
     const normalizedPhone = normalizeTrPhone(phone);
     if (!isValidTrMobile(normalizedPhone)) {
       toast.error("Telefon numarası 5 ile başlayan 10 haneli olmalıdır (örn: 5XX XXX XX XX)");
+      return;
+    }
+    if (!kvkkAccepted) {
+      toast.error("Devam etmek için Gizlilik Politikası ve KVKK Aydınlatma Metni'ni onaylamanız gerekir");
       return;
     }
 
@@ -129,6 +134,23 @@ export function DirectPurchaseButton({ cycle }: { cycle: "monthly" | "annual" })
                   className="w-full bg-transparent px-2 py-2.5 text-sm font-semibold text-slate-900 placeholder-slate-400 focus:outline-none"
                 />
               </div>
+
+              <label className="flex items-start gap-2.5 text-[11px] leading-5 text-slate-500">
+                <input
+                  type="checkbox"
+                  checked={kvkkAccepted}
+                  onChange={(e) => setKvkkAccepted(e.target.checked)}
+                  required
+                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 accent-blue-600"
+                />
+                <span>
+                  <a href="/gizlilik-ve-kvkk" target="_blank" rel="noopener noreferrer" className="font-bold text-blue-600 underline hover:text-blue-700">
+                    Gizlilik Politikası ve KVKK Aydınlatma Metni
+                  </a>
+                  &apos;ni okudum, kişisel verilerimin ve ödeme bilgilerimin belirtilen kapsamda işlenmesini kabul ediyorum.
+                </span>
+              </label>
+
               <button
                 type="submit"
                 disabled={loading}

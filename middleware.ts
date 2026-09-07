@@ -49,6 +49,7 @@ const PUBLIC_PATHS = [
   "/servis",
   "/neden-vibegsm",
   "/sehirler",
+  "/gizlilik-ve-kvkk",
 ];
 
 /**

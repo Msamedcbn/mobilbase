@@ -951,6 +951,7 @@ export function LandingPage() {
             <a href="/en-iyi-telefoncu-yazilimlari-2026" title="En İyi Telefoncu Yazılımları 2026" className="hover:text-slate-900 transition">Yazılım Seçim Rehberi</a>
             <a href="/blog" title="Blog" className="hover:text-slate-900 transition">Blog</a>
             <a href="/yardim" title="Yardım" className="hover:text-slate-900 transition">Yardım</a>
+            <a href="/gizlilik-ve-kvkk" title="Gizlilik Politikası ve KVKK Aydınlatma Metni" className="hover:text-slate-900 transition">Gizlilik ve KVKK</a>
             <a href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer nofollow" title="WhatsApp'tan İletişime Geçin" className="hover:text-slate-900 transition">İletişim (WhatsApp)</a>
           </div>
           <div className="flex flex-wrap justify-center gap-2 text-[11px] text-slate-400">
@@ -966,6 +967,26 @@ export function LandingPage() {
             <a href="/sehirler/kocaeli" className="hover:text-blue-600 underline">Kocaeli</a> •
             <a href="/sehirler/kayseri" className="hover:text-blue-600 underline">Kayseri</a>
           </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <div className="flex h-7 w-11 items-center justify-center rounded-md border border-slate-200 bg-white">
+              <svg viewBox="0 0 48 16" className="h-3 w-9" aria-label="Visa">
+                <text x="24" y="13" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="14" fontStyle="italic" fontWeight="800" fill="#1A1F71">VISA</text>
+              </svg>
+            </div>
+            <div className="flex h-7 w-11 items-center justify-center rounded-md border border-slate-200 bg-white">
+              <svg viewBox="0 0 36 22" className="h-4 w-6" aria-label="Mastercard">
+                <circle cx="14" cy="11" r="9" fill="#EB001B" />
+                <circle cx="22" cy="11" r="9" fill="#F79E1B" />
+                <path d="M18 4a9 9 0 0 1 0 14 9 9 0 0 1 0-14Z" fill="#FF5F00" />
+              </svg>
+            </div>
+            <div className="flex h-7 items-center gap-1 rounded-md border border-slate-200 bg-white px-2.5 text-[10px] font-bold text-slate-500">
+              <svg className="h-3 w-3 text-slate-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-7a2 2 0 00-2-2H6a2 2 0 00-2 2v7a2 2 0 002 2zm10-13V7a4 4 0 00-8 0v3h8z" /></svg>
+              Polar ile güvenli ödeme
+            </div>
+          </div>
+
           <p className="text-[11px] text-slate-400">© 2026 VibeGSM Cloud Technologies</p>
         </div>
       </footer>

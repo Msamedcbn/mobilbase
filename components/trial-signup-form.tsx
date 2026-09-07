@@ -25,8 +25,11 @@ export function TrialSignupForm({ className }: { className?: string }) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [referralCode, setReferralCode] = useState("");
   const [referralPreview, setReferralPreview] = useState<ReferralPreview>({ status: "idle" });
+  const [kvkkAccepted, setKvkkAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
 
@@ -75,6 +78,14 @@ export function TrialSignupForm({ className }: { className?: string }) {
       toast.error("Telefon numarası 5 ile başlayan 10 haneli olmalıdır (örn: 5XX XXX XX XX)");
       return;
     }
+    if (password.length < 8) {
+      toast.error("Şifre en az 8 karakter olmalıdır");
+      return;
+    }
+    if (!kvkkAccepted) {
+      toast.error("Devam etmek için Gizlilik Politikası ve KVKK Aydınlatma Metni'ni onaylamanız gerekir");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -86,6 +97,7 @@ export function TrialSignupForm({ className }: { className?: string }) {
           fullName: fullName.trim() || shopName.trim(),
           email: trimmedEmail,
           phone: normalizedPhone,
+          password,
           referralCode: referralCode.trim() || undefined,
         }),
       });
@@ -167,6 +179,24 @@ export function TrialSignupForm({ className }: { className?: string }) {
             className="w-full bg-transparent px-2 py-3 text-sm font-semibold text-white placeholder-slate-500 focus:outline-none"
           />
         </div>
+        <div className="relative">
+          <input
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Şifre belirleyin (en az 8 karakter)"
+            type={showPassword ? "text" : "password"}
+            minLength={8}
+            required
+            className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 pr-11 text-sm font-semibold text-white placeholder-slate-500 focus:border-blue-200/50 focus:outline-none focus:ring-2 focus:ring-blue-200/20 transition"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-white transition"
+          >
+            {showPassword ? "Gizle" : "Göster"}
+          </button>
+        </div>
         <div>
           <input
             value={referralCode}
@@ -192,10 +222,26 @@ export function TrialSignupForm({ className }: { className?: string }) {
         </div>
       </div>
 
+      <label className="mt-4 flex items-start gap-2.5 text-[12px] leading-5 text-slate-400">
+        <input
+          type="checkbox"
+          checked={kvkkAccepted}
+          onChange={(e) => setKvkkAccepted(e.target.checked)}
+          required
+          className="mt-0.5 h-4 w-4 shrink-0 rounded border-white/20 bg-white/5 accent-blue-400"
+        />
+        <span>
+          <a href="/gizlilik-ve-kvkk" target="_blank" rel="noopener noreferrer" className="font-bold text-blue-200 underline hover:text-white">
+            Gizlilik Politikası ve KVKK Aydınlatma Metni
+          </a>
+          &apos;ni okudum, kişisel verilerimin belirtilen kapsamda işlenmesini kabul ediyorum.
+        </span>
+      </label>
+
       <button
         type="submit"
         disabled={loading}
-        className="mt-5 w-full rounded-full bg-blue-200 px-8 py-3.5 text-sm font-black text-[#06111f] transition hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+        className="mt-4 w-full rounded-full bg-blue-200 px-8 py-3.5 text-sm font-black text-[#06111f] transition hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? "Hazırlanıyor..." : "Ücretsiz Denemeyi Başlat"}
       </button>

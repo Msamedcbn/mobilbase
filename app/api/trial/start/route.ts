@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { hashSync } from "bcryptjs";
-import crypto from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { localId, readLocalStore, writeLocalStore } from "@/lib/local-store";
@@ -95,7 +94,7 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { shopName, fullName, email, phone, referralCode } = body || {};
+    const { shopName, fullName, email, phone, password, referralCode } = body || {};
 
     if (!shopName || typeof shopName !== "string" || !shopName.trim()) {
       return NextResponse.json({ error: "Bayi adı zorunludur" }, { status: 400 });
@@ -105,6 +104,9 @@ export async function POST(req: Request) {
     }
     if (!phone || typeof phone !== "string" || !phone.trim()) {
       return NextResponse.json({ error: "Telefon numarası zorunludur" }, { status: 400 });
+    }
+    if (!password || typeof password !== "string" || password.length < 8) {
+      return NextResponse.json({ error: "Şifre en az 8 karakter olmalıdır" }, { status: 400 });
     }
     const normalizedPhone = normalizeTrPhone(phone);
     if (!/^5\d{9}$/.test(normalizedPhone)) {
@@ -136,10 +138,11 @@ export async function POST(req: Request) {
       }
     }
 
-    // The account is provisioned without a usable password — the trial session
-    // cookie is the only way in. A random bcrypt hash means the row can never be
-    // authenticated against by /api/auth/login until a password is set.
-    const unusablePasswordHash = hashSync(crypto.randomUUID(), 10);
+    // The trial user picks this at signup so /api/auth/login works if their
+    // session cookie ever expires or gets cleared — previously this was a
+    // random, never-shown hash, which locked trial accounts out permanently
+    // the moment the cookie was gone.
+    const passwordHash = hashSync(password, 10);
 
     let tenantId: string;
     let userId: string;
@@ -162,7 +165,7 @@ export async function POST(req: Request) {
         fullName: ownerName,
         email: ownerEmail,
         role: "CASHIER",
-        passwordHash: unusablePasswordHash,
+        passwordHash,
         isActive: true,
         branchId: null,
         tenantId,
@@ -219,7 +222,7 @@ export async function POST(req: Request) {
             fullName: ownerName,
             email: ownerEmail,
             role: "ADMIN",
-            passwordHash: unusablePasswordHash,
+            passwordHash,
             isActive: true,
             tenantId: tenant.id,
           },
