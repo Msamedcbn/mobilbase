@@ -7,6 +7,7 @@ import { localId, readLocalStore, writeLocalStore } from "@/lib/local-store";
 import { createSignedSessionToken } from "@/lib/session";
 import { logStudioAction } from "@/lib/studio-audit";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
+import { findAndConsumeReferralCode } from "@/lib/marketing";
 
 const TRIAL_DAYS = 7;
 
@@ -29,7 +30,10 @@ const TRIAL_MODULES = {
   branches: true,
 };
 
-function buildTrialMetadata(trialExpires: string) {
+function buildTrialMetadata(
+  trialExpires: string,
+  referral: { code: string; ownerName: string; discountType: string; discountValue: number } | null,
+) {
   return {
     isSaas: true,
     isSaaS: true,
@@ -48,6 +52,14 @@ function buildTrialMetadata(trialExpires: string) {
     billingLedger: [],
     crmTasks: [],
     rolePermissions: TRIAL_ROLE_PERMISSIONS,
+    ...(referral
+      ? {
+          referralCode: referral.code,
+          referredBy: referral.ownerName,
+          referralDiscountType: referral.discountType,
+          referralDiscountValue: referral.discountValue,
+        }
+      : {}),
   };
 }
 
@@ -83,7 +95,7 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { shopName, fullName, email, phone } = body || {};
+    const { shopName, fullName, email, phone, referralCode } = body || {};
 
     if (!shopName || typeof shopName !== "string" || !shopName.trim()) {
       return NextResponse.json({ error: "Bayi adı zorunludur" }, { status: 400 });
@@ -107,6 +119,22 @@ export async function POST(req: Request) {
     const ownerEmail = email.trim().toLowerCase();
     const ownerPhone = normalizedPhone;
     const trialExpires = new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000).toISOString();
+
+    // Best-effort: an invalid/expired code shouldn't block signup, it just
+    // means the tenant isn't attributed to anyone. A typo'd code is caught
+    // earlier by the inline preview in the signup form.
+    let referral: { code: string; ownerName: string; discountType: string; discountValue: number } | null = null;
+    if (typeof referralCode === "string" && referralCode.trim()) {
+      const consumed = await findAndConsumeReferralCode(referralCode);
+      if (consumed) {
+        referral = {
+          code: consumed.code,
+          ownerName: consumed.ownerName,
+          discountType: consumed.discountType,
+          discountValue: consumed.discountValue,
+        };
+      }
+    }
 
     // The account is provisioned without a usable password — the trial session
     // cookie is the only way in. A random bcrypt hash means the row can never be
@@ -148,7 +176,7 @@ export async function POST(req: Request) {
         fullName: name,
         phone: ownerPhone,
         email: ownerEmail,
-        notes: JSON.stringify(buildTrialMetadata(trialExpires)),
+        notes: JSON.stringify(buildTrialMetadata(trialExpires, referral)),
       });
       await writeLocalStore(store);
     } else {
@@ -174,7 +202,7 @@ export async function POST(req: Request) {
             fullName: name,
             phone: ownerPhone,
             email: ownerEmail,
-            notes: JSON.stringify(buildTrialMetadata(trialExpires)),
+            notes: JSON.stringify(buildTrialMetadata(trialExpires, referral)),
           },
           select: { id: true },
         });
@@ -210,8 +238,10 @@ export async function POST(req: Request) {
       action: "TRIAL_STARTED",
       targetType: "TENANT",
       targetId: tenantId,
-      detail: `${name} (${ownerEmail}) started trial`,
-      context: { shopName: name, email: ownerEmail, plan: "Pro" },
+      detail: referral
+        ? `${name} (${ownerEmail}) started trial — referred by ${referral.ownerName} (${referral.code})`
+        : `${name} (${ownerEmail}) started trial`,
+      context: { shopName: name, email: ownerEmail, plan: "Pro", referral },
     });
 
     const token = createSignedSessionToken(

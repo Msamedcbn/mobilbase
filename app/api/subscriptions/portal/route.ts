@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
-import { getCustomerPortalUrl } from "@/lib/lemonsqueezy";
-import { getTenantMetadata } from "@/lib/tenant-store";
+import { getCustomerPortalUrl } from "@/lib/polar";
 import { requireRole } from "@/lib/auth";
 
 /**
  * GET /api/subscriptions/portal
- * Oturum acmis tenant'in LemonSqueezy customer portal URL'sini doner.
+ * Oturum açmış tenant'in Polar customer portal URL'sini döner.
  */
 export async function GET(req: Request) {
   try {
@@ -18,24 +17,11 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Tenant bulunamadı" }, { status: 404 });
     }
 
-    const meta = await getTenantMetadata(tenantId);
-    if (!meta) {
-      return NextResponse.json({ error: "Tenant kaydı bulunamadı" }, { status: 404 });
-    }
-
-    const subscriptionId = (meta as Record<string, any>).lsSubscriptionId as string | undefined;
-    if (!subscriptionId) {
-      return NextResponse.json(
-        { error: "Aktif LemonSqueezy aboneliği bulunamadı", noSubscription: true },
-        { status: 404 },
-      );
-    }
-
-    const portalUrl = await getCustomerPortalUrl(subscriptionId);
+    const portalUrl = await getCustomerPortalUrl(tenantId);
     if (!portalUrl) {
       return NextResponse.json(
-        { error: "Portal URL alınamadı — LemonSqueezy API erişimini kontrol edin" },
-        { status: 503 },
+        { error: "Portal URL alınamadı — henüz aktif bir aboneliğiniz olmayabilir veya Polar API erişimini kontrol edin", noSubscription: true },
+        { status: 404 },
       );
     }
 

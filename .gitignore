@@ -15,3 +15,4 @@ take_ss.js
 take_story_ss.js
 tests/take-real-ss.spec.ts
 tsconfig.tsbuildinfo
+.env*

@@ -17,6 +17,8 @@ export const PLATFORM_KEYS = {
   resellerPricing: "resellerPricing",
   resellerPricingHistory: "resellerPricingHistory",
   resellerExpenses: "resellerExpenses",
+  marketingCampaigns: "marketingCampaigns",
+  referralCodes: "referralCodes",
 } as const;
 
 export type PlatformKey = (typeof PLATFORM_KEYS)[keyof typeof PLATFORM_KEYS];

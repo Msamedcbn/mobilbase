@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore, writeLocalStore, localId } from "@/lib/local-store";
 
-type StudioAuditTargetType = "TENANT" | "PRICING" | "LEDGER" | "LICENSE" | "HELPDESK" | "LEAD" | "TRIAL" | "TEAM";
+type StudioAuditTargetType = "TENANT" | "PRICING" | "LEDGER" | "LICENSE" | "HELPDESK" | "LEAD" | "TRIAL" | "TEAM" | "MARKETING";
 
 export async function logStudioAction(entry: {
   actor: string;

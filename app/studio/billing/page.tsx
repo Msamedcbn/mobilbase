@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -13,10 +13,10 @@ interface TenantBillingRow {
   plan: string;
   licenseEnd: string;
   status: "ACTIVE" | "NEAR_EXPIRY" | "EXPIRED";
-  lsSubscriptionStatus?: string;
-  lsRenewsAt?: string;
-  lsCurrentPeriodEnd?: string;
-  lsSubscriptionId?: string;
+  polarSubscriptionStatus?: string;
+  polarCurrentPeriodEnd?: string;
+  polarCancelAtPeriodEnd?: boolean;
+  polarSubscriptionId?: string;
   balance: number; // pozitif = borçlu
   overdueAmount: number;
   totalCharges: number;
@@ -39,42 +39,6 @@ interface ExchangeRate {
   updatedAt: string;
 }
 
-declare global {
-  interface Window {
-    createLemonSqueezy?: () => void;
-    LemonSqueezy?: {
-      Url: { Open: (url: string) => void; Close: () => void };
-      Setup: (opts: Record<string, any>) => void;
-    };
-  }
-}
-
-// ─── Lemon.js Loader Hook ─────────────────────────────────────────────────────
-
-function useLemonJS() {
-  const loaded = useRef(false);
-  useEffect(() => {
-    if (loaded.current) return;
-    const script = document.createElement("script");
-    script.src = "https://app.lemonsqueezy.com/js/lemon.js";
-    script.defer = true;
-    script.onload = () => {
-      window.createLemonSqueezy?.();
-    };
-    document.head.appendChild(script);
-    loaded.current = true;
-  }, []);
-}
-
-function openLemonCheckout(url: string) {
-  const embedUrl = url.includes("?") ? `${url}&embed=1` : `${url}?embed=1`;
-  if (window.LemonSqueezy?.Url?.Open) {
-    window.LemonSqueezy.Url.Open(embedUrl);
-  } else {
-    window.open(embedUrl, "_blank");
-  }
-}
-
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const STATUS_CONFIG = {
@@ -83,13 +47,15 @@ const STATUS_CONFIG = {
   EXPIRED: { label: "Süresi Doldu", bg: "bg-rose-50 text-rose-700 border-rose-200" },
 };
 
-const LS_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
+const POLAR_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   active: { label: "✅ Aktif", color: "text-emerald-700" },
-  cancelled: { label: "⛔ İptal Edildi", color: "text-rose-600" },
-  expired: { label: "❌ Sona Erdi", color: "text-slate-500" },
+  trialing: { label: "🔵 Deneme", color: "text-blue-600" },
+  canceled: { label: "⛔ İptal Edildi", color: "text-rose-600" },
+  incomplete_expired: { label: "❌ Sona Erdi", color: "text-slate-500" },
   paused: { label: "⏸ Duraklatıldı", color: "text-amber-600" },
   past_due: { label: "⚠️ Gecikmiş", color: "text-orange-600" },
   unpaid: { label: "💸 Ödenmedi", color: "text-red-600" },
+  incomplete: { label: "⏳ Ödeme Bekleniyor", color: "text-amber-600" },
 };
 
 function daysUntil(dateStr: string) {
@@ -101,8 +67,6 @@ function daysUntil(dateStr: string) {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function StudioBillingPage() {
-  useLemonJS();
-
   const [tenants, setTenants] = useState<TenantBillingRow[]>([]);
   const [exchangeRate, setExchangeRate] = useState<ExchangeRate | null>(null);
   const [loading, setLoading] = useState(true);
@@ -152,10 +116,10 @@ export default function StudioBillingPage() {
             plan: meta.plan ?? "Pro",
             licenseEnd: meta.licenseEnd ?? "",
             status,
-            lsSubscriptionStatus: meta.lsSubscriptionStatus,
-            lsRenewsAt: meta.lsRenewsAt,
-            lsCurrentPeriodEnd: meta.lsCurrentPeriodEnd,
-            lsSubscriptionId: meta.lsSubscriptionId,
+            polarSubscriptionStatus: meta.polarSubscriptionStatus,
+            polarCurrentPeriodEnd: meta.polarCurrentPeriodEnd,
+            polarCancelAtPeriodEnd: meta.polarCancelAtPeriodEnd,
+            polarSubscriptionId: meta.polarSubscriptionId,
             balance,
             overdueAmount,
             totalCharges,
@@ -179,7 +143,7 @@ export default function StudioBillingPage() {
     totalReceivable: tenants.reduce((s, t) => s + Math.max(0, t.balance), 0),
     totalOverdue: tenants.reduce((s, t) => s + t.overdueAmount, 0),
     overdueCount: tenants.filter((t) => t.overdueAmount > 0).length,
-    lsActive: tenants.filter((t) => t.lsSubscriptionStatus === "active").length,
+    polarActive: tenants.filter((t) => t.polarSubscriptionStatus === "active").length,
   };
 
   const filtered = tenants.filter((t) => {
@@ -192,17 +156,17 @@ export default function StudioBillingPage() {
     return matchSearch && matchStatus;
   });
 
-  const handleGenerateCheckout = async (tenantId: string, plan: string) => {
+  const handleGenerateCheckout = async (tenantId: string) => {
     setCheckoutLoading(tenantId);
     try {
       const res = await fetch("/api/subscriptions/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tenantId, plan, cycle: "monthly" }),
+        body: JSON.stringify({ tenantId, cycle: "monthly" }),
       });
       const json = await res.json();
       if (res.ok && json.checkoutUrl) {
-        openLemonCheckout(json.checkoutUrl);
+        window.open(json.checkoutUrl, "_blank");
         toast.success("Ödeme penceresi açıldı");
       } else {
         toast.error(json.error ?? "Checkout oluşturulamadı");
@@ -318,7 +282,7 @@ export default function StudioBillingPage() {
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">Finans & Tahsilat</h1>
-          <p className="text-slate-500 mt-1 text-sm">Tüm tenant faturaları, LemonSqueezy abonelikleri ve nakit tahsilatlar</p>
+          <p className="text-slate-500 mt-1 text-sm">Tüm tenant faturaları, Polar abonelikleri ve nakit tahsilatlar</p>
         </div>
         <div className="flex items-center gap-2">
           {/* Kur badge */}
@@ -343,7 +307,7 @@ export default function StudioBillingPage() {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         {[
           { label: "Toplam Tenant", value: kpis.totalTenants.toString(), icon: "🏢", color: "from-slate-500 to-slate-700" },
-          { label: "LS Aktif Abonelik", value: kpis.lsActive.toString(), icon: "🍋", color: "from-amber-400 to-orange-500" },
+          { label: "Polar Aktif Abonelik", value: kpis.polarActive.toString(), icon: "💳", color: "from-amber-400 to-orange-500" },
           { label: "Açık Alacak", value: `₺${kpis.totalReceivable.toLocaleString("tr-TR", { maximumFractionDigits: 0 })}`, icon: "💰", color: "from-indigo-500 to-indigo-700" },
           { label: "Vadesi Geçen", value: `₺${kpis.totalOverdue.toLocaleString("tr-TR", { maximumFractionDigits: 0 })}`, icon: "⚠️", color: "from-rose-500 to-rose-700" },
           { label: "Gecikmiş Tenant", value: kpis.overdueCount.toString(), icon: "🔔", color: "from-orange-400 to-red-500" },
@@ -489,9 +453,9 @@ export default function StudioBillingPage() {
                     <span className={`rounded-xl border px-2 py-0.5 text-[10px] font-bold ${STATUS_CONFIG[t.status].bg}`}>
                       {STATUS_CONFIG[t.status].label}
                     </span>
-                    {t.lsSubscriptionStatus && (
-                      <span className={`text-[10px] font-bold ${LS_STATUS_CONFIG[t.lsSubscriptionStatus]?.color ?? "text-slate-500"}`}>
-                        {LS_STATUS_CONFIG[t.lsSubscriptionStatus]?.label ?? t.lsSubscriptionStatus}
+                    {t.polarSubscriptionStatus && (
+                      <span className={`text-[10px] font-bold ${POLAR_STATUS_CONFIG[t.polarSubscriptionStatus]?.color ?? "text-slate-500"}`}>
+                        {POLAR_STATUS_CONFIG[t.polarSubscriptionStatus]?.label ?? t.polarSubscriptionStatus}
                       </span>
                     )}
                     {t.overdueAmount > 0 && (
@@ -512,14 +476,14 @@ export default function StudioBillingPage() {
                   {/* Actions */}
                   <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
                     <button
-                      onClick={() => handleGenerateCheckout(t.id, t.plan)}
+                      onClick={() => handleGenerateCheckout(t.id)}
                       disabled={checkoutLoading === t.id}
                       className="flex items-center gap-1.5 rounded-2xl bg-amber-400 hover:bg-amber-500 px-3 py-1.5 text-[11px] font-bold text-amber-950 shadow-sm active:scale-95 transition-all disabled:opacity-50"
-                      title="LemonSqueezy ödeme penceresi aç"
+                      title="Polar ödeme penceresi aç"
                     >
                       {checkoutLoading === t.id ? (
                         <div className="h-3 w-3 animate-spin rounded-full border-2 border-amber-800 border-t-transparent" />
-                      ) : "🍋"}
+                      ) : "💳"}
                       Ödeme Al
                     </button>
                     <span className="text-slate-300 text-xs">{isExpanded ? "▲" : "▼"}</span>
@@ -545,11 +509,11 @@ export default function StudioBillingPage() {
                             </div>
                           ))}
                         </div>
-                        {t.lsRenewsAt && (
+                        {t.polarCurrentPeriodEnd && (
                           <div className="mt-3 pt-3 border-t border-slate-100">
-                            <p className="text-[10px] text-slate-400">Sonraki LS ödemesi</p>
-                            <p className="text-xs font-bold text-slate-700">{new Date(t.lsRenewsAt).toLocaleDateString("tr-TR")}
-                              <span className="ml-1 text-emerald-600">({daysUntil(t.lsRenewsAt)} gün)</span>
+                            <p className="text-[10px] text-slate-400">{t.polarCancelAtPeriodEnd ? "Sona erme tarihi" : "Sonraki Polar ödemesi"}</p>
+                            <p className="text-xs font-bold text-slate-700">{new Date(t.polarCurrentPeriodEnd).toLocaleDateString("tr-TR")}
+                              <span className={`ml-1 ${t.polarCancelAtPeriodEnd ? "text-rose-600" : "text-emerald-600"}`}>({daysUntil(t.polarCurrentPeriodEnd)} gün)</span>
                             </p>
                           </div>
                         )}

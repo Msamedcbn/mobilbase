@@ -1,8 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { trackConversion } from "@/components/google-analytics";
+
+type ReferralPreview =
+  | { status: "idle" | "checking" }
+  | { status: "valid"; ownerName: string; discountType: "percent" | "fixed"; discountValue: number }
+  | { status: "invalid" };
 
 function normalizeTrPhone(input: string) {
   let digits = input.replace(/\D/g, "");
@@ -20,8 +25,37 @@ export function TrialSignupForm({ className }: { className?: string }) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [referralCode, setReferralCode] = useState("");
+  const [referralPreview, setReferralPreview] = useState<ReferralPreview>({ status: "idle" });
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    const trimmed = referralCode.trim();
+    if (!trimmed) {
+      setReferralPreview({ status: "idle" });
+      return;
+    }
+    setReferralPreview({ status: "checking" });
+    const handle = setTimeout(() => {
+      fetch(`/api/referral-codes/validate?code=${encodeURIComponent(trimmed)}`)
+        .then((r) => r.json())
+        .then((json) => {
+          if (json?.valid) {
+            setReferralPreview({
+              status: "valid",
+              ownerName: json.ownerName,
+              discountType: json.discountType,
+              discountValue: json.discountValue,
+            });
+          } else {
+            setReferralPreview({ status: "invalid" });
+          }
+        })
+        .catch(() => setReferralPreview({ status: "invalid" }));
+    }, 400);
+    return () => clearTimeout(handle);
+  }, [referralCode]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -52,6 +86,7 @@ export function TrialSignupForm({ className }: { className?: string }) {
           fullName: fullName.trim() || shopName.trim(),
           email: trimmedEmail,
           phone: normalizedPhone,
+          referralCode: referralCode.trim() || undefined,
         }),
       });
 
@@ -131,6 +166,29 @@ export function TrialSignupForm({ className }: { className?: string }) {
             required
             className="w-full bg-transparent px-2 py-3 text-sm font-semibold text-white placeholder-slate-500 focus:outline-none"
           />
+        </div>
+        <div>
+          <input
+            value={referralCode}
+            onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+            placeholder="Referans kodu (varsa)"
+            className={`w-full rounded-xl border bg-white/5 px-4 py-3 text-sm font-semibold text-white placeholder-slate-500 focus:outline-none focus:ring-2 transition ${
+              referralPreview.status === "valid"
+                ? "border-emerald-400/50 focus:ring-emerald-400/20"
+                : referralPreview.status === "invalid"
+                ? "border-rose-400/50 focus:ring-rose-400/20"
+                : "border-white/15 focus:border-blue-200/50 focus:ring-blue-200/20"
+            }`}
+          />
+          {referralPreview.status === "valid" && (
+            <p className="mt-1.5 text-xs font-bold text-emerald-400">
+              ✓ {referralPreview.ownerName} referansı uygulanacak
+              {referralPreview.discountType === "percent" ? ` (%${referralPreview.discountValue} indirim)` : ` (₺${referralPreview.discountValue} indirim)`}
+            </p>
+          )}
+          {referralPreview.status === "invalid" && (
+            <p className="mt-1.5 text-xs font-bold text-rose-400">Bu kod geçerli değil veya süresi doldu — boş bırakabilirsiniz</p>
+          )}
         </div>
       </div>
 

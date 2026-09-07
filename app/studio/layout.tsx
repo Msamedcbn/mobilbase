@@ -10,6 +10,7 @@ const navItems = [
   { href: "/studio/infrastructure", tab: "infrastructure", label: "Altyapı Analitiği", description: "Şube, API ve kaynak kullanımı", icon: "AA" },
   { href: "/studio/billing", tab: "billing", label: "Finans ve Tahsilat", description: "Cari, vade ve gelir görünümü", icon: "FT" },
   { href: "/studio/pricing", tab: "pricing", label: "Paket ve Fiyatlar", description: "Plan, limit ve sürşarj yönetimi", icon: "PF" },
+  { href: "/studio/marketing", tab: "marketing", label: "Kampanyalar", description: "Popup, banner ve referans kodları", icon: "KP" },
   { href: "/studio/logs", tab: "logs", label: "Sistem Sağlığı", description: "Loglar ve platform sinyalleri", icon: "SS" },
 ];
 

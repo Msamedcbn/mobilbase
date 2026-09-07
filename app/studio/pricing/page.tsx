@@ -2,10 +2,18 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { PLAN_USD_PRICES, type LsPlan, type LsBillingCycle } from "@/lib/subscription-plans";
+import { PLAN_NAME, PLAN_PRICE_TRY, ANNUAL_DISCOUNT_PCT, type BillingCycle } from "@/lib/subscription-plans";
 import { useConfirm } from "@/components/confirm-modal";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+/**
+ * Dahili "plan" etiketleri — manuel tenant yönetimi ve destek seviyesi
+ * kategorizasyonu için kullanılır (app/studio/page.tsx). Gerçek Polar
+ * self-servis aboneliği artık tek fiyat/tek plandır (@/lib/subscription-plans);
+ * bu etiketler onunla bire bir eşleşmez.
+ */
+type LegacyPlan = "Lite" | "Service" | "Pro" | "Enterprise";
 
 interface PricingData {
   Lite: number;
@@ -21,7 +29,7 @@ interface PricingData {
     annualDiscountPct: number;
   };
   features: Record<
-    LsPlan,
+    LegacyPlan,
     { pos: boolean; repairs: boolean; stock: boolean; invoicing: boolean; buyback: boolean; supportLevel: string }
   >;
   history?: Array<{
@@ -33,33 +41,20 @@ interface PricingData {
   }>;
 }
 
-interface ExchangeRate {
-  usdToTry: number;
-  source: "live" | "fallback";
-  updatedAt: string;
-}
+const LEGACY_PLANS: LegacyPlan[] = ["Lite", "Service", "Pro", "Enterprise"];
 
-const PLANS: LsPlan[] = ["Lite", "Service", "Pro", "Enterprise"];
-
-const PLAN_COLORS: Record<LsPlan, string> = {
+const PLAN_COLORS: Record<LegacyPlan, string> = {
   Lite: "from-slate-500 to-slate-700",
   Service: "from-blue-500 to-blue-700",
   Pro: "from-indigo-500 to-indigo-700",
   Enterprise: "from-violet-500 to-violet-700",
 };
 
-const PLAN_BORDER: Record<LsPlan, string> = {
+const PLAN_BORDER: Record<LegacyPlan, string> = {
   Lite: "border-slate-200",
   Service: "border-blue-200",
   Pro: "border-indigo-200",
   Enterprise: "border-violet-200",
-};
-
-const PLAN_RING: Record<LsPlan, string> = {
-  Lite: "ring-slate-500",
-  Service: "ring-blue-500",
-  Pro: "ring-indigo-500",
-  Enterprise: "ring-violet-500",
 };
 
 const FEATURES = [
@@ -70,51 +65,33 @@ const FEATURES = [
   { key: "buyback", label: "Buyback / Geri Alım" },
 ];
 
-function formatTry(usd: number, rate: number) {
-  return (usd * rate).toLocaleString("tr-TR", { maximumFractionDigits: 0 });
-}
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function PricingPage() {
   const { confirm, confirmDialog } = useConfirm();
   const [pricing, setPricing] = useState<PricingData | null>(null);
-  const [exchangeRate, setExchangeRate] = useState<ExchangeRate | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [billingCycle, setBillingCycle] = useState<LsBillingCycle>("monthly");
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
   const [editMode, setEditMode] = useState(false);
   const [editPricing, setEditPricing] = useState<PricingData | null>(null);
   const [changeReason, setChangeReason] = useState("");
-  const [activeSection, setActiveSection] = useState<"plans" | "addons" | "history" | "ls-setup">("plans");
+  const [activeSection, setActiveSection] = useState<"plans" | "addons" | "history" | "polar-setup">("plans");
 
-  // LS Variant ID state (env'den gelir, UI'da gösterilir)
-  const [lsVariants] = useState<Record<string, string>>({
-    Lite_monthly: process.env.NEXT_PUBLIC_LS_VARIANT_LITE_MONTHLY ?? "",
-    Lite_annual: process.env.NEXT_PUBLIC_LS_VARIANT_LITE_ANNUAL ?? "",
-    Service_monthly: process.env.NEXT_PUBLIC_LS_VARIANT_SERVICE_MONTHLY ?? "",
-    Service_annual: process.env.NEXT_PUBLIC_LS_VARIANT_SERVICE_ANNUAL ?? "",
-    Pro_monthly: process.env.NEXT_PUBLIC_LS_VARIANT_PRO_MONTHLY ?? "",
-    Pro_annual: process.env.NEXT_PUBLIC_LS_VARIANT_PRO_ANNUAL ?? "",
-    Enterprise_monthly: process.env.NEXT_PUBLIC_LS_VARIANT_ENTERPRISE_MONTHLY ?? "",
-    Enterprise_annual: process.env.NEXT_PUBLIC_LS_VARIANT_ENTERPRISE_ANNUAL ?? "",
+  // Polar ürün ID durumu (env'den gelir, UI'da gösterilir) — tek plan, 2 ürün (aylık/yıllık)
+  const [polarProducts] = useState<Record<BillingCycle, string>>({
+    monthly: process.env.NEXT_PUBLIC_POLAR_PRODUCT_MONTHLY ?? "",
+    annual: process.env.NEXT_PUBLIC_POLAR_PRODUCT_ANNUAL ?? "",
   });
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [pRes, rRes] = await Promise.all([
-        fetch("/api/studio/pricing"),
-        fetch("/api/subscriptions/exchange-rate"),
-      ]);
+      const pRes = await fetch("/api/studio/pricing");
       if (pRes.ok) {
         const p = await pRes.json();
         setPricing(p);
         setEditPricing(JSON.parse(JSON.stringify(p)));
-      }
-      if (rRes.ok) {
-        const r = await rRes.json();
-        setExchangeRate(r);
       }
     } finally {
       setLoading(false);
@@ -183,11 +160,8 @@ export default function PricingPage() {
     );
   }
 
-  const rate = exchangeRate?.usdToTry ?? 38.5;
   const p = editMode ? editPricing! : pricing!;
   if (!p) return null;
-
-  const annualDiscount = p.addons?.annualDiscountPct ?? 15;
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-20">
@@ -196,24 +170,10 @@ export default function PricingPage() {
         <div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">Paket & Fiyatlandırma</h1>
           <p className="text-slate-500 mt-1 text-sm">
-            Plan özellikleri, USD fiyatları ve LemonSqueezy entegrasyon ayarları
+            Plan özellikleri, TL fiyatları ve Polar entegrasyon ayarları
           </p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
-          {/* Kur badge */}
-          <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 shadow-sm">
-            <span className="text-lg">💱</span>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">USD/TRY Kur</p>
-              <p className="text-sm font-black text-slate-900">
-                ₺{rate.toFixed(2)}
-                <span className={`ml-1.5 text-[10px] font-bold ${exchangeRate?.source === "live" ? "text-emerald-600" : "text-amber-500"}`}>
-                  {exchangeRate?.source === "live" ? "● Canlı" : "● Tahmini"}
-                </span>
-              </p>
-            </div>
-          </div>
-
           {/* Edit toggle */}
           {!editMode ? (
             <button
@@ -245,7 +205,7 @@ export default function PricingPage() {
       {/* Billing cycle toggle */}
       <div className="flex items-center gap-4">
         <div className="inline-flex items-center rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
-          {(["monthly", "annual"] as LsBillingCycle[]).map((cycle) => (
+          {(["monthly", "annual"] as BillingCycle[]).map((cycle) => (
             <button
               key={cycle}
               onClick={() => setBillingCycle(cycle)}
@@ -258,20 +218,20 @@ export default function PricingPage() {
               {cycle === "monthly" ? "Aylık" : "Yıllık"}
               {cycle === "annual" && (
                 <span className={`ml-1.5 text-[10px] font-black ${billingCycle === "annual" ? "text-indigo-200" : "text-emerald-600"}`}>
-                  −{annualDiscount}%
+                  −{ANNUAL_DISCOUNT_PCT}%
                 </span>
               )}
             </button>
           ))}
         </div>
         <p className="text-xs text-slate-500">
-          Yıllık planlar %{annualDiscount} indirimlidir. USD üzerinden fatura edilir.
+          Polar yıllık planı %{ANNUAL_DISCOUNT_PCT} indirimlidir. TL üzerinden fatura edilir.
         </p>
       </div>
 
       {/* Nav tabs */}
       <div className="flex gap-1 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm w-fit">
-        {(["plans", "addons", "history", "ls-setup"] as const).map((tab) => (
+        {(["plans", "addons", "history", "polar-setup"] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveSection(tab)}
@@ -281,7 +241,7 @@ export default function PricingPage() {
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            {tab === "plans" ? "📦 Planlar" : tab === "addons" ? "➕ Eklentiler" : tab === "history" ? "📋 Geçmiş" : "🔗 LemonSqueezy"}
+            {tab === "plans" ? "📦 Planlar" : tab === "addons" ? "➕ Eklentiler" : tab === "history" ? "📋 Geçmiş" : "🔗 Polar"}
           </button>
         ))}
       </div>
@@ -289,40 +249,37 @@ export default function PricingPage() {
       {/* ── PLANS SECTION ── */}
       {activeSection === "plans" && (
         <div className="space-y-6">
-          {/* Plan cards */}
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-            {PLANS.map((plan) => {
-              const usdPrice = PLAN_USD_PRICES[plan][billingCycle];
-              const tryPrice = usdPrice * rate;
-              const isPopular = plan === "Pro";
+          {/* Tek Polar planı — gerçek self-servis fiyatı */}
+          <div className="rounded-3xl border-2 border-indigo-200 bg-white shadow-sm">
+            <div className="rounded-t-[22px] bg-gradient-to-br from-indigo-500 to-violet-600 p-6">
+              <p className="text-sm font-black uppercase tracking-widest text-white/70">{PLAN_NAME} — Polar Self-Servis Planı</p>
+              <div className="mt-2">
+                <span className="text-4xl font-black text-white">₺{PLAN_PRICE_TRY[billingCycle].toLocaleString("tr-TR")}</span>
+                <span className="text-sm font-bold text-white/70"> / {billingCycle === "monthly" ? "ay" : "yıl"}</span>
+              </div>
+              <p className="mt-2 text-[11px] font-bold text-white/80">Tüm özellikler dahil — POS, stok, teknik servis, faturalama, ikinci el. Bu değer koddan (@/lib/subscription-plans) gelir, buradan düzenlenemez.</p>
+            </div>
+            <div className="p-6 flex flex-wrap gap-3">
+              {FEATURES.map((f) => (
+                <span key={f.key} className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-xs font-bold text-emerald-700">
+                  ✓ {f.label}
+                </span>
+              ))}
+            </div>
+          </div>
 
-              return (
+          {/* Dahili plan etiketleri — manuel tenant yönetimi (app/studio/page.tsx) */}
+          <div>
+            <h3 className="text-sm font-black text-slate-900 mb-1">Dahili Plan Etiketleri</h3>
+            <p className="text-xs text-slate-500 mb-4">Manuel tenant oluşturma ve destek seviyesi kategorizasyonu için kullanılır — gerçek Polar fiyatıyla bağlantılı değildir.</p>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+              {LEGACY_PLANS.map((plan) => (
                 <div
                   key={plan}
-                  className={`relative rounded-3xl border-2 bg-white shadow-sm transition-shadow hover:shadow-lg ${PLAN_BORDER[plan]} ${isPopular ? "ring-2 ring-indigo-400 ring-offset-2" : ""}`}
+                  className={`relative rounded-3xl border-2 bg-white shadow-sm transition-shadow hover:shadow-lg ${PLAN_BORDER[plan]}`}
                 >
-                  {isPopular && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-indigo-600 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white shadow-lg">
-                      En Popüler
-                    </div>
-                  )}
-
-                  {/* Plan header */}
                   <div className={`rounded-t-[22px] bg-gradient-to-br ${PLAN_COLORS[plan]} p-5`}>
                     <p className="text-sm font-black uppercase tracking-widest text-white/70">{plan}</p>
-                    <div className="mt-2">
-                      <span className="text-4xl font-black text-white">${usdPrice}</span>
-                      <span className="text-sm font-bold text-white/70"> / ay (USD)</span>
-                    </div>
-                    <div className="mt-1 text-[11px] font-bold text-white/60">
-                      ≈ ₺{formatTry(usdPrice, rate)} / ay
-                      <span className="ml-1 text-white/40">(kur: {rate.toFixed(2)})</span>
-                    </div>
-                    {billingCycle === "annual" && (
-                      <div className="mt-2 rounded-xl bg-white/20 px-3 py-1 text-[11px] font-bold text-white">
-                        Yıllık: ${usdPrice * 12} → %{annualDiscount} indirimli
-                      </div>
-                    )}
                   </div>
 
                   {/* Features */}
@@ -383,25 +340,10 @@ export default function PricingPage() {
                         <p className="text-[11px] font-semibold text-slate-500">{p.features?.[plan]?.supportLevel}</p>
                       )}
                     </div>
-
-                    {/* LS Variant ID badge */}
-                    <div className="pt-2">
-                      {(["monthly", "annual"] as LsBillingCycle[]).map((c) => {
-                        const vid = lsVariants[`${plan}_${c}`];
-                        return (
-                          <div key={c} className="flex items-center gap-1 mt-1">
-                            <span className="text-[9px] font-bold uppercase text-slate-400 w-12">{c === "monthly" ? "Aylık" : "Yıllık"}</span>
-                            <span className={`rounded-lg px-2 py-0.5 text-[10px] font-mono font-bold ${vid ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-600"}`}>
-                              {vid ? vid.slice(0, 12) + "…" : "ID eksik"}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
                   </div>
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
 
           {/* Branch & MRR simulator */}
@@ -444,7 +386,7 @@ export default function PricingPage() {
             {/* MRR Simulator */}
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
               <h3 className="text-sm font-black text-slate-900 mb-4">💡 MRR Simülatörü</h3>
-              <MrrSimulator plans={PLAN_USD_PRICES} cycle={billingCycle} rate={rate} annualDiscount={annualDiscount} />
+              <MrrSimulator cycle={billingCycle} />
             </div>
           </div>
 
@@ -535,9 +477,9 @@ export default function PricingPage() {
                         {" · "}{h.createdBy}
                       </p>
                       <div className="flex gap-2 mt-1 flex-wrap">
-                        {PLANS.map((pl) => (
+                        {LEGACY_PLANS.map((pl) => (
                           <span key={pl} className="text-[10px] font-bold text-slate-500">
-                            {pl}: ${PLAN_USD_PRICES[pl].monthly}
+                            {pl}: ₺{Number((h.snapshot as any)?.[pl] ?? 0).toLocaleString("tr-TR")}
                           </span>
                         ))}
                       </div>
@@ -556,15 +498,15 @@ export default function PricingPage() {
         </div>
       )}
 
-      {/* ── LEMONSQUEEZY SETUP SECTION ── */}
-      {activeSection === "ls-setup" && (
+      {/* ── POLAR SETUP SECTION ── */}
+      {activeSection === "polar-setup" && (
         <div className="space-y-6">
-          <div className="rounded-3xl border-2 border-dashed border-amber-300 bg-amber-50 p-6">
+          <div className="rounded-3xl border-2 border-dashed border-indigo-300 bg-indigo-50 p-6">
             <div className="flex items-start gap-4">
-              <span className="text-3xl">🍋</span>
+              <span className="text-3xl">🔗</span>
               <div>
-                <h3 className="font-black text-amber-900">LemonSqueezy Kurulum Kılavuzu</h3>
-                <p className="text-xs text-amber-700 mt-1 leading-relaxed">
+                <h3 className="font-black text-indigo-900">Polar Kurulum Kılavuzu</h3>
+                <p className="text-xs text-indigo-700 mt-1 leading-relaxed">
                   Ödeme sistemini aktifleştirmek için aşağıdaki adımları takip edin.
                 </p>
               </div>
@@ -573,11 +515,10 @@ export default function PricingPage() {
 
           <div className="grid grid-cols-1 gap-4">
             {[
-              { step: "1", title: "LemonSqueezy hesabı oluşturun", desc: "app.lemonsqueezy.com adresinde kayıt olun", action: "Siteye git →", url: "https://app.lemonsqueezy.com" },
-              { step: "2", title: "Store oluşturun ve ürünleri ekleyin", desc: "Her plan için ayrı bir 'Subscription' ürün + 2 variant (monthly / annual) oluşturun", action: "Dashboard →", url: "https://app.lemonsqueezy.com/products" },
-              { step: "3", title: "API anahtarlarını alın", desc: "Settings → API → yeni anahtar oluşturun", action: "API Settings →", url: "https://app.lemonsqueezy.com/settings/api" },
-              { step: "4", title: ".env dosyasını doldurun", desc: "LEMONSQUEEZY_API_KEY, LEMONSQUEEZY_STORE_ID ve LS_VARIANT_* değerlerini ekleyin", action: null, url: null },
-              { step: "5", title: "Webhook ekleyin", desc: `Webhook URL: ${typeof window !== "undefined" ? window.location.origin : "https://yourdomain.com"}/api/subscriptions/webhook`, action: "Webhook Settings →", url: "https://app.lemonsqueezy.com/settings/webhooks" },
+              { step: "1", title: "Polar organizasyon onayını tamamlayın", desc: "VibeGSM organizasyonu oluşturuldu ama ödeme kabulü için KYC/hesap onayı henüz tamamlanmadı", action: "Polar Dashboard →", url: "https://polar.sh/dashboard" },
+              { step: "2", title: "Organization Access Token oluşturun", desc: "Settings → Developers → yeni bir Organization Access Token oluşturun", action: "Settings →", url: "https://polar.sh/dashboard" },
+              { step: "3", title: ".env dosyasını doldurun", desc: "POLAR_ACCESS_TOKEN değerini ekleyin — ürün ID'leri ve webhook secret zaten oluşturuldu", action: null, url: null },
+              { step: "4", title: "Webhook secret'ı Standard Webhooks'a geçtikten sonra yenileyin", desc: "8 Eylül 2026 00:00 UTC sonrası webhook secret'ı bir kez daha yenileyip POLAR_WEBHOOK_SECRET'ı güncelleyin", action: "Webhooks →", url: "https://polar.sh/dashboard" },
             ].map((item) => (
               <div key={item.step} className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-xs font-black text-white">
@@ -601,23 +542,21 @@ export default function PricingPage() {
             ))}
           </div>
 
-          {/* Current variant IDs status */}
+          {/* Current product IDs status */}
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h3 className="text-sm font-black text-slate-900 mb-4">Variant ID Durumu</h3>
+            <h3 className="text-sm font-black text-slate-900 mb-4">Ürün ID Durumu — {PLAN_NAME} (tek plan)</h3>
             <div className="grid grid-cols-2 gap-3">
-              {PLANS.map((plan) =>
-                (["monthly", "annual"] as LsBillingCycle[]).map((c) => {
-                  const vid = lsVariants[`${plan}_${c}`];
-                  return (
-                    <div key={`${plan}-${c}`} className={`flex items-center justify-between rounded-2xl p-3 ${vid ? "bg-emerald-50 border border-emerald-200" : "bg-rose-50 border border-rose-200"}`}>
-                      <span className="text-xs font-bold text-slate-700">{plan} / {c === "monthly" ? "Aylık" : "Yıllık"}</span>
-                      <span className={`text-[10px] font-mono font-bold ${vid ? "text-emerald-700" : "text-rose-600"}`}>
-                        {vid ? "✅ Ayarlı" : "❌ Eksik"}
-                      </span>
-                    </div>
-                  );
-                })
-              )}
+              {(["monthly", "annual"] as BillingCycle[]).map((c) => {
+                const vid = polarProducts[c];
+                return (
+                  <div key={c} className={`flex items-center justify-between rounded-2xl p-3 ${vid ? "bg-emerald-50 border border-emerald-200" : "bg-rose-50 border border-rose-200"}`}>
+                    <span className="text-xs font-bold text-slate-700">{c === "monthly" ? "Aylık" : "Yıllık"}</span>
+                    <span className={`text-[10px] font-mono font-bold ${vid ? "text-emerald-700" : "text-rose-600"}`}>
+                      {vid ? "✅ Ayarlı" : "❌ Eksik"}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -629,45 +568,32 @@ export default function PricingPage() {
 
 // ─── MRR Simulator ────────────────────────────────────────────────────────────
 
-function MrrSimulator({ plans, cycle, rate, annualDiscount }: {
-  plans: typeof PLAN_USD_PRICES;
-  cycle: LsBillingCycle;
-  rate: number;
-  annualDiscount: number;
-}) {
-  const [counts, setCounts] = useState<Record<LsPlan, number>>({
-    Lite: 5, Service: 10, Pro: 8, Enterprise: 2,
-  });
+function MrrSimulator({ cycle }: { cycle: BillingCycle }) {
+  const [count, setCount] = useState(25);
 
-  const totalUsd = PLANS.reduce((sum, p) => {
-    const price = plans[p][cycle];
-    return sum + price * counts[p];
-  }, 0);
-
-  const totalTry = totalUsd * rate;
+  const price = PLAN_PRICE_TRY[cycle];
+  const total = price * count;
+  const mrr = cycle === "annual" ? total / 12 : total;
 
   return (
     <div className="space-y-3">
-      {PLANS.map((plan) => (
-        <div key={plan} className="flex items-center gap-3">
-          <span className="text-xs font-bold text-slate-600 w-20">{plan}</span>
-          <input
-            type="range"
-            min={0}
-            max={50}
-            value={counts[plan]}
-            onChange={(e) => setCounts({ ...counts, [plan]: Number(e.target.value) })}
-            className="flex-1 accent-indigo-600"
-          />
-          <span className="text-xs font-black text-slate-900 w-6 text-right">{counts[plan]}</span>
-        </div>
-      ))}
+      <div className="flex items-center gap-3">
+        <span className="text-xs font-bold text-slate-600 w-24">Abone sayısı</span>
+        <input
+          type="range"
+          min={0}
+          max={200}
+          value={count}
+          onChange={(e) => setCount(Number(e.target.value))}
+          className="flex-1 accent-indigo-600"
+        />
+        <span className="text-xs font-black text-slate-900 w-8 text-right">{count}</span>
+      </div>
       <div className="mt-4 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 p-4 text-white">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-200">Tahmini Aylık Gelir</p>
-        <p className="text-2xl font-black">${totalUsd.toLocaleString()}</p>
-        <p className="text-sm font-bold text-indigo-200">≈ ₺{totalTry.toLocaleString("tr-TR", { maximumFractionDigits: 0 })}</p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-200">Tahmini Aylık Gelir (MRR)</p>
+        <p className="text-2xl font-black">₺{mrr.toLocaleString("tr-TR", { maximumFractionDigits: 0 })}</p>
         {cycle === "annual" && (
-          <p className="text-[10px] text-indigo-300 mt-1">Yıllık ({annualDiscount}% indirimli) — yıllık toplam: ${(totalUsd * 12 * (1 - annualDiscount / 100)).toFixed(0)}</p>
+          <p className="text-[10px] text-indigo-300 mt-1">Yıllık toplam tahsilat: ₺{total.toLocaleString("tr-TR")} ({count} abone × ₺{price.toLocaleString("tr-TR")})</p>
         )}
       </div>
     </div>

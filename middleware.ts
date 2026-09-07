@@ -30,6 +30,20 @@ const PUBLIC_PATHS = [
   "/api/health/liveness",
   "/api/health/readiness",
   "/api/internal/tenant-status",
+  // Polar calls this with its own HMAC signature, never a session cookie — the
+  // route verifies that signature itself. Without this entry every webhook
+  // event was rejected with 401 before it ever reached that check.
+  "/api/subscriptions/webhook",
+  // Public marketing surfaces the landing page and signup form read without a
+  // logged-in session.
+  "/api/campaigns/active",
+  "/api/referral-codes/validate",
+  // Anonymous "buy now" flow: a visitor with no account yet starts a Polar
+  // checkout, then lands on /satin-al/basarili which calls the complete
+  // endpoint to provision the tenant and log them straight in.
+  "/api/subscriptions/direct-checkout",
+  "/api/subscriptions/complete",
+  "/satin-al",
   "/_next",
   "/favicon.ico",
   "/servis",

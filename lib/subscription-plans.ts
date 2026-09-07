@@ -1,18 +1,18 @@
 /**
  * Shared subscription constants — hem client hem server tarafında kullanılabilir.
- * Server-only LemonSqueezy API fonksiyonları için: @/lib/lemonsqueezy
+ * Server-only Polar API fonksiyonları için: @/lib/polar
+ *
+ * Tek plan, tüm özellikler dahil — sadece faturalandırma dönemi (aylık/yıllık) seçilir.
  */
 
-export type LsPlan = "Lite" | "Service" | "Pro" | "Enterprise";
-export type LsBillingCycle = "monthly" | "annual";
+export type BillingCycle = "monthly" | "annual";
 
-/** Aylık USD fiyatları (yıllıkta indirim ayrı uygulanır) */
-export const PLAN_USD_PRICES: Record<LsPlan, { monthly: number; annual: number }> = {
-  Lite:       { monthly: 19,  annual: 15 },
-  Service:    { monthly: 29,  annual: 23 },
-  Pro:        { monthly: 49,  annual: 39 },
-  Enterprise: { monthly: 99,  annual: 79 },
+export const PLAN_NAME = "VibeGSM";
+
+/** TRY sabit fiyat. Yıllık, %ANNUAL_DISCOUNT_PCT indirimli toplam tutardır — tek seferde tahsil edilir. */
+export const PLAN_PRICE_TRY: Record<BillingCycle, number> = {
+  monthly: 500,
+  annual: 5100,
 };
 
-export const PLAN_LIST: LsPlan[] = ["Lite", "Service", "Pro", "Enterprise"];
 export const ANNUAL_DISCOUNT_PCT = 15;

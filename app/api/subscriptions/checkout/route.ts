@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/auth";
-import { createCheckoutUrl, getVariantId, type LsPlan, type LsBillingCycle } from "@/lib/lemonsqueezy";
+import { createCheckoutUrl, getProductId, type BillingCycle } from "@/lib/polar";
 import { findTenantById } from "@/lib/tenant-store";
 
 /**
  * POST /api/subscriptions/checkout
- * Body: { plan: "Pro", cycle: "monthly" | "annual", tenantId?: string }
+ * Body: { cycle: "monthly" | "annual", tenantId?: string }
  *
+ * Tek plan, tüm özellikler dahil — sadece faturalandırma dönemi seçilir.
  * Studio admini başka tenant adına veya tenant kendi adına checkout URL alır.
  */
 export async function POST(req: Request) {
@@ -15,29 +16,24 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const plan = (body.plan ?? "Pro") as LsPlan;
-    const cycle = (body.cycle ?? "monthly") as LsBillingCycle;
+    const cycle = (body.cycle ?? "monthly") as BillingCycle;
     // Only the platform side may raise a checkout on another tenant's behalf.
     // Accepting this from any caller let one tenant start a subscription against
     // another tenant's record.
     const isPlatformCaller = auth.user.role === "PLATFORM_OWNER";
     const overrideTenantId: string | undefined = isPlatformCaller ? body.tenantId : undefined;
 
-    const validPlans: LsPlan[] = ["Lite", "Service", "Pro", "Enterprise"];
-    if (!validPlans.includes(plan)) {
-      return NextResponse.json({ error: "Geçersiz plan" }, { status: 400 });
-    }
     if (cycle !== "monthly" && cycle !== "annual") {
       return NextResponse.json({ error: "Geçersiz faturalandırma dönemi" }, { status: 400 });
     }
 
-    // Variant ID'yi env'den al
-    let variantId: string;
+    // Ürün ID'sini env'den al
+    let productId: string;
     try {
-      variantId = getVariantId(plan, cycle);
+      productId = getProductId(cycle);
     } catch (e: any) {
       return NextResponse.json(
-        { error: e.message, hint: "LemonSqueezy variant ID'lerini .env dosyasına ekleyin" },
+        { error: e.message, hint: "Polar ürün ID'lerini .env dosyasına ekleyin" },
         { status: 503 },
       );
     }
@@ -57,15 +53,11 @@ export async function POST(req: Request) {
     }
 
     const result = await createCheckoutUrl({
-      variantId,
+      productId,
       tenantId: targetTenantId ?? "unknown",
       tenantEmail,
       tenantName,
-      customData: {
-        plan,
-        cycle,
-        tenant_id: targetTenantId ?? "",
-      },
+      customData: { cycle },
       redirectUrl: `${process.env.APP_BASE_URL ?? "http://localhost:3000"}/ayarlar/abonelik?success=1`,
     });
 

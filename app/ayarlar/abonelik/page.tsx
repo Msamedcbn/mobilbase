@@ -1,23 +1,23 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { PLAN_USD_PRICES, ANNUAL_DISCOUNT_PCT, type LsPlan, type LsBillingCycle } from "@/lib/subscription-plans";
+import { PLAN_NAME, PLAN_PRICE_TRY, ANNUAL_DISCOUNT_PCT, type BillingCycle } from "@/lib/subscription-plans";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface SubscriptionInfo {
-  plan: LsPlan;
+  plan: string;
   licenseStart: string;
   licenseEnd: string;
   branchLimit: number;
   smsQuota: number;
   smsUsed: number;
-  lsSubscriptionId?: string;
-  lsSubscriptionStatus?: string;
-  lsRenewsAt?: string;
-  lsCurrentPeriodEnd?: string;
-  lsProductName?: string;
+  polarSubscriptionId?: string;
+  polarSubscriptionStatus?: string;
+  polarCurrentPeriodEnd?: string;
+  polarCancelAtPeriodEnd?: boolean;
+  polarProductName?: string;
   isFrozen?: boolean;
   billingLedger: Array<{
     id: string;
@@ -38,86 +38,7 @@ interface SubscriptionInfo {
   };
 }
 
-interface ExchangeRate {
-  usdToTry: number;
-  source: "live" | "fallback";
-  updatedAt: string;
-}
-
-declare global {
-  interface Window {
-    createLemonSqueezy?: () => void;
-    LemonSqueezy?: {
-      Url: { Open: (url: string) => void; Close: () => void };
-      Setup: (opts: Record<string, any>) => void;
-    };
-  }
-}
-
-// ─── Lemon.js Embed Loader ────────────────────────────────────────────────────
-
-function useLemonJS() {
-  const loaded = useRef(false);
-  useEffect(() => {
-    if (loaded.current || typeof window === "undefined") return;
-    const existing = document.querySelector('script[src*="lemon.js"]');
-    if (existing) { loaded.current = true; return; }
-    const script = document.createElement("script");
-    script.src = "https://app.lemonsqueezy.com/js/lemon.js";
-    script.defer = true;
-    script.onload = () => window.createLemonSqueezy?.();
-    document.head.appendChild(script);
-    loaded.current = true;
-  }, []);
-}
-
-function openEmbedCheckout(url: string, onClose?: () => void) {
-  const embedUrl = url.includes("?") ? `${url}&embed=1` : `${url}?embed=1`;
-  if (window.LemonSqueezy?.Url?.Open) {
-    window.LemonSqueezy.Setup({
-      eventHandler: (event: any) => {
-        if (event?.event === "Checkout.Success" || event?.event === "PaymentMethodUpdate.Closed") {
-          onClose?.();
-        }
-      },
-    });
-    window.LemonSqueezy.Url.Open(embedUrl);
-  } else {
-    // Fallback: yeni sekmede aç
-    window.open(embedUrl, "_blank");
-  }
-}
-
-// ─── Plan constants ───────────────────────────────────────────────────────────
-
-const PLANS: LsPlan[] = ["Lite", "Service", "Pro", "Enterprise"];
-
-const PLAN_FEATURES: Record<LsPlan, { label: string; color: string; gradient: string; description: string }> = {
-  Lite: {
-    label: "Lite",
-    color: "text-slate-700",
-    gradient: "from-slate-400 to-slate-600",
-    description: "Küçük işletmeler için temel özellikler",
-  },
-  Service: {
-    label: "Service",
-    color: "text-blue-700",
-    gradient: "from-blue-400 to-blue-700",
-    description: "Teknik servis odaklı işletmeler için",
-  },
-  Pro: {
-    label: "Pro",
-    color: "text-indigo-700",
-    gradient: "from-indigo-500 to-indigo-700",
-    description: "Çok şubeli profesyonel işletmeler için",
-  },
-  Enterprise: {
-    label: "Enterprise",
-    color: "text-violet-700",
-    gradient: "from-violet-500 to-violet-700",
-    description: "Zincir mağazalar ve kurumsal yapılar için",
-  },
-};
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const MODULE_LABELS: Record<keyof SubscriptionInfo["modules"], string> = {
   pos: "POS Sistemi",
@@ -127,13 +48,15 @@ const MODULE_LABELS: Record<keyof SubscriptionInfo["modules"], string> = {
   invoicing: "Faturalama",
 };
 
-const LS_STATUS: Record<string, { label: string; badge: string }> = {
+const POLAR_STATUS: Record<string, { label: string; badge: string }> = {
   active: { label: "Aktif Abonelik", badge: "bg-emerald-100 text-emerald-800 border-emerald-200" },
-  cancelled: { label: "İptal Edildi", badge: "bg-rose-100 text-rose-800 border-rose-200" },
-  expired: { label: "Sona Erdi", badge: "bg-slate-100 text-slate-600 border-slate-200" },
-  paused: { label: "Duraklatıldı", badge: "bg-amber-100 text-amber-800 border-amber-200" },
+  trialing: { label: "Deneme Süresi", badge: "bg-blue-100 text-blue-800 border-blue-200" },
+  canceled: { label: "İptal Edildi", badge: "bg-rose-100 text-rose-800 border-rose-200" },
   past_due: { label: "Ödeme Gecikti", badge: "bg-amber-100 text-amber-800 border-amber-200" },
   unpaid: { label: "Ödenmedi", badge: "bg-rose-100 text-rose-800 border-rose-200" },
+  paused: { label: "Duraklatıldı", badge: "bg-amber-100 text-amber-800 border-amber-200" },
+  incomplete: { label: "Ödeme Bekleniyor", badge: "bg-amber-100 text-amber-800 border-amber-200" },
+  incomplete_expired: { label: "Sona Erdi", badge: "bg-slate-100 text-slate-600 border-slate-200" },
 };
 
 // ─── Icons (inline, Heroicons-outline style) ──────────────────────────────────
@@ -180,27 +103,11 @@ function IconList(props: { className?: string }) {
     </svg>
   );
 }
-function IconTrendUp(props: { className?: string }) {
-  return (
-    <svg className={props.className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 17l6-6 4 4 8-8" />
-      <path d="M17 7h4v4" />
-    </svg>
-  );
-}
 function IconDocument(props: { className?: string }) {
   return (
     <svg className={props.className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
       <path d="M14 2v6h6" />
-    </svg>
-  );
-}
-function IconCheckCircle(props: { className?: string }) {
-  return (
-    <svg className={props.className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M8.5 12.5l2.5 2.5 4.5-5" />
     </svg>
   );
 }
@@ -215,20 +122,6 @@ function IconX(props: { className?: string }) {
   return (
     <svg className={props.className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
       <path d="M6 6l12 12M18 6L6 18" />
-    </svg>
-  );
-}
-function IconArrowUp(props: { className?: string }) {
-  return (
-    <svg className={props.className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 19V5M6 11l6-6 6 6" />
-    </svg>
-  );
-}
-function IconArrowDown(props: { className?: string }) {
-  return (
-    <svg className={props.className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 5v14M6 13l6 6 6-6" />
     </svg>
   );
 }
@@ -249,14 +142,6 @@ function IconReceipt(props: { className?: string }) {
     </svg>
   );
 }
-function IconInfo(props: { className?: string }) {
-  return (
-    <svg className={props.className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 16v-4M12 8h.01" />
-    </svg>
-  );
-}
 
 function daysLeft(dateStr: string) {
   const d = new Date(dateStr);
@@ -267,24 +152,17 @@ function daysLeft(dateStr: string) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function AbonelikPage() {
-  useLemonJS();
-
   const [info, setInfo] = useState<SubscriptionInfo | null>(null);
-  const [exchangeRate, setExchangeRate] = useState<ExchangeRate | null>(null);
   const [loading, setLoading] = useState(true);
-  const [billingCycle, setBillingCycle] = useState<LsBillingCycle>("monthly");
-  const [checkoutPlan, setCheckoutPlan] = useState<LsPlan | null>(null);
-  const [checkoutLoading, setCheckoutLoading] = useState<LsPlan | null>(null);
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"overview" | "plans" | "history">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "history">("overview");
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [meRes, rateRes] = await Promise.all([
-        fetch("/api/auth/me"),
-        fetch("/api/subscriptions/exchange-rate"),
-      ]);
+      const meRes = await fetch("/api/auth/me");
       if (meRes.ok) {
         const meJson = await meRes.json();
         const tenantId = meJson?.user?.tenantId;
@@ -295,31 +173,30 @@ export default function AbonelikPage() {
             let meta: Record<string, any> = {};
             try { meta = det.customer?.notes ? JSON.parse(det.customer.notes) : {}; } catch {}
             setInfo({
-              plan: meta.plan ?? "Pro",
+              plan: meta.plan ?? PLAN_NAME,
               licenseStart: meta.licenseStart ?? "",
               licenseEnd: meta.licenseEnd ?? "",
               branchLimit: meta.branchLimit ?? 5,
               smsQuota: meta.smsQuota ?? 0,
               smsUsed: meta.smsUsed ?? 0,
-              lsSubscriptionId: meta.lsSubscriptionId,
-              lsSubscriptionStatus: meta.lsSubscriptionStatus,
-              lsRenewsAt: meta.lsRenewsAt,
-              lsCurrentPeriodEnd: meta.lsCurrentPeriodEnd,
-              lsProductName: meta.lsProductName,
+              polarSubscriptionId: meta.polarSubscriptionId,
+              polarSubscriptionStatus: meta.polarSubscriptionStatus,
+              polarCurrentPeriodEnd: meta.polarCurrentPeriodEnd,
+              polarCancelAtPeriodEnd: meta.polarCancelAtPeriodEnd,
+              polarProductName: meta.polarProductName,
               isFrozen: meta.isFrozen ?? false,
               billingLedger: meta.billingLedger ?? [],
               modules: {
                 pos: meta.modules?.pos ?? true,
                 repairs: meta.modules?.repairs ?? true,
-                stock: meta.modules?.stock ?? false,
-                buyback: meta.modules?.buyback ?? false,
-                invoicing: meta.modules?.invoicing ?? false,
+                stock: meta.modules?.stock ?? true,
+                buyback: meta.modules?.buyback ?? true,
+                invoicing: meta.modules?.invoicing ?? true,
               },
             });
           }
         }
       }
-      if (rateRes.ok) setExchangeRate(await rateRes.json());
     } finally {
       setLoading(false);
     }
@@ -335,21 +212,19 @@ export default function AbonelikPage() {
     }
   }, [fetchData]);
 
-  const handleCheckout = async (plan: LsPlan) => {
-    setCheckoutLoading(plan);
-    setCheckoutPlan(plan);
+  const handleCheckout = async (cycle: BillingCycle) => {
+    setCheckoutLoading(true);
     try {
       const res = await fetch("/api/subscriptions/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan, cycle: billingCycle }),
+        body: JSON.stringify({ cycle }),
       });
       const json = await res.json();
       if (res.ok && json.checkoutUrl) {
-        openEmbedCheckout(json.checkoutUrl, () => {
-          toast.success("Ödeme tamamlandı!");
-          setTimeout(fetchData, 2000);
-        });
+        window.open(json.checkoutUrl, "_blank");
+        const onFocus = () => { fetchData(); window.removeEventListener("focus", onFocus); };
+        window.addEventListener("focus", onFocus);
       } else {
         toast.error(json.error ?? "Checkout oluşturulamadı");
         if (json.hint) toast.info(json.hint, { duration: 6000 });
@@ -357,8 +232,7 @@ export default function AbonelikPage() {
     } catch {
       toast.error("Bağlantı hatası");
     } finally {
-      setCheckoutLoading(null);
-      setCheckoutPlan(null);
+      setCheckoutLoading(false);
     }
   };
 
@@ -368,9 +242,9 @@ export default function AbonelikPage() {
       const res = await fetch("/api/subscriptions/portal");
       const json = await res.json();
       if (res.ok && json.portalUrl) {
-        openEmbedCheckout(json.portalUrl);
+        window.open(json.portalUrl, "_blank");
       } else if (json.noSubscription) {
-        toast.info("Henüz aktif bir LemonSqueezy aboneliğiniz yok");
+        toast.info("Henüz aktif bir aboneliğiniz yok");
       } else {
         toast.error(json.error ?? "Portal açılamadı");
       }
@@ -392,21 +266,21 @@ export default function AbonelikPage() {
     );
   }
 
-  const rate = exchangeRate?.usdToTry ?? 38.5;
-  const plan = info?.plan ?? "Pro";
-  const features = PLAN_FEATURES[plan as LsPlan] ?? PLAN_FEATURES.Pro;
-  const lsStatus = info?.lsSubscriptionStatus;
-  const lsStatusConf = lsStatus ? LS_STATUS[lsStatus] : null;
-  const renewalDays = info?.lsRenewsAt ? daysLeft(info.lsRenewsAt) : null;
+  const polarStatus = info?.polarSubscriptionStatus;
+  const polarStatusConf = polarStatus ? POLAR_STATUS[polarStatus] : null;
+  const isSubscribed = Boolean(info?.polarSubscriptionId);
+  const willRenew = polarStatus === "active" && info?.polarCancelAtPeriodEnd === false;
+  const renewalDays = willRenew && info?.polarCurrentPeriodEnd ? daysLeft(info.polarCurrentPeriodEnd) : null;
+  const endingDays = info?.polarCancelAtPeriodEnd && info?.polarCurrentPeriodEnd ? daysLeft(info.polarCurrentPeriodEnd) : null;
   const licenseDays = info?.licenseEnd ? daysLeft(info.licenseEnd) : null;
-  const currentUsd = PLAN_USD_PRICES[plan as LsPlan]?.[billingCycle] ?? 49;
+  const currentTry = PLAN_PRICE_TRY[billingCycle];
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-20">
       {/* Page header */}
       <div>
         <h1 className="text-3xl font-black text-slate-900 tracking-tight">Abonelik Yönetimi</h1>
-        <p className="text-slate-500 mt-1 text-sm">Planınızı görüntüleyin, yükseltin veya iptal edin</p>
+        <p className="text-slate-500 mt-1 text-sm">Tüm özellikler tek pakette — aylık veya yıllık ödeyin</p>
       </div>
 
       {/* Frozen alert */}
@@ -420,8 +294,9 @@ export default function AbonelikPage() {
             <p className="text-sm text-rose-700 mt-0.5">Aboneliğiniz sona ermiş veya ödemeniz gecikmiş. Hizmete devam etmek için lütfen ödeme yapın.</p>
           </div>
           <button
-            onClick={() => handleCheckout(plan as LsPlan)}
-            className="ml-auto shrink-0 rounded-xl bg-rose-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg hover:bg-rose-700 active:scale-95 transition-all"
+            onClick={() => handleCheckout(billingCycle)}
+            disabled={checkoutLoading}
+            className="ml-auto shrink-0 rounded-xl bg-rose-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg hover:bg-rose-700 active:scale-95 transition-all disabled:opacity-60"
           >
             Şimdi Öde
           </button>
@@ -436,14 +311,14 @@ export default function AbonelikPage() {
 
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Mevcut Planınız</p>
-            <h2 className="text-4xl font-black mt-1">{plan}</h2>
-            <p className="text-slate-400 text-sm mt-2">{features.description}</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">{isSubscribed ? "Mevcut Paketiniz" : "Paket"}</p>
+            <h2 className="text-4xl font-black mt-1">{PLAN_NAME}</h2>
+            <p className="text-slate-400 text-sm mt-2">POS, teknik servis, stok, faturalama ve ikinci el — hepsi dahil</p>
 
             <div className="flex flex-wrap gap-2 mt-4">
-              {lsStatusConf && (
-                <span className={`rounded-xl border px-3 py-1 text-xs font-bold ${lsStatusConf.badge}`}>
-                  {lsStatusConf.label}
+              {polarStatusConf && (
+                <span className={`rounded-xl border px-3 py-1 text-xs font-bold ${polarStatusConf.badge}`}>
+                  {polarStatusConf.label}
                 </span>
               )}
               {info?.licenseEnd && (
@@ -463,45 +338,87 @@ export default function AbonelikPage() {
                   Yenileme: <span className="font-mono">{renewalDays} gün</span>
                 </span>
               )}
+              {endingDays !== null && endingDays >= 0 && (
+                <span className="inline-flex items-center gap-1.5 rounded-xl border border-amber-300/40 bg-amber-400/10 px-3 py-1 text-xs font-bold text-amber-200">
+                  <IconCalendar className="w-3.5 h-3.5" />
+                  İptal edildi — <span className="font-mono">{endingDays} gün</span> sonra sona erecek
+                </span>
+              )}
             </div>
           </div>
 
           <div className="flex flex-col items-end gap-3">
-            {/* Price display */}
-            <div className="text-right">
-              <div className="flex items-baseline gap-1 justify-end">
-                <span className="text-3xl font-black font-mono">${currentUsd}</span>
-                <span className="text-sm font-bold text-slate-400">/ay</span>
-              </div>
-              <div className="flex items-center gap-2 mt-1 justify-end">
-                <span className="text-sm font-bold text-slate-300 font-mono">
-                  ≈ ₺{(currentUsd * rate).toLocaleString("tr-TR", { maximumFractionDigits: 0 })}
-                </span>
-                <span className="text-[10px] text-slate-500 font-mono">(1$ = ₺{rate.toFixed(2)})</span>
-                {exchangeRate?.source === "live" && (
-                  <span className="rounded-full bg-emerald-400/20 px-2 py-0.5 text-[9px] font-bold text-emerald-300">● Canlı Kur</span>
-                )}
-              </div>
-            </div>
-
-            {/* Portal button */}
-            {info?.lsSubscriptionId && (
-              <button
-                onClick={handlePortal}
-                disabled={portalLoading}
-                className="flex items-center gap-2 rounded-xl bg-white/10 border border-white/20 hover:bg-white/20 px-5 py-2.5 text-sm font-bold text-white active:scale-95 transition-all disabled:opacity-50"
-              >
-                {portalLoading ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <IconGear className="w-4 h-4" />}
-                Aboneliği Yönet
-              </button>
+            {isSubscribed ? (
+              <>
+                <div className="text-right">
+                  <div className="flex items-baseline gap-1 justify-end">
+                    <span className="text-3xl font-black font-mono">₺{currentTry.toLocaleString("tr-TR")}</span>
+                    <span className="text-sm font-bold text-slate-400">/{billingCycle === "monthly" ? "ay" : "yıl"}</span>
+                  </div>
+                </div>
+                <button
+                  onClick={handlePortal}
+                  disabled={portalLoading}
+                  className="flex items-center gap-2 rounded-xl bg-white/10 border border-white/20 hover:bg-white/20 px-5 py-2.5 text-sm font-bold text-white active:scale-95 transition-all disabled:opacity-50"
+                >
+                  {portalLoading ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <IconGear className="w-4 h-4" />}
+                  Aboneliği Yönet
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="inline-flex items-center rounded-2xl border border-white/20 bg-white/10 p-1">
+                  {(["monthly", "annual"] as BillingCycle[]).map((cycle) => (
+                    <button
+                      key={cycle}
+                      onClick={() => setBillingCycle(cycle)}
+                      className={`relative rounded-xl px-4 py-2 text-xs font-bold transition-all ${
+                        billingCycle === cycle ? "bg-white text-slate-900 shadow-sm" : "text-slate-300 hover:text-white"
+                      }`}
+                    >
+                      {cycle === "monthly" ? "Aylık" : "Yıllık"}
+                      {cycle === "annual" && (
+                        <span className={`ml-1.5 text-[9px] font-black font-mono ${billingCycle === "annual" ? "text-emerald-600" : "text-emerald-400"}`}>
+                          −{ANNUAL_DISCOUNT_PCT}%
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                <div className="text-right">
+                  <div className="flex items-baseline gap-1 justify-end">
+                    <span className="text-3xl font-black font-mono">₺{currentTry.toLocaleString("tr-TR")}</span>
+                    <span className="text-sm font-bold text-slate-400">/{billingCycle === "monthly" ? "ay" : "yıl"}</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleCheckout(billingCycle)}
+                  disabled={checkoutLoading}
+                  className="flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 px-5 py-2.5 text-sm font-bold text-white shadow-sm active:scale-95 transition-all disabled:opacity-60"
+                >
+                  {checkoutLoading && <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />}
+                  {checkoutLoading ? "Açılıyor…" : "Abone Ol"}
+                </button>
+              </>
             )}
           </div>
         </div>
       </div>
 
+      {!isSubscribed && (
+        <div className="flex items-center gap-3 rounded-2xl bg-amber-50 border border-amber-200 px-5 py-3">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
+            <IconRefresh className="w-4 h-4" />
+          </span>
+          <p className="text-xs text-amber-800 font-medium">
+            Ödeme penceresi <strong>yeni sekmede açılır</strong> — Polar güvenli ödeme sistemi. Fiyatlar TL olarak sabittir.
+          </p>
+        </div>
+      )}
+
       {/* Tabs */}
       <div className="flex gap-1 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm w-fit">
-        {(["overview", "plans", "history"] as const).map((tab) => (
+        {(["overview", "history"] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -509,8 +426,8 @@ export default function AbonelikPage() {
               activeTab === tab ? "bg-slate-900 text-white shadow-sm" : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            {tab === "overview" ? <IconList className="w-3.5 h-3.5" /> : tab === "plans" ? <IconTrendUp className="w-3.5 h-3.5" /> : <IconDocument className="w-3.5 h-3.5" />}
-            {tab === "overview" ? "Genel Bakış" : tab === "plans" ? "Plan Değiştir" : "Fatura Geçmişi"}
+            {tab === "overview" ? <IconList className="w-3.5 h-3.5" /> : <IconDocument className="w-3.5 h-3.5" />}
+            {tab === "overview" ? "Genel Bakış" : "Fatura Geçmişi"}
           </button>
         ))}
       </div>
@@ -579,117 +496,6 @@ export default function AbonelikPage() {
                 ))}
               </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── PLANS TAB ── */}
-      {activeTab === "plans" && (
-        <div className="space-y-6">
-          {/* Billing cycle toggle */}
-          <div className="flex items-center gap-4">
-            <div className="inline-flex items-center rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
-              {(["monthly", "annual"] as LsBillingCycle[]).map((cycle) => (
-                <button
-                  key={cycle}
-                  onClick={() => setBillingCycle(cycle)}
-                  className={`relative rounded-xl px-6 py-2.5 text-sm font-bold transition-all ${
-                    billingCycle === cycle ? "bg-blue-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-900"
-                  }`}
-                >
-                  {cycle === "monthly" ? "Aylık" : "Yıllık"}
-                  {cycle === "annual" && (
-                    <span className={`ml-2 text-[10px] font-black font-mono ${billingCycle === "annual" ? "text-blue-200" : "text-emerald-600"}`}>
-                      −{ANNUAL_DISCOUNT_PCT}%
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-            <p className="text-xs text-slate-500">
-              Fiyatlar USD cinsinden — anlık kur ile TRY karşılığı gösterilir
-            </p>
-          </div>
-
-          {/* Plan grid */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {PLANS.map((p) => {
-              const usd = PLAN_USD_PRICES[p][billingCycle];
-              const tryPrice = usd * rate;
-              const isCurrent = p === plan;
-              const pConf = PLAN_FEATURES[p];
-
-              const isUpgrade = PLANS.indexOf(p) > PLANS.indexOf(plan as LsPlan);
-
-              return (
-                <div
-                  key={p}
-                  className={`relative rounded-2xl border-2 bg-white overflow-hidden shadow-sm hover:shadow-lg transition-shadow ${
-                    isCurrent ? "border-blue-400 ring-2 ring-blue-200 ring-offset-1" : "border-slate-200"
-                  }`}
-                >
-                  {isCurrent && (
-                    <div
-                      className="absolute top-0 left-0 right-0 py-1 text-center text-[10px] font-black uppercase tracking-widest text-white"
-                      style={{ background: "linear-gradient(135deg, var(--accent, #3b82f6) 0%, #2563eb 100%)", boxShadow: "0 4px 16px rgba(59,130,246,0.3)" }}
-                    >
-                      Mevcut Planınız
-                    </div>
-                  )}
-
-                  <div className={`bg-slate-900 ${isCurrent ? "pt-8" : "pt-5"} pb-5 px-5`}>
-                    <p className="text-sm font-black uppercase tracking-widest text-slate-400">{p}</p>
-                    <div className="mt-2 flex items-baseline gap-1">
-                      <span className="text-3xl font-black text-white font-mono">${usd}</span>
-                      <span className="text-xs font-bold text-slate-400">/ay</span>
-                    </div>
-                    <p className="text-[11px] text-slate-400 mt-0.5 font-mono">
-                      ≈ ₺{tryPrice.toLocaleString("tr-TR", { maximumFractionDigits: 0 })} / ay
-                    </p>
-                  </div>
-
-                  <div className="p-5">
-                    <p className="text-[11px] font-semibold text-slate-500 mb-4">{pConf.description}</p>
-
-                    {isCurrent ? (
-                      <div className="flex items-center justify-center gap-1.5 w-full rounded-xl border border-blue-200 bg-blue-50 py-2.5 text-center text-xs font-bold text-blue-700">
-                        <IconCheckCircle className="w-3.5 h-3.5" />
-                        Aktif Plan
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => handleCheckout(p)}
-                        disabled={checkoutLoading !== null}
-                        className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-blue-600 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-60"
-                      >
-                        {checkoutLoading === p ? (
-                          <span className="flex items-center justify-center gap-2">
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                            Açılıyor…
-                          </span>
-                        ) : (
-                          <>
-                            {isUpgrade ? <IconArrowUp className="w-3.5 h-3.5" /> : <IconArrowDown className="w-3.5 h-3.5" />}
-                            {isUpgrade ? "Yükselt" : "Değiştir"} — {p}
-                          </>
-                        )}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Embed note */}
-          <div className="flex items-center gap-3 rounded-2xl bg-amber-50 border border-amber-200 px-5 py-3">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
-              <IconInfo className="w-4 h-4" />
-            </span>
-            <p className="text-xs text-amber-800 font-medium">
-              Ödeme penceresi <strong>uygulama içinde açılır</strong> — LemonSqueezy güvenli ödeme sistemi.
-              Kredi kartı, PayPal ve daha fazlası. USD olarak tahsil edilir; fatura kesilinceye kadar anlık kur bilgisi için danışın.
-            </p>
           </div>
         </div>
       )}

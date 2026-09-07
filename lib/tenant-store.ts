@@ -8,7 +8,7 @@ import { parseTenantMetadata, stringifyTenantMetadata, type TenantMetadata } fro
  *
  * A tenant is a Customer row whose `notes` column holds a JSON blob of platform
  * state: plan, licence dates, module entitlements, isFrozen, billing ledger.
- * The trial and LemonSqueezy routes each reached into the process-local JSON
+ * The trial and Polar routes each reached into the process-local JSON
  * store to read and rewrite that blob, which meant on a real deployment they
  * mutated a file the rest of the app never reads — trials and paid
  * subscriptions were invisible to the running application, and on serverless

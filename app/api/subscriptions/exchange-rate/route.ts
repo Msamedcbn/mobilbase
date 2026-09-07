@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { fetchUsdToTry } from "@/lib/lemonsqueezy";
+import { fetchUsdToTry } from "@/lib/exchange-rate";
 
 /**
  * GET /api/subscriptions/exchange-rate
