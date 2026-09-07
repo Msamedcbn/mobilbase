@@ -1,5 +1,4 @@
 import crypto from "node:crypto";
-import { hashSync } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore, writeLocalStore } from "@/lib/local-store";
@@ -29,6 +28,9 @@ export interface DirectPurchaseInput {
   ownerEmail: string;
   ownerPhone: string;
   subscriptionId: string | null;
+  /** Bcrypt hash of the password the buyer chose at checkout time. */
+  passwordHash: string;
+  referral: { code: string; ownerName: string; discountType: string; discountValue: number } | null;
 }
 
 export interface ProvisionResult {
@@ -36,8 +38,6 @@ export interface ProvisionResult {
   userId: string;
   sessionToken: string;
   isNew: boolean;
-  /** Only set when a brand-new account was just created — shown once. */
-  temporaryPassword: string | null;
 }
 
 async function findExistingTenantOwner(tenantId: string): Promise<{ userId: string; fullName: string; email: string } | null> {
@@ -72,7 +72,7 @@ export async function provisionPaidTenant(input: DirectPurchaseInput): Promise<P
     const token = createSignedSessionToken(
       buildSessionPayload({ userId: existingOwner.userId, tenantId: input.tenantId, fullName: existingOwner.fullName, email: existingOwner.email }) as any,
     );
-    return { tenantId: input.tenantId, userId: existingOwner.userId, sessionToken: token, isNew: false, temporaryPassword: null };
+    return { tenantId: input.tenantId, userId: existingOwner.userId, sessionToken: token, isNew: false };
   }
 
   const sub = input.subscriptionId ? await getSubscription(input.subscriptionId) : null;
@@ -101,13 +101,17 @@ export async function provisionPaidTenant(input: DirectPurchaseInput): Promise<P
     polarCurrentPeriodEnd: sub?.currentPeriodEnd ?? null,
     polarCancelAtPeriodEnd: sub?.cancelAtPeriodEnd ?? false,
     polarProductName: sub?.productName ?? "",
+    ...(input.referral
+      ? {
+          referralCode: input.referral.code,
+          referredBy: input.referral.ownerName,
+          referralDiscountType: input.referral.discountType,
+          referralDiscountValue: input.referral.discountValue,
+        }
+      : {}),
   };
 
-  // Shown once on the success screen — the account has no email-verified
-  // recovery path yet, so this (not a magic link) is the only way back in
-  // until the owner sets a real password from settings.
-  const temporaryPassword = crypto.randomBytes(9).toString("base64url");
-  const passwordHash = hashSync(temporaryPassword, 10);
+  const passwordHash = input.passwordHash;
 
   let userId: string;
 
@@ -174,13 +178,15 @@ export async function provisionPaidTenant(input: DirectPurchaseInput): Promise<P
     action: "TENANT_PROVISIONED",
     targetType: "TENANT",
     targetId: input.tenantId,
-    detail: `${input.shopName} (${input.ownerEmail}) doğrudan satın alma ile hesap oluşturdu`,
-    context: { subscriptionId: input.subscriptionId },
+    detail: input.referral
+      ? `${input.shopName} (${input.ownerEmail}) doğrudan satın alma ile hesap oluşturdu — referans: ${input.referral.ownerName} (${input.referral.code})`
+      : `${input.shopName} (${input.ownerEmail}) doğrudan satın alma ile hesap oluşturdu`,
+    context: { subscriptionId: input.subscriptionId, referral: input.referral },
   });
 
   const token = createSignedSessionToken(
     buildSessionPayload({ userId, tenantId: input.tenantId, fullName: input.ownerName, email: input.ownerEmail }) as any,
   );
 
-  return { tenantId: input.tenantId, userId, sessionToken: token, isNew: true, temporaryPassword };
+  return { tenantId: input.tenantId, userId, sessionToken: token, isNew: true };
 }

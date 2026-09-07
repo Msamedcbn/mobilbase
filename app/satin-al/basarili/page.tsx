@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 type State =
   | { status: "loading" }
   | { status: "error"; message: string }
-  | { status: "success"; email: string | null; shopName: string; temporaryPassword: string | null; isNew: boolean };
+  | { status: "success"; email: string | null; shopName: string; isNew: boolean };
 
 function IconCheck(props: { className?: string }) {
   return (
@@ -20,7 +20,6 @@ function Content() {
   const params = useSearchParams();
   const checkoutId = params.get("checkout_id");
   const [state, setState] = useState<State>({ status: "loading" });
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!checkoutId) {
@@ -38,20 +37,11 @@ function Content() {
           status: "success",
           email: json.email ?? null,
           shopName: json.shopName ?? "",
-          temporaryPassword: json.temporaryPassword ?? null,
           isNew: Boolean(json.isNew),
         });
       })
       .catch(() => setState({ status: "error", message: "Bağlantı hatası. Sayfayı yenileyip tekrar deneyin." }));
   }, [checkoutId]);
-
-  const copyPassword = async (pw: string) => {
-    try {
-      await navigator.clipboard.writeText(pw);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {}
-  };
 
   return (
     <section className="relative flex min-h-[100dvh] items-center justify-center overflow-hidden bg-[#030712] px-4 py-16" style={{ fontFamily: "'Satoshi', 'Plus Jakarta Sans', sans-serif" }}>
@@ -86,25 +76,6 @@ function Content() {
               </div>
               <p className="text-xl font-black text-white">Ödemeniz alındı! 🎉</p>
               <p className="text-sm text-slate-400">{state.shopName} hesabınız hazır. Panelinize giriş yaptık.</p>
-
-              {state.isNew && state.temporaryPassword && (
-                <div className="w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-left">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-amber-400">Giriş Bilgileriniz — bir daha gösterilmeyecek</p>
-                  <div className="mt-2 space-y-1.5 text-sm">
-                    <p className="text-slate-300">E-posta: <span className="font-bold text-white">{state.email}</span></p>
-                    <div className="flex items-center gap-2">
-                      <p className="text-slate-300">Şifre: <span className="font-mono font-bold text-white">{state.temporaryPassword}</span></p>
-                      <button
-                        onClick={() => copyPassword(state.temporaryPassword!)}
-                        className="rounded-lg bg-white/10 px-2 py-1 text-[11px] font-bold text-slate-200 hover:bg-white/20 transition"
-                      >
-                        {copied ? "Kopyalandı ✓" : "Kopyala"}
-                      </button>
-                    </div>
-                  </div>
-                  <p className="mt-2 text-[11px] text-slate-500">Bu bilgileri bir yere kaydedin. Panelden istediğiniz zaman şifrenizi değiştirebilirsiniz.</p>
-                </div>
-              )}
 
               <a href="/dashboard" className="mt-2 w-full rounded-full bg-blue-600 px-8 py-3.5 text-sm font-black text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700">
                 Panele Git

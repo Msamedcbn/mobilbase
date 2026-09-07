@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import crypto from "node:crypto";
+import { hashSync } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import { readLocalStore } from "@/lib/local-store";
@@ -32,6 +33,8 @@ export async function POST(req: Request) {
     const fullName = (typeof body.fullName === "string" ? body.fullName.trim() : "") || shopName;
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
     const phone = typeof body.phone === "string" ? normalizeTrPhone(body.phone) : "";
+    const password = typeof body.password === "string" ? body.password : "";
+    const referralCode = typeof body.referralCode === "string" ? body.referralCode.trim() : "";
     const cycle: BillingCycle = body.cycle === "annual" ? "annual" : "monthly";
 
     if (!shopName) return NextResponse.json({ error: "Bayi adı zorunludur" }, { status: 400 });
@@ -40,6 +43,9 @@ export async function POST(req: Request) {
     }
     if (!/^5\d{9}$/.test(phone)) {
       return NextResponse.json({ error: "Telefon numarası 5 ile başlayan 10 haneli olmalıdır (örn: 5XX XXX XX XX)" }, { status: 400 });
+    }
+    if (password.length < 8) {
+      return NextResponse.json({ error: "Şifre en az 8 karakter olmalıdır" }, { status: 400 });
     }
 
     // An existing account should log in and (re)subscribe from inside the
@@ -72,6 +78,13 @@ export async function POST(req: Request) {
     const tenantId = `buyer-${crypto.randomUUID()}`;
     const baseUrl = process.env.APP_BASE_URL ?? "http://localhost:3000";
 
+    // Only the bcrypt hash ever leaves this request — Polar stores checkout
+    // metadata on their side, so the raw password must never be forwarded.
+    // The referral code itself is only a preview here; it's actually consumed
+    // in /api/subscriptions/complete once the payment has really gone through,
+    // so an abandoned checkout can't burn someone's code for nothing.
+    const passwordHash = hashSync(password, 10);
+
     const result = await createCheckoutUrl({
       productId,
       tenantId,
@@ -83,6 +96,8 @@ export async function POST(req: Request) {
         fullName,
         phone,
         cycle,
+        passwordHash,
+        ...(referralCode ? { referralCode } : {}),
       },
       redirectUrl: `${baseUrl}/satin-al/basarili?checkout_id={CHECKOUT_ID}`,
     });

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCheckout } from "@/lib/polar";
 import { provisionPaidTenant } from "@/lib/direct-purchase";
+import { findAndConsumeReferralCode } from "@/lib/marketing";
 
 /**
  * GET /api/subscriptions/complete?checkout_id=...
@@ -28,8 +29,29 @@ export async function GET(req: Request) {
   const shopName = (typeof meta.shopName === "string" && meta.shopName.trim()) || "Yeni Bayi";
   const fullName = (typeof meta.fullName === "string" && meta.fullName.trim()) || shopName;
   const phone = typeof meta.phone === "string" ? meta.phone : "";
+  const passwordHash = typeof meta.passwordHash === "string" ? meta.passwordHash : "";
+  const referralCodeRaw = typeof meta.referralCode === "string" ? meta.referralCode : "";
+
+  if (!passwordHash) {
+    return NextResponse.json({ error: "Şifre bilgisi bulunamadı, lütfen destek ile iletişime geçin" }, { status: 400 });
+  }
 
   try {
+    // Consumed here, not at checkout creation, so an abandoned/failed payment
+    // never burns the buyer's referral code for nothing.
+    let referral: { code: string; ownerName: string; discountType: string; discountValue: number } | null = null;
+    if (referralCodeRaw) {
+      const consumed = await findAndConsumeReferralCode(referralCodeRaw);
+      if (consumed) {
+        referral = {
+          code: consumed.code,
+          ownerName: consumed.ownerName,
+          discountType: consumed.discountType,
+          discountValue: consumed.discountValue,
+        };
+      }
+    }
+
     const result = await provisionPaidTenant({
       tenantId,
       shopName,
@@ -37,13 +59,14 @@ export async function GET(req: Request) {
       ownerEmail: checkout.customerEmail ?? "",
       ownerPhone: phone,
       subscriptionId: checkout.subscriptionId,
+      passwordHash,
+      referral,
     });
 
     const response = NextResponse.json({
       ok: true,
       email: checkout.customerEmail,
       shopName,
-      temporaryPassword: result.temporaryPassword,
       isNew: result.isNew,
     });
 

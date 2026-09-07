@@ -1,7 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+
+type ReferralPreview =
+  | { status: "idle" | "checking" }
+  | { status: "valid"; ownerName: string; discountType: "percent" | "fixed"; discountValue: number }
+  | { status: "invalid" };
 
 function normalizeTrPhone(input: string) {
   let digits = input.replace(/\D/g, "");
@@ -21,10 +26,42 @@ export function DirectPurchaseButton({ cycle }: { cycle: "monthly" | "annual" })
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [referralCode, setReferralCode] = useState("");
+  const [referralPreview, setReferralPreview] = useState<ReferralPreview>({ status: "idle" });
   const [kvkkAccepted, setKvkkAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const close = () => { if (!loading) setOpen(false); };
+
+  useEffect(() => {
+    if (!open) return;
+    const trimmed = referralCode.trim();
+    if (!trimmed) {
+      setReferralPreview({ status: "idle" });
+      return;
+    }
+    setReferralPreview({ status: "checking" });
+    const handle = setTimeout(() => {
+      fetch(`/api/referral-codes/validate?code=${encodeURIComponent(trimmed)}`)
+        .then((r) => r.json())
+        .then((json) => {
+          if (json?.valid) {
+            setReferralPreview({
+              status: "valid",
+              ownerName: json.ownerName,
+              discountType: json.discountType,
+              discountValue: json.discountValue,
+            });
+          } else {
+            setReferralPreview({ status: "invalid" });
+          }
+        })
+        .catch(() => setReferralPreview({ status: "invalid" }));
+    }, 400);
+    return () => clearTimeout(handle);
+  }, [referralCode, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +81,10 @@ export function DirectPurchaseButton({ cycle }: { cycle: "monthly" | "annual" })
       toast.error("Telefon numarası 5 ile başlayan 10 haneli olmalıdır (örn: 5XX XXX XX XX)");
       return;
     }
+    if (password.length < 8) {
+      toast.error("Şifre en az 8 karakter olmalıdır");
+      return;
+    }
     if (!kvkkAccepted) {
       toast.error("Devam etmek için Gizlilik Politikası ve KVKK Aydınlatma Metni'ni onaylamanız gerekir");
       return;
@@ -59,6 +100,8 @@ export function DirectPurchaseButton({ cycle }: { cycle: "monthly" | "annual" })
           fullName: fullName.trim() || shopName.trim(),
           email: trimmedEmail,
           phone: normalizedPhone,
+          password,
+          referralCode: referralCode.trim() || undefined,
           cycle,
         }),
       });
@@ -133,6 +176,47 @@ export function DirectPurchaseButton({ cycle }: { cycle: "monthly" | "annual" })
                   required
                   className="w-full bg-transparent px-2 py-2.5 text-sm font-semibold text-slate-900 placeholder-slate-400 focus:outline-none"
                 />
+              </div>
+              <div className="relative">
+                <input
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Şifre belirleyin (en az 8 karakter)"
+                  type={showPassword ? "text" : "password"}
+                  minLength={8}
+                  required
+                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 pr-11 text-sm font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-700 transition"
+                >
+                  {showPassword ? "Gizle" : "Göster"}
+                </button>
+              </div>
+              <div>
+                <input
+                  value={referralCode}
+                  onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                  placeholder="Referans kodu (varsa)"
+                  className={`w-full rounded-xl border px-4 py-2.5 text-sm font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 transition ${
+                    referralPreview.status === "valid"
+                      ? "border-emerald-400 focus:ring-emerald-200"
+                      : referralPreview.status === "invalid"
+                      ? "border-rose-400 focus:ring-rose-200"
+                      : "border-slate-200 focus:ring-blue-400"
+                  }`}
+                />
+                {referralPreview.status === "valid" && (
+                  <p className="mt-1.5 text-xs font-bold text-emerald-600">
+                    ✓ {referralPreview.ownerName} referansı uygulanacak
+                    {referralPreview.discountType === "percent" ? ` (%${referralPreview.discountValue} indirim)` : ` (₺${referralPreview.discountValue} indirim)`}
+                  </p>
+                )}
+                {referralPreview.status === "invalid" && (
+                  <p className="mt-1.5 text-xs font-bold text-rose-600">Bu kod geçerli değil veya süresi doldu — boş bırakabilirsiniz</p>
+                )}
               </div>
 
               <label className="flex items-start gap-2.5 text-[11px] leading-5 text-slate-500">
