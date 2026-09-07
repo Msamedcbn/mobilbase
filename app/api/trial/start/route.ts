@@ -10,6 +10,10 @@ import { findAndConsumeReferralCode } from "@/lib/marketing";
 
 const TRIAL_DAYS = 7;
 
+function isStrongPassword(pw: string) {
+  return pw.length >= 8 && /[A-Z]/.test(pw) && /[a-z]/.test(pw) && /[^A-Za-z0-9]/.test(pw);
+}
+
 function normalizeTrPhone(input: string) {
   let digits = input.replace(/\D/g, "");
   if (digits.startsWith("90") && digits.length === 12) digits = digits.slice(2);
@@ -105,8 +109,11 @@ export async function POST(req: Request) {
     if (!phone || typeof phone !== "string" || !phone.trim()) {
       return NextResponse.json({ error: "Telefon numarası zorunludur" }, { status: 400 });
     }
-    if (!password || typeof password !== "string" || password.length < 8) {
-      return NextResponse.json({ error: "Şifre en az 8 karakter olmalıdır" }, { status: 400 });
+    if (!password || typeof password !== "string" || !isStrongPassword(password)) {
+      return NextResponse.json(
+        { error: "Şifre en az 8 karakter olmalı; büyük/küçük harf ve özel karakter içermelidir" },
+        { status: 400 },
+      );
     }
     const normalizedPhone = normalizeTrPhone(phone);
     if (!/^5\d{9}$/.test(normalizedPhone)) {

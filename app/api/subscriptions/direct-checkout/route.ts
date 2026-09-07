@@ -23,6 +23,10 @@ function normalizeTrPhone(input: string) {
   return digits;
 }
 
+function isStrongPassword(pw: string) {
+  return pw.length >= 8 && /[A-Z]/.test(pw) && /[a-z]/.test(pw) && /[^A-Za-z0-9]/.test(pw);
+}
+
 export async function POST(req: Request) {
   const limit = await checkRateLimit(req, { bucket: "direct-checkout", limit: 5, windowMs: 60 * 60_000 });
   if (!limit.ok) return rateLimitResponse(limit);
@@ -44,8 +48,11 @@ export async function POST(req: Request) {
     if (!/^5\d{9}$/.test(phone)) {
       return NextResponse.json({ error: "Telefon numarası 5 ile başlayan 10 haneli olmalıdır (örn: 5XX XXX XX XX)" }, { status: 400 });
     }
-    if (password.length < 8) {
-      return NextResponse.json({ error: "Şifre en az 8 karakter olmalıdır" }, { status: 400 });
+    if (!isStrongPassword(password)) {
+      return NextResponse.json(
+        { error: "Şifre en az 8 karakter olmalı; büyük/küçük harf ve özel karakter içermelidir" },
+        { status: 400 },
+      );
     }
 
     // An existing account should log in and (re)subscribe from inside the

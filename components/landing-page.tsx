@@ -8,7 +8,6 @@ import { SplitText } from "gsap/SplitText";
 import { useGSAP } from "@gsap/react";
 import { PLAN_NAME, PLAN_PRICE_TRY, ANNUAL_DISCOUNT_PCT } from "@/lib/subscription-plans";
 import { useActiveCampaigns, CampaignBanners, CampaignModals } from "@/components/campaign-popups";
-import { DirectPurchaseButton } from "@/components/direct-purchase-modal";
 
 gsap.registerPlugin(ScrollTrigger, SplitText, useGSAP);
 
@@ -841,7 +840,13 @@ export function LandingPage() {
                   <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                 </span>
               </a>
-              <DirectPurchaseButton cycle={billingCycle} />
+              <a
+                href={`/satin-al?cycle=${billingCycle}`}
+                title="Doğrudan Satın Al"
+                className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white py-2.5 text-[13px] font-bold text-slate-800 transition hover:border-slate-300 hover:bg-slate-50"
+              >
+                💳 Doğrudan Satın Al
+              </a>
               <a
                 href={WHATSAPP_HREF}
                 target="_blank"

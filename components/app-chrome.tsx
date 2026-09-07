@@ -28,6 +28,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
     pathname === "/yardim" ||
     pathname === "/gizlilik-ve-kvkk" ||
     pathname === "/takas-hesapla" ||
+    pathname?.startsWith("/satin-al") ||
     pathname?.startsWith("/sehirler") ||
     pathname?.startsWith("/servis/") ||
     pathname?.startsWith("/studio") ||
