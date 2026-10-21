@@ -3,7 +3,7 @@ import Link from "next/link";
 import { PublicHeader } from "@/components/public-header";
 
 const BASE_URL = process.env.APP_BASE_URL ?? "https://www.vibegsm.com.tr";
-const WHATSAPP_HREF = "https://wa.me/905454403452?text=Merhaba,%20VibeGSM%20hakk%C4%B1nda%20detayl%C4%B1%20bilgi%20almak%20istiyorum.";
+const WHATSAPP_HREF = "https://wa.me/905525751101?text=Merhaba,%20VibeGSM%20hakk%C4%B1nda%20detayl%C4%B1%20bilgi%20almak%20istiyorum.";
 
 export const metadata: Metadata = {
   title: "Neden VibeGSM? Telefon Dükkanları İçin Bulut Otomasyonu",

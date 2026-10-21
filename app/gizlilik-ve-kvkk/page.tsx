@@ -136,7 +136,7 @@ export default function GizlilikVeKvkkPage() {
           <p>
             Kişisel verilerinizle ilgili talepleriniz için <strong>[KVKK BAŞVURU E-POSTASI — örn. kvkk@vibegsm.com.tr]</strong>{" "}
             adresine yazılı olarak veya{" "}
-            <a href="https://wa.me/905454403452" className="font-bold text-blue-600 hover:underline">WhatsApp destek hattımızdan</a>{" "}
+            <a href="https://wa.me/905525751101" className="font-bold text-blue-600 hover:underline">WhatsApp destek hattımızdan</a>{" "}
             bize ulaşabilirsiniz. Başvurunuz en geç 30 gün içinde sonuçlandırılır.
           </p>
         </Section>
