@@ -82,7 +82,7 @@ export default function StoryPreviewPage() {
           {/* Bottom CTA */}
           <div className="relative z-10 pt-2">
             <a
-              href="https://wa.me/905454403452?text=Merhaba,%20VibeGSM%20demo%20talebi%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum."
+              href="https://wa.me/905525751101?text=Merhaba,%20VibeGSM%20demo%20talebi%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum."
               target="_blank"
               rel="noopener noreferrer"
               className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#25D366] py-3.5 text-sm font-black text-white shadow-xl shadow-[#25D366]/30 transition hover:brightness-110"
@@ -158,7 +158,7 @@ export default function StoryPreviewPage() {
           {/* Bottom Button */}
           <div className="relative z-10 pt-2">
             <a
-              href="https://wa.me/905454403452?text=Teknik%20servis%20ve%20SMS%20otomasyonu%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum."
+              href="https://wa.me/905525751101?text=Teknik%20servis%20ve%20SMS%20otomasyonu%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum."
               target="_blank"
               rel="noopener noreferrer"
               className="flex w-full items-center justify-center gap-2 rounded-2xl bg-cyan-500 py-3.5 text-sm font-black text-slate-950 shadow-xl shadow-cyan-500/25 transition hover:bg-cyan-400"
@@ -225,7 +225,7 @@ export default function StoryPreviewPage() {
           {/* Bottom Button */}
           <div className="relative z-10 pt-2">
             <a
-              href="https://wa.me/905454403452?text=Y%C4%B1ll%C4%B1k%2012.000%20TL%20%2550%20indirimli%20paket%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum."
+              href="https://wa.me/905525751101?text=Y%C4%B1ll%C4%B1k%2012.000%20TL%20%2550%20indirimli%20paket%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum."
               target="_blank"
               rel="noopener noreferrer"
               className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 to-red-500 py-3.5 text-sm font-black text-white shadow-xl shadow-orange-600/30 transition hover:brightness-110"

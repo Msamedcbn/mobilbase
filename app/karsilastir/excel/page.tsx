@@ -108,7 +108,7 @@ export default function ExcelComparisonPage() {
               7 Gün Ücretsiz Deneyin
             </Link>
             <a
-              href="https://wa.me/905454403452?text=Merhaba%2C%20Excel'den%20VibeGSM'e%20ge%C3%A7i%C5%9F%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum."
+              href="https://wa.me/905525751101?text=Merhaba%2C%20Excel'den%20VibeGSM'e%20ge%C3%A7i%C5%9F%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum."
               target="_blank"
               rel="noopener noreferrer nofollow"
               className="rounded-full border border-white/20 bg-white/5 px-6 py-3.5 text-sm font-black text-white transition hover:bg-white/10"

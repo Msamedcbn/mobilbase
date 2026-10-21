@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 
 const WHATSAPP_HREF =
-  "https://wa.me/905454403452?text=" +
+  "https://wa.me/905525751101?text=" +
   encodeURIComponent("Merhaba, Excel yerine VibeGSM'e geçiş yapmak istiyorum, bilgi almak istiyorum.");
 
 export function RoiCalculator() {

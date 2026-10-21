@@ -11,7 +11,7 @@ import { useActiveCampaigns, CampaignBanners, CampaignModals } from "@/component
 
 gsap.registerPlugin(ScrollTrigger, SplitText, useGSAP);
 
-const WHATSAPP_NUMBER = "905454403452";
+const WHATSAPP_NUMBER = "905525751101";
 const WHATSAPP_MESSAGE = "Merhaba, VibeGSM hakkında bilgi almak istiyorum. Bayimiz için demo talep edebilir miyim?";
 const WHATSAPP_HREF = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
 

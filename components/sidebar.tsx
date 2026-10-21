@@ -315,7 +315,7 @@ export function Sidebar({ onNavigate, className = "" }: { onNavigate?: () => voi
 
         {trialDaysLeft !== null && (
           <a
-            href="https://wa.me/905454403452?text=Merhaba%2C%20VibeGSM%20deneme%20s%C3%BCremi%20abonelie%20%C3%A7evirmek%20istiyorum."
+            href="https://wa.me/905525751101?text=Merhaba%2C%20VibeGSM%20deneme%20s%C3%BCremi%20abonelie%20%C3%A7evirmek%20istiyorum."
             target="_blank"
             rel="noopener noreferrer"
             className="mb-4 flex items-center justify-between gap-2 rounded-2xl border border-amber-400/25 bg-amber-400/10 px-3.5 py-2.5 text-xs transition hover:bg-amber-400/15"

@@ -184,7 +184,7 @@ export default function CitySeoPage({ params }: Props) {
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <a
-              href={`https://wa.me/905454403452?text=${encodeURIComponent(`Merhaba, ${cityInfo.name} dükkanım için VibeGSM hakkında bilgi almak istiyorum.`)}`}
+              href={`https://wa.me/905525751101?text=${encodeURIComponent(`Merhaba, ${cityInfo.name} dükkanım için VibeGSM hakkında bilgi almak istiyorum.`)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 rounded-full bg-[#25D366] px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-[#25D366]/25 transition hover:brightness-105"

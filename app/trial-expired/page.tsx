@@ -34,7 +34,7 @@ export default function TrialExpiredPage() {
           </p>
           <div className="mt-5 flex flex-wrap justify-center gap-3">
             <a
-              href="https://wa.me/905454403452?text=Merhaba,%20VibeGSM%20deneme%20s%C3%BCremi%20uzatmak/abonelik%20ba%C5%9Flatmak%20istiyorum."
+              href="https://wa.me/905525751101?text=Merhaba,%20VibeGSM%20deneme%20s%C3%BCremi%20uzatmak/abonelik%20ba%C5%9Flatmak%20istiyorum."
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-full bg-[#25D366] px-6 py-3 text-sm font-black text-white shadow-lg transition hover:brightness-105"

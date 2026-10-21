@@ -63,7 +63,7 @@ function Content() {
               </div>
               <p className="text-lg font-black text-white">Doğrulanamadı</p>
               <p className="text-sm text-slate-400">{state.message}</p>
-              <a href="https://wa.me/905454403452" target="_blank" rel="noopener noreferrer nofollow" className="mt-2 rounded-full bg-[#25D366] px-6 py-3 text-sm font-black text-white shadow-lg shadow-[#25D366]/25 transition hover:brightness-105">
+              <a href="https://wa.me/905525751101" target="_blank" rel="noopener noreferrer nofollow" className="mt-2 rounded-full bg-[#25D366] px-6 py-3 text-sm font-black text-white shadow-lg shadow-[#25D366]/25 transition hover:brightness-105">
                 WhatsApp&apos;tan Destek Alın
               </a>
             </div>
