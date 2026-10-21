@@ -434,10 +434,6 @@ export function LandingPage() {
 
         <div className={`overflow-hidden border-b border-slate-200 bg-white transition-all duration-500 ${scrolled ? "max-h-0 opacity-0" : "max-h-12 opacity-100"}`}>
           <div className="mx-auto hidden max-w-6xl items-center justify-end gap-6 px-8 py-2.5 text-[12px] font-semibold text-slate-500 md:flex">
-            <a href="tel:+905454403452" className="flex items-center gap-1.5 transition hover:text-slate-900 font-bold">
-              <svg className="h-3.5 w-3.5 text-blue-600" fill="none" stroke="currentColor" strokeWidth={1.75} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h1.5a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>
-              Destek &amp; Bilgi Hattı: 0545 440 34 52
-            </a>
             <a href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer nofollow" className="flex items-center gap-1.5 rounded-full bg-[#25D366]/10 px-3.5 py-1.5 font-black text-[#1da851] transition hover:bg-[#25D366]/20">
               💬 WhatsApp&apos;tan Yazın
             </a>
@@ -525,13 +521,6 @@ export function LandingPage() {
             className="flex flex-1 items-center justify-center rounded-full bg-[#25D366] py-3 text-sm font-black text-white shadow-md shadow-[#25D366]/25"
           >
             WhatsApp ile Bilgi Alın
-          </a>
-          <a
-            href="tel:+905454403452"
-            aria-label="Hemen Ara"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700"
-          >
-            <svg className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth={1.75} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h1.5a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>
           </a>
         </div>
       </div>
@@ -931,10 +920,6 @@ export function LandingPage() {
                 >
                   WhatsApp ile İletişime Geçin
                   <TrailingIcon />
-                </a>
-                <a href="tel:+905454403452" className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-8 py-3.5 text-sm font-bold text-slate-800 shadow-sm transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]">
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h1.5a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>
-                  Hemen Ara
                 </a>
               </div>
             </div>
