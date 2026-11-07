@@ -12,6 +12,10 @@ import CustomerQuickAddModal from "@/components/customer-quick-add-modal";
 const posSans = Outfit({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], variable: "--font-pos-sans" });
 const posMono = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-pos-mono" });
 
+// e-Arşiv akışı şu an bir simülasyon (GİB'e gerçek gönderim yok); gerçek
+// entegrasyon gelene kadar düğme gizli. Sunucu tarafı E_ARCHIVE_ENABLED ile kapalı.
+const E_ARCHIVE_UI_ENABLED = false;
+
 type Branch = { id: string; name: string };
 type Product = {
   id: string;
@@ -1806,7 +1810,7 @@ export default function PosPage() {
             </p>
             
             <div className="flex flex-col gap-2">
-              <div className="grid grid-cols-2 gap-2">
+              <div className={`grid gap-2 ${E_ARCHIVE_UI_ENABLED ? "grid-cols-2" : "grid-cols-1"}`}>
                 <button 
                   className="py-3 bg-slate-900 hover:bg-slate-850 text-white text-xs font-bold rounded-2xl shadow-sm hover:shadow active:scale-95 transition flex items-center justify-center gap-1.5"
                   onClick={() => printReceipt(receipt)}
@@ -1816,16 +1820,18 @@ export default function PosPage() {
                   </svg>
                   Fiş Yazdır
                 </button>
-                <button 
-                  className="py-3 bg-blue-700 hover:bg-blue-650 text-white text-xs font-bold rounded-2xl shadow-sm hover:shadow active:scale-95 transition flex items-center justify-center gap-1.5 disabled:opacity-50"
-                  onClick={generateEArchiveInvoice}
-                  disabled={isSigningInvoice}
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-                  </svg>
-                  {isSigningInvoice ? "Bağlanıyor..." : "e-Arşiv Fatura"}
-                </button>
+                {E_ARCHIVE_UI_ENABLED && (
+                  <button 
+                    className="py-3 bg-blue-700 hover:bg-blue-650 text-white text-xs font-bold rounded-2xl shadow-sm hover:shadow active:scale-95 transition flex items-center justify-center gap-1.5 disabled:opacity-50"
+                    onClick={generateEArchiveInvoice}
+                    disabled={isSigningInvoice}
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                    </svg>
+                    {isSigningInvoice ? "Bağlanıyor..." : "e-Arşiv Fatura"}
+                  </button>
+                )}
               </div>
               <button 
                 className="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-650 text-xs font-bold rounded-2xl transition active:scale-95" 
