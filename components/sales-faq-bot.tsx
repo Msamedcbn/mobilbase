@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { FAQ_NODES, FAQ_ROOT_ID, salesWhatsAppHref } from "@/lib/sales-faq";
+import { FAQ_NODES, FAQ_ROOT_ID, salesWhatsAppHref, searchFaq } from "@/lib/sales-faq";
 
 type ChatMessage = { from: "bot" | "user"; lines: string[] };
 
@@ -17,6 +17,7 @@ export function SalesFaqBot() {
   const [messages, setMessages] = useState<ChatMessage[]>([{ from: "bot", lines: FAQ_NODES[FAQ_ROOT_ID].answer }]);
   const [currentId, setCurrentId] = useState(FAQ_ROOT_ID);
   const [typing, setTyping] = useState(false);
+  const [query, setQuery] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
@@ -31,6 +32,7 @@ export function SalesFaqBot() {
     const node = FAQ_NODES[nextId];
     if (!node || typing) return;
     setMessages((prev) => [...prev, { from: "user", lines: [label] }]);
+    setQuery("");
     setTyping(true);
     timerRef.current = setTimeout(() => {
       const lines = nextId === FAQ_ROOT_ID ? ["Başka hangi konuda yardımcı olabilirim?"] : node.answer;
@@ -41,6 +43,10 @@ export function SalesFaqBot() {
   };
 
   const current = FAQ_NODES[currentId];
+  const searching = query.trim().length >= 2;
+  const options = searching
+    ? searchFaq(query).map((id) => ({ label: FAQ_NODES[id].question, next: id }))
+    : current.options;
 
   return (
     <div className="fixed bottom-20 right-5 z-[80] flex flex-col items-end gap-3 md:bottom-6 md:right-6">
@@ -92,7 +98,12 @@ export function SalesFaqBot() {
               </div>
             ) : (
               <div className="flex flex-wrap gap-2 pt-1">
-                {current.options.map((o) => (
+                {searching && (
+                  <p className="w-full text-[11px] font-bold uppercase tracking-wide text-slate-400">
+                    {options.length ? "Bulunan sorular" : "Bu konuda hazır cevap bulamadım, aşağıdan WhatsApp'tan sorabilirsiniz."}
+                  </p>
+                )}
+                {options.map((o) => (
                   <button
                     key={o.next + o.label}
                     type="button"
@@ -106,7 +117,15 @@ export function SalesFaqBot() {
             )}
           </div>
 
-          <div className="border-t border-slate-200 bg-white px-4 py-3">
+          <div className="space-y-2.5 border-t border-slate-200 bg-white px-4 py-3">
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Sorunuzu arayın (ör. taksit, fiyat, yazıcı)"
+              aria-label="Sorularda ara"
+              className="w-full rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-[13px] text-slate-800 placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:outline-none"
+            />
             <a
               href={salesWhatsAppHref(current.question)}
               target="_blank"

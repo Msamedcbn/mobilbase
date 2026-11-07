@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FAQ_NODES, FAQ_ROOT_ID, salesWhatsAppHref } from "@/lib/sales-faq";
+import { FAQ_NODES, FAQ_ROOT_ID, salesWhatsAppHref, searchFaq } from "@/lib/sales-faq";
 
 describe("sales FAQ bot content", () => {
   it("every option points to an existing node", () => {
@@ -35,5 +35,19 @@ describe("sales FAQ bot content", () => {
     expect(decodeURIComponent(salesWhatsAppHref("Fiyatlar ne kadar?"))).toContain('"Fiyatlar ne kadar?" konusunu okudum');
     expect(decodeURIComponent(salesWhatsAppHref(FAQ_NODES[FAQ_ROOT_ID].question))).not.toContain("konusunu okudum");
     expect(salesWhatsAppHref()).toMatch(/^https:\/\/wa\.me\/905525751101\?text=/);
+  });
+});
+
+describe("sales FAQ search", () => {
+  it("finds questions by Turkish keywords regardless of case", () => {
+    expect(searchFaq("TAKSİT")).toContain("f_credit");
+    expect(searchFaq("yazıcı")).toContain("f_print");
+    expect(searchFaq("ne kadar")[0]).toBe("pricing");
+  });
+
+  it("never returns category menus and ignores too-short queries", () => {
+    expect(searchFaq("özellikler")).not.toContain("c_features");
+    expect(searchFaq("a")).toEqual([]);
+    expect(searchFaq("zzzz")).toEqual([]);
   });
 });
