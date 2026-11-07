@@ -8,6 +8,7 @@ import { SplitText } from "gsap/SplitText";
 import { useGSAP } from "@gsap/react";
 import { PLAN_NAME, PLAN_PRICE_TRY, ANNUAL_DISCOUNT_PCT } from "@/lib/subscription-plans";
 import { useActiveCampaigns, CampaignBanners, CampaignModals } from "@/components/campaign-popups";
+import { SalesFaqBot } from "@/components/sales-faq-bot";
 
 gsap.registerPlugin(ScrollTrigger, SplitText, useGSAP);
 
@@ -497,16 +498,7 @@ export function LandingPage() {
 
       <CampaignModals campaigns={activeModals} />
 
-      <a
-        href={WHATSAPP_HREF}
-        target="_blank"
-        rel="noopener noreferrer nofollow"
-        aria-label="WhatsApp'tan yazın"
-        className="group fixed bottom-20 right-5 z-[80] flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] shadow-[0_10px_30px_-8px_rgba(37,211,102,0.6)] transition-transform hover:scale-105 active:scale-95 md:bottom-6 md:right-6"
-      >
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#25D366] opacity-40" />
-        <svg className="relative h-7 w-7 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 004.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0012.04 2zm0 18.13a8.2 8.2 0 01-4.19-1.15l-.3-.18-3.11.82.83-3.04-.2-.31a8.22 8.22 0 01-1.26-4.36c0-4.54 3.7-8.24 8.25-8.24 2.2 0 4.27.86 5.83 2.42a8.19 8.19 0 012.41 5.83c0 4.55-3.7 8.21-8.26 8.21zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.17.25-.64.81-.78.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.12-.15.16-.25.24-.42.08-.17.04-.31-.02-.44-.06-.12-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.43-.14-.01-.31-.01-.48-.01-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.09s.9 2.42 1.02 2.59c.12.17 1.77 2.7 4.29 3.79.6.26 1.07.41 1.43.53.6.19 1.15.16 1.58.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.14-1.18-.06-.1-.23-.16-.48-.28z" /></svg>
-      </a>
+      <SalesFaqBot />
 
       <div
         className={`fixed inset-x-0 bottom-0 z-[70] border-t border-slate-200 bg-white/95 backdrop-blur-xl px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3 shadow-[0_-10px_30px_-15px_rgba(15,23,42,0.15)] transition-transform duration-500 md:hidden ${

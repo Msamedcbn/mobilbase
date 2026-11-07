@@ -26,6 +26,14 @@ export function isBuybackBackofficeAdminOnly() {
   return envFlag("BUYBACK_BACKOFFICE_ADMIN_ONLY", false);
 }
 
+/**
+ * POS'taki e-Arşiv fatura akışı henüz gerçek bir GİB / entegratör bağlantısı
+ * değil, simülasyon. Gerçek entegrasyon gelene kadar kapalı kalmalı.
+ */
+export function isEArchiveEnabled() {
+  return envFlag("E_ARCHIVE_ENABLED", false);
+}
+
 export function requireFeature(enabled: boolean, message: string) {
   if (enabled) return null;
   return fail(message, "FORBIDDEN", 403);

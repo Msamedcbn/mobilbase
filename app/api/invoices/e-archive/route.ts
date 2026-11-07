@@ -4,10 +4,14 @@ import { getErrorCode, getErrorMessage, getErrorStatus } from "@/lib/errors";
 import { fail, ok } from "@/lib/api-response";
 import { isDbDisabledMode } from "@/lib/runtime-mode";
 import crypto from "node:crypto";
+import { isEArchiveEnabled, requireFeature } from "@/lib/feature-flags";
 
 export async function POST(req: Request) {
   const auth = requireRole(["ADMIN", "CASHIER"]);
   if (auth.error) return auth.error;
+
+  const disabled = requireFeature(isEArchiveEnabled(), "e-Arşiv fatura entegrasyonu henüz aktif değil.");
+  if (disabled) return disabled;
 
   try {
     const { transactionNo, totalAmount, customerId } = await req.json();
